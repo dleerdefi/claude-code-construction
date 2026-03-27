@@ -1,0 +1,53 @@
+{
+  "id": "schedule-extractor-01",
+  "skill": "schedule-extractor",
+  "name": "Door schedule extraction",
+  "description": "Extract the door schedule from the architectural schedule sheet and output to Excel (Holabird Academy K-8 School, Baltimore MD)",
+  "inputs": {
+    "files": [
+      "test_docs/Holabird-Academy/01 - Drawings/Architectural & Structural/A-3.2 - DOOR SCHEDULE.pdf"
+    ],
+    "page": 1,
+    "user_prompt": "Extract the door schedule from the Holabird Academy door schedule sheet (A-3.2) and output to Excel"
+  },
+  "expected_behavior": [
+    "Locates the door schedule region on the sheet (not the window or finish schedule)",
+    "Correctly identifies column headers",
+    "Extracts all rows without missing entries or duplicating rows",
+    "Cell values match the drawing exactly (door marks, sizes, types)",
+    "Produces a valid .xlsx file that opens correctly",
+    "Writes a graph finding entry with correct metadata"
+  ],
+  "expected_outputs": {
+    "excel_file": true,
+    "graph_entry_type": "schedule_extracted",
+    "min_rows": 1,
+    "required_columns": [
+      "MARK"
+    ]
+  },
+  "ground_truth": "expected/door_schedule_ground_truth.csv",
+  "ground_truth_notes": "Manually transcribed from the drawing. Each row is one door. Merged cells expanded.",
+  "scoring": {
+    "completeness": {
+      "weight": 0.35,
+      "metric": "row_count_accuracy",
+      "description": "abs(extracted_rows - actual_rows) / actual_rows \u00e2\u2020\u2019 1.0 means perfect match"
+    },
+    "accuracy": {
+      "weight": 0.4,
+      "metric": "cell_value_accuracy",
+      "description": "Cells matching ground truth / total cells"
+    },
+    "format": {
+      "weight": 0.15,
+      "metric": "output_format_valid",
+      "description": "Valid xlsx, correct headers, data starts in correct row"
+    },
+    "graph": {
+      "weight": 0.1,
+      "metric": "graph_entry_written",
+      "description": "Finding written to agent_findings with correct type and source sheet"
+    }
+  }
+}

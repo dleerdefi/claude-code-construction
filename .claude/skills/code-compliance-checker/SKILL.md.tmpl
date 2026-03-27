@@ -1,0 +1,169 @@
+---
+name: code-compliance-checker
+description: Check construction drawings and specs against building codes including IBC, ADA, NFPA, and local/state amendments. Automatically determines project location from title block, then performs web search for applicable codes. Use when asked about code compliance, ADA accessibility, egress, fire ratings, or building code requirements. Triggers on 'code check', 'ADA', 'accessibility', 'egress', 'fire rating', 'code compliant', 'IBC', 'NFPA', or 'building code'.
+argument-hint: "<review_type: egress|ada|fire|full> [sheet_range]"
+---
+
+{{PARTIAL:shell-preamble}}
+
+
+# Code Compliance Checker
+
+Checks drawings and specifications against applicable building codes. Determines project location automatically, researches jurisdiction-specific requirements via web search, and systematically reviews drawings.
+
+## Project Context
+!`cat .construction/project_context.yaml 2>/dev/null || echo "No project context yet — will extract from title block"`
+
+## Workflow
+
+```
+Compliance Check Progress:
+- [ ] Step 1: Establish project location and occupancy
+- [ ] Step 2: Determine applicable codes
+- [ ] Step 3: Research jurisdiction-specific amendments
+- [ ] Step 4: Perform systematic code review
+- [ ] Step 5: Generate findings report
+- [ ] Step 6: Write graph entry
+```
+
+### Step 1: Establish Project Location and Occupancy
+
+**Do NOT ask the user** for project location if it can be read from documents.
+
+Get location from (in order):
+1. `.construction/project_context.yaml` if exists
+2. Title block on sheet G-0.01 or A-0.01 (project info sheet)
+3. Cover sheet of specs (Division 00)
+
+Extract:
+- City, State (determines jurisdiction)
+- Building occupancy type (e.g., E = Educational, B = Business, A-2 = Assembly)
+- Construction type (e.g., Type II-B, Type V-A)
+- Number of stories, building area
+- Sprinklered? (check fire protection drawings or spec Division 21)
+
+### Step 2: Determine Applicable Codes
+
+Base codes to check (read from `${CLAUDE_SKILL_DIR}/../../reference/ibc_egress_tables.yaml` and `${CLAUDE_SKILL_DIR}/../../reference/ada_requirements.yaml`):
+- **IBC** (International Building Code) — occupancy, construction type, egress, fire ratings
+- **ADA/ANSI A117.1** — accessibility requirements
+- **NFPA 101** (Life Safety Code) — egress, fire protection
+- **NFPA 13** — sprinkler requirements (if applicable)
+- **NEC/NFPA 70** — electrical (if checking electrical drawings)
+- **IMC/UMC** — mechanical code
+- **IPC/UPC** — plumbing code
+- **IECC/ASHRAE 90.1** — energy code
+
+### Step 3: Research Jurisdiction-Specific Amendments
+
+Use the WebSearch tool to find state and local code amendments. Construct searches from project location:
+
+**Search sequence** (execute all):
+1. WebSearch: `"{state}" building code adopted edition 2024 2025`
+2. WebSearch: `"{city}" "{state}" local building code amendments`
+3. WebSearch: `"{state}" accessibility requirements beyond ADA`
+4. WebSearch: `"{state}" energy code IECC ASHRAE adoption`
+
+**Then WebFetch official sources** found in search results:
+- WebFetch the jurisdiction's official code adoption page
+- WebFetch any amendment documents (PDF auto-extracted by WebFetch)
+
+**Domain priority** (trust these sources):
+- State legislature / administrative code sites (.gov)
+- ICC (iccsafe.org) adoption maps
+- State building official association sites
+- AHJ (Authority Having Jurisdiction) municipal sites
+
+**Do NOT trust**: Blog posts, contractor sites, or outdated secondary sources.
+Verify the edition year — many jurisdictions lag 1-3 code cycles behind current.
+
+**Common state-specific variations:**
+- California: CBC (California Building Code) has significant amendments
+- Massachusetts: MA Architectural Access Board (AAB) rules exceed ADA
+- Florida: Florida Building Code with hurricane provisions
+- New York City: NYC Building Code (not IBC-based)
+
+**If a jurisdiction code portal requires JavaScript rendering**, note the URL for the engineer to access directly. WebSearch handles most code lookups without a browser.
+
+### Step 4: Systematic Code Review
+
+Check these areas (based on user request or full review):
+
+**Egress Review** — reference `${CLAUDE_SKILL_DIR}/../../reference/ibc_egress_tables.yaml`:
+- [ ] Occupant load calculation (area ÷ occupant load factor per Table 1004.5)
+- [ ] Number of exits required (Table 1006.3.1)
+- [ ] Exit width: 0.2" per occupant (stairways) / 0.15" per occupant (other)
+- [ ] Travel distance to exit (Table 1017.2): 200' unsprinklered, 250' sprinklered
+- [ ] Dead-end corridor limit: 20' (50' if sprinklered, per some occupancies)
+- [ ] Common path of egress travel limits
+- [ ] Exit separation (1/2 diagonal or 1/3 if sprinklered)
+- [ ] Corridor width minimums (44" typical, 72" for educational)
+
+**ADA Accessibility Review** — reference `${CLAUDE_SKILL_DIR}/../../reference/ada_requirements.yaml`:
+- [ ] Accessible route: 36" min width, 60" passing spaces
+- [ ] Door clear width: 32" min
+- [ ] Door maneuvering clearances (pull side vs push side)
+- [ ] Ramp slopes: 1:12 max, landings every 30"
+- [ ] Restroom accessibility: turning radius, grab bars, fixture heights
+- [ ] Accessible parking count and dimensions
+- [ ] Signage: raised characters, Braille, mounting height
+
+**Fire Rating Review:**
+- [ ] Occupancy separation (Table 508.4)
+- [ ] Corridor walls (Table 1020.1)
+- [ ] Shaft enclosures (Section 713)
+- [ ] Opening protectives match wall ratings
+- [ ] Rated assemblies continuous from floor to deck above
+
+**For each finding**, note:
+- Code section reference (e.g., "IBC 2021 Section 1005.1")
+- What the code requires
+- What the drawings show
+- Whether it complies, and if not, the specific deficiency
+
+### Step 5: Generate Findings Report
+
+Output as both markdown and structured YAML:
+
+```yaml
+code_review:
+  project: "Dover High School"
+  location: "Dover, NH"
+  applicable_codes:
+    - "IBC 2021 (as amended by NH RSA 155-A)"
+    - "ADA/ANSI A117.1-2017"
+  findings:
+    - id: "CC-001"
+      area: "Egress"
+      sheet: "A-2.01"
+      code_ref: "IBC 2021 Section 1005.1"
+      requirement: "Corridor serving 60+ occupants must be 44\" minimum width"
+      observed: "Corridor at grid C-4 appears to be 42\" wide"
+      status: "NON-COMPLIANT"
+      severity: "HIGH"
+    - id: "CC-002"
+      area: "ADA"
+      sheet: "A-2.01"
+      code_ref: "ADA 404.2.4.1"
+      requirement: "Pull-side maneuvering clearance of 60\" at latch side"
+      observed: "Room 112 door has 54\" maneuvering clearance"
+      status: "NON-COMPLIANT"
+      severity: "MEDIUM"
+```
+
+### Step 6: Write Graph Entry
+
+```bash
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py \
+  --type "code_compliance_review" \
+  --title "IBC/ADA compliance review" \
+  --data '{"findings": 12, "non_compliant": 3, "codes_checked": ["IBC","ADA"]}'
+```
+
+## Important Caveats
+
+- Code compliance is ultimately the responsibility of the Architect of Record and the AHJ (Authority Having Jurisdiction)
+- Flag findings as "for review" — do not make definitive compliance determinations
+- Local amendments may modify or supersede IBC/ADA requirements
+- Always note the specific code edition and any local amendments applied
+- Some code requirements depend on conditions not visible on drawings (e.g., fire separation distances based on property line setbacks)

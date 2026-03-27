@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-code-compliance-checker"
+  short_description: "Check construction drawings and specs against building codes including IBC, ADA,..."
+  default_prompt: "Use code-compliance-checker for this task."
+policy:
+  allow_implicit_invocation: true

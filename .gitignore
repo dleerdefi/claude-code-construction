@@ -1,0 +1,58 @@
+# Dev skills (not production-ready)
+.claude/skills/_dev/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Eval results (generated, not tracked)
+evals/results/
+
+# Dev skill eval cases (not production)
+evals/cases/bulk-sheet-extraction/
+evals/cases/quantity-takeoff/
+evals/cases/qa-qc-auditor/
+evals/cases/rfi-drafter/
+
+# Eval cases for internal test projects (not shipped)
+evals/cases/*/case_*_cmurc.json
+evals/cases/*/case_*_ehrm.json
+evals/cases/*/case_*_ust.json
+evals/cases/*/case_*_sanibel.json
+evals/cases/*/case_*_steam.json
+evals/cases/*/case_*_uccs.json
+
+# Test documents — only Holabird-Academy included
+# Other test projects are for internal testing only at this time
+evals/test_docs/CMURC*/
+evals/test_docs/EHRM*/
+evals/test_docs/Replace*/
+evals/test_docs/SANIBEL*/
+evals/test_docs/Steam*/
+evals/test_docs/UCCS*/
+
+# Holabird large PDFs (users download via links in docs/RUNNING_EVALS.md)
+evals/test_docs/Holabird-Academy/**/*.pdf
+
+# Generated spec/sheet splits (created by skills at runtime)
+evals/test_docs/**/specs/
+evals/test_docs/**/sheets/
+
+# Project graph data (generated per-project at runtime)
+evals/test_docs/**/.construction/
+
+# Construction project data (generated per-project)
+.construction/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Browse daemon (not used by production skills)
+browse/

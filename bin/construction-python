@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# construction-python — Invoke Python from the construction-skills venv
+#
+# Usage: construction-python script.py [args...]
+#
+# Falls back to system python if venv not found.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VENV_DIR="$HOME/.construction-skills/venv"
+
+# Try venv Python (Unix then Windows)
+if [ -f "$VENV_DIR/bin/python" ]; then
+  exec "$VENV_DIR/bin/python" "$@"
+elif [ -f "$VENV_DIR/Scripts/python.exe" ]; then
+  exec "$VENV_DIR/Scripts/python.exe" "$@"
+fi
+
+# Fallback: read from config
+CONFIGURED=$("$SCRIPT_DIR/construction-config" get python_path 2>/dev/null)
+if [ -n "$CONFIGURED" ] && [ -f "$CONFIGURED" ]; then
+  exec "$CONFIGURED" "$@"
+fi
+
+# Last resort: system python
+if command -v python3 &>/dev/null; then
+  exec python3 "$@"
+elif command -v python &>/dev/null; then
+  exec python "$@"
+fi
+
+echo "ERROR: No Python found. Run ./setup to create the venv." >&2
+exit 1

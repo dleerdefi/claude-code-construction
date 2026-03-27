@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-drawing-conventions"
+  short_description: "Construction drawing domain knowledge — sheet numbering, symbols, abbreviation..."
+  default_prompt: "Use drawing-conventions for this task."
+policy:
+  allow_implicit_invocation: true

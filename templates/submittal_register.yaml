@@ -1,0 +1,18 @@
+# Submittal register template
+# One entry per required submittal, organized by spec section
+
+project: ""
+generated: ""
+total_submittals: 0
+
+submittals:
+  - submittal_number: ""        # e.g., "08-001" (Division-Sequence)
+    spec_section: ""            # e.g., "08 71 00"
+    section_title: ""           # e.g., "Door Hardware"
+    description: ""             # e.g., "Hardware schedule with complete sets"
+    type: ""                    # Product Data, Shop Drawings, Samples, Certificates, Test Reports, Warranties, O&M
+    action: ""                  # Action (requires approval) or Informational (for record)
+    responsible_party: ""       # Subcontractor/supplier responsible
+    spec_paragraph: ""          # e.g., "1.5.A.1"
+    priority: ""                # Critical path, Standard, Closeout
+    notes: ""

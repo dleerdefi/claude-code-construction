@@ -1,0 +1,40 @@
+# Ground truth for sheet-index-builder eval
+# Source: Holabird Academy individual sheet PDFs
+# NOTE: Scale and revision need manual verification from title blocks
+
+sheets:
+- number: A-0.5
+  title: OVERALL PLAN FIRST FLOOR
+  discipline: Architectural
+  scale: varies
+  revision: ''
+- number: A-1.1
+  title: PARTIAL FIRST FLOOR PLAN AREA A
+  discipline: Architectural
+  scale: varies
+  revision: ''
+- number: A-1.2
+  title: PARTIAL FIRST FLOOR PLAN AREA B
+  discipline: Architectural
+  scale: varies
+  revision: ''
+- number: A-4.1
+  title: BUILDING SECTIONS
+  discipline: Architectural
+  scale: varies
+  revision: ''
+- number: A-5.1
+  title: ENLARGED STAIR PLANS AND SECTIONS
+  discipline: Architectural
+  scale: varies
+  revision: ''
+- number: S-1.1H
+  title: FOUNDATION AND SLAB ON GRADE PLAN AREA A
+  discipline: Structural
+  scale: varies
+  revision: ''
+- number: S-1.5H
+  title: 2ND FLOOR AND LOW ROOF FRAMING PLAN AREA B
+  discipline: Structural
+  scale: varies
+  revision: ''

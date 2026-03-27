@@ -1,0 +1,105 @@
+# CSI MasterFormat Divisions
+# Reference for classification of construction work by trade/scope
+
+divisions:
+  "00":
+    name: "Procurement and Contracting Requirements"
+    scope: "Bidding, contracts, bonds, insurance"
+    typical_subs: ["Owner/GC"]
+  "01":
+    name: "General Requirements"
+    scope: "Summary, pricing, schedules, submittals, quality, temporary facilities, closeout"
+    typical_subs: ["GC"]
+    notes: "Applies to ALL work — read first"
+  "02":
+    name: "Existing Conditions"
+    scope: "Demolition, hazmat abatement, subsurface investigation"
+    typical_subs: ["Demo contractor", "Environmental"]
+  "03":
+    name: "Concrete"
+    scope: "Cast-in-place, precast, reinforcement, formwork"
+    typical_subs: ["Concrete contractor"]
+  "04":
+    name: "Masonry"
+    scope: "Unit masonry (CMU, brick), stone, mortar, grout"
+    typical_subs: ["Mason"]
+  "05":
+    name: "Metals"
+    scope: "Structural steel, misc metals, stairs, railings"
+    typical_subs: ["Steel fabricator/erector", "Misc metals"]
+  "06":
+    name: "Wood, Plastics, and Composites"
+    scope: "Rough carpentry, finish carpentry, millwork, FRP"
+    typical_subs: ["Framing contractor", "Millwork supplier"]
+  "07":
+    name: "Thermal and Moisture Protection"
+    scope: "Waterproofing, insulation, roofing, sealants, fireproofing"
+    typical_subs: ["Roofing contractor", "Insulation contractor", "Waterproofing"]
+  "08":
+    name: "Openings"
+    scope: "Doors, frames, hardware, windows, curtain walls, skylights, glazing"
+    typical_subs: ["Door/hardware supplier", "Glazing contractor", "Curtain wall"]
+  "09":
+    name: "Finishes"
+    scope: "Plaster, gypsum board, tile, flooring, painting, coatings"
+    typical_subs: ["Drywall", "Flooring", "Painter", "Tile setter"]
+  "10":
+    name: "Specialties"
+    scope: "Signage, lockers, toilet partitions, fire extinguishers"
+    typical_subs: ["Specialties supplier"]
+  "11":
+    name: "Equipment"
+    scope: "Food service, lab equipment, industrial equipment"
+    typical_subs: ["Equipment vendor"]
+  "12":
+    name: "Furnishings"
+    scope: "Casework, window treatments, seating"
+    typical_subs: ["Casework fabricator", "Furniture vendor"]
+  "13":
+    name: "Special Construction"
+    scope: "Swimming pools, clean rooms, radiation protection"
+    typical_subs: ["Specialty contractor"]
+  "14":
+    name: "Conveying Equipment"
+    scope: "Elevators, escalators, dumbwaiters"
+    typical_subs: ["Elevator company"]
+  "21":
+    name: "Fire Suppression"
+    scope: "Sprinklers, standpipes, fire pumps"
+    typical_subs: ["Fire protection contractor"]
+  "22":
+    name: "Plumbing"
+    scope: "Piping, fixtures, water heaters, drainage"
+    typical_subs: ["Plumbing contractor"]
+  "23":
+    name: "Heating, Ventilating, and Air Conditioning"
+    scope: "HVAC equipment, ductwork, controls, test and balance"
+    typical_subs: ["Mechanical contractor", "Controls contractor", "TAB"]
+  "25":
+    name: "Integrated Automation"
+    scope: "Building automation systems (BAS)"
+    typical_subs: ["Controls contractor"]
+  "26":
+    name: "Electrical"
+    scope: "Power distribution, lighting, wiring, generators"
+    typical_subs: ["Electrical contractor"]
+  "27":
+    name: "Communications"
+    scope: "Data/voice cabling, AV systems, paging"
+    typical_subs: ["Low-voltage contractor"]
+  "28":
+    name: "Electronic Safety and Security"
+    scope: "Fire alarm, access control, CCTV, intrusion detection"
+    typical_subs: ["Fire alarm contractor", "Security contractor"]
+  "31":
+    name: "Earthwork"
+    scope: "Excavation, grading, fill, soil stabilization"
+    typical_subs: ["Sitework/excavation contractor"]
+  "32":
+    name: "Exterior Improvements"
+    scope: "Paving, curbs, sidewalks, fencing, landscaping"
+    typical_subs: ["Paving contractor", "Landscaper"]
+  "33":
+    name: "Utilities"
+    scope: "Water, sewer, storm drainage, gas"
+    typical_subs: ["Utility contractor"]

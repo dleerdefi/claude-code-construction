@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# construction-config — Key-value config for construction skills
+#
+# Usage:
+#   construction-config get <key>
+#   construction-config set <key> <value>
+#   construction-config list
+
+CONFIG_DIR="$HOME/.construction-skills"
+CONFIG_FILE="$CONFIG_DIR/config"
+
+ensure_config() {
+  mkdir -p "$CONFIG_DIR"
+  [ -f "$CONFIG_FILE" ] || touch "$CONFIG_FILE"
+}
+
+cmd_get() {
+  local key="$1"
+  ensure_config
+  grep -E "^${key}=" "$CONFIG_FILE" 2>/dev/null | head -1 | cut -d'=' -f2-
+}
+
+cmd_set() {
+  local key="$1"
+  local value="$2"
+  ensure_config
+
+  # Remove existing key if present
+  if grep -qE "^${key}=" "$CONFIG_FILE" 2>/dev/null; then
+    local tmp="$CONFIG_FILE.tmp"
+    grep -vE "^${key}=" "$CONFIG_FILE" > "$tmp" || true
+    mv "$tmp" "$CONFIG_FILE"
+  fi
+
+  # Append new value
+  echo "${key}=${value}" >> "$CONFIG_FILE"
+  echo "Set ${key}=${value}"
+}
+
+cmd_list() {
+  ensure_config
+  if [ -s "$CONFIG_FILE" ]; then
+    cat "$CONFIG_FILE"
+  else
+    echo "(no config set)"
+  fi
+}
+
+# --- Main ---
+if [ $# -lt 1 ]; then
+  echo "Usage: construction-config <get|set|list> [key] [value]"
+  exit 1
+fi
+
+case "$1" in
+  get)
+    [ $# -lt 2 ] && { echo "Usage: construction-config get <key>"; exit 1; }
+    cmd_get "$2"
+    ;;
+  set)
+    [ $# -lt 3 ] && { echo "Usage: construction-config set <key> <value>"; exit 1; }
+    cmd_set "$2" "$3"
+    ;;
+  list)
+    cmd_list
+    ;;
+  *)
+    echo "Unknown command: $1"
+    echo "Usage: construction-config <get|set|list> [key] [value]"
+    exit 1
+    ;;
+esac

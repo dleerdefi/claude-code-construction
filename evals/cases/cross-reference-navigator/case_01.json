@@ -1,0 +1,49 @@
+{
+  "id": "cross-reference-navigator-01",
+  "skill": "cross-reference-navigator",
+  "name": "Follow 5 detail callouts from floor plan",
+  "description": "Resolve 5 detail callout references from a floor plan to their target detail sheets (Holabird Academy K-8 School, Baltimore MD)",
+  "inputs": {
+    "files": [
+      "test_docs/Holabird-Academy/01 - Drawings/Architectural & Structural/A-1.1 - PARTIAL FIRST FLOOR PLAN AREA A.pdf",
+      "test_docs/Holabird-Academy/01 - Drawings/Architectural & Structural/A-5.1 - ENLARGED STAIR PLANS AND SECTIONS.pdf",
+      "test_docs/Holabird-Academy/01 - Drawings/Architectural & Structural/A-5.2 - ENLARGED TOILET ROOM PLANS.pdf"
+    ],
+    "user_prompt": "Follow the first 5 detail callouts on sheet A-2.01 and show me what they reference"
+  },
+  "expected_behavior": [
+    "Identifies detail callout symbols on the floor plan",
+    "Parses each callout to extract detail number and target sheet",
+    "Looks up target sheets in the sheet index",
+    "Rasterizes target sheets and locates the specific details",
+    "Presents each referenced detail to the user"
+  ],
+  "expected_outputs": {
+    "references_resolved": 5,
+    "graph_entry_type": "cross_reference_map"
+  },
+  "ground_truth": "expected/cross_references_ground_truth.json",
+  "ground_truth_notes": "Manually traced each callout: source location, detail number, target sheet, target detail",
+  "scoring": {
+    "detection": {
+      "weight": 0.3,
+      "metric": "callouts_detected",
+      "description": "Number of callouts correctly identified / total actual callouts"
+    },
+    "resolution": {
+      "weight": 0.4,
+      "metric": "target_accuracy",
+      "description": "Percentage of callouts resolved to correct target sheet and detail number"
+    },
+    "presentation": {
+      "weight": 0.2,
+      "metric": "human_rating",
+      "description": "Human rates whether the correct detail content was shown 1-5"
+    },
+    "graph": {
+      "weight": 0.1,
+      "metric": "graph_entry_written",
+      "description": "Reference map written to findings"
+    }
+  }
+}

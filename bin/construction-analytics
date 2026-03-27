@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# construction-analytics — Local usage summary for construction skills
+#
+# Usage:
+#   construction-analytics              Full summary
+#   construction-analytics --top        Top 10 skills by usage
+#   construction-analytics --recent N   Last N days (default 7)
+#   construction-analytics --json       Raw JSON output
+
+ANALYTICS_FILE="$HOME/.construction-skills/analytics/skill-usage.jsonl"
+SESSIONS_DIR="$HOME/.construction-skills/sessions"
+
+if [ ! -f "$ANALYTICS_FILE" ]; then
+  echo "No usage data found at $ANALYTICS_FILE"
+  echo "Usage data is recorded when construction skills are invoked in Claude Code."
+  exit 0
+fi
+
+# --- Parse args ---
+MODE="full"
+RECENT_DAYS=7
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --top)    MODE="top"; shift ;;
+    --recent) MODE="recent"; RECENT_DAYS="${2:-7}"; shift 2 ;;
+    --json)   MODE="json"; shift ;;
+    --help|-h)
+      echo "Usage: construction-analytics [--top] [--recent N] [--json]"
+      exit 0
+      ;;
+    *) shift ;;
+  esac
+done
+
+# --- JSON mode: dump raw data ---
+if [ "$MODE" = "json" ]; then
+  cat "$ANALYTICS_FILE"
+  exit 0
+fi
+
+# --- Count total lines ---
+TOTAL=$(wc -l < "$ANALYTICS_FILE" | tr -d ' ')
+
+# --- Active sessions ---
+ACTIVE_SESSIONS=0
+if [ -d "$SESSIONS_DIR" ]; then
+  ACTIVE_SESSIONS=$(find "$SESSIONS_DIR" -mmin -120 -type f 2>/dev/null | wc -l | tr -d ' ')
+fi
+
+# --- Top skills ---
+echo "=== Construction Skills Usage ==="
+echo ""
+
+# Extract date range
+FIRST_DATE=$(head -1 "$ANALYTICS_FILE" | grep -o '"ts":"[^"]*"' | head -1 | sed 's/"ts":"//;s/T.*//' || echo "unknown")
+LAST_DATE=$(tail -1 "$ANALYTICS_FILE" | grep -o '"ts":"[^"]*"' | head -1 | sed 's/"ts":"//;s/T.*//' || echo "unknown")
+echo "Period: $FIRST_DATE to $LAST_DATE"
+echo "Total invocations: $TOTAL"
+
+# Count unique skills
+UNIQUE_SKILLS=$(grep -o '"skill":"[^"]*"' "$ANALYTICS_FILE" | sort -u | wc -l | tr -d ' ')
+echo "Unique skills used: $UNIQUE_SKILLS"
+echo "Active sessions: $ACTIVE_SESSIONS"
+echo ""
+
+# --- Top skills table ---
+echo "Top skills:"
+grep -o '"skill":"[^"]*"' "$ANALYTICS_FILE" \
+  | sed 's/"skill":"//;s/"//' \
+  | sort | uniq -c | sort -rn | head -10 \
+  | while read count name; do
+    pct=$(( count * 100 / TOTAL ))
+    printf "  %-35s %4d (%d%%)\n" "$name" "$count" "$pct"
+  done
+
+if [ "$MODE" = "top" ]; then
+  exit 0
+fi
+
+echo ""
+
+# --- Recent daily breakdown ---
+echo "By day (last $RECENT_DAYS):"
+
+# Get max count for bar scaling
+MAX_DAY_COUNT=$(grep -o '"ts":"[^"]*"' "$ANALYTICS_FILE" \
+  | sed 's/"ts":"//;s/T.*//' \
+  | sort | uniq -c | sort -rn | head -1 | awk '{print $1}')
+[ -z "$MAX_DAY_COUNT" ] && MAX_DAY_COUNT=1
+
+grep -o '"ts":"[^"]*"' "$ANALYTICS_FILE" \
+  | sed 's/"ts":"//;s/T.*//' \
+  | sort | uniq -c | sort -rn | head -"$RECENT_DAYS" \
+  | sort -k2 \
+  | while read count date; do
+    # Scale bar to max 30 chars
+    bar_len=$(( count * 30 / MAX_DAY_COUNT ))
+    [ "$bar_len" -lt 1 ] && bar_len=1
+    bar=$(printf '%*s' "$bar_len" '' | tr ' ' '█')
+    # Format date as Mon DD
+    formatted=$(date -d "$date" '+%b %d' 2>/dev/null || echo "$date")
+    printf "  %s: %s %d\n" "$formatted" "$bar" "$count"
+  done
+
+echo ""
+
+# --- By repo ---
+REPO_COUNT=$(grep -o '"repo":"[^"]*"' "$ANALYTICS_FILE" | sort -u | wc -l | tr -d ' ')
+if [ "$REPO_COUNT" -gt 1 ]; then
+  echo "By repo:"
+  grep -o '"repo":"[^"]*"' "$ANALYTICS_FILE" \
+    | sed 's/"repo":"//;s/"//' \
+    | sort | uniq -c | sort -rn | head -5 \
+    | while read count name; do
+      printf "  %-35s %4d\n" "$name" "$count"
+    done
+  echo ""
+fi

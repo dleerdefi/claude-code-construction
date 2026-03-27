@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-drawing-reader"
+  short_description: "Read, interpret, and extract information from a specific construction drawing sh..."
+  default_prompt: "Use drawing-reader for this task."
+policy:
+  allow_implicit_invocation: true

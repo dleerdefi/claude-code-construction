@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Symlink this repo to ~/.claude/skills/construction for live development.
+# Changes to SKILL.md files are immediately reflected in Claude Code.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TARGET="$HOME/.claude/skills/construction"
+
+mkdir -p "$HOME/.claude/skills"
+
+if [ -L "$TARGET" ]; then
+  rm "$TARGET"
+  echo "Removed existing symlink."
+elif [ -d "$TARGET" ]; then
+  echo "ERROR: $TARGET exists and is not a symlink."
+  echo "Remove it manually before running dev-setup."
+  exit 1
+fi
+
+ln -sf "$SCRIPT_DIR" "$TARGET"
+echo "Symlinked: $TARGET -> $SCRIPT_DIR"
+echo "Live editing enabled. Changes to .claude/skills/*/SKILL.md are reflected immediately."

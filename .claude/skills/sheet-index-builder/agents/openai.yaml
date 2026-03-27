@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-sheet-index-builder"
+  short_description: "Build or update a navigable index of construction drawing sheets using vision-ba..."
+  default_prompt: "Use sheet-index-builder for this task."
+policy:
+  allow_implicit_invocation: true

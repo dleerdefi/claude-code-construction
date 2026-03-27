@@ -1,0 +1,19 @@
+# Sheet index template — populated by sheet-index-builder skill
+# One entry per drawing sheet
+
+project: ""
+generated: ""                   # ISO 8601 timestamp
+sheet_count: 0
+
+sheets:
+  - number: ""                  # e.g., "A-2.01"
+    title: ""                   # e.g., "FIRST FLOOR PLAN"
+    discipline: ""              # e.g., "Architectural"
+    discipline_prefix: ""       # e.g., "A"
+    scale: ""                   # e.g., '1/4" = 1''-0"'
+    revision: ""                # Current revision number
+    revision_date: ""           # Date of current revision
+    file_path: ""               # Relative path to PDF
+    page: 1                     # Page number within PDF (1-based)
+    bound_set: false            # true if part of a multi-page PDF
+    notes: ""                   # Any additional context

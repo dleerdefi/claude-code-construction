@@ -1,0 +1,49 @@
+---
+name: drawing-reader
+description: Read, interpret, and extract information from a specific construction drawing sheet. Use when asked to read a drawing, find information on a sheet, or analyze drawing content. Triggers on requests involving specific sheet numbers or drawing analysis tasks.
+argument-hint: "<sheet_number> [area_description]"
+---
+
+!`mkdir -p ~/.construction-skills/analytics 2>/dev/null; echo "{\"skill\":\"drawing-reader\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"repo\":\"$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")\"}" >> ~/.construction-skills/analytics/skill-usage.jsonl 2>/dev/null || true`
+
+
+
+# Drawing Reader
+
+Task skill for accessing and extracting information from construction drawing sheets.
+
+## How to Access a Drawing
+
+### With AgentCM
+Read structured data from `.construction/extractions/{sheet_number}/`:
+- `ocr_output.json` — all text with bounding boxes
+- `annotations_bluebeam.json` — engineer's markups
+- `viewports.json` — scale zones on the sheet
+- `links.json` — resolved cross-references
+
+### Without AgentCM (Vision)
+1. Look up the sheet in `.construction/index/sheet_index.yaml`
+2. Rasterize: `${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py {pdf_path} {page} --dpi 200 --output sheet.png`
+3. Use vision on the full-page image for orientation
+4. Crop specific areas for detail: `${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/crop_region.py sheet.png --box x1,y1,x2,y2 --output detail.png`
+
+## Reading Workflow
+
+1. **Identify the sheet** — Determine sheet number and locate the file/page
+2. **Read title block** — Confirm sheet title, scale, revision, date
+3. **Orient** — Identify north arrow, grid lines, drawing boundaries
+4. **Scan full page** — Get high-level understanding of what's shown
+5. **Target extraction** — Crop and zoom into the specific area of interest
+6. **Cross-reference** — Follow any detail callouts, section cuts, or spec references to related sheets
+
+## Extraction Patterns
+
+**Finding a specific room or area**: Scan floor plan for room tags, locate by grid reference or room number.
+
+**Reading a dimension**: Crop the dimension string area, read witness lines and values. Always confirm the sheet scale first.
+
+**Following a detail callout**: Read the detail bubble (number/sheet), navigate to the referenced sheet and detail number.
+
+**Reading a schedule**: Locate the schedule table on the sheet, use `schedule-extractor` skill for structured extraction.
+
+**Checking a note**: Find the note number in the drawing, then locate the corresponding numbered note in the key notes area (usually right side or bottom of sheet).

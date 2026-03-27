@@ -1,0 +1,41 @@
+# Project context — populated during onboarding
+# Source: title block, cover sheet, or user input
+
+project:
+  name: ""
+  number: ""
+  location:
+    address: ""
+    city: ""
+    state: ""
+    zip: ""
+  owner: ""
+  architect: ""
+  structural_engineer: ""
+  mep_engineer: ""
+  general_contractor: ""
+  construction_manager: ""
+
+building:
+  occupancy_type: ""            # IBC occupancy: A-1, A-2, B, E, I-2, M, R-1, S-1, etc.
+  construction_type: ""         # IBC type: I-A, II-B, V-A, etc.
+  stories: null
+  area_sf: null
+  sprinklered: null             # true / false / unknown
+  building_use: ""              # e.g., "K-12 School Addition and Renovation"
+
+codes:
+  building_code: ""             # e.g., "IBC 2021"
+  state_amendments: ""          # e.g., "NH State Building Code RSA 155-A"
+  energy_code: ""               # e.g., "IECC 2021"
+  accessibility: ""             # e.g., "ADA / ANSI A117.1-2017"
+
+documents:
+  drawing_count: null
+  spec_sections: null
+  disciplines: []               # e.g., [A, S, M, E, P, FP, C]
+
+dates:
+  bid_date: ""
+  construction_start: ""
+  substantial_completion: ""

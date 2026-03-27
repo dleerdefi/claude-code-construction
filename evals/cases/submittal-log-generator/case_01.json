@@ -1,0 +1,56 @@
+{
+  "id": "submittal-log-generator-01",
+  "skill": "submittal-log-generator",
+  "name": "Full project manual submittal extraction",
+  "description": "Extract all submittal requirements from a bound project manual and generate Excel register (Holabird Academy K-8 School, Baltimore MD)",
+  "inputs": {
+    "files": [
+      "test_docs/Holabird-Academy/02 - Specifications/Holabird-Bid-Specs-Vol-1.pdf"
+    ],
+    "user_prompt": "Create a complete submittal register from the Holabird Academy project specifications"
+  },
+  "expected_behavior": [
+    "Locates and parses the table of contents to identify spec sections",
+    "Creates a state file and processes sections sequentially",
+    "Identifies submittal paragraphs in Part 1 of each section",
+    "Classifies each submittal by type (Product Data, Shop Drawings, Samples, etc.)",
+    "Assigns responsible parties by division",
+    "Produces a valid Excel register with all required columns",
+    "Writes a graph finding with total counts"
+  ],
+  "expected_outputs": {
+    "excel_file": true,
+    "state_file": ".construction/submittal_extraction_state.yaml",
+    "graph_entry_type": "submittal_log_generated",
+    "min_submittals": 20
+  },
+  "ground_truth": "expected/submittal_log_ground_truth.csv",
+  "ground_truth_notes": "Manually extracted from each spec section. Columns: section_number, description, type.",
+  "scoring": {
+    "section_coverage": {
+      "weight": 0.25,
+      "metric": "sections_with_submittals_found",
+      "description": "Percentage of spec sections with submittals that were correctly identified"
+    },
+    "item_recall": {
+      "weight": 0.3,
+      "metric": "submittal_item_recall",
+      "description": "Percentage of actual submittal items captured"
+    },
+    "type_accuracy": {
+      "weight": 0.2,
+      "metric": "type_classification_accuracy",
+      "description": "Percentage of items correctly classified by type"
+    },
+    "format": {
+      "weight": 0.15,
+      "metric": "excel_validity",
+      "description": "Valid xlsx with correct columns, auto-numbered submittals, summary tab"
+    },
+    "resumability": {
+      "weight": 0.1,
+      "metric": "resume_test",
+      "description": "Resumes correctly after simulated interruption"
+    }
+  }
+}

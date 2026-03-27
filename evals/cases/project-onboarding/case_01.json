@@ -1,0 +1,55 @@
+{
+  "id": "project-onboarding-01",
+  "skill": "project-onboarding",
+  "name": "Full project folder onboarding",
+  "description": "Index and classify a complete project folder with drawings, specs, RFIs, and submittals (Holabird Academy K-8 School, Baltimore MD)",
+  "inputs": {
+    "files": [
+      "test_docs/Holabird-Academy/"
+    ],
+    "user_prompt": "Set up this construction project \u00e2\u20ac\u201d index all files and tell me what we have"
+  },
+  "expected_behavior": [
+    "Detects presence or absence of .construction/ directory",
+    "Reads project name, number, and location from title block",
+    "Walks directory tree and inventories all files",
+    "Correctly classifies document types by folder name and filename patterns",
+    "Identifies drawing disciplines from sheet prefixes",
+    "Triggers sheet-index-builder for drawing files",
+    "Reports a coherent summary to the user",
+    "Writes project_context.yaml and graph entry"
+  ],
+  "expected_outputs": {
+    "project_context": ".construction/project_context.yaml",
+    "graph_entry_type": "project_onboarding"
+  },
+  "ground_truth": "expected/file_classification_ground_truth.csv",
+  "ground_truth_notes": "Manually classified each file: path, expected_document_type, expected_discipline",
+  "scoring": {
+    "classification_accuracy": {
+      "weight": 0.35,
+      "metric": "document_type_accuracy",
+      "description": "Percentage of files correctly classified by document type"
+    },
+    "discipline_accuracy": {
+      "weight": 0.2,
+      "metric": "discipline_detection_accuracy",
+      "description": "Percentage of drawings correctly assigned to a discipline"
+    },
+    "project_context": {
+      "weight": 0.2,
+      "metric": "context_fields_populated",
+      "description": "Percentage of project_context.yaml fields correctly filled"
+    },
+    "summary_quality": {
+      "weight": 0.15,
+      "metric": "human_rating",
+      "description": "Human rates summary usefulness and accuracy 1-5"
+    },
+    "graph": {
+      "weight": 0.1,
+      "metric": "graph_entry_written",
+      "description": "Finding written with correct metadata"
+    }
+  }
+}

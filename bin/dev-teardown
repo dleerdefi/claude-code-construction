@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Remove the development symlink created by dev-setup.
+
+TARGET="$HOME/.claude/skills/construction"
+
+if [ -L "$TARGET" ]; then
+  rm "$TARGET"
+  echo "Removed symlink: $TARGET"
+  echo "Development mode disabled."
+elif [ -d "$TARGET" ]; then
+  echo "$TARGET exists but is not a symlink (may be a real install)."
+  echo "Not removing. Use 'rm -rf $TARGET' to remove manually."
+else
+  echo "No symlink found at $TARGET. Nothing to do."
+fi

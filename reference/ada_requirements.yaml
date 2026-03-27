@@ -1,0 +1,101 @@
+# ADA / ANSI A117.1 Accessibility Requirements
+# Quick reference for common checks — not a substitute for reading the full standard
+
+accessible_route:
+  min_width: "36 inches"
+  passing_width: "60 inches (where two wheelchairs must pass)"
+  max_slope: "1:20 (5%)"
+  max_cross_slope: "1:48 (2%)"
+  surface: "Firm, stable, and slip-resistant"
+  changes_in_level:
+    quarter_inch: "Vertical, no treatment required"
+    half_inch: "Beveled 1:2 max"
+    over_half_inch: "Ramp or elevator required"
+
+ramps:
+  max_slope: "1:12 (8.33%)"
+  max_rise_per_run: "30 inches"
+  min_width: "36 inches between handrails"
+  landings:
+    top_and_bottom: "60 inches min length"
+    direction_change: "60 x 60 inches min"
+  handrails:
+    height: "34 to 38 inches"
+    extensions: "12 inches beyond top and bottom"
+    gripping_surface: "1.25 to 2 inch diameter"
+  edge_protection: "Required — curb, wall, or rail"
+
+doors:
+  clear_width: "32 inches min (measured with door open 90°)"
+  max_force: "5 lbs (interior), fire doors per code"
+  closing_speed: "5 seconds min from 90° to 12°"
+  threshold: "1/2 inch max (1/4 inch for sliding doors)"
+  hardware: "Operable with one hand, no tight grasping, pinching, or twisting"
+  maneuvering_clearances:
+    pull_side_front: "60 inches depth, 18 inches latch side"
+    push_side_front: "48 inches depth (if closer + latch)"
+    pull_side_latch: "54 inches if 24 inch latch approach"
+    push_side_latch: "42 inches if 24 inch latch approach"
+  vision_panel: "43 inches max bottom of glazing (if vision panel present)"
+
+restrooms:
+  turning_space: "60 inch diameter circle or T-shaped"
+  water_closet:
+    side_wall_clearance: "18 inches to center line"
+    opposite_wall_clearance: "60 inches from side wall"
+    seat_height: "17 to 19 inches"
+    flush_controls: "Operable with one hand"
+  grab_bars:
+    side_wall: "42 inches long, 12 inches max from back wall"
+    rear_wall: "36 inches long, centered on water closet"
+    height: "33 to 36 inches AFF"
+    diameter: "1.25 to 2 inches"
+  lavatory:
+    rim_height: "34 inches max"
+    knee_clearance: "27 inches min at 8 inches back"
+    toe_clearance: "9 inches high, 6 inches deep"
+    faucets: "Operable with one hand, no tight grasping"
+  mirror: "40 inches max to bottom of reflective surface"
+
+parking:
+  total_spaces_required:
+    "1-25": 1
+    "26-50": 2
+    "51-75": 3
+    "76-100": 4
+    "101-150": 5
+    "151-200": 6
+    "201-300": 7
+    "301-400": 8
+    "401-500": 9
+    "501-1000": "2% of total"
+    "over_1000": "20 plus 1 per 100 over 1000"
+  van_accessible: "1 per 6 accessible spaces (or fraction)"
+  car_space_width: "96 inches min"
+  van_space_width: "132 inches min (or 96 with 96 inch aisle)"
+  access_aisle: "60 inches min (96 for van)"
+  signage: "60 inches min height, ISA symbol"
+
+signage:
+  raised_characters: "Required on permanent room signs"
+  braille: "Required below raised text on room signs"
+  mounting_height: "48 to 60 inches AFF to baseline of lowest line"
+  mounting_location: "Latch side of door, 18 inches min from door"
+  finish: "Non-glare, contrast with background"
+
+elevators:
+  car_size_min: "54 x 80 inches (for 2000 lb)"
+  door_width: "36 inches min"
+  door_timing: "Minimum 3 seconds (based on 1.5 ft/sec approach)"
+  controls: "54 inches max (side approach) or 48 inches max (front approach)"
+  hall_signals: "Audible and visible"
+
+drinking_fountains:
+  hi_lo_pair: "One at 36 inches max spout height, one at 38-43 inches (standing)"
+  knee_clearance: "27 inches min"
+  approach: "Forward approach, centered"
+
+protruding_objects:
+  max_projection: "4 inches into circulation path"
+  detection_range: "27 to 80 inches AFF (cane-detectable below 27)"
+  min_passage_width: "Maintain 36 inches min"

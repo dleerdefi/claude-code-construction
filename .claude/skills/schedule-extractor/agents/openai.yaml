@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-schedule-extractor"
+  short_description: "Extract structured tabular data from schedules found in construction drawings or..."
+  default_prompt: "Use schedule-extractor for this task."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,240 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Construction Skills — Setup Script
+# Registers skills with Claude Code and installs dependencies.
+#
+# Usage:
+#   ./setup                    Install to project .claude/skills/ (default)
+#   ./setup --global           Install to ~/.claude/skills/
+#   ./setup --with-browser     Also build the browser daemon (requires Bun)
+#   ./setup --dev              Symlink for live development
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SKILLS_SOURCE="$SCRIPT_DIR/.claude/skills"
+
+# --- Parse flags ---
+INSTALL_MODE="project"
+WITH_BROWSER=false
+DEV_MODE=false
+
+for arg in "$@"; do
+  case $arg in
+    --global)  INSTALL_MODE="global" ;;
+    --project) INSTALL_MODE="project" ;;
+    --with-browser) WITH_BROWSER=true ;;
+    --dev)     DEV_MODE=true; INSTALL_MODE="global" ;;
+    --help|-h)
+      echo "Usage: ./setup [--global|--project] [--with-browser] [--dev]"
+      echo ""
+      echo "  --project        Install to ./.claude/skills/construction (default)"
+      echo "  --global         Install to ~/.claude/skills/construction"
+      echo "  --with-browser   Build headless browser daemon (requires Bun)"
+      echo "  --dev            Symlink for live development (implies --global)"
+      echo ""
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $arg"
+      exit 1
+      ;;
+  esac
+done
+
+# --- Determine target ---
+if [ "$INSTALL_MODE" = "global" ]; then
+  TARGET_DIR="$HOME/.claude/skills/construction"
+else
+  TARGET_DIR="$(pwd)/.claude/skills/construction"
+fi
+
+echo "=== Construction Skills Setup ==="
+echo ""
+
+# --- Step 1: Install Python dependencies ---
+# --- Step 0: Initialize construction-skills home ---
+echo "[0/5] Initializing ~/.construction-skills/..."
+mkdir -p "$HOME/.construction-skills/sessions"
+mkdir -p "$HOME/.construction-skills/analytics"
+
+# Make bin scripts executable
+chmod +x "$SCRIPT_DIR/bin/"* 2>/dev/null || true
+
+# --- Step 1: Create venv and install Python dependencies ---
+VENV_DIR="$HOME/.construction-skills/venv"
+echo "[1/5] Setting up Python virtual environment..."
+
+# Find Python
+PYTHON_CMD=""
+if command -v python3 &>/dev/null; then
+  PYTHON_CMD="python3"
+elif command -v python &>/dev/null; then
+  PYTHON_CMD="python"
+fi
+
+if [ -z "$PYTHON_CMD" ]; then
+  echo "      ERROR: Python not found. Install Python 3.10+ and re-run."
+  exit 1
+fi
+
+# Create venv if it doesn't exist or is broken
+if [ ! -f "$VENV_DIR/bin/python" ] && [ ! -f "$VENV_DIR/Scripts/python.exe" ]; then
+  echo "      Creating venv at $VENV_DIR..."
+  $PYTHON_CMD -m venv "$VENV_DIR"
+fi
+
+# Determine pip path (Unix vs Windows)
+if [ -f "$VENV_DIR/bin/pip" ]; then
+  VENV_PIP="$VENV_DIR/bin/pip"
+  VENV_PYTHON="$VENV_DIR/bin/python"
+elif [ -f "$VENV_DIR/Scripts/pip.exe" ]; then
+  VENV_PIP="$VENV_DIR/Scripts/pip.exe"
+  VENV_PYTHON="$VENV_DIR/Scripts/python.exe"
+else
+  echo "      ERROR: venv creation failed. Try: $PYTHON_CMD -m venv $VENV_DIR"
+  exit 1
+fi
+
+echo "      Installing dependencies into venv..."
+"$VENV_PIP" install -r "$SCRIPT_DIR/requirements.txt" --quiet --upgrade
+echo "      Python venv ready at: $VENV_DIR"
+echo "      Python: $VENV_PYTHON"
+
+# Write the venv python path to config so skills can find it
+"$SCRIPT_DIR/bin/construction-config" set python_path "$VENV_PYTHON" >/dev/null 2>&1 || true
+
+# --- Step 2: Register skills ---
+echo "[2/5] Registering skills..."
+
+# Create parent directory
+mkdir -p "$(dirname "$TARGET_DIR")"
+
+if [ "$DEV_MODE" = true ]; then
+  # Symlink for live editing
+  if [ -L "$TARGET_DIR" ]; then
+    rm "$TARGET_DIR"
+  elif [ -d "$TARGET_DIR" ]; then
+    echo "      WARNING: $TARGET_DIR exists and is not a symlink."
+    echo "      Remove it first or use --project instead."
+    exit 1
+  fi
+  ln -sf "$SCRIPT_DIR" "$TARGET_DIR"
+  echo "      Symlinked $TARGET_DIR -> $SCRIPT_DIR"
+  echo "      Live editing enabled — changes are reflected immediately."
+elif [ "$INSTALL_MODE" = "global" ]; then
+  if [ -L "$TARGET_DIR" ]; then
+    rm "$TARGET_DIR"
+  fi
+  if [ -d "$TARGET_DIR" ] && [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
+    echo "      Updating existing installation..."
+    rm -rf "$TARGET_DIR"
+  fi
+  if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
+    cp -r "$SCRIPT_DIR" "$TARGET_DIR"
+    echo "      Copied to $TARGET_DIR"
+  else
+    echo "      Already at target location."
+  fi
+else
+  # Project-level: repo should already be at .claude/skills/construction
+  if [ "$SCRIPT_DIR" = "$TARGET_DIR" ]; then
+    echo "      Already at project .claude/skills/construction."
+  else
+    echo "      NOTE: For project-level install, clone directly to:"
+    echo "      git clone <repo> .claude/skills/construction"
+    echo "      Copying instead..."
+    mkdir -p "$TARGET_DIR"
+    cp -r "$SCRIPT_DIR"/* "$TARGET_DIR"/
+    cp -r "$SCRIPT_DIR"/.claude "$TARGET_DIR"/
+    echo "      Copied to $TARGET_DIR"
+  fi
+fi
+
+# --- Step 3: Detect other platforms ---
+echo "[3/5] Detecting platforms..."
+
+echo "      Claude Code: $([ -d "$HOME/.claude" ] && echo "detected" || echo "not found")"
+
+if [ -d "$HOME/.codex" ]; then
+  echo "      Codex: detected"
+  CODEX_TARGET="$HOME/.codex/skills/construction"
+  mkdir -p "$CODEX_TARGET"
+  cp -r "$SKILLS_SOURCE"/* "$CODEX_TARGET"/
+  echo "      Codex skills registered at $CODEX_TARGET"
+fi
+
+if [ -d "$HOME/.kiro" ]; then
+  echo "      Kiro: detected"
+  KIRO_TARGET="$HOME/.kiro/skills/construction"
+  mkdir -p "$KIRO_TARGET"
+  cp -r "$SKILLS_SOURCE"/* "$KIRO_TARGET"/
+  echo "      Kiro skills registered at $KIRO_TARGET"
+fi
+
+# --- Step 4: Browser daemon (optional) ---
+if [ "$WITH_BROWSER" = true ]; then
+  echo "[4/5] Building browser daemon..."
+  if command -v bun &>/dev/null; then
+    cd "$SCRIPT_DIR/browse"
+    bun install
+    bun run build
+    cd "$SCRIPT_DIR"
+    echo "      Browser binary built at: browse/dist/browse"
+
+    # Windows workaround: verify Chromium works with Bun
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$OSTYPE" == "cygwin" ]]; then
+      echo "      Windows detected — verifying Playwright Chromium..."
+      if command -v npx &>/dev/null; then
+        npx playwright install chromium 2>/dev/null || true
+      fi
+    fi
+  else
+    echo "      WARNING: Bun not found. Browser daemon requires Bun runtime."
+    echo "      Install Bun: curl -fsSL https://bun.sh/install | bash"
+    echo "      Then re-run: ./setup --with-browser"
+  fi
+else
+  echo "[4/5] Browser daemon: skipped (use --with-browser to enable)"
+fi
+
+# --- Step 5: Verify config and analytics ---
+echo "[5/5] Verifying infrastructure..."
+echo "      Config dir: $HOME/.construction-skills/"
+echo "      Analytics:  $HOME/.construction-skills/analytics/"
+echo "      Sessions:   $HOME/.construction-skills/sessions/"
+
+# Test config script
+if "$SCRIPT_DIR/bin/construction-config" list >/dev/null 2>&1; then
+  echo "      Config system: OK"
+else
+  echo "      Config system: WARNING — construction-config not working"
+fi
+
+echo "      Version: $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo "unknown")"
+
+# --- Verify ---
+echo ""
+echo "=== Verification ==="
+SKILL_COUNT=$(find "$SKILLS_SOURCE" -name "SKILL.md" -maxdepth 2 | wc -l | tr -d ' ')
+echo "Skills found: $SKILL_COUNT"
+
+if [ "$SKILL_COUNT" -ge 15 ]; then
+  echo "Status: OK"
+else
+  echo "Status: WARNING — expected 15+ skills, found $SKILL_COUNT"
+fi
+
+echo ""
+echo "Skills registered:"
+for skill_dir in "$SKILLS_SOURCE"/*/; do
+  if [ -f "$skill_dir/SKILL.md" ]; then
+    skill_name=$(basename "$skill_dir")
+    echo "  /$skill_name"
+  fi
+done
+
+echo ""
+echo "=== Setup complete ==="
+echo ""
+echo "Add to your project's CLAUDE.md:"
+echo "  @.claude/skills/construction/CLAUDE.md"

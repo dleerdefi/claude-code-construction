@@ -1,0 +1,51 @@
+{
+  "id": "schedule-extractor-02",
+  "skill": "schedule-extractor",
+  "name": "Finish schedule extraction",
+  "description": "Extract the room finish schedule from A-3.1, which has walls split into A/B/C/D columns, ceiling materials, and numbered remarks (Holabird Academy K-8 School, Baltimore MD)",
+  "inputs": {
+    "files": [
+      "test_docs/Holabird-Academy/01 - Drawings/Architectural & Structural/A-3.1 - FINISH SCHEDULE.pdf"
+    ],
+    "page": 1,
+    "user_prompt": "Extract the room finish schedule from Holabird Academy sheet A-3.1 and output to Excel"
+  },
+  "expected_behavior": [
+    "Locates the finish schedule table on the sheet",
+    "Correctly identifies all columns: RM NO, NAME, COLOR SCHEME, FLOOR, BASE, WALLS A/B/C/D, CLG MATL, REMARKS",
+    "Handles the multi-column WALLS header (A, B, C, D sub-columns)",
+    "Extracts all room rows including corridors, stairs, vestibules, and special rooms",
+    "Preserves finish abbreviations exactly (BBT, CPT, PT, CONC, EPOXY, etc.)",
+    "Produces valid xlsx with proper header structure"
+  ],
+  "expected_outputs": {
+    "excel_file": true,
+    "graph_entry_type": "schedule_extracted",
+    "min_rows": 150,
+    "required_columns": ["RM_NO", "NAME", "FLOOR", "BASE"]
+  },
+  "ground_truth": "expected/finish_schedule_ground_truth.csv",
+  "ground_truth_notes": "Manually transcribed from A-3.1. Finish abbreviations: BBT=broadloom/broadloom tile, CPT=carpet, PT=porcelain tile, CONC=concrete, EPOXY=epoxy, WD=wood, RM=rubber mat, VCT=vinyl composition tile. Walls: PTD=painted, CT=ceramic tile, AWP=acoustic wall panel, DWC=demountable wall, WCV=wall covering. Ceilings: APC=acoustic panel ceiling, GYP=gypsum, EXP=exposed, FRP=fiberglass reinforced panel, DPC=decorative panel ceiling.",
+  "scoring": {
+    "completeness": {
+      "weight": 0.35,
+      "metric": "row_count_accuracy",
+      "description": "abs(extracted_rows - actual_rows) / actual_rows"
+    },
+    "accuracy": {
+      "weight": 0.40,
+      "metric": "cell_value_accuracy",
+      "description": "Cells matching ground truth / total cells"
+    },
+    "multi_column_header": {
+      "weight": 0.15,
+      "metric": "header_accuracy",
+      "description": "WALLS A/B/C/D sub-columns correctly parsed as separate columns"
+    },
+    "format": {
+      "weight": 0.10,
+      "metric": "output_format_valid",
+      "description": "Valid xlsx with correct structure"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+# Quantity takeoff item template
+# Array of these objects is passed to scripts/excel/takeoff_to_xlsx.py
+
+# Each item:
+#   category: CSI division or custom grouping
+#   description: What the item is
+#   sheet: Source drawing sheet
+#   location: Where on the drawing (grid ref, room name)
+#   quantity: Count or measurement value
+#   unit: EA, LF, SF, CY, etc.
+#   notes: Any observations, caveats, or cross-references
+#   confidence: high / medium / low — how certain the vision identification is
+
+example_items:
+  - category: "Division 08 - Openings"
+    description: "3'-0\" x 7'-0\" HM door and frame"
+    sheet: "A-2.01"
+    location: "Grid C-4, Room 112"
+    quantity: 1
+    unit: "EA"
+    notes: "Hardware set 3 per door schedule"
+    confidence: "high"
+
+  - category: "Division 09 - Finishes"
+    description: "VCT flooring"
+    sheet: "A-2.01"
+    location: "Rooms 101-108"
+    quantity: 2400
+    unit: "SF"
+    notes: "Estimated from scaled room dimensions"
+    confidence: "medium"
+
+  - category: "Division 26 - Electrical"
+    description: "Duplex receptacle outlet"
+    sheet: "E-2.01"
+    location: "First floor, various"
+    quantity: 45
+    unit: "EA"
+    notes: "Count from power plan — verify against panel schedule"
+    confidence: "medium"

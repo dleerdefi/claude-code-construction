@@ -1,0 +1,73 @@
+SUBMITTAL_NO,SPEC_SECTION,SECTION_TITLE,DESCRIPTION,TYPE,ACTION,RESPONSIBLE_PARTY,PRIORITY
+03-001,03 10 00,CONCRETE FORMING AND ACCESSORIES,Formwork shop drawings and product data,Shop Drawings,Action,Concrete Subcontractor,Normal
+03-002,03 20 00,CONCRETE REINFORCING,Rebar shop drawings and mill certificates,Shop Drawings,Action,Concrete Subcontractor,Normal
+03-003,03 30 00,CAST-IN-PLACE CONCRETE,Concrete mix design and test reports,Product Data,Action,Concrete Subcontractor,High
+03-004,03 35 00,ENGRAVED CONCRETE,Samples and product data for engraved concrete,Samples,Action,Concrete Subcontractor,Normal
+03-005,03 35 13,CONCRETE FLOOR FINISHING,Product data for floor finishing materials,Product Data,Action,Concrete Subcontractor,Normal
+04-001,04 20 00,UNIT MASONRY,CMU samples and mortar mix design,Samples,Action,Masonry Subcontractor,High
+04-002,04 20 00,UNIT MASONRY,Shop drawings for reinforced masonry,Shop Drawings,Action,Masonry Subcontractor,Normal
+05-001,05 12 00,STRUCTURAL STEEL FRAMING,Steel shop drawings and mill certificates,Shop Drawings,Action,Steel Subcontractor,High
+05-002,05 12 13,ARCHITECTURALLY EXPOSED STRUCTURAL STEEL,Shop drawings and finish samples,Shop Drawings,Action,Steel Subcontractor,High
+05-003,05 21 00,STEEL JOIST FRAMING,Joist shop drawings,Shop Drawings,Action,Steel Subcontractor,High
+05-004,05 31 00,STEEL DECKING,Deck shop drawings and product data,Shop Drawings,Action,Steel Subcontractor,Normal
+05-005,05 40 00,COLD-FORMED METAL FRAMING,Product data and shop drawings,Shop Drawings,Action,Steel Subcontractor,Normal
+05-006,05 50 00,METAL FABRICATIONS,Shop drawings for miscellaneous metals,Shop Drawings,Action,Steel Subcontractor,Normal
+05-007,05 51 00,METAL STAIRS,Stair shop drawings,Shop Drawings,Action,Steel Subcontractor,Normal
+05-008,05 52 13,PIPE AND TUBE RAILINGS,Railing shop drawings and samples,Shop Drawings,Action,Steel Subcontractor,Normal
+05-009,05 72 10,ORNAMENTAL METAL RAILINGS,Shop drawings and finish samples,Shop Drawings,Action,Steel Subcontractor,Normal
+06-001,06 10 00,ROUGH CARPENTRY,Product data for treated lumber,Product Data,Informational,General Contractor,Normal
+06-002,06 41 00,ARCHITECTURAL WOOD CASEWORK,Shop drawings and finish samples,Shop Drawings,Action,Casework Subcontractor,Normal
+07-001,07 11 13,BITUMINOUS DAMPPROOFING,Product data,Product Data,Action,Waterproofing Subcontractor,Normal
+07-002,07 13 00,SHEET WATERPROOFING,Product data and shop drawings,Product Data,Action,Waterproofing Subcontractor,Normal
+07-003,07 21 00,THERMAL INSULATION,Product data for all insulation types,Product Data,Action,Insulation Subcontractor,Normal
+07-004,07 26 70,MECHANICALLY-ATTACHED AIR AND MOISTURE BARRIER,Product data and shop drawings,Product Data,Action,Envelope Subcontractor,High
+07-005,07 27 10,FLUID-APPLIED MEMBRANE AIR BARRIERS,Product data and installer qualifications,Product Data,Action,Envelope Subcontractor,High
+07-006,07 42 13,METAL WALL PANELS,Shop drawings and color samples,Shop Drawings,Action,Metal Panel Subcontractor,High
+07-007,07 42 15,PERFORATED METAL PLATE WALL PANELS,Shop drawings and samples,Shop Drawings,Action,Metal Panel Subcontractor,High
+07-008,07 50 56,VEGETATED ROOFING SYSTEM ON METAL DECK,Product data and shop drawings,Shop Drawings,Action,Roofing Subcontractor,High
+07-009,07 54 16,ADHERED TPO SHEET ROOFING,Product data and warranty documentation,Product Data,Action,Roofing Subcontractor,High
+07-010,07 62 00,SHEET METAL FLASHING AND TRIM,Shop drawings,Shop Drawings,Action,Roofing Subcontractor,Normal
+07-011,07 71 00,MANUFACTURED ROOF SPECIALTIES,Product data and shop drawings,Shop Drawings,Action,Roofing Subcontractor,Normal
+07-012,07 81 00,APPLIED FIREPROOFING,Product data and test reports,Product Data,Action,Fireproofing Subcontractor,Normal
+07-013,07 84 00,FIRESTOPPING,Product data for firestop systems,Product Data,Action,Firestop Subcontractor,Normal
+07-014,07 90 05,JOINT SEALERS,Product data and color samples,Product Data,Action,General Contractor,Normal
+08-001,08 11 13,HOLLOW METAL DOORS AND FRAMES,Shop drawings for all HM doors and frames,Shop Drawings,Action,Door Subcontractor,High
+08-002,08 14 16,FLUSH WOOD DOORS,Shop drawings and finish samples,Shop Drawings,Action,Door Subcontractor,High
+08-003,08 31 00,ACCESS DOORS AND PANELS,Product data,Product Data,Action,Door Subcontractor,Normal
+08-004,08 33 13,COILING COUNTER DOORS,Shop drawings and product data,Shop Drawings,Action,Door Subcontractor,Normal
+08-005,08 43 13,ALUMINUM-FRAMED STOREFRONTS,Shop drawings and finish samples,Shop Drawings,Action,Glazing Subcontractor,High
+08-006,08 44 10,FIRE-RATED ALUMINUM CURTAIN WALL,Shop drawings and test reports,Shop Drawings,Action,Glazing Subcontractor,High
+08-007,08 44 13,GLAZED ALUMINUM CURTAIN WALLS,Shop drawings and structural calculations,Shop Drawings,Action,Glazing Subcontractor,High
+08-008,08 45 13,STRUCTURED-POLYCARBONATE PANEL ASSEMBLIES,Shop drawings and samples,Shop Drawings,Action,Glazing Subcontractor,Normal
+08-009,08 62 70,TUBULAR SKYLIGHTS,Product data and shop drawings,Shop Drawings,Action,Skylight Subcontractor,Normal
+08-010,08 63 00,METAL-FRAMED SKYLIGHTS,Shop drawings and structural calculations,Shop Drawings,Action,Skylight Subcontractor,High
+08-011,08 71 00,DOOR HARDWARE,Complete hardware schedule with keying,Product Data,Action,Hardware Supplier,High
+08-012,08 80 00,GLAZING,Product data for all glazing types,Product Data,Action,Glazing Subcontractor,Normal
+08-013,08 83 00,MIRRORS,Product data and shop drawings,Product Data,Action,Glass Subcontractor,Normal
+08-014,08 91 00,LOUVERS,Shop drawings and finish samples,Shop Drawings,Action,Louver Supplier,Normal
+09-001,09 21 16,GYPSUM BOARD ASSEMBLIES,Product data for all board types,Product Data,Action,Drywall Subcontractor,Normal
+09-002,09 30 00,TILING,Product data and samples for all tile types,Samples,Action,Tile Subcontractor,Normal
+09-003,09 51 00,ACOUSTICAL CEILINGS,Product data and samples,Samples,Action,Ceiling Subcontractor,Normal
+09-004,09 51 33,ACOUSTICAL METAL PAN CEILINGS,Shop drawings and samples,Shop Drawings,Action,Ceiling Subcontractor,Normal
+09-005,09 54 50,FRP CEILING SYSTEM,Product data,Product Data,Action,Ceiling Subcontractor,Normal
+09-006,09 64 66,WOOD ATHLETIC FLOORING,Product data and shop drawings,Product Data,Action,Flooring Subcontractor,High
+09-007,09 65 00,RESILIENT FLOORING,Product data and samples,Samples,Action,Flooring Subcontractor,Normal
+09-008,09 67 23,RESINOUS FLOORING,Product data and samples,Product Data,Action,Flooring Subcontractor,Normal
+09-009,09 68 13,TILE CARPETING,Product data and samples,Samples,Action,Flooring Subcontractor,Normal
+09-010,09 84 00,ACOUSTIC ROOM COMPONENTS,Product data and shop drawings,Shop Drawings,Action,Acoustics Subcontractor,Normal
+09-011,09 91 23,INTERIOR PAINTING,Product data and color schedule,Product Data,Action,Painting Subcontractor,Normal
+10-001,10 14 00,SIGNAGE,Shop drawings for all signage types,Shop Drawings,Action,Signage Subcontractor,Normal
+10-002,10 21 13.19,PLASTIC TOILET COMPARTMENTS,Shop drawings and color samples,Shop Drawings,Action,Specialties Subcontractor,Normal
+10-003,10 28 00,TOILET BATH AND LAUNDRY ACCESSORIES,Product data,Product Data,Action,Specialties Subcontractor,Normal
+10-004,10 44 00,FIRE PROTECTION SPECIALTIES,Product data for extinguishers and cabinets,Product Data,Action,Fire Protection Subcontractor,Normal
+10-005,10 50 00,LOCKERS,Shop drawings and finish samples,Shop Drawings,Action,Locker Supplier,Normal
+11-001,11 31 00,APPLIANCES,Product data for all appliances,Product Data,Action,Equipment Supplier,Normal
+11-002,11 40 00,FOOD SERVICE EQUIPMENT,Shop drawings for complete kitchen layout,Shop Drawings,Action,Food Service Subcontractor,High
+11-003,11 51 23,LIBRARY STACK SYSTEMS,Shop drawings and product data,Shop Drawings,Action,Library Supplier,Normal
+11-004,11 66 23,GYMNASIUM EQUIPMENT,Product data and shop drawings,Shop Drawings,Action,Gym Equipment Supplier,Normal
+12-001,12 24 13,WINDOW SHADE SYSTEMS,Product data and samples,Samples,Action,Window Treatment Subcontractor,Normal
+12-002,12 35 50,EDUCATIONAL CASEWORK,Shop drawings and finish samples,Shop Drawings,Action,Casework Subcontractor,High
+12-003,12 36 00,COUNTERTOPS,Shop drawings and samples,Shop Drawings,Action,Casework Subcontractor,Normal
+12-004,12 48 13,ENTRANCE FLOOR MATS AND FRAMES,Product data,Product Data,Action,Specialties Subcontractor,Normal
+12-005,12 66 13,TELESCOPING STANDS,Shop drawings and structural calculations,Shop Drawings,Action,Bleacher Supplier,High
+14-001,14 24 00,PASSENGER ELEVATORS,Shop drawings and product data,Shop Drawings,Action,Elevator Subcontractor,High

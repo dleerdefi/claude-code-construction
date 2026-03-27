@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-project-onboarding"
+  short_description: "Index and classify a construction project's files on first contact. Use when ope..."
+  default_prompt: "Use project-onboarding for this task."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,1 @@
+!`mkdir -p ~/.construction-skills/analytics 2>/dev/null; echo "{\"skill\":\"{{VAR:skill_name}}\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"repo\":\"$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")\"}" >> ~/.construction-skills/analytics/skill-usage.jsonl 2>/dev/null || true`

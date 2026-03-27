@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-spec-splitter"
+  short_description: "Split bound project manual into individual spec section PDFs"
+  default_prompt: "Use spec-splitter for this task."
+policy:
+  allow_implicit_invocation: true

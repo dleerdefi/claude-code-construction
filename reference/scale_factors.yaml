@@ -1,0 +1,82 @@
+# Architectural and Civil Scale Factors
+# scale_factor = real_inches / drawing_inches
+
+architectural:
+  - notation: '1/16" = 1''-0"'
+    factor: 192
+    one_inch_equals: "16'-0\""
+    common_use: "Site plans"
+  - notation: '3/32" = 1''-0"'
+    factor: 128
+    one_inch_equals: "10'-8\""
+    common_use: "Large floor plans"
+  - notation: '1/8" = 1''-0"'
+    factor: 96
+    one_inch_equals: "8'-0\""
+    common_use: "Floor plans"
+  - notation: '3/16" = 1''-0"'
+    factor: 64
+    one_inch_equals: "5'-4\""
+    common_use: "Floor plans (detail)"
+  - notation: '1/4" = 1''-0"'
+    factor: 48
+    one_inch_equals: "4'-0\""
+    common_use: "Floor plans, elevations"
+  - notation: '3/8" = 1''-0"'
+    factor: 32
+    one_inch_equals: "2'-8\""
+    common_use: "Sections"
+  - notation: '1/2" = 1''-0"'
+    factor: 24
+    one_inch_equals: "2'-0\""
+    common_use: "Wall sections"
+  - notation: '3/4" = 1''-0"'
+    factor: 16
+    one_inch_equals: "1'-4\""
+    common_use: "Details"
+  - notation: '1" = 1''-0"'
+    factor: 12
+    one_inch_equals: "1'-0\""
+    common_use: "Details"
+  - notation: '1-1/2" = 1''-0"'
+    factor: 8
+    one_inch_equals: "8\""
+    common_use: "Large details"
+  - notation: '3" = 1''-0"'
+    factor: 4
+    one_inch_equals: "4\""
+    common_use: "Large details"
+  - notation: "FULL SIZE"
+    factor: 1
+    one_inch_equals: "1\""
+    common_use: "Full scale details"
+
+civil:
+  - notation: '1" = 10'''
+    factor: 120
+    common_use: "Site details"
+  - notation: '1" = 20'''
+    factor: 240
+    common_use: "Site plans"
+  - notation: '1" = 30'''
+    factor: 360
+    common_use: "Grading plans"
+  - notation: '1" = 40'''
+    factor: 480
+    common_use: "Site plans"
+  - notation: '1" = 50'''
+    factor: 600
+    common_use: "Survey / site"
+  - notation: '1" = 60'''
+    factor: 720
+    common_use: "Large site plans"
+  - notation: '1" = 100'''
+    factor: 1200
+    common_use: "Area plans"
+  - notation: '1" = 200'''
+    factor: 2400
+    common_use: "Regional plans"
+
+# Pixel calculation helper:
+# At a given DPI, pixels_per_real_foot = DPI / (factor / 12)
+# Example: 1/4" = 1'-0" at 200 DPI → 200 / (48/12) = 200 / 4 = 50 pixels per foot

@@ -1,0 +1,184 @@
+---
+name: schedule-extractor
+description: Extract structured tabular data from schedules found in construction drawings or spec pages, such as door schedules, window schedules, room finish schedules, fixture schedules, and panel schedules. Outputs to Excel. Use when asked to extract a schedule, pull door/window/finish data from drawings, or create a spreadsheet from a drawing table. Triggers on 'door schedule', 'window schedule', 'finish schedule', 'extract schedule', 'panel schedule', or 'schedule to Excel'.
+argument-hint: "<sheet_number> [schedule_type]"
+---
+
+!`mkdir -p ~/.construction-skills/analytics 2>/dev/null; echo "{\"skill\":\"schedule-extractor\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"repo\":\"$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")\"}" >> ~/.construction-skills/analytics/skill-usage.jsonl 2>/dev/null || true`
+
+
+
+# Schedule Extractor
+
+Extracts tabular schedule data embedded in drawing sheets or spec pages and outputs structured Excel files. Schedules are typically one element among many on a sheet, so this skill handles locating, isolating, and extracting them.
+
+## Workflow
+
+```
+Extraction Progress:
+- [ ] Step 1: Locate the schedule on the sheet
+- [ ] Step 2: Isolate (crop) the schedule region
+- [ ] Step 3: Extract structured data (vision + pdfplumber)
+- [ ] Step 4: Validate and clean data
+- [ ] Step 5: Output to Excel
+- [ ] Step 6: Write graph entry
+```
+
+### Step 1: Locate the Schedule
+
+Schedules appear on specific sheet types:
+- **Door schedule** → typically on A-0.XX or A-8.XX sheets, or a dedicated sheet
+- **Window schedule** → same sheets as door schedule, or separate
+- **Room finish schedule** → A-0.XX or interior sheets
+- **Panel schedule** → E-X.XX electrical sheets
+- **Fixture schedule** → P-X.XX plumbing sheets
+- **Equipment schedule** → M-X.XX mechanical sheets
+
+**Finding the schedule:**
+
+1. Check sheet index for sheets with "SCHEDULE" in the title
+2. If not obvious, rasterize likely sheets at 150 DPI and use vision to scan for tabular regions
+3. Schedules have a distinctive grid pattern — rows and columns with headers
+
+```bash
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py {pdf_path} {page} --dpi 150 --output full_sheet.png
+```
+
+Use vision on the full sheet image: "Identify any tabular schedules on this drawing sheet. Report the approximate bounding box coordinates (top-left x,y and bottom-right x,y) as percentages of the image dimensions, the schedule type, and the column headers visible."
+
+### Step 2: Isolate the Schedule Region
+
+Crop the identified region with padding:
+
+```bash
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/crop_region.py full_sheet.png \
+  --box {x1},{y1},{x2},{y2} \
+  --padding 20 \
+  --output schedule_crop.png
+```
+
+Re-rasterize at higher DPI (300) for the cropped region to improve text clarity:
+
+```bash
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py {pdf_path} {page} \
+  --dpi 300 \
+  --crop {x1},{y1},{x2},{y2} \
+  --output schedule_hires.png
+```
+
+### Step 3: Extract Structured Data
+
+Use a **try → validate → fallback** approach:
+
+#### Method A — pdfplumber table extraction (try first)
+
+```python
+import pdfplumber
+with pdfplumber.open(pdf_path) as pdf:
+    page = pdf.pages[page_num]
+    tables = page.extract_tables()
+    # Find the largest table(s) — these are the schedule
+    schedule_tables = [t for t in tables if len(t) >= 10]
+    if schedule_tables:
+        # Pick tables with the most columns (schedules are wide)
+        best = max(schedule_tables, key=lambda t: max(len(r) for r in t))
+        headers = best[0]
+        rows = best[1:]
+```
+
+#### Evaluate Method A — Quality Gate
+
+**Check these criteria before proceeding:**
+
+1. **Row count**: Did pdfplumber extract at least 10 data rows? Most schedules have 20-200+ entries.
+2. **Column consistency**: Do ≥80% of rows have the same number of columns? Inconsistent columns = parsing error.
+3. **Non-empty cells**: Are >50% of cells non-empty? Mostly-empty extraction = parsing failed.
+4. **First column validity**: Does the first column contain recognizable IDs (door numbers, room numbers, equipment tags)?
+
+**Decision:**
+- All 4 checks pass → **Method A succeeded**, proceed to Step 4
+- Any check fails → **Method A failed**, use Method B below
+
+```
+QUALITY GATE:
+  extracted_rows >= 10?          YES → check next  |  NO → use Method B
+  column_consistency >= 80%?     YES → check next  |  NO → use Method B
+  non_empty_cells >= 50%?        YES → check next  |  NO → use Method B
+  first_col_has_valid_ids?       YES → use Method A |  NO → use Method B
+```
+
+#### Method B — Vision extraction (fallback)
+
+When pdfplumber fails (common with complex layouts, merged cells, non-standard table lines):
+
+1. **Rasterize** the sheet at 150 DPI for overview:
+```bash
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py {pdf_path} {page} --dpi 150 --output full_sheet.png
+```
+
+2. **Use vision** on the full sheet image to read the schedule directly:
+
+"This is a construction drawing sheet containing a schedule (tabular data). Extract ALL rows from the schedule as a JSON array of objects. The first row of the table contains column headers — use those as object keys. Each subsequent row is one entry. Preserve exact values including dimensions, abbreviations, and codes. If a cell is empty, use null."
+
+3. For dense schedules with small text, **re-rasterize at 300 DPI** and crop to just the schedule region:
+```bash
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py {pdf_path} {page} --dpi 300 --output schedule_hires.png
+```
+
+#### Method C — Hybrid (for maximum accuracy)
+
+Run both methods and cross-validate:
+- pdfplumber gives exact text positioning and catches every character
+- Vision catches content pdfplumber misses (stamps, handwritten marks, non-standard table layouts)
+- Compare row counts: if they differ by >10%, investigate the discrepancy
+- Use vision results for rows that pdfplumber returned empty or garbled
+
+### Step 4: Validate and Clean
+
+After extraction (by either method):
+
+- **Row count check**: Compare extracted count against what's visually present. If off by >10%, re-extract using the other method.
+- **Column structure**: Verify headers match expected schedule type (door schedule has MARK/SIZE/TYPE/FRAME/HARDWARE; finish schedule has RM.NO/NAME/FLOOR/BASE/WALLS/CLG)
+- **Merged cell cleanup**: Expand merged header cells (e.g., "WALLS" spanning A/B/C/D sub-columns)
+- **Normalize dimensions**: `3' - 0"` → `3'-0"` (remove spaces around dashes)
+- **Flag revisions**: Note any cells within revision clouds or delta markers
+- **Cross-reference**: For door schedules, verify door numbers match tags on floor plans
+
+### Step 5: Output to Excel
+
+```bash
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/excel/schedule_to_xlsx.py \
+  --data schedule_data.json \
+  --type door_schedule \
+  --project "Dover High School" \
+  --sheet "A-0.01" \
+  --output "Door_Schedule_A-0.01.xlsx"
+```
+
+The script creates a formatted Excel workbook with:
+- Header row with project info and source sheet
+- Auto-sized columns
+- Conditional formatting for empty/flagged cells
+- Source metadata in a separate tab
+
+### Step 6: Write Graph Entry
+
+```bash
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py \
+  --type "schedule_extracted" \
+  --title "Door schedule extracted from A-0.01" \
+  --source_sheet "A-0.01" \
+  --output_file "Door_Schedule_A-0.01.xlsx" \
+  --data '{"schedule_type": "door", "row_count": 45, "columns": ["MARK","SIZE","TYPE","FRAME","HARDWARE SET"]}'
+```
+
+## Schedule Type Reference
+
+| Type | Common columns | Notes |
+|---|---|---|
+| Door | Mark, Width, Height, Type, Frame, Hardware Set, Fire Rating | Cross-ref hardware sets with spec 08 71 00 |
+| Window | Mark, Width, Height, Type, Glazing, Frame Material | Check for energy code compliance |
+| Room Finish | Room #, Name, Floor, Base, North/South/East/West Walls, Ceiling | Finish codes defined in legend |
+| Panel | Circuit #, Description, Load (VA), Breaker Size, Phase | Verify total load vs panel capacity |
+| Fixture (Plumbing) | Mark, Description, Manufacturer, Model, Connection | Cross-ref with spec Division 22 |
+| Equipment (HVAC) | Tag, Description, CFM/BTU, Voltage, Weight | Cross-ref with spec Division 23 |

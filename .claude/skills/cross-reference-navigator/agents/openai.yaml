@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-cross-reference-navigator"
+  short_description: "Follow detail callouts, section cuts, spec references, and cross-sheet reference..."
+  default_prompt: "Use cross-reference-navigator for this task."
+policy:
+  allow_implicit_invocation: true

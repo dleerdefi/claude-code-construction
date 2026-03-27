@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-sheet-splitter"
+  short_description: "Split bound drawing set into individual sheet PDFs"
+  default_prompt: "Use sheet-splitter for this task."
+policy:
+  allow_implicit_invocation: true

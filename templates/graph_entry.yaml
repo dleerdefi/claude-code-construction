@@ -1,0 +1,22 @@
+# Template for agent findings written to the graph
+# Used by scripts/graph/write_finding.py
+
+id: ""                          # Auto-generated UUID
+type: ""                        # Finding type (e.g., schedule_extracted, rfi_drafted, code_compliance_review)
+title: ""                       # Human-readable title
+timestamp: ""                   # ISO 8601
+
+# Source documents
+source_sheets: []               # Drawing sheet numbers involved
+source_specs: []                # Spec section numbers involved
+source_files: []                # Other source file paths
+
+# Output work product
+output_files: []                # Files produced (markups, Excel, RFIs)
+
+# Structured data (varies by type)
+data: {}
+
+# Relationships (for graph traversal)
+related_findings: []            # IDs of related prior findings
+supersedes: ""                  # ID of finding this replaces (e.g., updated takeoff)

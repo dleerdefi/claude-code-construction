@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-submittal-log-generator"
+  short_description: "Extract all submittal requirements from every specification section and generate..."
+  default_prompt: "Use submittal-log-generator for this task."
+policy:
+  allow_implicit_invocation: false
