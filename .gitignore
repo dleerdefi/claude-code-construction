@@ -6,6 +6,7 @@
 
 # Legacy template system (removed — SKILL.md files are canonical)
 _templates/
+templates/
 *.tmpl
 vars.yaml
 
@@ -17,6 +18,9 @@ __pycache__/
 
 # Eval results (generated, not tracked)
 evals/results/
+
+# Deprecated skill eval cases
+evals/cases/_deprecated_*/
 
 # Dev skill eval cases (not production)
 evals/cases/bulk-sheet-extraction/
@@ -61,6 +65,15 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# PE expertise archive (retained for A/B testing, not shipped)
+reference/pe_expertise/
+
+# Eval cases with hardcoded local paths or A/B test artifacts (not shipped)
+evals/cases/bid-evaluator/case_01_flooring_eval.json
+evals/cases/pe-review/case_01_ab_test.json
+evals/cases/pe-review/test_queries.md
+evals/cases/pe-review/scoring_rubric.md
 
 # Browse daemon (not used by production skills)
 browse/

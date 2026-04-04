@@ -176,7 +176,7 @@ def run_bid_tabulator(case, run_dir):
 
     # Generate comparison Excel
     print(f"\n[Step 2] Generating comparison Excel...")
-    sys.path.insert(0, str(PROJECT_ROOT / "scripts" / "excel"))
+    sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "skills" / "bid-tabulator" / "scripts"))
     from bid_comparison_to_xlsx import bid_comparison_to_xlsx
 
     xlsx_path = str(run_dir / "Bid_Comparison.xlsx")

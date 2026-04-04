@@ -4,8 +4,6 @@ description: Generate a complete subcontract document for a scope of work. Takes
 argument-hint: "<scope_of_work>"
 ---
 
-!`mkdir -p ~/.construction-skills/analytics 2>/dev/null; echo "{\"skill\":\"subcontract-writer\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"repo\":\"$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")\"}" >> ~/.construction-skills/analytics/skill-usage.jsonl 2>/dev/null || true`
-
 # Subcontract Writer
 
 Generates a complete, execution-ready subcontract agreement from a firm's template, the awarded bid, and project specifications. **You are the intelligence layer** — you read every document, extract all data, generate every article's text, make legal/commercial judgments, and write fully-populated JSON files. The Python formatter is a thin rendering utility that makes no content decisions.
@@ -15,6 +13,20 @@ Generates a complete, execution-ready subcontract agreement from a firm's templa
 **Dependency:** Requires `python-docx` in the construction Python environment.
 
 **Key principle:** The bid document is the PRIMARY input. It establishes what was priced, at what rates, with what inclusions and exclusions. Specifications inform scope descriptions and technical requirements. The template provides article structure and standard boilerplate.
+
+---
+
+## Pipeline Position
+This skill can be invoked directly when the user has an awarded bid and wants to generate a subcontract, or as the final step of the bid pipeline:
+```
+/bid-tabulator → /bid-evaluator → user confirms → THIS SKILL
+```
+Either way, the awarded bid document (Slot B) is the mandatory input.
+
+## Mode Detection
+Check for `.construction/` directory at the project root.
+- **AgentCM mode**: Read specs from `.construction/spec_text/{section}.txt`. Use sheet index from `.construction/index/sheet_index.yaml` for drawing references. Read project metadata from `.construction/CLAUDE.md`.
+- **Flat File mode**: Discover spec PDFs via project `CLAUDE.md` paths or directory search. Read drawing sheets directly from PDF.
 
 ---
 
@@ -396,7 +408,7 @@ All display values in blocks must be pre-formatted strings (e.g., `"$1,392,618.0
 
 Call the thin formatter:
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/docx/generate_subcontract_docx.py \
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/generate_subcontract_docx.py \
   --template template_data.json \
   --scope scope_data.json \
   --output Subcontract_[SubName]_[SCNumber].docx

@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-pe-review"
+  short_description: "Construction document review, coordination checking, and scope gap detection with PE-level judgment."
+  default_prompt: "Use pe-review for this task."
+policy:
+  allow_implicit_invocation: true

@@ -366,7 +366,7 @@ def run_subcontract_writer(case, run_dir):
 
     # Generate .docx
     print(f"\n[Step 2] Generating subcontract .docx...")
-    sys.path.insert(0, str(PROJECT_ROOT / "scripts" / "docx"))
+    sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "skills" / "subcontract-writer" / "scripts"))
     from generate_subcontract_docx import generate_subcontract
 
     docx_path = str(run_dir / "Subcontract.docx")

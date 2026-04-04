@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-subcontract-writer"
+  short_description: "Generate a complete subcontract document from a firm template, awarded bid, and project documents."
+  default_prompt: "Use subcontract-writer for this task."
+policy:
+  allow_implicit_invocation: true

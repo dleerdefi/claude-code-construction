@@ -1,6 +1,0 @@
-interface:
-  display_name: "construction-spec-parser"
-  short_description: "Parse construction specification sections to extract product requirements, submi..."
-  default_prompt: "Use spec-parser for this task."
-policy:
-  allow_implicit_invocation: true

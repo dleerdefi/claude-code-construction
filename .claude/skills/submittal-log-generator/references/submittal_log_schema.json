@@ -1,0 +1,151 @@
+{
+  "project_info": {
+    "project_name": "Holabird Elementary/Middle School",
+    "project_number": "2024-031",
+    "owner": "Baltimore City Public Schools",
+    "general_contractor": "Barton Malow",
+    "manual_date": "2024-08-15",
+    "extracted_date": "2025-03-28"
+  },
+  "submittal_items": [
+    {
+      "spec_section": "03 30 00",
+      "spec_title": "Cast-in-Place Concrete",
+      "submittal_no": "03 30 00-001",
+      "submittal_type": "Design Data",
+      "description": "Submit design mix data for each concrete mix design including compressive strength test results, admixtures, mix proportions, and source of materials",
+      "article_ref": "1.3.A",
+      "action_informational": "Action",
+      "confidence": "HIGH",
+      "flag_reason": "",
+      "extraction_method": "pdfplumber",
+      "notes": ""
+    },
+    {
+      "spec_section": "03 30 00",
+      "spec_title": "Cast-in-Place Concrete",
+      "submittal_no": "03 30 00-002",
+      "submittal_type": "Product Data",
+      "description": "Submit product data for each type of manufactured product including concrete admixtures, curing compounds, bonding agents, waterstops, and vapor retarders",
+      "article_ref": "1.3.B",
+      "action_informational": "Action",
+      "confidence": "HIGH",
+      "flag_reason": "",
+      "extraction_method": "pdfplumber",
+      "notes": ""
+    },
+    {
+      "spec_section": "03 30 00",
+      "spec_title": "Cast-in-Place Concrete",
+      "submittal_no": "03 30 00-003",
+      "submittal_type": "Test Reports",
+      "description": "Submit test reports from an independent testing agency for concrete materials and mix designs",
+      "article_ref": "1.4.A",
+      "action_informational": "Informational",
+      "confidence": "HIGH",
+      "flag_reason": "",
+      "extraction_method": "pdfplumber",
+      "notes": ""
+    },
+    {
+      "spec_section": "03 30 00",
+      "spec_title": "Cast-in-Place Concrete",
+      "submittal_no": "03 30 00-004",
+      "submittal_type": "Qualification Statements",
+      "description": "Qualification data for ready-mix concrete supplier",
+      "article_ref": "1.4.B",
+      "action_informational": "Informational",
+      "confidence": "MEDIUM",
+      "flag_reason": "Brief entry — may be general quality requirement rather than standalone submittal",
+      "extraction_method": "pdfplumber",
+      "notes": ""
+    },
+    {
+      "spec_section": "07 92 00",
+      "spec_title": "Joint Sealants",
+      "submittal_no": "07 92 00-001",
+      "submittal_type": "Product Data",
+      "description": "Product data for each joint-sealant product indicated",
+      "article_ref": "1.3.A",
+      "action_informational": "Action",
+      "confidence": "HIGH",
+      "flag_reason": "",
+      "extraction_method": "vision",
+      "notes": ""
+    },
+    {
+      "spec_section": "07 92 00",
+      "spec_title": "Joint Sealants",
+      "submittal_no": "07 92 00-002",
+      "submittal_type": "Samples",
+      "description": "Samples for initial selection for each type of joint sealant and for each color required",
+      "article_ref": "1.3.B",
+      "action_informational": "Action",
+      "confidence": "HIGH",
+      "flag_reason": "",
+      "extraction_method": "vision",
+      "notes": ""
+    },
+    {
+      "spec_section": "07 92 00",
+      "spec_title": "Joint Sealants",
+      "submittal_no": "07 92 00-003",
+      "submittal_type": "Product Data",
+      "description": "Compatibility and adhesion test reports from sealant manufacturer indicating sealant is compatible with joint substrates",
+      "article_ref": "2.1.C",
+      "action_informational": "Action",
+      "confidence": "MEDIUM",
+      "flag_reason": "Found in Part 2 Products, not in submittal article — verify this is a submittal requirement",
+      "extraction_method": "vision",
+      "notes": "Embedded in product performance paragraph"
+    },
+    {
+      "spec_section": "07 92 00",
+      "spec_title": "Joint Sealants",
+      "submittal_no": "07 92 00-004",
+      "submittal_type": "Qualification Statements",
+      "description": "Qualification data for installer",
+      "article_ref": "1.4.A",
+      "action_informational": "Informational",
+      "confidence": "HIGH",
+      "flag_reason": "",
+      "extraction_method": "vision",
+      "notes": ""
+    },
+    {
+      "spec_section": "07 92 00",
+      "spec_title": "Joint Sealants",
+      "submittal_no": "07 92 00-005",
+      "submittal_type": "Manufacturer's Instructions",
+      "description": "Submit in accordance with Section 01 33 00",
+      "article_ref": "1.3",
+      "action_informational": "Action",
+      "confidence": "FLAGGED",
+      "flag_reason": "Appears to be procedural boilerplate referencing submittal procedures, not a specific submittal item",
+      "extraction_method": "vision",
+      "notes": ""
+    }
+  ],
+  "qa_sections": [
+    {
+      "spec_section": "03 30 00",
+      "spec_title": "Cast-in-Place Concrete",
+      "extraction_method": "pdfplumber",
+      "quality_rating": "GOOD",
+      "failure_modes": "None",
+      "repair_attempted": "N",
+      "items_extracted": 4,
+      "flagged_items": 0
+    },
+    {
+      "spec_section": "07 92 00",
+      "spec_title": "Joint Sealants",
+      "extraction_method": "vision",
+      "quality_rating": "POOR",
+      "failure_modes": "Split words >30% of tokens, garbled characters in sealant product names",
+      "repair_attempted": "Y",
+      "items_extracted": 5,
+      "flagged_items": 1
+    }
+  ]
+}

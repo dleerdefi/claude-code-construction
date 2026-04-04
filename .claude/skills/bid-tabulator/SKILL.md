@@ -4,13 +4,17 @@ description: Extract data from multiple subcontractor bid PDFs and produce a com
 argument-hint: "<bid_folder_or_files>"
 ---
 
-!`mkdir -p ~/.construction-skills/analytics 2>/dev/null; echo "{\"skill\":\"bid-tabulator\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"repo\":\"$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")\"}" >> ~/.construction-skills/analytics/skill-usage.jsonl 2>/dev/null || true`
-
-
-
 # Bid Tabulator
 
 Processes multiple subcontractor bid PDFs for a scope of work and produces an Excel comparison workbook. Extracts each bid's data **as-submitted** — the engineer handles normalization and alignment after reviewing discrepancies and contacting subcontractors as needed.
+
+## RIGID Rules (non-negotiable)
+
+1. **Complete extraction — zero tolerance on omission.** If a bid contains data that fits ANY field in the schema, extract it. When in doubt, extract it. Extra data can be filtered; missing data cannot be recovered.
+2. **Every page of every bid.** Process ALL pages — do not stop at the first page or summary page. Bids over 10 pages contain detailed breakdowns, alternates, and qualifications that MUST be captured.
+3. **Numeric verification.** After extracting each bid, verify: (a) line item amounts sum to the stated subtotal, (b) subtotal + alternates/adjustments = base bid total. Flag any mismatch as `[MATH ERROR: line items sum to $X, bid states $Y]`.
+4. **Formulas in Excel, not hardcoded values.** Subtotals use SUM formulas. Reconciliation uses difference formulas. The Comparison Summary uses cross-sheet formula references to per-bidder tabs. Never paste calculated values — the engineer must be able to trace every number.
+5. **Preserve original language verbatim.** Line item descriptions, exclusions, qualifications, and notes are extracted exactly as written. No paraphrasing, normalization, or cleanup.
 
 ## Step 1: Gather Inputs
 
@@ -20,6 +24,12 @@ Ask the user for:
 3. **Any specific data points** the user wants extracted beyond the defaults
 
 If project context is available (`.construction/` directory), read `project.yaml` for project name/number to include in the workbook header.
+
+## Pipeline Position
+```
+THIS SKILL → /bid-evaluator → user confirms → /subcontract-writer
+```
+This skill is the entry point of the bid pipeline. It produces the tabulated data that `/bid-evaluator` consumes for analysis.
 
 ## Workflow
 
@@ -37,16 +47,7 @@ Bid Tabulation Progress:
 
 Open the first bid PDF to understand what data is available:
 
-**Try pdfplumber first:**
-```python
-import pdfplumber
-with pdfplumber.open(bid_pdf) as pdf:
-    text = pdf.pages[0].extract_text()
-    if text and len(text.strip()) > 50:
-        mode = "pdfplumber"
-    else:
-        mode = "vision"
-```
+Try pdfplumber first. If text extraction returns meaningful content (>50 chars per page), use text mode. Otherwise fall back to vision.
 
 **Vision fallback** for scanned bids:
 ```bash
@@ -66,9 +67,15 @@ bid_validity_period: ""
 
 # Financial
 base_bid_amount: ""
-line_items: []          # As-submitted line items with descriptions and amounts
-alternates: []          # Alternate pricing (add/deduct)
-unit_prices: []         # Unit price items if any
+line_items:             # Every line item as an object:
+  - spec_section: ""    # CSI section if shown (e.g., "09 65 19")
+    description: ""     # Original description verbatim
+    qty: null           # Quantity (numeric or null if lump sum)
+    unit: ""            # Unit as written (SF, LF, EA, LS, etc.)
+    unit_price: null    # Per-unit cost (numeric — extract or calculate)
+    extended_price: null # Line total (qty × unit_price, or lump sum amount)
+    notes: ""           # Flags, clarifications
+alternates: []          # Alternate pricing: [{name, description, amount}]
 allowances: []          # Allowances included
 
 # Terms
@@ -80,6 +87,13 @@ payment_terms: ""       # Net 30, etc.
 bond_included: false    # Whether bid/performance bond is included
 insurance_confirmed: false
 ```
+
+**Line item extraction rules:**
+- Every line item MUST be an object with the fields above — never a bare string.
+- If the bid shows qty, unit, and unit_price explicitly → extract all three.
+- If the bid shows only extended_price and qty → calculate: `unit_price = extended_price / qty`.
+- If the bid shows only a lump sum amount → set `qty: null`, `unit: "LS"`, `unit_price: null`, `extended_price: <amount>`.
+- `spec_section` may not always be present — extract it if the bid references CSI section numbers.
 
 **Present the discovered structure to the user** before processing remaining bids: "I found these data fields in the first bid: [list]. Should I extract all of these, or add/remove any?"
 
@@ -109,7 +123,7 @@ errors: []
 ### Step 4: Generate Comparison Excel
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/excel/bid_comparison_to_xlsx.py \
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py \
   --data .construction/bid_tab/bids/ \
   --scope "Division 09 - Finishes" \
   --project "Project Name" \
@@ -126,7 +140,7 @@ ${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scri
 
 **Tab 2 — Per-Bidder Detail Tabs** (one tab per bidder):
 - Company info header
-- All line items as-submitted with original descriptions and amounts
+- Line items table: #, Spec Section, Description, Qty, Unit, Unit Price, Extended, Notes
 - Alternates with descriptions
 - Inclusions list
 - Exclusions list
@@ -178,7 +192,7 @@ Check for `.construction/bid_tab/extraction_state.yaml`. If `status: in_progress
 - Some bids are submitted on the owner's bid form (standardized) while others are on the sub's letterhead (freeform) — handle both
 - Watch for bids that exclude tax, bonds, or general conditions — these are common scope gaps
 - If a bid references "per plans and specifications dated [date]" — note the date, as it may not match the current set
-- Unit prices ($/SF, $/LF, $/EA) should be extracted with their units preserved exactly
+- Unit prices are REQUIRED for every line item that has quantity-based pricing. Extract from bid or calculate from extended ÷ qty. Preserve units exactly (SF, LF, EA, LS).
 - Alternates may be add or deduct — preserve the sign as written
 
 ### File Safety

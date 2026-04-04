@@ -33,13 +33,13 @@ Then add to your project's `CLAUDE.md`:
 Open Claude Code in a folder with construction documents and type:
 
 ```
-/project-onboarding
+/project-setup
 ```
 
 Claude will:
 1. Scan the directory for all PDFs, drawings, specs, and project files
 2. Classify each file by type (Drawing, Specification, RFI, Submittal, etc.)
-3. Create a `.construction/` directory with a project context file
+3. Detect operational mode (AgentCM vs. Flat File) and establish context
 4. Report a summary of what was found
 
 ## Try It: Extract a Schedule
@@ -120,15 +120,14 @@ See [Troubleshooting](TROUBLESHOOTING.md) for common issues and fixes.
 
 | Skill | What it does |
 |-------|-------------|
-| `/project-onboarding` | Index and classify all project files |
-| `/sheet-index-builder` | Build a drawing sheet index from title blocks |
+| `/project-setup` | Set up project: inventory files, classify documents, establish context |
 | `/sheet-splitter` | Split bound drawing set into individual sheet PDFs |
 | `/spec-splitter` | Split bound project manual into individual spec PDFs |
-| `/spec-parser` | Parse a spec section and extract requirements |
 | `/schedule-extractor` | Extract schedule data from drawings to Excel |
 | `/submittal-log-generator` | Extract submittal requirements from specs to Excel |
 | `/bid-tabulator` | Tabulate multiple subcontractor bids into comparison spreadsheet |
+| `/bid-evaluator` | Evaluate tabulated bids: scope gaps, risk scoring, recommendation |
 | `/code-researcher` | Deep research on building codes and jurisdiction requirements |
 | `/subcontract-writer` | Generate scope-specific subcontract from firm's template |
 
-Drawing reading, cross-reference navigation, and construction domain conventions are built into the core skill set and apply automatically when you work with construction documents.
+Drawing reading and construction domain conventions are built into the core skill set and apply automatically when you work with construction documents.

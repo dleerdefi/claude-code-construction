@@ -40,11 +40,11 @@ def run_submittal_log_generator(case, run_dir):
     print(f"Output: {run_dir}")
     print(f"{'='*60}")
 
-    # Step 1: Build TOC lookup table from first 10 pages
+    # Step 1: Build TOC lookup table — scan all pages (ToC may be deep in document)
     print("\n[Step 1] Building section title lookup from TOC...")
     toc = {}
     with pdfplumber.open(str(pdf_path)) as pdf:
-        for page in pdf.pages[:10]:
+        for page in pdf.pages:
             text = page.extract_text() or ""
             for line in text.split("\n"):
                 m = re.match(r"(\d{2}\s+\d{2}\s+\d{2}(?:\.\d+)?)\s+([\w][\w\s,/&()\-]+)", line.strip())
@@ -52,7 +52,7 @@ def run_submittal_log_generator(case, run_dir):
                     sec = m.group(1).strip()
                     title = m.group(2).strip()
                     if len(title) > 3 and not title.replace(".", "").replace(" ", "").isdigit():
-                        toc[sec] = title
+                        toc.setdefault(sec, title)  # keep first occurrence
     print(f"  TOC entries: {len(toc)}")
 
     # Step 2: Check for split specs or split from bound manual
@@ -64,7 +64,7 @@ def run_submittal_log_generator(case, run_dir):
         # Try splitting
         print("  No split specs found. Running spec-splitter...")
         from pathlib import Path as _P
-        split_script = PROJECT_ROOT / "scripts" / "pdf" / "split_spec_manual.py"
+        split_script = PROJECT_ROOT / ".claude" / "skills" / "spec-splitter" / "scripts" / "split_spec_manual.py"
         if split_script.exists():
             import subprocess
             subprocess.run([
@@ -413,11 +413,95 @@ def run_submittal_log_generator(case, run_dir):
             scores["format"] = 1.0
             print(f"  Section coverage: {len(gt_sections & ext_sections)}/{len(gt_sections)} = {coverage:.1%}")
 
+    # Check for v2 JSON output (from Claude-based extraction)
+    v2_json_path = run_dir / "submittal_extraction_items.json"
+    if not v2_json_path.exists():
+        # Also check .construction directory relative to case
+        project_dir = get_project_dir(case)
+        if project_dir:
+            alt_path = Path(project_dir) / ".construction" / "submittal_extraction_items.json"
+            if alt_path.exists():
+                v2_json_path = alt_path
+
+    if v2_json_path.exists():
+        scores.update(_score_v2_output(v2_json_path, gt_rel, case))
+
     artifacts = {"csv": str(csv_path), "xlsx": str(xlsx_path), "graph_entry": str(graph_path)}
+    if v2_json_path.exists():
+        artifacts["v2_json"] = str(v2_json_path)
     result_path = write_eval_result(case, run_dir, scores, artifacts,
                                     f"{len(trade_submittals)} trade + {len(general_submittals)} general submittals")
     print(f"  Result: {result_path}")
     return json.loads(result_path.read_text())
+
+
+def _score_v2_output(v2_json_path, gt_rel, case):
+    """Score v2-format JSON output (submittal_items[] with confidence, article_ref, extraction_method).
+
+    Returns a dict of scores to merge into the main scores dict.
+    """
+    scores = {}
+    try:
+        with open(v2_json_path, encoding="utf-8") as f:
+            v2_data = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"  WARNING: Could not read v2 JSON: {e}")
+        return scores
+
+    items = v2_data.get("submittal_items", [])
+    qa_sections = v2_data.get("qa_sections", [])
+
+    if not items:
+        print("  WARNING: v2 JSON has no submittal_items")
+        return scores
+
+    print(f"\n  [v2 scoring] {len(items)} items, {len(qa_sections)} QA sections")
+
+    # Confidence distribution
+    conf_counts = Counter(str(i.get("confidence", "")).upper() for i in items)
+    scores["v2_total_items"] = len(items)
+    scores["v2_high_confidence"] = conf_counts.get("HIGH", 0)
+    scores["v2_medium_confidence"] = conf_counts.get("MEDIUM", 0)
+    scores["v2_low_confidence"] = conf_counts.get("LOW", 0)
+    scores["v2_flagged"] = conf_counts.get("FLAGGED", 0)
+
+    # Confidence ratio: HIGH items / total (higher = better extraction quality)
+    scores["v2_high_ratio"] = round(conf_counts.get("HIGH", 0) / max(len(items), 1), 3)
+
+    # Extraction method distribution
+    method_counts = Counter(i.get("extraction_method", "unknown") for i in items)
+    scores["v2_pdfplumber_items"] = method_counts.get("pdfplumber", 0)
+    scores["v2_vision_items"] = method_counts.get("vision", 0)
+
+    # QA quality distribution
+    if qa_sections:
+        qa_ratings = Counter(s.get("quality_rating", "").upper() for s in qa_sections)
+        scores["v2_qa_good"] = qa_ratings.get("GOOD", 0)
+        scores["v2_qa_degraded"] = qa_ratings.get("DEGRADED", 0)
+        scores["v2_qa_poor"] = qa_ratings.get("POOR", 0)
+
+    # Section coverage against ground truth
+    if gt_rel:
+        gt_path = PROJECT_ROOT / "evals" / "cases" / case["skill"] / gt_rel
+        if gt_path.exists():
+            with open(gt_path, encoding="utf-8") as f:
+                gt_rows = list(csv.DictReader(f))
+            gt_sections = {r["SPEC_SECTION"] for r in gt_rows}
+            v2_sections = {i.get("spec_section", "") for i in items}
+            v2_coverage = len(gt_sections & v2_sections) / max(len(gt_sections), 1)
+            scores["v2_section_coverage"] = round(v2_coverage, 3)
+            scores["v2_item_recall"] = round(
+                min(len(items), len(gt_rows)) / max(len(gt_rows), 1), 3
+            )
+            print(f"  v2 section coverage: {len(gt_sections & v2_sections)}/{len(gt_sections)} = {v2_coverage:.1%}")
+            print(f"  v2 item count: {len(items)} (ground truth: {len(gt_rows)})")
+
+    print(f"  Confidence: HIGH={conf_counts.get('HIGH', 0)} "
+          f"MED={conf_counts.get('MEDIUM', 0)} "
+          f"LOW={conf_counts.get('LOW', 0)} "
+          f"FLAG={conf_counts.get('FLAGGED', 0)}")
+
+    return scores
 
 
 # ─── SHEET INDEX BUILDER ─────────────────────────────────────────────────────

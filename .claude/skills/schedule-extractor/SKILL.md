@@ -4,10 +4,6 @@ description: Extract structured tabular data from schedules found in constructio
 argument-hint: "<sheet_number> [schedule_type]"
 ---
 
-!`mkdir -p ~/.construction-skills/analytics 2>/dev/null; echo "{\"skill\":\"schedule-extractor\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"repo\":\"$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")\"}" >> ~/.construction-skills/analytics/skill-usage.jsonl 2>/dev/null || true`
-
-
-
 # Schedule Extractor
 
 Extracts tabular schedule data embedded in drawing sheets or spec pages and outputs structured Excel files. Schedules are typically one element among many on a sheet — or the entire sheet may be a schedule.
@@ -92,19 +88,7 @@ Use a **try → validate → fallback** approach:
 
 #### Method A — pdfplumber table extraction (try first)
 
-```python
-import pdfplumber
-with pdfplumber.open(pdf_path) as pdf:
-    page = pdf.pages[page_num]
-    tables = page.extract_tables()
-    # Find the largest table(s) — these are the schedule
-    schedule_tables = [t for t in tables if len(t) >= 10]
-    if schedule_tables:
-        # Pick tables with the most columns (schedules are wide)
-        best = max(schedule_tables, key=lambda t: max(len(r) for r in t))
-        headers = best[0]
-        rows = best[1:]
-```
+Use pdfplumber's `extract_tables()` method on the target page. If multiple tables are found, select the largest one (most rows with the most columns — schedules are wide). The first row of the selected table contains headers; subsequent rows are data. If no tables are found or results look garbled, fall back to vision (Method B).
 
 #### Evaluate Method A — Quality Gate
 
@@ -167,7 +151,7 @@ After extraction (by either method):
 ### Step 5: Output to Excel
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/excel/schedule_to_xlsx.py \
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/schedule_to_xlsx.py \
   --data schedule_data.json \
   --type door_schedule \
   --project "Project Name" \
@@ -181,7 +165,59 @@ The script creates a formatted Excel workbook with:
 - Conditional formatting for empty/flagged cells
 - Source metadata in a separate tab
 
-### Step 6: Write Graph Entry
+### Step 6: Ingest to Database
+
+After Excel output, POST extracted data to the AgentCM schedule ingest API so it's stored in PostgreSQL, linked to rooms, and queryable by agents:
+
+```bash
+curl -X POST "http://localhost:3000/api/projects/${PROJECT_ID}/schedules/ingest" \
+  -H "Content-Type: application/json" \
+  -d @schedule_ingest_payload.json
+```
+
+The ingest payload JSON follows this structure:
+
+```json
+{
+  "sheetId": "<uuid of the source sheet>",
+  "scheduleType": "door",
+  "title": "DOOR SCHEDULE",
+  "rowEntityType": "door",
+  "columns": [
+    {"key": "MARK", "header": "MARK"},
+    {"key": "WIDTH", "header": "WIDTH"},
+    {"key": "HEIGHT", "header": "HEIGHT"},
+    {"key": "TYPE", "header": "TYPE"},
+    {"key": "FRAME", "header": "FRAME"},
+    {"key": "HARDWARE_SET", "header": "HARDWARE SET"},
+    {"key": "FIRE_RATING", "header": "FIRE RATING"}
+  ],
+  "rows": [
+    {
+      "entityIdentifier": "2.101A",
+      "cells": {"MARK": "2.101A", "WIDTH": "3'-0\"", "HEIGHT": "7'-0\"", "TYPE": "A", "FRAME": "HM", "HARDWARE_SET": "HW-3", "FIRE_RATING": "1 HR"}
+    }
+  ],
+  "sourceMethod": "pdfplumber",
+  "confidence": 0.95
+}
+```
+
+**Schedule types and their `rowEntityType`:**
+- Door schedule → `"door"` (room derived from door number: "2.101A" → Room 2.101)
+- Window schedule → `"window"` (room derived from window mark)
+- Finish schedule → `"room"` (entity identifier IS the room number)
+- Panel schedule → `"equipment"`
+- Fixture schedule → `"fixture"` (room linked spatially from plan tags)
+
+The ingest endpoint automatically:
+1. Creates/updates the schedule record
+2. Inserts all rows with GIN-indexed jsonb cells
+3. Links rows to rooms (exact match, fuzzy match, or creates rooms from schedule data)
+4. Extracts finish/hardware codes into the code legends table
+5. Creates pending links for fixtures/equipment that need spatial resolution
+
+**Also write the graph finding entry** (for backwards compatibility with existing skills):
 
 ```bash
 ${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py \
@@ -202,3 +238,6 @@ ${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scri
 | Panel | Circuit #, Description, Load (VA), Breaker Size, Phase | Verify total load vs panel capacity |
 | Fixture (Plumbing) | Mark, Description, Manufacturer, Model, Connection | Cross-ref with spec Division 22 |
 | Equipment (HVAC) | Tag, Description, CFM/BTU, Voltage, Weight | Cross-ref with spec Division 23 |
+
+## File Safety
+Never overwrite an existing schedule extraction. The export script uses `safe_output_path()` which appends `_v2`, `_v3`, etc. automatically.

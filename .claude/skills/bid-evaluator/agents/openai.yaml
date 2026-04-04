@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-bid-evaluator"
+  short_description: "Evaluate tabulated subcontractor bids — scope gap analysis, exclusion risk scoring, and award recommendation."
+  default_prompt: "Use bid-evaluator for this task."
+policy:
+  allow_implicit_invocation: true

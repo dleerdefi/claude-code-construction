@@ -1,24 +1,8 @@
 ---
 name: code-researcher
-description: >
-  Scope-specific code gap analysis for engineers and architects. Given one or
-  more project scopes (spec sections, drawing sets, or trade packages), this
-  skill extracts what codes and standards the scope already references, researches
-  what codes should apply based on the work type and jurisdiction, and surfaces
-  only the delta — requirements that should apply but are not addressed in the
-  project documents. Outputs a structured gap report with engineer-actionable
-  items, confidence levels, and direct references to the plans and specs.
-
-  Use when: an engineer or architect wants to know if they are missing any code
-  requirements for a specific scope of work.
-
-  Triggers: "code research", "what codes apply", "am I missing any requirements",
-  "code check", "ADA requirements", "egress", "fire code", "what does the code
-  say about X", "code gap analysis", "are we covered on X".
+description: "Scope-specific code gap analysis for engineers and architects — extracts referenced codes, researches what should apply, surfaces the delta. Triggers on 'code research', 'what codes apply', 'am I missing any requirements', 'code check', 'ADA requirements', 'egress', 'fire code', 'code gap analysis'. Use when an engineer or architect wants to know if they are missing any code requirements for a specific scope of work. Does not trigger for general code questions without a project scope. Output: structured gap report with confidence levels and direct references to plans and specs."
 argument-hint: "<scope_or_question> e.g. 'Section 09 67 23 resinous flooring' or 'egress from the kitchen complex'"
 ---
-
-!`mkdir -p ~/.construction-skills/analytics 2>/dev/null; echo "{\"skill\":\"code-researcher\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"repo\":\"$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")\"}" >> ~/.construction-skills/analytics/skill-usage.jsonl 2>/dev/null || true`
 
 # Code Researcher — Scope-Specific Gap Analysis
 
@@ -57,6 +41,16 @@ Every finding is framed as:
 
 Never frame findings as COMPLIANT / NON-COMPLIANT. The licensed design
 professional makes compliance determinations. This skill provides research.
+
+---
+
+## Research Philosophy
+
+This skill uses a document-grounded research approach:
+- **Construction documents are ground truth.** Every claim about what the project does or does not address must trace to a specific document read in Pass 1. Never infer project status from memory or assumption.
+- **Claude's domain knowledge drives topic discovery.** Use your training knowledge of construction codes, standards, and regulatory frameworks to identify what requirements SHOULD apply to this scope. The documents tell you what IS addressed; your knowledge tells you what to check for.
+- **Web research confirms jurisdiction-specific requirements.** Building codes vary by jurisdiction and edition. Use web search to confirm which edition is adopted, retrieve exact code language, and discover jurisdiction-specific overlays. Do not rely on training knowledge alone for specific code section numbers or thresholds — verify via web.
+- **Reference files verify numeric thresholds.** Shared reference files at `${CLAUDE_SKILL_DIR}/../../reference/` contain structured ADA and IBC data useful for quick verification of specific dimensions and capacities during research.
 
 ---
 
@@ -112,28 +106,8 @@ Collect minimum required project parameters. Check in this order:
 - Spec Section 01 35 13 or 01 35 14 — special project requirements, authority
   having jurisdiction contacts
 
-Minimum required context:
-
-```yaml
-project_context:
-  project_name: ""
-  location:
-    address: ""
-    city: ""
-    county: ""
-    state: ""
-  occupancy_group: ""         # IBC occupancy group(s), e.g. E, B, A-2, I-2
-  construction_type: ""       # IBC construction type, e.g. Type IIA, VB
-  project_type: ""            # new construction | renovation | addition | change of use
-  building_height_stories: 0
-  building_gross_area_sf: 0
-  sprinklered: null           # true | false | partial | unknown
-  year_of_design: ""          # infer from drawing date — determines code edition
-  ahj:                        # Authority Having Jurisdiction
-    building_department: ""
-    fire_marshal: ""
-    contact: ""               # if found in docs
-```
+Minimum required context — write to `.construction/code_research/project_context.yaml` using the schema at:
+→ `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § project_context
 
 If any required field cannot be found in the documents, ask the user before
 proceeding. Do not assume occupancy group or construction type — these
@@ -160,27 +134,8 @@ Parse the user's question to identify:
 3. **Scopes in scope** — if the engineer is managing multiple scopes (e.g.,
    scopes A through C), confirm which ones this research covers.
 
-Write to `.construction/code_research/scope_definition.yaml`:
-
-```yaml
-research_question: "Are there code requirements for resinous flooring that we haven't addressed?"
-target_scope:
-  spec_sections:
-    - "09 67 23"               # primary section
-    - "09 65 00"               # related sections if relevant
-  drawing_sheets: []           # specific sheets if named
-  systems: []                  # systems if question is system-based
-  scope_packages: ["Scope C"]  # if engineer uses package designations
-engineer_scopes: ["A", "B", "C"]  # all scopes the engineer manages
-
-research_topics:
-  # Generated from the target scope and project context — not hardcoded
-  # These are discovered, not prescribed
-  - slug: ""
-    title: ""
-    description: ""
-    driven_by: ""  # what about the scope triggers this topic
-```
+Write to `.construction/code_research/scope_definition.yaml` using the schema at:
+→ `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § scope_definition
 
 Research topics are generated from the combination of:
 - The work type (resinous flooring → surface profile requirements, slip
@@ -188,6 +143,12 @@ Research topics are generated from the combination of:
 - The occupancy group (kitchen/food service → USDA/FDA/health department overlay)
 - The project type (renovation → existing conditions, special inspections)
 - The question framing (gap analysis → broader research than targeted check)
+
+**Use your full domain knowledge** to identify research topics. You know what
+code requirements typically apply to each type of construction work, which
+regulatory authorities have jurisdiction, and what gaps commonly appear in
+specifications. The project documents tell you what the engineer has already
+addressed — your job is to identify everything they should have considered.
 
 ### 1c — USER CHECKPOINT: Confirm Scope
 
@@ -251,63 +212,8 @@ For referenced standards within spec sections:
 ### 2b — Extract All Code and Standard Citations
 
 For each document read, extract every code reference, standard citation, and
-requirement into a structured inventory:
-
-```yaml
-# .construction/code_research/pass1_project_inventory.yaml
-
-source_documents_read:
-  - path: "specs/09_67_23_resinous_flooring.pdf"
-    type: "spec_section"
-    section: "09 67 23"
-    pages_read: "all"
-
-code_citations_found:
-  - citation: "ASTM C 579"
-    context: "Compressive strength testing method — 09 67 23 §2.1-D-1"
-    edition_specified: "current"
-    how_cited: "test method for physical property compliance"
-
-  - citation: "ASTM F 1869"
-    context: "Moisture vapor emission rate testing — 09 67 23 §3.1-B-3"
-    edition_specified: null
-    how_cited: "substrate acceptance criterion (max 7 lb/1000 sf/24hr)"
-
-  - citation: "ACI 503R"
-    context: "Bond strength requirement — 09 67 23 §2.1-D-10"
-    edition_specified: null
-    how_cited: "bond strength test method (400 psi minimum)"
-
-requirements_stated:
-  - topic: "installer qualification"
-    requirement: "Certified in writing by resinous flooring manufacturer"
-    source: "09 67 23 §1.3-B-1"
-    code_basis: null  # project-imposed requirement, not code-derived
-
-  - topic: "substrate preparation"
-    requirement: "Shot-blast surfaces per manufacturer instructions"
-    source: "09 67 23 §3.1-B-1-a"
-    code_basis: null
-
-  - topic: "vapor barrier"
-    requirement: "Vapor barrier must be present for slabs on or below grade"
-    source: "09 67 23 §1.5-C"
-    code_basis: null
-
-  - topic: "slip resistance"
-    requirement: null  # NOT FOUND in spec — this becomes a potential gap
-    source: null
-    code_basis: null
-    note: "No slip resistance requirement found in 09 67 23 or related sections"
-
-topics_not_addressed:
-  # Pre-populate this during extraction — anything the researcher expects
-  # to see in a spec section of this type but didn't find
-  - "slip resistance / coefficient of friction"
-  - "VOC content limitations"
-  - "health department requirements"
-  - "fire classification / flame spread"
-```
+requirement into a structured inventory. Write to `.construction/code_research/pass1_project_inventory.yaml` using the schema at:
+→ `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § pass1_project_inventory
 
 **Critical extraction discipline:**
 - Record what IS there (citations found, requirements stated)
@@ -318,47 +224,8 @@ topics_not_addressed:
 
 ### 2c — Build the "Already Addressed" Inventory
 
-Summarize Pass 1 into a flat inventory used for gap diffing in Phase 4:
-
-```yaml
-# .construction/code_research/pass1_summary.yaml
-
-topics_addressed:
-  compressive_strength:
-    addressed: true
-    by: "ASTM C 579 cited in 09 67 23 §2.1-D-1"
-    gap_risk: low
-
-  moisture_testing:
-    addressed: true
-    by: "ASTM F 1869 and ASTM F 2170 both cited"
-    gap_risk: low
-
-  installer_qualification:
-    addressed: true
-    by: "Manufacturer written cert required per §1.3-B-1"
-    gap_risk: low
-
-  slip_resistance:
-    addressed: false
-    by: null
-    gap_risk: high    # food service/kitchen = high-traffic, wet, regulatory
-
-  voc_content:
-    addressed: false
-    by: null
-    gap_risk: medium  # Div 01 may cover this globally
-
-  flame_spread:
-    addressed: false
-    by: null
-    gap_risk: medium
-
-  health_department_overlay:
-    addressed: false
-    by: null
-    gap_risk: high    # kitchen complex = AHJ may include health dept
-```
+Summarize Pass 1 into a flat inventory used for gap diffing in Phase 4. Write to `.construction/code_research/pass1_summary.yaml` using the schema at:
+→ `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § pass1_summary
 
 ---
 
@@ -379,41 +246,8 @@ Search for:
 "{state} accessibility code requirements"
 ```
 
-Write to `.construction/code_research/jurisdiction.yaml`:
-
-```yaml
-state: ""
-jurisdiction: ""
-adopted_codes:
-  building_code:
-    name: ""            # IBC, or state-specific (CBC, NYC Building Code, etc.)
-    edition: 0          # year, e.g. 2021
-    adoption_date: ""
-    state_amendments: ""
-    local_amendments: ""
-    source: ""          # URL where this was verified
-
-  fire_code:
-    name: ""
-    edition: 0
-    source: ""
-
-  accessibility:
-    federal: "ADA 2010 Standards"
-    state_code: ""      # if state has additional requirements
-    exceeds_ada: null
-    source: ""
-
-  referenced_standards:
-    # Which editions of NFPA, ANSI, ASCE, etc. are adopted
-    # via the building code reference chain
-    - name: ""
-      edition: 0
-      adopted_via: ""   # e.g. "IBC 2021 Chapter 35"
-
-confidence: ""          # confirmed | inferred | uncertain
-confidence_notes: ""
-```
+Write to `.construction/code_research/jurisdiction.yaml` using the schema at:
+→ `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § jurisdiction
 
 If jurisdiction code adoption cannot be confirmed via web search, mark as
 `uncertain` and note this prominently in the report. Do not assume the latest
@@ -422,89 +256,37 @@ published edition is what's adopted.
 ### 3b — Research Requirements for Each Topic
 
 For each topic in the confirmed research outline, research what the applicable
-codes require. Work through topics in batches of 2-3.
+codes require. Organize research by logical topic clusters, not fixed batch sizes.
 
-**For each topic:**
+**For each topic, establish these three things:**
 
-1. Search for code requirements specific to this work type, occupancy, and
-   construction type:
-   ```
-   "{code name} {edition} {topic keyword} {occupancy group}"
-   "{code name} {edition} {topic keyword} {work type}"
-   ```
+1. **What the code requires** — the specific section, edition, and requirement
+   language from the applicable code (IBC, ADA, NFPA, state code, etc.). Verify
+   via web search; do not rely on paraphrases or training memory for exact
+   language.
+2. **What referenced standards apply** — codes reference downstream standards
+   (ASTM, ANSI, UL, etc.) that contain the actual test methods and acceptance
+   criteria.
+3. **What jurisdiction-specific overlays exist** — state amendments, local
+   amendments, and non-building-code authorities (health department, fire
+   marshal, USDA/FDA for food service, etc.) that operate independently.
 
-2. Fetch specific code sections when a section number is identified, to
-   get exact requirement language rather than paraphrases.
+Use shared reference files at `${CLAUDE_SKILL_DIR}/../../reference/` to verify
+specific numeric thresholds (clearances, load factors, occupant capacities)
+during research.
 
-3. Check for referenced standards that the code directs to for this topic.
+Write to `.construction/code_research/topics/{slug}.yaml` using the schema at:
+→ `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § topic_findings
 
-4. Check for jurisdiction-specific overlays:
-   ```
-   "{state} requirements {topic keyword}"
-   "{city} {state} {topic keyword} requirements"
-   "AHJ requirements {topic keyword} {state}"
-   ```
-
-5. For topics involving health departments, USDA, FDA, or other regulatory
-   bodies (food service, healthcare, hazardous materials), search those
-   authorities separately — they operate independently of the building code.
-
-Write to `.construction/code_research/topics/{slug}.yaml`:
-
-```yaml
-topic: "Slip Resistance"
-research_findings:
-  - code: "ADA 2010 Standards"
-    section: "402.2"
-    requirement: "Floor or ground surfaces shall be stable, firm, and slip resistant"
-    specific_to_this_scope: true
-    edition_confirmed: true
-    source_url: ""
-
-  - code: "IBC 2021"
-    section: "1210.3"
-    requirement: "Floor surfaces in commercial kitchens shall have a static
-                  coefficient of friction of not less than 0.60"
-    specific_to_this_scope: true
-    edition_confirmed: true
-    source_url: ""
-
-  - code: "ASTM C 1028 / DCOF AcuTest"
-    section: null
-    requirement: "Test method for measuring slip resistance — DCOF ≥ 0.42
-                  commonly referenced for wet floors"
-    specific_to_this_scope: true
-    edition_confirmed: false
-    source_url: ""
-    note: "ASTM C 1028 withdrawn 2014; DCOF AcuTest per ANSI A137.1 now standard
-           for tile, but resinous flooring has no equivalent standard — verify
-           what test method AHJ requires"
-
-  - code: "USDA/FDA Food Service Requirements"
-    section: null
-    requirement: "Floors in food preparation areas must be non-slip; specific
-                  requirements vary by state health department"
-    specific_to_this_scope: true
-    edition_confirmed: false
-    source_url: ""
-    note: "Maryland Department of Health has food service facility regulations —
-           project kitchen (Rooms 1411-1419) likely subject to these"
-
-applicable_test_standards:
-  - "DCOF AcuTest per ANSI A137.1 (tile)"
-  - "No industry standard specific to urethane mortar systems — manufacturer
-     test data typically used"
-
-gaps_identified:
-  - "No COF or slip resistance requirement in 09 67 23"
-  - "No test method for slip resistance specified"
-  - "No mention of food service/health department requirements despite
-     scope including kitchen complex"
-```
+**Adaptive scope expansion:** If research reveals that a code requirement likely
+applies but may be addressed in a spec section or drawing not yet read in Pass 1,
+read that document before classifying the topic as a gap. Update the Pass 1
+inventory with any new citations found. Note the additional documents read when
+reporting to the user at checkpoint 3c.
 
 ### 3c — USER CHECKPOINT: Interim Findings
 
-After each batch of 2-3 topics, report to the user:
+After completing a cluster of related topics, report to the user:
 
 ```
 Completed research on [topic 1], [topic 2], and [topic 3].
@@ -537,109 +319,10 @@ Do you want me to dig deeper on any of these before continuing, or shall I proce
 ### 4a — Diff Research Against Project Inventory
 
 Compare every research finding from Phase 3 against the Pass 1 project
-inventory. Classify each:
+inventory. Write to `.construction/code_research/gap_analysis.yaml` using the schema at:
+→ `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § gap_analysis
 
-```yaml
-# .construction/code_research/gap_analysis.yaml
-
-gaps:
-  - id: "GAP-001"
-    topic: "Slip Resistance"
-    severity: HIGH
-    confidence: confirmed
-    
-    code_requirement:
-      code: "IBC 2021 §1210.3"
-      text: "Floor surfaces in commercial kitchens shall have a static
-             coefficient of friction of not less than 0.60"
-    
-    project_status:
-      addressed: false
-      in_documents: null
-      note: "09 67 23 specifies physical properties (compressive strength,
-             bond strength, hardness) but contains no COF or slip resistance
-             requirement. No reference to slip resistance test method."
-    
-    recommended_action: "Add COF requirement to 09 67 23 §2.1 System
-                         Characteristics and specify test method. Verify with
-                         manufacturer what COF their system achieves wet."
-    
-    engineer_action_required: true
-    pe_decision_required: false   # factual gap, not an interpretation
-
-  - id: "GAP-002"
-    topic: "Health Department Requirements — Kitchen Complex"
-    severity: HIGH
-    confidence: needs_review
-    
-    code_requirement:
-      code: "Maryland Department of Health Food Service Facility Regs
-             (COMAR 10.15.03)"
-      text: "Floors in food preparation areas shall be smooth, easily cleanable,
-             and nonabsorbent"
-    
-    project_status:
-      addressed: false
-      in_documents: null
-      note: "Kitchen complex (Rooms 1411–1419) is within the resinous flooring
-             scope. No reference to health department requirements or COMAR
-             10.15.03 found in 09 67 23 or in project manual."
-    
-    recommended_action: "Confirm with Owner whether food service permit is
-                         required. If yes, coordinate with health department
-                         AHJ on floor system acceptability before spec is
-                         finalized."
-    
-    engineer_action_required: true
-    pe_decision_required: true   # requires AHJ coordination
-
-  - id: "GAP-003"
-    topic: "VOC Content Limitations"
-    severity: MEDIUM
-    confidence: confirmed
-    
-    code_requirement:
-      code: "IBC 2021 §1210.2 (via Section 01 61 16)"
-      text: "VOC content of floor coatings shall comply with applicable
-             regulations"
-    
-    project_status:
-      addressed: partial
-      in_documents: "Spec 01 61 16 — VOC Content Restrictions references
-                     limits; 09 67 23 §1.5-C references vapor barrier but
-                     does not reference 01 61 16 or state VOC limits"
-      note: "Division 01 likely covers this globally. Confirm that 09 67 23
-             is governed by 01 61 16 and that the resinous system products
-             meet those limits."
-    
-    recommended_action: "Add cross-reference to Section 01 61 16 in 09 67 23
-                         §1.1 or §1.5. Confirm manufacturer's VOC data for
-                         Stonclad UT system against limits in 01 61 16."
-    
-    engineer_action_required: false
-    pe_decision_required: false
-
-already_addressed:
-  - topic: "Moisture Vapor Emission Testing"
-    addressed_by: "ASTM F 1869 and ASTM F 2170 both cited in §3.1-B-3 with
-                   specific limits (7 lb/1000 sf/24hr and 85% RH)"
-    confidence: confirmed
-    note: "Well covered. Both test methods included."
-
-  - topic: "Substrate Preparation"
-    addressed_by: "Shot-blast requirement per §3.1-B-1-a; self-priming
-                   noted; patching material specified"
-    confidence: confirmed
-
-uncertain:
-  - topic: "Baltimore City Amendments to Slip Resistance"
-    note: "Could not confirm whether Baltimore City has local amendments
-           that modify IBC §1210.3. Recommend confirming with building
-           department AHJ."
-    recommended_action: "Call Baltimore City building department or consult
-                         project architect who should have local amendment
-                         knowledge."
-```
+Classify each finding into one of: `gaps` (with severity + confidence), `already_addressed`, or `uncertain`.
 
 ### 4b — Classify Each Gap
 
@@ -709,119 +392,10 @@ Before I write the report:
 
 ### 5a — Generate Gap Report
 
-Write to `.construction/code_research/report_{scope}_{date}.md`:
+Write to `.construction/code_research/report_{scope}_{date}.md` using the template at:
+→ `${CLAUDE_SKILL_DIR}/references/gap_report_template.md`
 
-```markdown
-# Code Gap Analysis Report
-
-**Scope Researched:** Section 09 67 23 — Resinous Flooring (Kitchen Complex)
-**Engineer's Question:** Are there code requirements for this scope that are missing?
-**Project:** [Name] | [City, State] | [Date]
-**Occupancy:** [Group] | **Construction Type:** [Type] | **Sprinklered:** [Yes/No]
-**Prepared:** [ISO date]
-
----
-
-## Applicable Codes (Jurisdiction Confirmed)
-
-| Code | Edition | Adopted By |
-|------|---------|-----------|
-| [Code name] | [year] | [jurisdiction, date] |
-| ... | ... | ... |
-
----
-
-## Gaps — Action Required
-
-### GAP-001 · HIGH · Confirmed
-**Topic:** Slip Resistance
-**Code Requirement:** IBC 2021 §1210.3 — Floor surfaces in commercial kitchens
-shall have a static coefficient of friction ≥ 0.60.
-**Project Status:** Not addressed. Section 09 67 23 specifies physical properties
-(compressive strength, bond strength, Shore D hardness) but contains no COF or
-slip resistance requirement and no test method reference.
-**Recommended Action:** Add minimum COF = 0.60 (wet) to 09 67 23 §2.1 System
-Characteristics. Specify test method (coordinate with manufacturer — no industry
-standard exists for urethane mortar systems; manufacturer test data typically
-used). Confirm AHJ accepts manufacturer-provided test data.
-**Engineer Decision Required:** No (factual addition to spec)
-**PE/Architect Decision Required:** No (factual addition to spec)
-
-### GAP-002 · HIGH · Needs Review
-**Topic:** Health Department Overlay — Kitchen Complex
-**Code Requirement:** Maryland COMAR 10.15.03 (Food Service Facility Regulations)
-— floors in food preparation areas shall be smooth, easily cleanable, and
-nonabsorbent. Specific requirements may require AHJ pre-approval of floor system.
-**Project Status:** Not addressed. Rooms 1411–1419 (kitchen complex) are within
-the resinous flooring scope. No reference to health department requirements found
-in 09 67 23 or in the project manual.
-**Recommended Action:** Confirm with Owner whether a food service permit is
-required for the kitchen complex. If yes, coordinate with Maryland Department of
-Health AHJ before spec is finalized. Obtain written approval of the Stonhard
-Stonclad UT system from the health department, or identify an alternative system
-that has prior approval.
-**Engineer Decision Required:** Yes — confirm permit requirement with Owner
-**PE/Architect Decision Required:** Yes — AHJ coordination and possible system substitution
-
----
-
-## Gaps — Confirm and Close
-
-### GAP-003 · MEDIUM · Confirmed
-**Topic:** VOC Content Cross-Reference
-**Code Requirement:** IBC 2021 §1210.2 and project Spec 01 61 16 establish
-VOC content limits for floor coatings applied within the building envelope.
-**Project Status:** Partial. Division 01 Section 01 61 16 addresses VOC limits
-globally, but Section 09 67 23 does not reference 01 61 16 and does not
-independently state VOC limits for the Stonclad UT system components.
-**Recommended Action:** Add cross-reference to Section 01 61 16 in 09 67 23
-§1.1 or §2.1. Obtain VOC content documentation from Stonhard for all system
-components and confirm compliance with limits in 01 61 16.
-**Engineer Decision Required:** No (administrative cross-reference)
-
----
-
-## Uncertain — Requires AHJ Confirmation
-
-| Item | Question | Who Confirms |
-|------|----------|-------------|
-| Baltimore City amendments to slip resistance | Does Baltimore City have local amendments that modify IBC §1210.3? | Building department AHJ |
-
----
-
-## Already Addressed — No Action Needed
-
-| Topic | How Addressed | Source |
-|-------|---------------|--------|
-| Moisture vapor emission testing | ASTM F 1869 (max 7 lb/1000 sf/24hr) and ASTM F 2170 (max 85% RH) both required | 09 67 23 §3.1-B-3 |
-| Substrate preparation | Shot-blast per manufacturer; self-priming; patching material specified | 09 67 23 §3.1-B |
-| Compressive strength | ASTM C 579 at 7,700 psi after 7 days | 09 67 23 §2.1-D-1 |
-| Bond strength | ACI 503R at 400 psi minimum, 100% concrete failure | 09 67 23 §2.1-D-10 |
-| Installer qualification | Manufacturer written certification required before production | 09 67 23 §1.3-B-1 |
-
----
-
-## Documents Reviewed
-
-| Document | Type | Pages / Sheets |
-|----------|------|---------------|
-| Spec Section 09 67 23 | Specification | Full section |
-| Spec Section 01 61 16 | Specification | §1.1, §2.1 |
-| Drawing A-3.1 | Finish Schedule | Full sheet |
-| [any other documents read] | | |
-
----
-
-## Disclaimer
-
-This report presents code research findings for informational purposes only.
-Gap identifications are based on the documents reviewed and web research
-conducted on [date]. All findings require review and confirmation by the
-licensed design professional of record. Code interpretations and compliance
-determinations are the responsibility of the Architect and Engineer of Record.
-Confirm jurisdiction-specific code adoptions and local amendments with the
-Authority Having Jurisdiction before finalizing design documents.
-```
+Populate all placeholder fields from the gap_analysis.yaml and jurisdiction.yaml data. The report must include: applicable codes table, all gaps (action required + confirm and close), uncertain items, already addressed items, documents reviewed, and the disclaimer.
 
 ### 5b — Write Graph Entry
 
@@ -862,37 +436,8 @@ Check for `.construction/code_research/` before starting:
 
 ## Discipline Notes
 
-**On jurisdiction — never assume:**
-The IBC edition adopted by a state is not always the most recently published
-edition. States and cities adopt codes on their own schedules and with their
-own amendments. A requirement confirmed against the wrong edition is not
-confirmed. Always establish jurisdiction first (Phase 3a) before researching
-requirements.
+PE discipline guidance for jurisdiction research, scope boundaries, regulatory overlays, and confidence levels:
+→ `${CLAUDE_SKILL_DIR}/references/discipline_notes.md`
 
-**On scope boundaries:**
-The gap analysis is only as good as the documents reviewed in Pass 1. If the
-engineer's scope includes drawings that weren't provided, or spec sections that
-weren't read, those gaps cannot be identified. State clearly in the report
-which documents were reviewed and which were not.
-
-**On regulatory overlays:**
-The building code is not the only applicable authority. Depending on scope,
-relevant regulators may include: fire marshal, health department, USDA, FDA,
-EPA, OSHA, utility company, state DOT, state environmental agency, and others.
-These operate independently of the building code and are frequently missed
-in standard code research. Flag the possibility of regulatory overlays whenever
-the scope involves: food service, healthcare, hazardous materials, fuel systems,
-elevators, pressure vessels, or work in public rights-of-way.
-
-**On Pass 1 completeness:**
-Before declaring a topic "not addressed," confirm that the relevant spec
-section was read in full (all three parts), that related spec sections were
-checked (Division 01 sections often cover topics globally), and that relevant
-drawing notes and schedules were reviewed. A premature "not found" in Pass 1
-becomes a false positive gap in Pass 3.
-
-**On confidence levels:**
-`confirmed` means: (1) the correct code edition for this jurisdiction has been
-verified, (2) the code section has been read (not paraphrased from secondary
-sources), (3) the project document status has been verified by reading the
-actual document. Anything short of all three is `needs_review` or `uncertain`.
+## File Safety
+Never overwrite an existing gap report. Version output files (`_v2`, `_v3`) if a prior version exists at the target path.

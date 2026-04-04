@@ -14,10 +14,7 @@ evals/
 │   ├── specs/
 │   └── project_manual.pdf
 ├── cases/
-│   ├── project-onboarding/
-│   │   ├── case_01.json
-│   │   └── expected/
-│   ├── sheet-index-builder/
+│   ├── project-setup/
 │   │   ├── case_01.json
 │   │   └── expected/
 │   ├── schedule-extractor/
@@ -27,28 +24,28 @@ evals/
 │   ├── submittal-log-generator/
 │   │   ├── case_01.json
 │   │   └── expected/
-│   ├── code-compliance-checker/
-│   │   ├── case_01_egress.json
-│   │   ├── case_02_ada.json
-│   │   └── expected/
-│   ├── cross-reference-navigator/
-│   │   ├── case_01.json
-│   │   └── expected/
 │   ├── bid-tabulator/
 │   │   ├── case_01_single_scope.json
 │   │   ├── case_02_scanned_bids.json
 │   │   ├── case_03_alternates_unit_prices.json
+│   │   └── expected/
+│   ├── bid-evaluator/
+│   │   ├── case_01_flooring_eval.json
 │   │   └── expected/
 │   ├── code-researcher/
 │   │   ├── case_01_egress.json
 │   │   ├── case_02_accessibility.json
 │   │   ├── case_03_fire_protection.json
 │   │   └── expected/
-│   └── subcontract-writer/
-│       ├── case_01_with_template.json
-│       ├── case_02_no_template.json
-│       ├── case_03_pdf_template.json
-│       └── expected/
+│   ├── subcontract-writer/
+│   │   ├── case_01_with_template.json
+│   │   ├── case_02_no_template.json
+│   │   ├── case_03_pdf_template.json
+│   │   └── expected/
+│   └── pe-review/
+│       ├── case_01_ab_test.json
+│       ├── scoring_rubric.md
+│       └── test_queries.md
 ├── runners/
 │   ├── run_eval.py           ← orchestrates a single test case
 │   ├── run_suite.py          ← runs all cases for a skill
@@ -111,7 +108,7 @@ Each test case is a JSON file:
 
 ## Test Cases by Skill
 
-### P0: project-onboarding
+### P0: project-setup
 
 | Case | Input | Validates |
 |---|---|---|
@@ -124,20 +121,6 @@ Each test case is a JSON file:
 - Discipline detection accuracy
 - Document type detection accuracy
 - Time to complete indexing
-
-### P0: sheet-index-builder
-
-| Case | Input | Validates |
-|---|---|---|
-| 01 | 10 individual sheet PDFs with standard title blocks | Sheet number, title, scale, discipline extraction accuracy |
-| 02 | Bound set (100+ page PDF) | Multi-page PDF handling, page-to-sheet mapping |
-| 03 | Non-standard title blocks (different firms) | Robustness with varied title block formats |
-
-**Key metrics:**
-- Sheet number extraction accuracy (% exact match)
-- Sheet title accuracy (fuzzy match, >90% character accuracy)
-- Scale extraction accuracy
-- Discipline classification accuracy
 
 ### P1: schedule-extractor
 
@@ -172,22 +155,6 @@ Each test case is a JSON file:
 - Excel output validity and completeness
 - Comparison against manually-created submittal log
 
-### P1: code-compliance-checker
-
-| Case | Input | Validates |
-|---|---|---|
-| 01 | Floor plan — egress review | Occupant load calc, exit count, travel distance, corridor width |
-| 02 | Floor plan — ADA review | Door clearances, accessible routes, restroom layout |
-| 03 | Section/detail — fire rating review | Wall ratings, opening protectives, rated assembly continuity |
-
-**Key metrics:**
-- Code section citation accuracy (correct IBC/ADA section referenced)
-- Finding validity (human review: true positive / false positive / missed)
-- Jurisdiction identification (correct state/local code edition)
-- Severity classification appropriateness
-
-**Important:** Code compliance findings must be validated by a licensed professional. Eval measures whether the skill flags the right areas, not whether its determination is final.
-
 ### P1: bid-tabulator
 
 | Case | Input | Validates |
@@ -206,7 +173,21 @@ Each test case is a JSON file:
 
 **Ground truth:** Manually extract all data from each bid PDF — base amounts, line items, exclusions, qualifications, alternates, unit prices.
 
-### P1: code-researcher (replaces code-compliance-checker)
+### P1: bid-evaluator
+
+| Case | Input | Validates |
+|---|---|---|
+| 01 | bid-tabulator output + specs + drawings — flooring scope | Scope gap detection, risk scoring, unit price benchmarking, recommendation quality |
+
+**Key metrics:**
+- Scope gap detection (items in specs/drawings not covered by any bidder)
+- Risk factor identification (exclusions, qualifications, allowances)
+- Recommendation quality (human-rated: PE/PM reviews recommendation memo)
+- Excel output validity (risk matrix, comparison tabs)
+
+**Ground truth:** PM/PE reviews generated evaluation against their own bid analysis for the same scope.
+
+### P1: code-researcher
 
 | Case | Input | Validates |
 |---|---|---|
@@ -243,19 +224,6 @@ Each test case is a JSON file:
 - .docx output validity
 
 **Ground truth:** PM reviews generated subcontract against firm template and project documents. Scores on scope reference completeness, template fidelity, and language quality.
-
-### P2: cross-reference-navigator
-
-| Case | Input | Validates |
-|---|---|---|
-| 01 | Follow 5 detail callouts from a floor plan | Target sheet/detail resolution accuracy |
-| 02 | Batch resolve all references on one sheet | Completeness of reference detection |
-| 03 | Follow a chain (plan → section → detail) | Multi-hop traversal |
-
-**Key metrics:**
-- Reference detection recall
-- Target resolution accuracy (correct sheet + detail number)
-- Chain traversal completeness
 
 ## Scoring Framework
 
@@ -299,23 +267,14 @@ When providing construction documents for evals, also create ground truth for ea
 - Manually extract all submittal items from spec sections
 - Note the spec paragraph reference, type, and description for each
 
-### For sheet index:
-- Manually record sheet number, title, discipline, and scale for each sheet
-
-### For code compliance:
-- Have a licensed architect/PE review the drawings and note actual compliance issues
-- Record code section references for each finding
-
-### For quantity takeoff:
-- Manually count the target items on each sheet
-- Note the exact count and any ambiguous items
-
-### For cross-references:
-- Manually trace all callouts and record source → target mappings
-
 ### For bid tabulation:
 - Manually extract from each bid PDF: company name, base bid amount, all line items (as-submitted), exclusions, qualifications, alternates (with add/deduct), unit prices (with units)
 - Create per-bidder CSVs with exact values from the documents
+
+### For bid evaluation:
+- PM/PE independently evaluates the same bids against specs and drawings
+- Record scope gaps, risk factors, and overall recommendation
+- Compare generated evaluation memo against PM/PE analysis
 
 ### For code research:
 - Licensed PE/architect documents applicable codes, correct editions, jurisdiction amendments

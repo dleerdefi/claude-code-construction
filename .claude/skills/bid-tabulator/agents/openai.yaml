@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-bid-tabulator"
+  short_description: "Extract data from multiple subcontractor bid PDFs and produce a comparison spreadsheet in Excel."
+  default_prompt: "Use bid-tabulator for this task."
+policy:
+  allow_implicit_invocation: true

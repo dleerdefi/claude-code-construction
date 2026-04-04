@@ -4,13 +4,12 @@ description: Split a bound drawing set PDF into individual sheet PDFs. Creates o
 argument-hint: "<drawing_set.pdf> [--output-dir <path>]"
 ---
 
-!`mkdir -p ~/.construction-skills/analytics 2>/dev/null; echo "{\"skill\":\"sheet-splitter\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"repo\":\"$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")\"}" >> ~/.construction-skills/analytics/skill-usage.jsonl 2>/dev/null || true`
-
-
-
 # Sheet Splitter
 
 Splits a bound drawing set PDF into individual page PDFs. Mirrors what spec-splitter does for specifications.
+
+## Pipeline Position
+Run after `/project-setup` identifies bound drawing sets. Produces split PDFs and `sheet_index.yaml` consumed by `/schedule-extractor` and all drawing analysis skills.
 
 This is valuable for:
 - **Project teams**: Navigate drawings by sheet number instead of scrolling a multi-page PDF
@@ -27,6 +26,7 @@ Sheet Split Progress:
 - [ ] Step 4: Extract sheet numbers from title blocks
 - [ ] Step 5: Rename files with sheet number + title
 - [ ] Step 6: Write sheet index
+- [ ] Step 7: Write graph entry (AgentCM only)
 ```
 
 ### Step 1: Check if Drawings Are Already Split
@@ -59,7 +59,7 @@ If the user specifies a single file (`/sheet-splitter path/to/specific.pdf`), pr
 Run the split script on each drawing PDF found:
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/split_drawing_set.py \
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/split_drawing_set.py \
   "{drawing_set.pdf}" \
   --output-dir "{drawings_directory}/sheets"
 ```
@@ -105,4 +105,35 @@ After splitting and identifying, update `.construction/project_context.yaml` wit
 - `documents.drawing_count`: number of sheets
 - `documents.disciplines`: list of unique discipline prefixes found
 
+### Step 7: Write Graph Entry (AgentCM only)
+
+If `.construction/` directory exists, write a graph entry:
+
+```bash
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py \
+  --type "drawings_split" \
+  --title "Drawing set split: {N} sheets from {source_pdf}" \
+  --data '{"sheet_count": N, "source_pdf": "...", "identified_count": M, "unidentified_count": K, "disciplines": ["A","S","M","E"]}'
+```
+
+If no `.construction/` directory exists, skip — the `sheet_index.yaml` serves as the local record.
+
+### Multi-Set Projects
+
+When a project has multiple drawing set PDFs (e.g., Architectural, MEP, Civil as separate files), use the source PDF name as a subdirectory to avoid filename collisions:
+
+```
+sheets/
+  Architectural_Bid_Set/
+    page_001.pdf ... page_050.pdf
+  MEP_Bid_Set/
+    page_001.pdf ... page_030.pdf
+  sheet_index.yaml  ← merged from all sets
+```
+
+Pass `--output-dir "{drawings_directory}/sheets/{source_pdf_stem}"` to the split script for each set. The `sheet_index.yaml` merge logic combines entries from all subdirectories into a single index.
+
 Report to user: number of pages split, how many identified via vision, output location.
+
+## File Safety
+Never overwrite existing split sheet PDFs. If `sheets/` directory already contains files, check for conflicts before writing. The `sheet_index.yaml` merge uses additive logic — existing entries are preserved.

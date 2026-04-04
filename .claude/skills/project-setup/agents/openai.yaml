@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-project-setup"
+  short_description: "Set up a construction project — inventory files, classify document types, detect AgentCM mode, append context to CLAUDE.md."
+  default_prompt: "Use project-setup for this task."
+policy:
+  allow_implicit_invocation: true
