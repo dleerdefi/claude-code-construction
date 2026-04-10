@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-rfi-drafter"
+  short_description: "Draft formal RFIs from identified issues and manage the ambient issue detection registry."
+  default_prompt: "Use rfi-drafter for this task."
+policy:
+  allow_implicit_invocation: true

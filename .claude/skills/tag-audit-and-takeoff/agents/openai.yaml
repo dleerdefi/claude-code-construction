@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-tag-audit-and-takeoff"
+  short_description: "Count-based QTO and tag completeness auditing — identifies tagged elements on drawings using vision + OCR."
+  default_prompt: "Use tag-audit-and-takeoff for this task."
+policy:
+  allow_implicit_invocation: false

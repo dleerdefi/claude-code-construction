@@ -79,3 +79,5 @@ evals/cases/pe-review/scoring_rubric.md
 browse/
 
 .claude/skills/code-reviewer
+docs/DISTRIBUTION_SPEC.md
+docs/construction-skills.code-workspace
