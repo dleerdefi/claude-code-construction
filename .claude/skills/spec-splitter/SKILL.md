@@ -1,7 +1,12 @@
 ---
 name: spec-splitter
-description: "Split a bound project manual PDF into individual specification section PDFs and extract searchable text from each section. Two functions: (1) split combined PDF into per-section PDFs, (2) extract per-section text to .txt files. Either step can run independently. Use when specs are in a single bound PDF, when text extraction is needed from already-split specs, or as a prerequisite for submittal-log-generator or spec-parser. Triggers on 'split specs', 'break up the project manual', 'separate spec sections', 'extract spec text', or when a bound manual is detected by another skill."
+description: >
+  Split a bound project manual PDF into individual spec section PDFs and
+  extract searchable text. Triggers: 'split specs', 'break up the project
+  manual', 'separate spec sections', 'extract spec text'. Prerequisite
+  for /submittal-log-generator.
 argument-hint: "<project_manual.pdf> [--output-dir <path>]"
+disable-model-invocation: true
 ---
 
 # Spec Splitter
@@ -178,3 +183,13 @@ Report to user: number of sections split, total pages, text extraction quality s
 
 ## File Safety
 Never overwrite existing split spec PDFs or extracted text. The split script skips existing sections. Text extraction overwrites only with `--force`. The `spec_index.yaml` merge is additive.
+
+---
+
+## Allowed Scripts
+
+**Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
+- `scripts/split_spec_manual.py` — split bound PDF into per-section PDFs
+- `scripts/extract_spec_text.py` — extract searchable text from section PDFs
+- `../../scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision fallback
+- `../../scripts/graph/write_finding.py` — graph entry (Step 9)

@@ -1,8 +1,11 @@
 ---
 name: bid-evaluator
-user-invocable: true
-description: "Evaluate tabulated subcontractor bids against construction documents — scope gap analysis, exclusion risk scoring, and award recommendation for PE/PM review. Triggers on 'evaluate bids', 'bid evaluation', 'lowest responsible bidder', 'award recommendation', 'analyze bids'. Does not trigger for bid tabulation or data entry (use /bid-tabulator) or subcontract generation (use /subcontract-writer). Input: bid-tabulator output + specs/drawings. Output: 5-sheet Excel workbook + conversational recommendation memo."
+description: >
+  Evaluate tabulated subcontractor bids against specs and drawings — scope
+  gap analysis, exclusion risk scoring, award recommendation. Triggers:
+  'evaluate bids', 'bid evaluation', 'lowest responsible bidder'.
 argument-hint: "<tabulated_bids_dir> [scope_description]"
+disable-model-invocation: true
 ---
 
 # Bid Evaluator
@@ -197,3 +200,11 @@ If no `.construction/` directory exists, skip — the Excel workbook is the deli
 
 ## File Safety
 Never overwrite an existing bid evaluation. The export script uses `safe_output_path()` which appends `_v2`, `_v3`, etc. automatically.
+
+---
+
+## Allowed Scripts
+
+- `${CLAUDE_SKILL_DIR}/../../bin/construction-python`
+- `${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py`
+- `${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py`

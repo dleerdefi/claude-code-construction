@@ -1,8 +1,12 @@
 ---
 name: project-setup
-user-invocable: true
-description: "Set up a construction project for Claude Code — inventories files, classifies document types (drawings, specs, schedules, registers), detects AgentCM mode, and appends construction context to CLAUDE.md. Triggers on 'set up project', 'construction setup', 'classify project documents', 'what's in this project'. Use after /init to enrich the project with construction-specific paths and metadata."
+description: >
+  Set up a construction project — inventories files, classifies
+  drawings/specs/schedules/registers, detects AgentCM mode, appends
+  construction context to CLAUDE.md. Triggers: 'set up project',
+  'construction setup', 'classify documents'.
 argument-hint: "[project-directory]"
+disable-model-invocation: true
 ---
 
 # Project Setup
@@ -33,7 +37,9 @@ Check for `.construction/` directory at the project root.
 
 **If present (AgentCM mode):**
 1. Read `.construction/CLAUDE.md` for project navigation context
-2. Read `.construction/graph/graph_summary.yaml` for entity counts
+2. Query database for entity counts (read `query_command` from `.construction/database.yaml`):
+   `{query_command} -c "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{id}') AS rooms, (SELECT COUNT(*) FROM graph_elements ge JOIN sheets s ON s.id = ge.sheet_id WHERE s.project_id = '{id}') AS elements"`
+   Fallback: read `.construction/graph/graph_summary.yaml` if database unavailable
 3. Read `.construction/index/sheet_index.yaml` for drawing inventory
 4. Skip to Step 3 with instant summary — no file scanning needed
 
@@ -118,3 +124,9 @@ Only append — never overwrite existing CLAUDE.md content.
 - **Does not use vision** — all classification is filename/folder pattern matching
 - **Does not create .construction/ directory** — that's AgentCM's job
 - **Does not replace /init** — `/init` creates the base CLAUDE.md, this skill enriches it
+
+---
+
+## Scripts
+
+This skill does not execute any external scripts.

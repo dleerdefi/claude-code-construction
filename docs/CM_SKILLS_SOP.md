@@ -106,8 +106,10 @@ After `/init` creates the base `CLAUDE.md`, a construction-specific `/project-se
 
 ## AgentCM
 The `.construction/` directory contains the project graph and extracted data.
-- Graph: .construction/graph/navigation_graph.json
-- Graph summary: .construction/graph/graph_summary.yaml
+- Graph (snapshot): .construction/graph/navigation_graph.json — use database for current data
+- Graph summary (snapshot): .construction/graph/graph_summary.yaml — use database for current counts
+- Database config: .construction/database.yaml — psql connection info for Claude Code
+- Schema reference: .construction/db_schema.yaml — available tables, views, write endpoints
 - Spec text: .construction/spec_text/
 - Sheet index: .construction/index/sheet_index.yaml
 - Spec index: .construction/index/spec_index.yaml
@@ -144,7 +146,9 @@ The project has been processed through AgentCM. A `.construction/` directory exi
 
 **How skills navigate in AgentCM Mode:**
 - Read `.construction/CLAUDE.md` for navigation context
-- Read `.construction/graph/graph_summary.yaml` for quick project orientation
+- Query database for project orientation (read `query_command` from `.construction/database.yaml`):
+  `{query_command} -c "SELECT COUNT(*) FROM sheets WHERE project_id = '...'; SELECT COUNT(*) FROM rooms WHERE project_id = '...'"`
+  Fallback: read `.construction/graph/graph_summary.yaml` if database unavailable
 - Read specific JSON/YAML files from `.construction/` for structured lookups (spec text, sheet indexes, findings)
 - The `.construction/` data layer is the index; the underlying PDFs remain the source of truth for content
 
@@ -192,8 +196,10 @@ Reference files can live in two places (both are valid per the official Agent Sk
 | `manifest.json` | `.construction/spec_text/` | Spec text extraction quality (GOOD/DEGRADED/POOR) per section | `/spec-splitter` |
 | `submittal_log_schema.json` | `submittal-log-generator/references/` | JSON schema for submittal log output data contract | Manual |
 | `pe-review/references/*.md` | `pe-review/` skill dir | PE behavioral rules, red flags, coordination matrix, scope gaps | Manual |
-| `navigation_graph.json` | `.construction/graph/` | Project entity relationships (AgentCM only) | AgentCM |
-| `graph_summary.yaml` | `.construction/graph/` | Quick orientation summary of graph contents (AgentCM only) | AgentCM |
+| `navigation_graph.json` | `.construction/graph/` | Project entity relationships **snapshot** — use database `v_sheet_contents`, `v_cross_references` for current data | AgentCM export |
+| `graph_summary.yaml` | `.construction/graph/` | Entity counts **snapshot** — use database orientation query for current data | AgentCM export |
+| `database.yaml` | `.construction/` | PostgreSQL connection info for Claude Code (agentcm_reader role) | AgentCM export |
+| `db_schema.yaml` | `.construction/` | Available tables, views, write endpoints, example queries | AgentCM export |
 
 **Planned reference files** (not yet implemented):
 - `submittal_routing_rules.md` — Maps CSI divisions to responsible subcontractors

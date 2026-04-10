@@ -1,7 +1,11 @@
 ---
 name: subcontract-writer
-description: Generate a complete subcontract document for a scope of work. Takes a firm's subcontract template (PDF or Word) and the awarded bid, populates every article with scope-specific language from project drawings, specifications, and bid data. Outputs a Word document. Use when asked to write a subcontract, draft a sub agreement, or prepare contract documents for a trade. Triggers on 'subcontract', 'sub agreement', 'write contract', 'draft subcontract', or 'trade contract'.
+description: >
+  Generate a complete subcontract from a firm's template, awarded bid, and
+  project specs. Outputs a Word document. Triggers: 'subcontract', 'sub
+  agreement', 'write contract', 'draft subcontract'. Requires awarded bid.
 argument-hint: "<scope_of_work>"
+disable-model-invocation: true
 ---
 
 # Subcontract Writer
@@ -507,6 +511,15 @@ When the user requests a change to the generated document after Phase 5:
 ## File Safety
 
 Never overwrite an existing subcontract. The formatter uses `safe_output_path()` which appends `_v2`, `_v3`, etc. automatically.
+
+---
+
+## Allowed Scripts
+
+- `${CLAUDE_SKILL_DIR}/../../bin/construction-python`
+- `${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py`
+- `${CLAUDE_SKILL_DIR}/scripts/generate_subcontract_docx.py`
+- `${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py`
 
 ## Tips
 

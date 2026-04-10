@@ -1,7 +1,11 @@
 ---
 name: bid-tabulator
-description: Extract data from multiple subcontractor bid PDFs and produce a comparison spreadsheet in Excel. Use when the user has received bids for a scope of work and needs to tabulate them for analysis. Triggers on 'tabulate bids', 'bid comparison', 'compare bids', 'buyout analysis', 'bid tab', or 'bid spreadsheet'.
+description: >
+  Extract data from subcontractor bid PDFs and produce a comparison
+  spreadsheet. Feeds into /bid-evaluator. Triggers: 'tabulate bids',
+  'bid comparison', 'compare bids', 'buyout analysis', 'bid tab'.
 argument-hint: "<bid_folder_or_files>"
+disable-model-invocation: true
 ---
 
 # Bid Tabulator
@@ -197,3 +201,12 @@ Check for `.construction/bid_tab/extraction_state.yaml`. If `status: in_progress
 
 ### File Safety
 Never overwrite an existing bid comparison. If a file exists at the target location, save with a versioned name (e.g., `Bid_Comparison_Div09_v2.xlsx`).
+
+---
+
+## Allowed Scripts
+
+- `${CLAUDE_SKILL_DIR}/../../bin/construction-python`
+- `${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py`
+- `${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py`
+- `${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py`

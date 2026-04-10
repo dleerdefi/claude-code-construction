@@ -1,7 +1,11 @@
 ---
 name: submittal-log-generator
-description: "Extract all submittal requirements from every specification section and generate a comprehensive submittal register in Excel. Triggers on 'submittal log', 'extract submittals', 'submittal register', 'build submittal log', 'generate submittal log'. Reads pre-extracted spec text provisioned by spec-splitter, then applies Claude intelligence to identify, classify, and flag submittal items with confidence scoring."
+description: >
+  Extract all submittal requirements from specification sections and generate
+  a comprehensive submittal register in Excel. Triggers: 'submittal log',
+  'extract submittals', 'submittal register'. Requires /spec-splitter output.
 argument-hint: "[spec_range: all|div_08|div_09]"
+disable-model-invocation: true
 ---
 
 # Submittal Log Generator

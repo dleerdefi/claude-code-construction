@@ -1,6 +1,9 @@
 ---
 name: code-researcher
-description: "Scope-specific code gap analysis for engineers and architects — extracts referenced codes, researches what should apply, surfaces the delta. Triggers on 'code research', 'what codes apply', 'am I missing any requirements', 'code check', 'ADA requirements', 'egress', 'fire code', 'code gap analysis'. Use when an engineer or architect wants to know if they are missing any code requirements for a specific scope of work. Does not trigger for general code questions without a project scope. Output: structured gap report with confidence levels and direct references to plans and specs."
+description: >
+  Scope-specific code gap analysis — extracts referenced codes from project
+  docs, researches what should apply, surfaces the delta. Triggers: 'code
+  research', 'what codes apply', 'code check', 'ADA requirements', 'egress'.
 argument-hint: "<scope_or_question> e.g. 'Section 09 67 23 resinous flooring' or 'egress from the kitchen complex'"
 ---
 
@@ -95,7 +98,10 @@ Collect minimum required project parameters. Check in this order:
 **AgentCM project files (if `.construction/` exists):**
 - `.construction/project.yaml` — location, occupancy, construction type
 - `.construction/index/sheet_index.yaml` — drawing set composition
-- `.construction/graph/navigation_graph.json` — rooms, elements
+- Database (read `query_command` from `.construction/database.yaml`):
+  - `{query_command} -c "SELECT * FROM v_room_profile WHERE room_number = '...'"` — rooms with schedule data
+  - `{query_command} -c "SELECT * FROM v_sheet_contents WHERE sheet_number = '...'"` — elements on sheets
+  - Orientation: `{query_command} -c "SELECT COUNT(*) FROM sheets WHERE project_id = '...'; SELECT COUNT(*) FROM rooms WHERE project_id = '...'"`
 
 **Project documents (read directly):**
 - Architectural title block — project name, location, jurisdiction
@@ -441,3 +447,10 @@ PE discipline guidance for jurisdiction research, scope boundaries, regulatory o
 
 ## File Safety
 Never overwrite an existing gap report. Version output files (`_v2`, `_v3`) if a prior version exists at the target path.
+
+---
+
+## Allowed Scripts
+
+- `${CLAUDE_SKILL_DIR}/../../bin/construction-python`
+- `${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py`

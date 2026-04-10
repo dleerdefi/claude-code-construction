@@ -150,6 +150,34 @@ else
   fi
 fi
 
+# --- Step 2b: Create per-skill symlinks for discovery ---
+echo "[2b/5] Creating skill discovery symlinks..."
+
+SKILLS_ROOT="$(dirname "$TARGET_DIR")"  # e.g., ~/.claude/skills/
+
+for skill_dir in "$TARGET_DIR/.claude/skills"/*/; do
+  [ -f "$skill_dir/SKILL.md" ] || continue
+  skill_name=$(basename "$skill_dir")
+  [[ "$skill_name" == _deprecated_* ]] && continue
+
+  link_path="$SKILLS_ROOT/$skill_name"
+  link_target="construction/.claude/skills/$skill_name"
+
+  if [ -L "$link_path" ]; then
+    rm "$link_path"
+  elif [ -e "$link_path" ]; then
+    echo "      SKIP $skill_name (non-symlink exists)"
+    continue
+  fi
+
+  ln -s "$link_target" "$link_path"
+  echo "      /$skill_name"
+done
+
+# Fix permissions so skills are readable
+find "$TARGET_DIR/.claude/skills" -name "SKILL.md" -exec chmod 644 {} \;
+find "$TARGET_DIR/.claude/skills" -path "*/references/*" -exec chmod 644 {} \; 2>/dev/null || true
+
 # --- Step 3: Detect other platforms ---
 echo "[3/5] Detecting platforms..."
 

@@ -31,9 +31,9 @@ The `.construction/` directory provides:
 │   ├── viewports.json                    #   Detected views/viewports with scale and bounding regions
 │   ├── links.json                        #   Resolved cross-references (callout edges)
 │   └── groups.json                       #   All detected annotation groups (rooms, callouts, notes)
-├── graph/
-│   ├── navigation_graph.json             # Full semantic network (sheets, views, rooms, elements, edges)
-│   └── graph_summary.yaml               # Quick counts and validation summary
+├── graph/                                # EXPORT SNAPSHOTS — query database for current data
+│   ├── navigation_graph.json             # Full semantic network (snapshot — use psql for current)
+│   └── graph_summary.yaml               # Quick counts (snapshot — use psql orientation query for current)
 └── agent_findings/                       # Skill outputs for cross-session retention
 ```
 
@@ -49,7 +49,11 @@ The `.construction/` directory provides:
 
 All coordinates are **normalized 0-1**. Centroids are `[cx, cy]` tuples. Multiply by image pixel dimensions to convert to pixel coordinates.
 
-Use the AgentCM REST API at `$CONSTRUCTION_PLATFORM_URL` if the env var is set.
+### Database & API Discovery (when .construction/ exists)
+1. Read `.construction/database.yaml` for connection info (host, port, database, user, project_id, api_url)
+2. Read `.construction/db_schema.yaml` for available tables, views, and write endpoints
+3. Reads: `{query_command} -c "SQL QUERY"` (where `query_command` is from database.yaml)
+4. Writes: `curl -X POST "{api_url}/projects/{project_id}/{endpoint}"`
 
 **Extraction file usage** (per-sheet files in `extractions/{sheet_number}/`):
 
@@ -60,7 +64,29 @@ Use the AgentCM REST API at `$CONSTRUCTION_PLATFORM_URL` if the env var is set.
 | `links.json` | 1-5KB | Cross-sheet reference data |
 | `ocr_output.json` | 100-400KB | **Rarely.** Only for specific element text lookup by ID. Never read in full. |
 
-**Primary data source:** Always use `navigation_graph.json` first — it aggregates and structures data from all extraction files.
+## Data Access
+
+Read `.construction/database.yaml` for connection info (host, port, database, user, project_id, api_url).
+Read `.construction/db_schema.yaml` for available tables, views, and write endpoints.
+
+**Reads:** Use psql with the agentcm_reader role. Prefer views over raw table queries:
+  - `v_room_profile` — all data for a room across sheets and schedules
+  - `v_sheet_contents` — all elements on a given sheet
+  - `v_schedule_pivot` — schedule data in readable tabular form
+  - `v_cross_references` — sheet-to-sheet reference map
+  - `v_open_conflicts` — unresolved extraction vs user-edit conflicts
+
+**Writes:** POST to REST API endpoints listed in `db_schema.yaml` write_endpoints.
+Never write directly to the database. The API enforces change logging, override
+protection, conflict detection, and soft-delete semantics.
+
+**Static files:** Sheet-level extraction data (OCR, viewports, groups) remains in
+`.construction/extractions/{sheet}/`. Use for bounding box geometry and raw text.
+Entity data (rooms, schedules, elements) must be queried from the database —
+`.construction/` file exports may be stale.
+
+**Orientation:** At session start, run the project orientation query from `db_schema.yaml` to understand
+project scope before answering questions.
 
 #### 2. Vision + PDF Tools (unguided fallback)
 Use Claude Code vision on rasterized PDF pages plus `pdfplumber` / `pymupdf` for text and annotation extraction.
@@ -90,16 +116,23 @@ When a user asks about drawing content (rooms, dimensions, callouts, details, sc
 
 ### With AgentCM (graph-guided targeting)
 
+**Raster availability check:** If a skill or workflow needs sheet raster images at
+`.construction/rasters/{sheet_number}.png` and the directory is empty, tell the user:
+"Raster images not found. Open this project in AgentCM to generate them, or trigger
+the export: `curl -s -X POST '{api_url}/projects/{project_id}/graph/export' -H 'Content-Type: application/json' -d '{\"rootPath\": \"'$(pwd)'\"}'`"
+You can also rasterize individual sheets on demand using the `rasterize_page.py` script below.
+
 **Follow this sequence — do not skip steps:**
 
 1. **Sheet lookup** — find the sheet in `sheet_index.yaml` → get `title`, `discipline`, `scale`, `pageIndex`, `filePath`
-2. **Graph query** — read `navigation_graph.json`, filter by `sheetId`:
-   - `views[]` — detail numbers, titles, bounding regions, centroids
-   - `rooms[]` — room numbers, names, centroids `[cx, cy]`
-   - `elements[]` — door/window/equipment tags with centroids
-   - `calloutEdges[]` — cross-references with resolution status
-   - `noteBlocks[]` — general/key notes with bounding regions
-   - `scheduleTables[]` — embedded schedule bounding regions
+2. **Graph query** — read `query_command` from `.construction/database.yaml`, then query:
+   ```bash
+   {query_command} -c "SELECT * FROM v_sheet_contents WHERE sheet_number = '{sheet}'"
+   ```
+   For detailed data, also query:
+   - `v_room_profile` — rooms with schedule data
+   - `v_cross_references` — callout edges for this sheet
+   - `v_schedule_pivot` — schedule data if sheet contains schedules
 3. **Rasterize** — convert the PDF page to PNG (do NOT attempt to read the PDF directly):
    ```bash
    ~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/rasterize_page.py "{filePath}" {pageIndex} --dpi 200 --output /tmp/sheet.png
@@ -176,7 +209,11 @@ If `.construction/` exists, read these 4 files for instant orientation:
 1. `.construction/CLAUDE.md` — full project navigation guide
 2. `.construction/project.yaml` — project name, number, location
 3. `.construction/index/sheet_index.yaml` — all sheets with metadata
-4. `.construction/graph/graph_summary.yaml` — counts and validation summary
+4. Query database (read `query_command` from `.construction/database.yaml`):
+   ```bash
+   {query_command} -c "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{id}') AS rooms"
+   ```
+   Fallback: `.construction/graph/graph_summary.yaml` if database unavailable
 
 Present the summary immediately. Also inventory non-drawing files that AgentCM doesn't process: specifications, submittals, RFIs, correspondence.
 
@@ -202,6 +239,13 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 | `bid-evaluator` | Evaluate tabulated bids against construction documents — scope gaps, risk scoring, recommendation. **Input: bid-tabulator output + specs/drawings.** | Excel workbook + memo |
 | `code-researcher` | Deep research on building codes, standards, and jurisdiction requirements | Markdown + YAML report |
 | `subcontract-writer` | Generate scope-specific subcontract from firm's template | Word document (.docx) |
+| `rfi-drafter` | Draft formal RFIs from identified issues; manage ambient issue detection registry | Word document (.docx) or PDF |
+| `viewport-highlighter` | Auto-identify and highlight viewports on drawing sheets using vision — titles, detail numbers, scales, types | Viewports via API + marked-up PNGs |
+| `tag-audit-and-takeoff` | Count-based QTO and tag completeness auditing — identifies tagged elements using vision + OCR | QTO JSON + marked-up PNGs |
+
+### Cross-Skill Infrastructure
+
+**Issue Registry** — Any skill can log potential issues to `.construction/issues/` via `scripts/issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, spec-parser, etc.) and are reviewed/escalated by the user through `rfi-drafter`. No skill writes an RFI directly — only issue records.
 
 ### Behavioral Skills (setup / orientation)
 
@@ -247,6 +291,7 @@ Domain reference files are in `reference/`. Read only what you need:
 - `scale_factors.yaml` — architectural/civil/metric scale lookup
 - `ada_requirements.yaml` — ADA accessibility requirements
 - `ibc_egress_tables.yaml` — IBC egress width, travel distance, occupancy tables
+- `common-issue-types.md` — issue patterns for skills to watch for (cross-document conflicts, missing info, code compliance, constructability)
 - PE review reference files live inside the `pe-review` skill directory (see PE Review section below)
 
 ---

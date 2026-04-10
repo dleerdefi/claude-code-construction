@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IssueRecord",
+  "description": "A potential issue detected by a skill during construction document analysis. May be escalated to an RFI after user review.",
+  "type": "object",
+  "required": ["id", "created_at", "source_skill", "severity", "confidence", "status", "description", "location"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^ISS-\\d{4}-\\d{4}$",
+      "description": "Sequential issue ID: ISS-YYYY-NNNN"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_skill": {
+      "type": "string",
+      "description": "The skill that detected this issue"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "warning", "conflict", "safety"],
+      "description": "How serious the issue is if confirmed"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "description": "How certain the skill is that this is a real issue"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "reviewed", "escalated", "resolved", "dismissed"],
+      "description": "Current lifecycle status"
+    },
+    "description": {
+      "type": "string",
+      "description": "Clear statement of the observation"
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "sheets": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Sheet numbers involved"
+        },
+        "grid": {
+          "type": "string",
+          "description": "Grid intersection if applicable"
+        },
+        "rooms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Room numbers or names"
+        },
+        "details": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Detail/section references"
+        },
+        "elements": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Element tags involved (door number, fixture tag, etc.)"
+        }
+      }
+    },
+    "document_references": {
+      "type": "object",
+      "properties": {
+        "drawing_refs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Full drawing references with sheet + location"
+        },
+        "spec_sections": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Relevant spec section numbers"
+        },
+        "schedule_refs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Schedule references (door schedule, fixture schedule, etc.)"
+        }
+      }
+    },
+    "context": {
+      "type": "string",
+      "description": "How the issue was discovered — what the skill was doing and what evidence it found"
+    },
+    "potential_rfi_subject": {
+      "type": "string",
+      "description": "Suggested RFI subject line if escalated"
+    },
+    "escalated_to_rfi": {
+      "type": ["string", "null"],
+      "description": "RFI number if escalated (e.g., 'RFI-026')"
+    },
+    "resolved_by": {
+      "type": ["string", "null"],
+      "description": "Who resolved (user, addendum number, RFI response)"
+    },
+    "resolved_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "resolution_notes": {
+      "type": ["string", "null"],
+      "description": "How the issue was resolved or why it was dismissed"
+    }
+  }
+}

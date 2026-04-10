@@ -1,7 +1,12 @@
 ---
 name: sheet-splitter
-description: Split a bound drawing set PDF into individual sheet PDFs. Creates one PDF per page from a combined/stapled drawing set, extracts sheet numbers from title blocks, and renames files accordingly. Use when drawings are in a single multi-page PDF instead of individual sheet files. Triggers on "split drawings", "break up the drawing set", "separate sheets", or when a bound drawing set is detected by another skill.
+description: >
+  Split a bound drawing set PDF into individual sheet PDFs. Extracts sheet
+  numbers from title blocks via vision, renames files. Triggers: 'split
+  drawings', 'break up the drawing set', 'separate sheets'. Run after
+  /project-setup.
 argument-hint: "<drawing_set.pdf> [--output-dir <path>]"
+disable-model-invocation: true
 ---
 
 # Sheet Splitter
@@ -25,7 +30,7 @@ Sheet Split Progress:
 - [ ] Step 3: Split into individual page PDFs
 - [ ] Step 4: Extract sheet numbers from title blocks
 - [ ] Step 5: Rename files with sheet number + title
-- [ ] Step 6: Write sheet index
+- [ ] Step 6: Update project context
 - [ ] Step 7: Write graph entry (AgentCM only)
 ```
 
@@ -99,7 +104,7 @@ sheets/
   sheet_index.yaml
 ```
 
-### Updating Project Context
+### Step 6: Update Project Context
 
 After splitting and identifying, update `.construction/project_context.yaml` with:
 - `documents.drawing_count`: number of sheets
@@ -137,3 +142,12 @@ Report to user: number of pages split, how many identified via vision, output lo
 
 ## File Safety
 Never overwrite existing split sheet PDFs. If `sheets/` directory already contains files, check for conflicts before writing. The `sheet_index.yaml` merge uses additive logic — existing entries are preserved.
+
+---
+
+## Allowed Scripts
+
+**Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
+- `scripts/split_drawing_set.py` — split bound PDF into per-page PDFs
+- `../../scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision identification
+- `../../scripts/graph/write_finding.py` — graph entry (Step 7)

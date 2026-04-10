@@ -77,3 +77,5 @@ evals/cases/pe-review/scoring_rubric.md
 
 # Browse daemon (not used by production skills)
 browse/
+
+.claude/skills/code-reviewer

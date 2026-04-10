@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TagDetectionRecord",
+  "description": "A single tag detection from the tag-audit-and-takeoff skill. Covers element instances, type definitions, and derived instances.",
+  "type": "object",
+  "required": ["id", "record_type", "sheet_id", "tag_type", "tag_text", "status", "confidence", "provenance"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique detection record ID"
+    },
+    "record_type": {
+      "type": "string",
+      "enum": ["element_instance", "element_type_def", "derived_instance"],
+      "description": "Determines how this record contributes to QTO"
+    },
+    "sheet_id": {
+      "type": "string",
+      "description": "Sheet identifier where detected or where target room exists"
+    },
+    "tag_type": {
+      "type": "string",
+      "description": "CSI-aligned tag category (e.g., plumbing_fixtures, light_fixtures, doors)"
+    },
+    "tag_text": {
+      "type": "string",
+      "description": "Reconstructed tag text from grouped OCR items"
+    },
+    "constituent_item_ids": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "description": "OCR extracted item IDs that form this tag (not present for derived instances)"
+    },
+    "composite_bbox": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "w": { "type": "number" },
+        "h": { "type": "number" }
+      },
+      "description": "Union bounding box of all constituent items"
+    },
+    "associated_items": {
+      "type": "object",
+      "description": "Related items: room number, dimensions, finish codes, etc.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "item_id": { "type": "integer" },
+          "text": { "type": "string" }
+        }
+      }
+    },
+    "view_type": {
+      "type": "string",
+      "enum": ["floor_plan", "enlarged_plan", "detail", "section", "elevation"],
+      "description": "Drawing view type where this tag was found"
+    },
+    "source_detail": {
+      "type": "string",
+      "description": "Detail/section reference for type definitions (e.g., '3/A5.2')"
+    },
+    "parent_view_label": {
+      "type": "string",
+      "description": "View title for type definitions (e.g., 'TYPICAL TOILET')"
+    },
+    "type_def_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Source type definition ID for derived instances"
+    },
+    "target_room": {
+      "type": "string",
+      "description": "Room identifier for derived instances"
+    },
+    "derivation_method": {
+      "type": "string",
+      "enum": ["callout_reference", "room_type_match", "schedule_crossref"],
+      "description": "How the derived instance link was established"
+    },
+    "deduplicated": {
+      "type": "boolean",
+      "description": "True if a direct instance already exists at this location"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending_review", "approved", "rejected"],
+      "description": "Review workflow status"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low", "flag"],
+      "description": "Detection confidence level"
+    },
+    "provenance": {
+      "type": "string",
+      "enum": ["vision_detected", "user_added", "derived_from_type_def"],
+      "description": "How this record was created"
+    },
+    "approved_by": {
+      "type": ["string", "null"],
+      "description": "User who approved (null if pending)"
+    },
+    "approved_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Approval timestamp"
+    }
+  }
+}

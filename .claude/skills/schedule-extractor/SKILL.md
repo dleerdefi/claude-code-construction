@@ -1,7 +1,11 @@
 ---
 name: schedule-extractor
-description: Extract structured tabular data from schedules found in construction drawings or spec pages, such as door schedules, window schedules, room finish schedules, fixture schedules, and panel schedules. Outputs to Excel. Use when asked to extract a schedule, pull door/window/finish data from drawings, or create a spreadsheet from a drawing table. Triggers on 'door schedule', 'window schedule', 'finish schedule', 'extract schedule', 'panel schedule', or 'schedule to Excel'.
+description: >
+  Extract tabular schedule data from construction drawings — door, window,
+  finish, fixture, panel schedules — and output to Excel. Triggers: 'door
+  schedule', 'extract schedule', 'schedule to Excel', 'panel schedule'.
 argument-hint: "<sheet_number> [schedule_type]"
+disable-model-invocation: true
 ---
 
 # Schedule Extractor
@@ -35,9 +39,14 @@ Search `.construction/index/sheet_index.yaml` (or the sheet index you've built) 
 
 For dedicated schedule sheets, the entire page is the extraction target — no need to crop.
 
-#### Source B — Navigation graph schedule nodes (supplementary, WIP)
+#### Source B — AgentCM database query (supplementary)
 
-If `.construction/graph/navigation_graph.json` exists, check `scheduleTables[]` for `GraphScheduleTable` entries with bounding regions. These identify embedded schedules on non-schedule sheets.
+If `.construction/database.yaml` exists, read `query_command` from it, then query known schedules:
+```bash
+# Read query_command and project_id from .construction/database.yaml
+{query_command} -c "SELECT id, schedule_type, title, sheet_id, bounding_region FROM schedules WHERE project_id = '{PROJECT_ID}'"
+```
+This returns all schedules already detected (including stubs from Group Review with bounding regions). For embedded schedules on non-schedule sheets, check the `bounding_region` column.
 
 **Note**: Schedule bounding region detection is still being refined — treat these as hints, not definitive boundaries. Always verify with vision.
 
@@ -146,7 +155,7 @@ After extraction (by either method):
 - **Merged cell cleanup**: Expand merged header cells (e.g., "WALLS" spanning A/B/C/D sub-columns)
 - **Normalize dimensions**: `3' - 0"` → `3'-0"` (remove spaces around dashes)
 - **Flag revisions**: Note any cells within revision clouds or delta markers
-- **Cross-reference with graph**: If AgentCM rooms/elements exist, verify door numbers match `ElementNode` tags, room numbers match `RoomNode` entries
+- **Cross-reference with database**: If `.construction/database.yaml` exists, read `query_command` from it, then verify room numbers via `{query_command} -c "SELECT number FROM rooms WHERE project_id = '{PROJECT_ID}' AND number = '{room_number}'"` and door numbers via `{query_command} -c "SELECT tag_number FROM graph_elements WHERE element_type = 'door' AND tag_number = '{door_mark}'"`
 
 ### Step 5: Output to Excel
 
@@ -170,7 +179,8 @@ The script creates a formatted Excel workbook with:
 After Excel output, POST extracted data to the AgentCM schedule ingest API so it's stored in PostgreSQL, linked to rooms, and queryable by agents:
 
 ```bash
-curl -X POST "http://localhost:3000/api/projects/${PROJECT_ID}/schedules/ingest" \
+# Read api_url and project_id from .construction/database.yaml
+curl -X POST "{api_url}/projects/{project_id}/schedules/ingest" \
   -H "Content-Type: application/json" \
   -d @schedule_ingest_payload.json
 ```
@@ -228,6 +238,95 @@ ${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scri
   --data '{"schedule_type": "door", "row_count": 45, "columns": ["MARK","SIZE","TYPE","FRAME","HARDWARE SET"]}'
 ```
 
+## Schedule Reconciliation (Excel → DB Round-Trip)
+
+When a PE edits an exported Excel schedule and wants changes applied back to the database:
+
+### Reconciliation Workflow
+
+```
+Reconciliation Progress:
+- [ ] Step R1: Read metadata from edited Excel
+- [ ] Step R2: Compute changeset (diff vs DB)
+- [ ] Step R3: POST changeset to reconcile endpoint
+- [ ] Step R4: Report summary to user
+```
+
+### Step R1: Read Metadata from Edited Excel
+
+Exported Excel files contain reconciliation anchors:
+- Hidden `_agentcm_meta` sheet with `schedule_id`, `schedule_type`, `sheet_id`
+- Hidden `_row_key` column A with entity identifiers (door numbers, room numbers, etc.)
+
+If the Excel lacks `_agentcm_meta`, it was not exported by AgentCM — treat as a fresh import (re-run the extraction workflow above).
+
+### Step R2: Compute Changeset
+
+Run the diff engine to compare the edited Excel against current DB state:
+
+```bash
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/xlsx_to_changeset.py \
+  --excel "edited_schedule.xlsx" \
+  --query-command "$(cat .construction/database.yaml | grep query_command | cut -d'"' -f2)" \
+  --output changeset.json
+```
+
+The script:
+1. Reads `_agentcm_meta` → extracts `schedule_id`
+2. Reads data sheet → extracts `_row_key` column + all data columns
+3. Queries DB for current schedule rows/cells via psql
+4. Computes diff: cell changes, new rows, deleted rows, new columns, hidden columns
+5. Outputs a structured JSON changeset
+
+### Step R3: POST Changeset to Reconcile Endpoint
+
+```bash
+# Read api_url and project_id from .construction/database.yaml
+curl -X POST "{api_url}/projects/{project_id}/schedules/reconcile" \
+  -H "Content-Type: application/json" \
+  -d @changeset.json
+```
+
+The reconcile endpoint applies changes with:
+- **Override protection**: All user edits set `isUserOverride=TRUE` — future re-extractions will not overwrite them
+- **Audit trail**: Every cell edit, row add/delete, and column change is logged to `schedule_change_log`
+- **Conflict detection**: If a re-extraction later disagrees with a user override, a conflict is created (not silently overwritten)
+
+### Step R4: Report Summary
+
+The endpoint returns an `ExcelReconcileResult`:
+```json
+{
+  "rowsUpdated": 3,
+  "rowsAdded": 1,
+  "rowsSoftDeleted": 0,
+  "cellsChanged": 7,
+  "conflictsCreated": 0,
+  "columnsAdded": 0,
+  "columnsHidden": 0,
+  "errors": []
+}
+```
+
+Report the summary to the user. If `errors` is non-empty, surface those for review.
+
+### Anchored Excel Export
+
+When exporting schedules for PE review, always include reconciliation anchors:
+
+```bash
+${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/schedule_to_xlsx.py \
+  --data schedule_data.json \
+  --type door_schedule \
+  --project "Project Name" \
+  --sheet "A-0.01" \
+  --schedule-id "{schedule_uuid}" \
+  --sheet-id "{sheet_uuid}" \
+  --output "Door_Schedule_A-0.01.xlsx"
+```
+
+The `--schedule-id` and `--sheet-id` flags embed metadata in the hidden `_agentcm_meta` sheet, enabling the round-trip reconciliation workflow.
+
 ## Schedule Type Reference
 
 | Type | Common columns | Notes |
@@ -241,3 +340,14 @@ ${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scri
 
 ## File Safety
 Never overwrite an existing schedule extraction. The export script uses `safe_output_path()` which appends `_v2`, `_v3`, etc. automatically.
+
+---
+
+## Allowed Scripts
+
+**Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
+- `../../scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision extraction
+- `../../scripts/pdf/crop_region.py` — crop schedule region from full sheet image
+- `scripts/schedule_to_xlsx.py` — Excel export with reconciliation anchors
+- `scripts/xlsx_to_changeset.py` — diff edited Excel against DB for reconciliation
+- `../../scripts/graph/write_finding.py` — graph entry (Step 6)

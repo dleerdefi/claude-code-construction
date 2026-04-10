@@ -1,11 +1,10 @@
 ---
 name: pe-review
 description: >
-  Construction document review, RFI research, submittal analysis, coordination
-  checking, and scope gap detection. Use when reviewing construction drawings,
-  specifications, submittals, or RFIs. Use when checking for coordination issues,
-  missing information, or document conflicts. Use when any query involves
-  CSI MasterFormat divisions, construction details, or building systems.
+  Construction document review with PE judgment — RFI research, submittal
+  analysis, coordination checking, scope gap detection. Use when reviewing
+  drawings, specs, submittals, or RFIs. Triggers: 'review', 'coordination',
+  'what's missing'.
 ---
 
 # PE Document Review
