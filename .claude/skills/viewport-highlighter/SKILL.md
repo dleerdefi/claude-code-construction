@@ -3,11 +3,8 @@ name: viewport-highlighter
 description: >
   Identify and highlight viewports on construction drawing sheets using
   vision. Detects view boundaries, titles, scales, and view types. Creates
-  viewport overlays via AgentCM API. Triggers: 'highlight viewports',
-  'find views'.
-allowed-tools:
-  - Bash(${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py *)
-  - Bash(${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/vision/markup_drawing.py *)
+  viewport overlays via AgentCM API. Requires AgentCM (.construction/
+  directory). Triggers: 'highlight viewports', 'find views'.
 ---
 
 # Viewport Highlighter
@@ -26,23 +23,22 @@ data. Only creates new viewport highlights and populates their metadata.
 
 ---
 
-## Step 0: Detect Operating Mode
+## Step 0: Verify AgentCM Mode
 
-Check for `.construction/` directory at the project root.
+This skill **requires AgentCM**. It writes viewport overlays through the AgentCM REST API and has no standalone output path.
 
-**AgentCM mode** (`.construction/` exists):
+**Check for `.construction/` directory at the project root.**
+
+If `.construction/` is absent, **stop immediately** and tell the user:
+> "viewport-highlighter requires an AgentCM project — `.construction/` directory not found. This skill submits viewport overlays through the AgentCM API and cannot operate without it. Open this project in AgentCM first, then re-run."
+
+If `.construction/` exists:
 - Read `.construction/CLAUDE.md` for project context
 - Read `.construction/database.yaml` for `query_command`, `project_id`, `api_url`
 - Read `.construction/index/sheet_index.yaml` for sheet inventory
 - Sheet images at `.construction/rasters/{sheet_number}.png`
 - OCR data queryable via `extracted_items` table in PostgreSQL
 - Write viewports via REST API
-
-**Flat File mode** (no `.construction/`):
-- Discover sheet images from CLAUDE.md or user-provided paths
-- Vision-only pipeline (Steps 3-4 simplified)
-- Write viewport definitions as JSON + marked-up PNGs to project directory
-- All viewports marked as `confidence: "vision_only"` in output
 
 ## Step 1: User Scopes the Task
 
@@ -63,7 +59,7 @@ For each sheet in scope, rasterize to PNG (if not already available) and
 examine with vision.
 
 ```bash
-# Rasterize if needed (AgentCM mode has pre-rendered PNGs)
+# Rasterize on demand if the pre-rendered PNG is missing
 ${CLAUDE_SKILL_DIR}/../../bin/construction-python \
   ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py \
   "{pdf_path}" {page_index} --dpi 200 --output /tmp/{sheet_number}.png
@@ -128,7 +124,7 @@ Common construction sheet layouts to expect:
 - **Mixed:** Large plan on left, 2-3 sections/details stacked on right
 - **Schedule + details:** Schedule table in upper portion, details below
 
-## Step 3: OCR Anchor Verification (AgentCM mode only)
+## Step 3: OCR Anchor Verification
 
 For each vision-identified view, verify and refine metadata using OCR data.
 
@@ -185,8 +181,6 @@ Detail number formats: `1`, `2`, `A`, `A2.01`, `3/A5`, `1/A5.01`.
 
 Refine vision-estimated boundaries using OCR element positions.
 
-### AgentCM mode refinement
-
 Query all extracted items within and near the estimated viewport area:
 
 ```bash
@@ -219,14 +213,14 @@ Before creating each viewport, verify:
 
 ## Step 5: Submit Viewports for Review
 
-### AgentCM mode — Suggestion ingest
+### Submit viewport suggestions
 
 Submit all viewports for a sheet as **pending suggestions** via the
 viewport suggestion ingest endpoint. The user reviews and approves them
 in the Group Review Gallery before they become live viewports.
 
 ```bash
-curl -s -X POST "{api_url}/projects/{project_id}/viewport-suggestions/ingest" \
+curl -s --fail-with-body -X POST "{api_url}/projects/{project_id}/viewport-suggestions/ingest" \
   -H "Content-Type: application/json" \
   -d '{
     "sheet_id": "{sheet_id}",
@@ -283,35 +277,6 @@ When setting viewport titles, follow these conventions:
   put only the detail number portion in `detail_number` and the full
   title in `title`
 - Common abbreviations to preserve: "FLR", "CLG", "ELEV", "TYP"
-
-### Flat File mode — JSON output
-
-Write viewport definitions to a JSON file:
-
-```bash
-# Output path (never overwrite existing files)
-output_path=$(safe_output_path "viewport_findings_{sheet_number}")
-```
-
-```json
-{
-  "sheet_number": "A2.01",
-  "sheet_title": "FIRST FLOOR PLAN",
-  "generated_at": "2026-04-06T18:30:00Z",
-  "generated_by": "viewport-highlighter skill",
-  "viewports": [
-    {
-      "title": "FIRST FLOOR PLAN",
-      "detail_number": "1",
-      "scale_text": "1/8\" = 1'-0\"",
-      "extraction_scope": "plan",
-      "bounding_region": {"x": 0.02, "y": 0.05, "width": 0.48, "height": 0.65},
-      "confidence": "vision_only",
-      "element_count_estimate": null
-    }
-  ]
-}
-```
 
 ## Step 6: Verification & Markup
 
@@ -388,7 +353,7 @@ to verify:
 
 If issues are found, PATCH the viewport to correct:
 ```bash
-curl -s -X PATCH "{api_url}/projects/{project_id}/viewports/{viewport_id}" \
+curl -s --fail-with-body -X PATCH "{api_url}/projects/{project_id}/viewports/{viewport_id}" \
   -H "Content-Type: application/json" \
   -d '{"title": "CORRECTED TITLE", "boundingRegion": {...}}'
 ```
@@ -500,7 +465,7 @@ Before submitting viewport suggestions for a sheet, check for existing
 viewports (already promoted/live):
 
 ```bash
-existing=$(curl -s "{api_url}/projects/{project_id}/sheets/{sheet_id}/viewports")
+existing=$(curl -s --fail-with-body "{api_url}/projects/{project_id}/sheets/{sheet_id}/viewports")
 ```
 
 If viewports already exist on the sheet:
@@ -512,3 +477,11 @@ If viewports already exist on the sheet:
 Pending suggestions (not yet reviewed) can be safely re-submitted — the
 ingest endpoint creates new suggestion rows each time. The user resolves
 duplicates during review in the Group Review Gallery.
+
+---
+
+## Allowed Scripts
+
+**Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
+- `../../scripts/pdf/rasterize_page.py` — rasterize a sheet PDF page to PNG for vision
+- `../../scripts/vision/markup_drawing.py` — overlay viewport boundary rectangles on a sheet image
