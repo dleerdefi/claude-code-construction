@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
-"""Overlay markup annotations on a drawing image (circles, clouds, labels)."""
+"""Overlay tag detection marks on a construction drawing sheet.
+
+Per-skill script for tag-audit-and-takeoff. Draws circles at detected tag
+locations with numbered labels and a persistent legend. Supports multi-color
+layered markup: green=accepted, blue=newly detected, orange=pending.
+"""
 
 import argparse
 import json
 import sys
+from pathlib import Path
 
-def markup(base_path, items_json, output="marked.png", color="red", label_style="numbered"):
+# Ensure sibling shared.py is importable regardless of working directory
+sys.path.insert(0, str(Path(__file__).parent))
+from shared import safe_output_path
+
+
+def markup_tags(base_path, items_json, output, color="blue", label_style="numbered"):
     try:
         from PIL import Image, ImageDraw, ImageFont
     except ImportError:
@@ -26,7 +37,7 @@ def markup(base_path, items_json, output="marked.png", color="red", label_style=
         "yellow": (255, 255, 0, 180),
         "orange": (255, 140, 0, 180),
     }
-    c = colors.get(color, colors["red"])
+    c = colors.get(color, colors["blue"])
 
     try:
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 18)
@@ -44,38 +55,36 @@ def markup(base_path, items_json, output="marked.png", color="red", label_style=
         if shape == "circle":
             draw.ellipse([x - radius, y - radius, x + radius, y + radius],
                          outline=c, width=3)
-        elif shape == "box":
-            w = item.get("width", 40)
-            h = item.get("height", 40)
+        elif shape in ("box", "rect"):
+            w = int(item.get("width", 40))
+            h = int(item.get("height", 40))
             draw.rectangle([x, y, x + w, y + h], outline=c, width=3)
-        elif shape == "cloud":
-            # Simplified cloud as thick dashed rectangle
-            w = item.get("width", 60)
-            h = item.get("height", 40)
-            draw.rectangle([x, y, x + w, y + h], outline=c, width=4)
 
-        # Label
+        # Label offset from shape edge
         draw.text((x + radius + 4, y - 10), label, fill=c, font=font_sm)
 
-    # Legend in top-left
+    # Legend in top-left corner
     legend_y = 10
     draw.rectangle([5, 5, 300, 10 + len(items) * 22 + 10], fill=(255, 255, 255, 200))
     for i, item in enumerate(items, 1):
-        label = item.get("label", f"Item {i}")
-        text = f"{i}. {label}" if label_style == "numbered" else label
+        lbl = item.get("label", f"Item {i}")
+        text = f"{i}. {lbl}" if label_style == "numbered" else lbl
         draw.text((10, legend_y), text, fill=(0, 0, 0, 255), font=font_sm)
         legend_y += 22
 
     result = Image.alpha_composite(img, overlay)
-    result.convert("RGB").save(output)
-    print(f"OK: {output} ({len(items)} items marked)")
+    out_path = safe_output_path(output)
+    result.convert("RGB").save(str(out_path))
+    print(f"OK: {out_path} ({len(items)} items marked)")
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Markup a drawing with annotations")
-    parser.add_argument("--base", required=True, help="Base drawing image")
+    parser = argparse.ArgumentParser(description="Markup tag detections on a drawing sheet")
+    parser.add_argument("--base", required=True, help="Base drawing image path")
     parser.add_argument("--items", required=True, help="JSON file with items to mark")
-    parser.add_argument("--output", "-o", default="marked.png")
-    parser.add_argument("--color", default="red", choices=["red","blue","green","yellow","orange"])
-    parser.add_argument("--label-style", default="numbered", choices=["numbered","custom"])
+    parser.add_argument("--output", "-o", default="marked.png", help="Output image path")
+    parser.add_argument("--color", default="blue",
+                        choices=["red", "blue", "green", "yellow", "orange"])
+    parser.add_argument("--label-style", default="numbered", choices=["numbered", "custom"])
     args = parser.parse_args()
-    markup(args.base, args.items, args.output, args.color, args.label_style)
+    markup_tags(args.base, args.items, args.output, args.color, args.label_style)

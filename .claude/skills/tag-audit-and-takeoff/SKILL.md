@@ -223,7 +223,7 @@ output image (use the previous output as `--base` for the next pass).
 # Build items JSON with one entry per detected tag
 # Then call the shared markup script:
 ${CLAUDE_SKILL_DIR}/../../bin/construction-python \
-  ${CLAUDE_SKILL_DIR}/../../scripts/vision/markup_drawing.py \
+  ${CLAUDE_SKILL_DIR}/scripts/markup_tags.py \
   --base "{sheet_image_path}" \
   --items "{items_json_path}" \
   --output "{output_path}" \
@@ -240,7 +240,6 @@ Items JSON format (pixel coordinates):
 ```
 
 Convert normalized 0-1 coordinates to pixels using sheet image dimensions.
-Use `safe_output_path()` pattern — never overwrite existing markup files.
 
 **If PDF is available**, also create native PDF annotations:
 ```bash
@@ -344,6 +343,6 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 ## Allowed Scripts
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
-- `../../scripts/vision/markup_drawing.py` — sheet markup with tag highlights
+- `scripts/markup_tags.py` — sheet markup with tag highlights
 - `../../scripts/pdf/annotate_pdf.py` — native PDF annotations
 - `scripts/qto_to_xlsx.py` — QTO Excel export (4-sheet workbook)

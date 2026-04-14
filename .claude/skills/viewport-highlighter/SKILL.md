@@ -290,7 +290,7 @@ exactly what was identified.
 # Convert normalized 0-1 coordinates to pixel coordinates using image dims
 
 ${CLAUDE_SKILL_DIR}/../../bin/construction-python \
-  ${CLAUDE_SKILL_DIR}/../../scripts/vision/markup_drawing.py \
+  ${CLAUDE_SKILL_DIR}/scripts/markup_viewports.py \
   --base "{sheet_image_path}" \
   --items "{items_json_path}" \
   --output "{output_path}" \
@@ -315,8 +315,6 @@ Items JSON format (pixel coordinates):
   }
 ]
 ```
-
-Use `safe_output_path()` pattern — never overwrite existing markup files.
 
 ### Verification report
 
@@ -484,4 +482,4 @@ duplicates during review in the Group Review Gallery.
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `../../scripts/pdf/rasterize_page.py` — rasterize a sheet PDF page to PNG for vision
-- `../../scripts/vision/markup_drawing.py` — overlay viewport boundary rectangles on a sheet image
+- `scripts/markup_viewports.py` — overlay viewport boundary rectangles on a sheet image
