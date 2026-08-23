@@ -353,7 +353,7 @@ Discover the output location before running the export script:
 3. If not found → `--output "Submittal_Log.xlsx"` (project root)
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python \
   ${CLAUDE_SKILL_DIR}/scripts/export_submittal_log.py \
   --data ".construction/submittal_extraction_items.json" \
   --output "{resolved_output_path}"
@@ -369,7 +369,7 @@ The script uses `safe_output_path()` — if a file already exists at the target 
 ### Step 5: Write Graph Entry — RIGID
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py \
   --type "submittal_log_generated" \
   --title "Submittal register: {N} items from {M} spec sections" \
   --output-file "{resolved_output_path}" \

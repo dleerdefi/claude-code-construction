@@ -55,7 +55,7 @@ Try pdfplumber first. If text extraction returns meaningful content (>50 chars p
 
 **Vision fallback** for scanned bids:
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py BID.pdf 1 --dpi 200 --output bid_page.png
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py BID.pdf 1 --dpi 200 --output bid_page.png
 ```
 
 From the first bid, identify what data fields are present. Common bid data:
@@ -127,7 +127,7 @@ errors: []
 ### Step 4: Generate Comparison Excel
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py \
   --data .construction/bid_tab/bids/ \
   --scope "Division 09 - Finishes" \
   --project "Project Name" \
@@ -179,7 +179,7 @@ The Excel file is at [path]. All line items are extracted as-submitted — you'l
 ### Step 6: Write Graph Entry
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py \
   --type "bid_tabulation_complete" \
   --title "Bid comparison: {scope} — {N} bidders" \
   --output-file "Bid_Comparison_{scope_slug}.xlsx" \
@@ -206,7 +206,7 @@ Never overwrite an existing bid comparison. If a file exists at the target locat
 
 ## Allowed Scripts
 
-- `${CLAUDE_SKILL_DIR}/../../bin/construction-python`
-- `${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py`
+- `${CLAUDE_SKILL_DIR}/../../../bin/construction-python`
+- `${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py`
 - `${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py`
-- `${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py`
+- `${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py`

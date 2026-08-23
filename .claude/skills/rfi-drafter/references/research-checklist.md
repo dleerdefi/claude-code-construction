@@ -17,8 +17,8 @@ investigation before any draft is written.
 # Read database.yaml for query_command, then:
 {query_command} -c "SELECT * FROM v_sheet_contents WHERE sheet_number = '{sheet}'"
 # Rasterize + crop to the conflict zone for vision reading:
-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py "{pdf}" {page} --dpi 200 --output /tmp/page.png
-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/crop_region.py /tmp/page.png --box x1,y1,x2,y2 --normalized --output /tmp/conflict_area.png
+python ${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py "{pdf}" {page} --dpi 200 --output /tmp/page.png
+python ${CLAUDE_SKILL_DIR}/../../../scripts/pdf/crop_region.py /tmp/page.png --box x1,y1,x2,y2 --normalized --output /tmp/conflict_area.png
 ```
 
 **Without AgentCM**:
@@ -83,7 +83,7 @@ python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/crop_region.py /tmp/page.png --box 
 
 **With AgentCM**: Query `file_manifest.yaml` for `type: rfi` files. Also check the issue registry:
 ```bash
-python ${CLAUDE_SKILL_DIR}/../../scripts/issue_manager.py list --table
+python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py list --table
 ```
 
 **Without AgentCM**: Search the project directory for RFI logs (Excel/PDF). Ask the user if an RFI log exists.

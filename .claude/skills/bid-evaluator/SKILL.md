@@ -139,7 +139,7 @@ submission. Flag for verification, never call it a bust.
 
 Build JSON per schema in `scripts/sample_input.json`, then run:
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py input.json output.xlsx
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py input.json output.xlsx
 ```
 
 The script produces 5 sheets: Bid Comparison, Price Summary,
@@ -163,7 +163,7 @@ Exclusion Detail, Qualification Summary, Recommendation.
 If `.construction/` directory exists (AgentCM mode), record the evaluation:
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py \
   --type "bid_evaluation_complete" \
   --title "Bid evaluation: {scope} — {N} bidders, recommended {company}" \
   --output-file "{output.xlsx}" \
@@ -205,6 +205,6 @@ Never overwrite an existing bid evaluation. The export script uses `safe_output_
 
 ## Allowed Scripts
 
-- `${CLAUDE_SKILL_DIR}/../../bin/construction-python`
+- `${CLAUDE_SKILL_DIR}/../../../bin/construction-python`
 - `${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py`
-- `${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py`
+- `${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py`

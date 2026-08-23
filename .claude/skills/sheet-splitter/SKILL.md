@@ -64,7 +64,7 @@ If the user specifies a single file (`/sheet-splitter path/to/specific.pdf`), pr
 Run the split script on each drawing PDF found:
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/split_drawing_set.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/split_drawing_set.py \
   "{drawing_set.pdf}" \
   --output-dir "{drawings_directory}/sheets"
 ```
@@ -77,7 +77,7 @@ After splitting, read each page to identify sheet numbers and titles:
 
 1. Rasterize the title block region of each page:
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py page_NNN.pdf 1 --dpi 200 --output tb.png
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py page_NNN.pdf 1 --dpi 200 --output tb.png
 ```
 
 2. Use vision on the rasterized title block: "Read the title block on this construction drawing. What is the sheet number and sheet title?"
@@ -115,7 +115,7 @@ After splitting and identifying, update `.construction/project_context.yaml` wit
 If `.construction/` directory exists, write a graph entry:
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py \
   --type "drawings_split" \
   --title "Drawing set split: {N} sheets from {source_pdf}" \
   --data '{"sheet_count": N, "source_pdf": "...", "identified_count": M, "unidentified_count": K, "disciplines": ["A","S","M","E"]}'
