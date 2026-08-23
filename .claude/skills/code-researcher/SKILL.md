@@ -406,8 +406,8 @@ Populate all placeholder fields from the gap_analysis.yaml and jurisdiction.yaml
 ### 5b — Write Graph Entry
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python \
-  ${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python \
+  ${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py \
   --type "code_gap_analysis" \
   --title "Code gap analysis: {scope} — {n_gaps} gaps identified" \
   --data '{
@@ -452,5 +452,5 @@ Never overwrite an existing gap report. Version output files (`_v2`, `_v3`) if a
 
 ## Allowed Scripts
 
-- `${CLAUDE_SKILL_DIR}/../../bin/construction-python`
-- `${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py`
+- `${CLAUDE_SKILL_DIR}/../../../bin/construction-python`
+- `${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py`

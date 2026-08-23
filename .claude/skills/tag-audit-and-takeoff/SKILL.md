@@ -222,7 +222,7 @@ output image (use the previous output as `--base` for the next pass).
 ```bash
 # Build items JSON with one entry per detected tag
 # Then call the shared markup script:
-${CLAUDE_SKILL_DIR}/../../bin/construction-python \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python \
   ${CLAUDE_SKILL_DIR}/scripts/markup_tags.py \
   --base "{sheet_image_path}" \
   --items "{items_json_path}" \
@@ -243,8 +243,8 @@ Convert normalized 0-1 coordinates to pixels using sheet image dimensions.
 
 **If PDF is available**, also create native PDF annotations:
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python \
-  ${CLAUDE_SKILL_DIR}/../../scripts/pdf/annotate_pdf.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python \
+  ${CLAUDE_SKILL_DIR}/../../../scripts/pdf/annotate_pdf.py \
   --pdf "{pdf_path}" --items "{items_json}" --output "{output_pdf}" \
   --author "Claude Code QTO"
 ```
@@ -304,7 +304,7 @@ existing items and merge them into `line_items[].instance_details[]`.
 then invoke the export script to produce a styled multi-sheet workbook:
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python \
   ${CLAUDE_SKILL_DIR}/scripts/qto_to_xlsx.py \
   --data "{qto_json_path}" \
   --project "{project_name}" \

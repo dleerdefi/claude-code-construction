@@ -64,7 +64,7 @@ Schedules appear on specific sheet types:
 
 If no index or graph is available:
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py {pdf_path} {page} --dpi 150 --output full_sheet.png
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py {pdf_path} {page} --dpi 150 --output full_sheet.png
 ```
 
 Use vision on the full sheet image: "Identify any tabular schedules on this drawing sheet. Report the approximate bounding box coordinates (top-left x,y and bottom-right x,y) as percentages of the image dimensions, the schedule type, and the column headers visible."
@@ -77,7 +77,7 @@ Use vision on the full sheet image: "Identify any tabular schedules on this draw
 
 Crop the identified region with padding:
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/crop_region.py full_sheet.png \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/pdf/crop_region.py full_sheet.png \
   --box {x1},{y1},{x2},{y2} \
   --padding 20 \
   --output schedule_crop.png
@@ -85,7 +85,7 @@ ${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scri
 
 Re-rasterize at higher DPI (300) for the cropped region to improve text clarity:
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py {pdf_path} {page} \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py {pdf_path} {page} \
   --dpi 300 \
   --crop {x1},{y1},{x2},{y2} \
   --output schedule_hires.png
@@ -126,7 +126,7 @@ When pdfplumber fails (common with complex layouts, merged cells, non-standard t
 
 1. **Rasterize** the sheet at 150 DPI for overview:
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py {pdf_path} {page} --dpi 150 --output full_sheet.png
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py {pdf_path} {page} --dpi 150 --output full_sheet.png
 ```
 
 2. **Use vision** on the full sheet image to read the schedule directly:
@@ -135,7 +135,7 @@ ${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scri
 
 3. For dense schedules with small text, **re-rasterize at 300 DPI** and crop to just the schedule region:
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py {pdf_path} {page} --dpi 300 --output schedule_hires.png
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py {pdf_path} {page} --dpi 300 --output schedule_hires.png
 ```
 
 #### Method C — Hybrid (for maximum accuracy)
@@ -160,7 +160,7 @@ After extraction (by either method):
 ### Step 5: Output to Excel
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/schedule_to_xlsx.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/schedule_to_xlsx.py \
   --data schedule_data.json \
   --type door_schedule \
   --project "Project Name" \
@@ -230,7 +230,7 @@ The ingest endpoint automatically:
 **Also write the graph finding entry** (for backwards compatibility with existing skills):
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../scripts/graph/write_finding.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py \
   --type "schedule_extracted" \
   --title "Door schedule extracted from A-0.01" \
   --source_sheet "A-0.01" \
@@ -265,7 +265,7 @@ If the Excel lacks `_agentcm_meta`, it was not exported by AgentCM — treat as 
 Run the diff engine to compare the edited Excel against current DB state:
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/xlsx_to_changeset.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/xlsx_to_changeset.py \
   --excel "edited_schedule.xlsx" \
   --query-command "$(cat .construction/database.yaml | grep query_command | cut -d'"' -f2)" \
   --output changeset.json
@@ -315,7 +315,7 @@ Report the summary to the user. If `errors` is non-empty, surface those for revi
 When exporting schedules for PE review, always include reconciliation anchors:
 
 ```bash
-${CLAUDE_SKILL_DIR}/../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/schedule_to_xlsx.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/schedule_to_xlsx.py \
   --data schedule_data.json \
   --type door_schedule \
   --project "Project Name" \
