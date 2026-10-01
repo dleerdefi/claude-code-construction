@@ -85,10 +85,10 @@ This skill reads from `.construction/skills/spec_text/*.txt` files provisioned b
 3. Note any sections with `quality_rating: "POOR"` in the manifest — items extracted from these sections will receive a minimum confidence of MEDIUM
 
 **Branch B — No text extracted:**
-1. Invoke `/spec-splitter` — it will handle everything: locating or splitting spec PDFs, extracting text, and repairing quality issues
+1. Invoke the `construction:spec-splitter` skill (Skill tool) yourself; don't ask the user to run it — it will handle everything: locating or splitting spec PDFs, extracting text, and repairing quality issues
 2. After `/spec-splitter` completes, read `.construction/skills/spec_text/manifest.json` and proceed to Step 1
 
-**Important:** Always invoke `/spec-splitter` as a skill — do not call `extract_spec_text.py` or `split_spec_manual.py` directly. The spec-splitter skill manages directory discovery, naming conventions, text extraction, and text repair.
+**Important:** Always invoke spec-splitter as a skill (`construction:spec-splitter`) — do not call `extract_spec_text.py` or `split_spec_manual.py` directly. The spec-splitter skill manages directory discovery, naming conventions, text extraction, and text repair.
 
 **Build processing queue from manifest:**
 1. Read all section keys from `manifest.json`

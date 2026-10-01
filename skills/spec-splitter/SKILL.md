@@ -6,7 +6,6 @@ description: >
   manual', 'separate spec sections', 'extract spec text'. Prerequisite
   for /submittal-log-generator.
 argument-hint: "<project_manual.pdf> [--output-dir <path>]"
-disable-model-invocation: true
 ---
 
 # Spec Splitter
