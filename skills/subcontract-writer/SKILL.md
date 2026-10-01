@@ -28,7 +28,7 @@ This skill can be invoked directly when the user has an awarded bid and wants to
 Either way, the awarded bid document (Slot B) is the mandatory input.
 
 ## Mode Detection
-Check for `.construction/` directory at the project root.
+Check for AgentCM: `.construction/project.yaml` at the project root.
 - **AgentCM mode**: Read specs from `.construction/spec_text/{section}.txt`. Use sheet index from `.construction/index/sheet_index.yaml` for drawing references. Read project metadata from `.construction/CLAUDE.md`.
 - **Flat File mode**: Discover spec PDFs via project `CLAUDE.md` paths or directory search. Read drawing sheets directly from PDF.
 

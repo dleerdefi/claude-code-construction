@@ -22,12 +22,12 @@ Skills always use vision for actual reading of drawings. When AgentCM structured
 
 1. **NEVER read PDF files directly.** Construction PDFs are 30"×42" sheets — too large for direct reading. Always rasterize to PNG first via `rasterize_page.py`, then read the PNG with vision.
 2. **NEVER read `ocr_output.json` in full.** These are raw OCR dumps (300KB+ per sheet). Use the navigation graph for structured data. Only reference `ocr_output.json` if you need raw text for a specific element already identified by the graph.
-3. **Graph first, vision second.** When `.construction/` exists: query the navigation graph → use coordinates to target a region → rasterize that page → crop to the region → read with vision. The graph tells you WHERE; vision tells you WHAT.
+3. **Graph first, vision second.** When AgentCM is present (`.construction/project.yaml` exists): query the navigation graph → use coordinates to target a region → rasterize that page → crop to the region → read with vision. The graph tells you WHERE; vision tells you WHAT.
 
 ### Data Mode Detection (check in this order)
 
 #### 1. AgentCM Structured Data (graph-guided vision)
-Check for `.construction/` directory in the project root.
+Check for `.construction/project.yaml` in the project root — AgentCM writes it. A `.construction/` folder alone is not enough: this plugin keeps its own working data in `.construction/skills/` in every project.
 If present, read `.construction/CLAUDE.md` for project-specific navigation.
 
 The `.construction/` directory provides:
@@ -59,7 +59,7 @@ The `.construction/` directory provides:
 
 All coordinates are **normalized 0-1**. Centroids are `[cx, cy]` tuples. Multiply by image pixel dimensions to convert to pixel coordinates.
 
-### Database & API Discovery (when .construction/ exists)
+### Database & API Discovery (when AgentCM is present)
 1. Read `.construction/database.yaml` for connection info (host, port, database, user, project_id, api_url)
 2. Read `.construction/db_schema.yaml` for available tables, views, and write endpoints
 3. Reads: `{query_command} -c "SQL QUERY"` (where `query_command` is from database.yaml)
@@ -215,7 +215,7 @@ Construction documents form a dense web of references. When resolving cross-refe
 When first opening a construction project or when asked "what's in this project":
 
 ### AgentCM Fast Path
-If `.construction/` exists, read these 4 files for instant orientation:
+If AgentCM is present, read these 4 files for instant orientation:
 1. `.construction/CLAUDE.md` — full project navigation guide
 2. `.construction/project.yaml` — project name, number, location
 3. `.construction/index/sheet_index.yaml` — all sheets with metadata

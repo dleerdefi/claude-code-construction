@@ -112,7 +112,7 @@ After splitting and identifying, update `.construction/project_context.yaml` wit
 
 ### Step 7: Write Graph Entry (AgentCM only)
 
-If `.construction/` directory exists, write a graph entry:
+If AgentCM is present (`.construction/project.yaml` exists), write a graph entry:
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
@@ -121,7 +121,7 @@ If `.construction/` directory exists, write a graph entry:
   --data '{"sheet_count": N, "source_pdf": "...", "identified_count": M, "unidentified_count": K, "disciplines": ["A","S","M","E"]}'
 ```
 
-If no `.construction/` directory exists, skip — the `sheet_index.yaml` serves as the local record.
+Without AgentCM, skip — the `sheet_index.yaml` serves as the local record.
 
 ### Multi-Set Projects
 

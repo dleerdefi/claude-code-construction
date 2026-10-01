@@ -27,12 +27,12 @@ data. Only creates new viewport highlights and populates their metadata.
 
 This skill **requires AgentCM**. It writes viewport overlays through the AgentCM REST API and has no standalone output path.
 
-**Check for `.construction/` directory at the project root.**
+**Check for AgentCM: `.construction/project.yaml` at the project root.**
 
 If `.construction/` is absent, **stop immediately** and tell the user:
 > "viewport-highlighter requires an AgentCM project — `.construction/` directory not found. This skill submits viewport overlays through the AgentCM API and cannot operate without it. Open this project in AgentCM first, then re-run."
 
-If `.construction/` exists:
+If `.construction/project.yaml` exists:
 - Read `.construction/CLAUDE.md` for project context
 - Read `.construction/database.yaml` for `query_command`, `project_id`, `api_url`
 - Read `.construction/index/sheet_index.yaml` for sheet inventory

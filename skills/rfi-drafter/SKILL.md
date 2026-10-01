@@ -98,7 +98,7 @@ Before drafting, systematically gather evidence. Read
 5. Check addenda and ASIs for superseding changes
 6. Check existing RFI log for duplicates (if available)
 
-If AgentCM data is available (`.construction/` exists), query the
+If AgentCM data is available (`.construction/project.yaml` exists), query the
 database for cross-references to the affected area. See
 `references/research-checklist.md` for concrete query examples.
 

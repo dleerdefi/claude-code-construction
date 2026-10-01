@@ -49,7 +49,7 @@ past experience with bidders.
 **Complete before analyzing any bids.**
 
 ### Mode Detection
-Check for `.construction/` directory at the project root.
+Check for AgentCM: `.construction/project.yaml` at the project root.
 - **AgentCM mode**: Read specs from `.construction/spec_text/{section}.txt`. Use sheet index from `.construction/index/sheet_index.yaml` for drawing identification.
 - **Flat File mode**: Discover spec PDFs via `CLAUDE.md` paths or directory search (`Specifications/`, `Specification Sections/`). Read drawing sheets directly from PDF.
 
@@ -160,7 +160,7 @@ Exclusion Detail, Qualification Summary, Recommendation.
 
 ## Step 5: Write Graph Entry
 
-If `.construction/` directory exists (AgentCM mode), record the evaluation:
+If AgentCM is present (`.construction/project.yaml` exists), record the evaluation:
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
@@ -170,7 +170,7 @@ If `.construction/` directory exists (AgentCM mode), record the evaluation:
   --data '{"scope": "...", "bidder_count": N, "recommended": "...", "adjusted_amount": ..., "pe_attention_items": [...]}'
 ```
 
-If no `.construction/` directory exists, skip — the Excel workbook is the deliverable.
+Without AgentCM, skip — the Excel workbook is the deliverable.
 
 ---
 

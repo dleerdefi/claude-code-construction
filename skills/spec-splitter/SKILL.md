@@ -168,7 +168,7 @@ After extraction, check `manifest.json` for sections rated DEGRADED or POOR. Spe
 
 ### Step 9: Write Graph Entry (AgentCM only)
 
-If `.construction/` directory exists, write a graph entry:
+If AgentCM is present (`.construction/project.yaml` exists), write a graph entry:
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
@@ -177,7 +177,7 @@ If `.construction/` directory exists, write a graph entry:
   --data '{"section_count": N, "source_pdf": "...", "output_dir": "...", "quality_summary": {"good": X, "degraded": Y, "poor": Z}}'
 ```
 
-If no `.construction/` directory exists, skip this step — the `spec_index.yaml` and `manifest.json` files serve as the local record.
+Without AgentCM, skip this step — the `spec_index.yaml` and `manifest.json` files serve as the local record.
 
 Report to user: number of sections split, total pages, text extraction quality summary (GOOD/DEGRADED/POOR counts), and output locations.
 

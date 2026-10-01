@@ -33,7 +33,7 @@ Project Setup Progress:
 
 ### Step 1: Detect Operational Mode
 
-Check for `.construction/` directory at the project root.
+Check for AgentCM: `.construction/project.yaml` at the project root.
 
 **If present (AgentCM mode):**
 1. Read `.construction/CLAUDE.md` for project navigation context

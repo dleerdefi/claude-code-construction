@@ -8,11 +8,20 @@ import sys
 import uuid
 from datetime import datetime
 
+
+def agentcm_present(root):
+    """AgentCM writes .construction/project.yaml; the skills never do."""
+    return os.path.isfile(os.path.join(root, ".construction", "project.yaml"))
+
+
 def write_finding(finding_type, title, data=None, source_sheet=None, source_sheets=None,
                   output_file=None, output_files=None, findings_dir=None):
     if findings_dir is None:
-        # Look for .construction directory
+        # agent_findings/ belongs to AgentCM: only write it in an AgentCM project
         root = os.getcwd()
+        if not agentcm_present(root):
+            print("SKIP: AgentCM not detected (no .construction/project.yaml) — no graph entry written")
+            return None
         findings_dir = os.path.join(root, ".construction", "agent_findings")
 
     os.makedirs(findings_dir, exist_ok=True)

@@ -95,7 +95,7 @@ Phase 5 — Report
 
 Collect minimum required project parameters. Check in this order:
 
-**AgentCM project files (if `.construction/` exists):**
+**AgentCM project files (if `.construction/project.yaml` exists):**
 - `.construction/project.yaml` — location, occupancy, construction type
 - `.construction/index/sheet_index.yaml` — drawing set composition
 - Database (read `query_command` from `.construction/database.yaml`):

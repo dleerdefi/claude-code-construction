@@ -26,9 +26,9 @@ override user-approved groupings, or assume quantities without provenance.
 
 ## Step 0: Detect Operating Mode
 
-Check for `.construction/` directory at the project root.
+Check for AgentCM: `.construction/project.yaml` at the project root.
 
-**AgentCM mode** (`.construction/` exists):
+**AgentCM mode** (`.construction/project.yaml` exists):
 - Read `.construction/CLAUDE.md` for project context
 - Read `.construction/database.yaml` for `query_command` and `project_id`
 - Sheet images at `.construction/rasters/{sheet_number}.png`
@@ -41,7 +41,7 @@ You can also rasterize individual sheets on demand using the rasterize_page.py s
 - OCR data queryable via `extracted_items` table in PostgreSQL
 - Write results back via API: `POST /api/projects/{id}/tag-detections/ingest`
 
-**Flat File mode** (no `.construction/`):
+**Flat File mode** (no `.construction/project.yaml`):
 - Discover sheet images from CLAUDE.md or user-provided paths
 - Vision-only pipeline (Steps 2-3 skipped)
 - Write marked-up PNGs and QTO JSON to project directory

@@ -12,7 +12,7 @@ investigation before any draft is written.
 ### 1. Primary Source Review
 - Read the specific area on the source sheet at the identified location
 
-**With AgentCM** (`.construction/` exists):
+**With AgentCM** (`.construction/project.yaml` exists):
 ```bash
 # ${CLAUDE_PLUGIN_ROOT} is not set in the shell here: use the plugin path that
 # rfi-drafter's SKILL.md commands show.
