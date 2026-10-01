@@ -69,7 +69,7 @@ If your project uses [AgentCM](https://github.com/dleerdefi/AgentCM), skills aut
 
 ## Output
 
-Skills save structured results to a `.construction/` directory in your project root. Excel files, split PDFs, and extracted text are written to your project folder. Each skill reports its output location when complete.
+Deliverables — Excel workbooks, Word documents, split sheet and spec PDFs, reports — are saved in your project folder where you can open them, and each skill tells you where. Skills keep their working data (extraction progress, extracted spec text, the issue registry) in a hidden `.construction/skills/` folder that you don't need to open. In AgentCM projects, skills also record their findings in AgentCM's `.construction/` data.
 
 ## Architecture & Technical Details
 

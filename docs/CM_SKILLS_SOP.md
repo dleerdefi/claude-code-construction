@@ -71,7 +71,7 @@ For construction projects, `/init` will produce a generic `CLAUDE.md` that captu
 After `/init` creates the base `CLAUDE.md`, a construction-specific `/project-setup` skill enriches it with domain context:
 
 1. **Traverse the directory tree** — Walk the full folder structure and classify construction document types: drawing sets (by discipline prefix: A-, S-, M-, E-, P-, C-, L-), the specification book (Division folders or a single Project Manual PDF), schedule files, and active registers (RFI log, Submittal log, Change Order log).
-2. **Detect operational mode** — Check for `.construction/` directory existence. If present, the project is AgentCM-backed. If absent, it operates in Flat File Mode.
+2. **Detect operational mode** — Check for `.construction/project.yaml`, which AgentCM writes. If present, the project is AgentCM-backed. If absent, it operates in Flat File Mode.
 3. **Amend `CLAUDE.md`** — Append construction-specific context to the existing `CLAUDE.md`:
    - Project name, number, GC, Owner, Architect (if discoverable)
    - The canonical path to each document category
@@ -110,7 +110,7 @@ The `.construction/` directory contains the project graph and extracted data.
 - Graph summary (snapshot): .construction/graph/graph_summary.yaml — use database for current counts
 - Database config: .construction/database.yaml — psql connection info for Claude Code
 - Schema reference: .construction/db_schema.yaml — available tables, views, write endpoints
-- Spec text: .construction/spec_text/
+- Spec text: .construction/skills/spec_text/ (written by spec-splitter)
 - Sheet index: .construction/index/sheet_index.yaml
 - Spec index: .construction/index/spec_index.yaml
 ```
@@ -119,7 +119,7 @@ The `.construction/` directory contains the project graph and extracted data.
 
 ### 2.1 — Two Operational Modes
 
-CM skills must be **mode-aware**. The document navigation strategy differs depending on whether AgentCM's data layer is present. The detection mechanism is simple: **check for the `.construction/` directory at the project root.** If it exists, the project is in AgentCM mode. If not, Flat File mode.
+CM skills must be **mode-aware**. The document navigation strategy differs depending on whether AgentCM's data layer is present. The detection mechanism is simple: **check for `.construction/project.yaml` at the project root** — AgentCM writes it when it sets up a project. If it exists, the project is in AgentCM mode. If not, Flat File mode. Don't test for the `.construction/` folder itself: skills keep their own working data in `.construction/skills/` in every project.
 
 #### Mode A: Flat File Mode (Default)
 
@@ -133,7 +133,7 @@ The project folder is a standard directory of files. No pre-processed data layer
 
 **Example — finding a concrete mix design in Flat File Mode:**
 ```
-Step 1: Check if .construction/spec_text/03_30_00.txt exists (no — flat file mode)
+Step 1: Check if .construction/skills/spec_text/03_30_00.txt exists (no text extracted yet)
 Step 2: Look for split spec PDFs in Specification Sections/ folder
 Step 3: If found, read "03 30 00 - CAST-IN-PLACE CONCRETE.pdf"
 Step 4: If not split, search the bound project_manual.pdf for "SECTION 03 30 00"
@@ -142,7 +142,7 @@ Step 5: Return the relevant content — do not load the full spec book
 
 #### Mode B: AgentCM Mode
 
-The project has been processed through AgentCM. A `.construction/` directory exists at the project root containing structured data: a navigation graph (JSON), YAML indexes, extracted text files, and graph summaries.
+The project has been processed through AgentCM. Its `.construction/` directory (marked by `.construction/project.yaml`) contains structured data: a navigation graph (JSON), YAML indexes, extracted text files, and graph summaries.
 
 **How skills navigate in AgentCM Mode:**
 - Read `.construction/CLAUDE.md` for navigation context
@@ -154,8 +154,8 @@ The project has been processed through AgentCM. A `.construction/` directory exi
 
 **Example — finding a concrete mix design in AgentCM Mode:**
 ```
-Step 1: Check .construction/ directory exists (yes — AgentCM mode)
-Step 2: Read .construction/spec_text/03_30_00.txt (pre-extracted text)
+Step 1: Check .construction/project.yaml exists (yes — AgentCM mode)
+Step 2: Read .construction/skills/spec_text/03_30_00.txt (pre-extracted text)
 Step 3: Return the relevant content from the .txt file
 ```
 
@@ -163,6 +163,12 @@ Step 3: Return the relevant content from the .txt file
 > Skills navigate to the minimum viable document fragment. They do not load categories of documents — they load specific files, sections, pages, or text extracts.
 
 ---
+
+#### Where Skills Write (both modes)
+
+- **Deliverables** — Excel, Word, PDF, reports, marked-up images, split sheets and spec sections — go where users can see them: the matching project folder when there is one, otherwise the project root. Never inside `.construction/`: it is a dot-folder, hidden in Finder and most Linux file managers.
+- **Working data** — extraction state, intermediate JSON, spec section text, the issue registry — goes in `.construction/skills/` (shared: `spec_text/`, `issues/`, `project_context.yaml`; per skill: `.construction/skills/<skill>/`).
+- **AgentCM's areas** — `agent_findings/`, the database and the API — are written only in AgentCM mode. Every other file in `.construction/` is AgentCM's: read it, never write it.
 
 ### 2.2 — Layer 1: The Global Project Document Store
 
@@ -487,7 +493,7 @@ Identify the ratio of **workflow logic** (what the PE does) versus **embedded kn
 - Drawing sheet lists hardcoded into the skill body instead of read from `sheet_index.yaml`
 - Trade scope definitions written as prose in the skill body (move to `reference/` files)
 - Project document paths hardcoded in the skill (must always be resolved through `CLAUDE.md` or directory discovery)
-- AgentCM-specific logic without checking for `.construction/` directory existence first
+- AgentCM-specific logic without checking for `.construction/project.yaml` first
 - A skill that doesn't check operational mode at all — it should branch based on `.construction/` directory presence
 
 ### Step 2 — Abstract

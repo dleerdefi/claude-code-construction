@@ -38,7 +38,7 @@ cp requirements.txt ~/.construction-skills/venv/.requirements-installed
 This is expected for construction drawings (26-60MB). Skills automatically rasterize large PDFs to PNG using PyMuPDF — no action needed. The rasterized PNG is typically 2-8MB and works with vision.
 
 ### "No .construction/ directory"
-Skills work without it. `.construction/` comes from [AgentCM](https://github.com/dleerdefi/AgentCM), and skills create it when they save results. Run `/construction:project-setup` to inventory your project files.
+That's fine: skills work without [AgentCM](https://github.com/dleerdefi/AgentCM), which creates `.construction/` (marked by `.construction/project.yaml`). Skills create `.construction/skills/` for their own working data on first use; your deliverables are always saved in the project folder. Run `/construction:project-setup` to inventory your project files.
 
 ### Schedule extraction returns few or no rows
 The skill tries pdfplumber first, then falls back to text extraction, then vision. If all fail:

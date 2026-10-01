@@ -92,19 +92,19 @@ Claude will:
 
 ## What Gets Created
 
-Skills save their work to a `.construction/` directory in your project:
+Skills save deliverables in your project folder, where you can open them, and keep their working data in a hidden `.construction/skills/` folder:
 
 ```
 your-project/
-  .construction/
-    index/
-      sheet_index.yaml     # Drawing sheet catalog
-    specs/
-      spec_index.yaml      # Spec section catalog
-    agent_findings/        # Structured findings from all skills
-  drawings/                # Your PDFs
-  specs/                   # Your specs (split or individual)
+  drawings/                         # Your PDFs
+    sheets/                         # Split sheet PDFs + sheet_index.yaml (sheet-splitter)
+  Specification Sections/           # Split spec PDFs + spec_index.yaml (spec-splitter)
+  Submittal_Log.xlsx                # Excel/Word deliverables (or in a matching folder, e.g. Submittals/)
+  .construction/                    # Hidden on Mac/Linux; you don't need to open it
+    skills/                         # Skills' working data: spec text, issue registry, progress
 ```
+
+With [AgentCM](https://github.com/dleerdefi/AgentCM), `.construction/` also holds AgentCM's project data, and skills record their findings there.
 
 ## Running Evals
 
