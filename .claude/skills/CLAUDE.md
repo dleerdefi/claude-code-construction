@@ -135,11 +135,11 @@ You can also rasterize individual sheets on demand using the `rasterize_page.py`
    - `v_schedule_pivot` — schedule data if sheet contains schedules
 3. **Rasterize** — convert the PDF page to PNG (do NOT attempt to read the PDF directly):
    ```bash
-   ~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/rasterize_page.py "{filePath}" {pageIndex} --dpi 200 --output /tmp/sheet.png
+   ~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/rasterize_page.py "{filePath}" {pageIndex} --dpi 200 --output sheet.png
    ```
 4. **Targeted crop** (optional) — if reviewing a specific area, crop using graph coordinates:
    ```bash
-   ~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py /tmp/sheet.png --box {x1},{y1},{x2},{y2} --normalized --output /tmp/detail.png
+   ~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py sheet.png --box {x1},{y1},{x2},{y2} --normalized --output detail.png
    ```
    - Use view `boundingRegion` for detail-level crops
    - Use centroid ± margin for room-level crops (e.g., `[0.35, 0.42]` ± 0.07 → `--box 0.28,0.35,0.42,0.49`)
@@ -257,17 +257,17 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 
 **Rasterize for vision:**
 ```bash
-~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/rasterize_page.py "{pdf_path}" {page} --dpi 200 --output /tmp/page.png
+~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/rasterize_page.py "{pdf_path}" {page} --dpi 200 --output page.png
 ```
 
 **Crop specific regions:**
 ```bash
 # Normalized 0-1 coordinates (from graph centroids/bounding regions):
-~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py /tmp/page.png --box x1,y1,x2,y2 --normalized --output /tmp/detail.png
+~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py page.png --box x1,y1,x2,y2 --normalized --output detail.png
 # Pixel coordinates:
-~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py /tmp/page.png --box x1,y1,x2,y2 --output /tmp/detail.png
+~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py page.png --box x1,y1,x2,y2 --output detail.png
 # Anchor-based (e.g., title block):
-~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py /tmp/page.png --anchor bottom-right --width 2400 --height 1200 --output /tmp/titleblock.png
+~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py page.png --anchor bottom-right --width 2400 --height 1200 --output titleblock.png
 ```
 
 **Extract text with pdfplumber:**

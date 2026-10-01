@@ -17,8 +17,8 @@ investigation before any draft is written.
 # Read database.yaml for query_command, then:
 {query_command} -c "SELECT * FROM v_sheet_contents WHERE sheet_number = '{sheet}'"
 # Rasterize + crop to the conflict zone for vision reading:
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py" "{pdf}" {page} --dpi 200 --output /tmp/page.png
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/pdf/crop_region.py" /tmp/page.png --box x1,y1,x2,y2 --normalized --output /tmp/conflict_area.png
+"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py" "{pdf}" {page} --dpi 200 --output page.png
+"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/pdf/crop_region.py" page.png --box x1,y1,x2,y2 --normalized --output conflict_area.png
 ```
 
 **Without AgentCM**:

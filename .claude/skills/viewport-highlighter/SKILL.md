@@ -62,7 +62,7 @@ examine with vision.
 # Rasterize on demand if the pre-rendered PNG is missing
 "${CLAUDE_SKILL_DIR}/../../../bin/construction-python" \
   "${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py" \
-  "{pdf_path}" {page_index} --dpi 200 --output /tmp/{sheet_number}.png
+  "{pdf_path}" {page_index} --dpi 200 --output "{sheet_number}.png"
 ```
 
 **Vision task:** Examine the full sheet image. Identify every distinct view

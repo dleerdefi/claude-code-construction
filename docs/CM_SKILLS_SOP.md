@@ -304,6 +304,7 @@ ${CLAUDE_SKILL_DIR}/references/output_schema.json              ✓  (skill-local
 
 - Double-quote each path: `"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export.py" --output "{output_path}"`. Unquoted, bash strips the backslashes and splits any path that contains a space.
 - Run Python through `bin/construction-python`, never bare `python` — stock macOS has no `python`, and on Windows it can resolve to the Microsoft Store alias instead of the toolkit venv.
+- Write intermediate files (rasterized pages, crops) inside the project, e.g. `--output page.png`, never `/tmp`. On Windows `/tmp` exists only inside Git Bash; Claude Code's file tools read it as `C:\tmp`.
 
 > **Always resolve project document paths through `CLAUDE.md` or directory discovery, never hardcode them.** A skill that hardcodes `./drawings/` will break on any project where the drawing folder has a different name.
 

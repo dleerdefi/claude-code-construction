@@ -31,7 +31,7 @@ bin/dev-teardown    # Remove symlink
 - SKILL.md files are the canonical source — edit directly
 - `reference/` data is shared across skills — accessed via `${CLAUDE_SKILL_DIR}/../../../reference/`
 - `scripts/` Python tools are shared — accessed via `${CLAUDE_SKILL_DIR}/../../../scripts/`
-- Skills run on Windows, macOS and Linux: double-quote every path in skill commands (`"${CLAUDE_SKILL_DIR}/..."`) and run Python via `bin/construction-python`, never bare `python`
+- Skills run on Windows, macOS and Linux: double-quote every path in skill commands (`"${CLAUDE_SKILL_DIR}/..."`) and run Python via `bin/construction-python`, never bare `python`; write intermediate files inside the project, never `/tmp`
 - All skills write findings to `.construction/agent_findings/` via graph entry pattern
 - Never fabricate dimensions, spec requirements, or code citations
 - Skills must pass eval before moving from `_dev/` to production
