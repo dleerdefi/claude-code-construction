@@ -28,7 +28,7 @@ The remaining project files (RFIs, submittals, meeting minutes, etc.) are alread
 ## List Available Evals
 
 ```bash
-python evals/runners/run_suite.py --list
+bin/construction-python evals/runners/run_suite.py --list
 ```
 
 Shows all skills with eval cases, their priority, and case count.
@@ -36,7 +36,7 @@ Shows all skills with eval cases, their priority, and case count.
 ## Run a Single Eval
 
 ```bash
-python evals/runners/run_skill.py --case evals/cases/schedule-extractor/case_01_door_schedule.json
+bin/construction-python evals/runners/run_skill.py --case evals/cases/schedule-extractor/case_01_door_schedule.json
 ```
 
 This will:
@@ -48,13 +48,13 @@ This will:
 ## Run All Evals for a Skill
 
 ```bash
-python evals/runners/run_suite.py --skill schedule-extractor
+bin/construction-python evals/runners/run_suite.py --skill schedule-extractor
 ```
 
 ## Run All Evals
 
 ```bash
-python evals/runners/run_suite.py --all
+bin/construction-python evals/runners/run_suite.py --all
 ```
 
 ## View Results
@@ -73,12 +73,12 @@ evals/results/20260325_081037_schedule-extractor-01/
 
 Score a single result:
 ```bash
-python evals/runners/score.py evals/results/20260325_081037_schedule-extractor-01/result.json
+bin/construction-python evals/runners/score.py evals/results/20260325_081037_schedule-extractor-01/result.json
 ```
 
 View all results:
 ```bash
-python evals/runners/score.py --summary
+bin/construction-python evals/runners/score.py --summary
 ```
 
 ## Understanding Scores

@@ -9,8 +9,10 @@ Construction skills for Claude Code that let you navigate drawings, extract sche
 ## Prerequisites
 
 - [Claude Code](https://claude.com/claude-code) installed (CLI, VS Code extension, or web)
-- Python 3.10+
+- Python 3.10+ (on macOS, Apple's built-in `python3` is 3.9 — install a newer one from python.org or Homebrew)
 - On Windows: [Git for Windows](https://git-scm.com/download/win) (run the commands below in Git Bash)
+
+See the [README prerequisites](../README.md#prerequisites) for details per operating system.
 - Construction project PDFs (drawings and/or specs)
 
 ## Install
@@ -24,7 +26,7 @@ cd ~/.claude/skills/construction
 ./setup
 ```
 
-Prefer the marketplace? Inside Claude Code run `/plugin marketplace add dleerdefi/claude-code-construction`, then `/plugin install construction@construction-skills`. See the [README](../README.md#setup) for per-project installs.
+Prefer the marketplace? Inside Claude Code run `/plugin marketplace add dleerdefi/claude-code-construction`, then `/plugin install construction@construction-skills`. See the [README](../README.md#setup) for per-project installs, and [Validating your install](VALIDATING.md) to check everything works.
 
 ## Try It: Index Your Project
 
