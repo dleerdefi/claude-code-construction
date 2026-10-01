@@ -149,5 +149,5 @@ Never overwrite existing split sheet PDFs. If `sheets/` directory already contai
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `scripts/split_drawing_set.py` — split bound PDF into per-page PDFs
-- `../../scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision identification
-- `../../scripts/graph/write_finding.py` — graph entry (Step 7)
+- `../../../scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision identification
+- `../../../scripts/graph/write_finding.py` — graph entry (Step 7)

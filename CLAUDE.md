@@ -29,8 +29,8 @@ bin/dev-teardown    # Remove symlink
 ### Key Rules
 - Each commit = one logical change
 - SKILL.md files are the canonical source — edit directly
-- `reference/` data is shared across skills — accessed via `${CLAUDE_SKILL_DIR}/../../reference/`
-- `scripts/` Python tools are shared — accessed via `${CLAUDE_SKILL_DIR}/../../scripts/`
+- `reference/` data is shared across skills — accessed via `${CLAUDE_SKILL_DIR}/../../../reference/`
+- `scripts/` Python tools are shared — accessed via `${CLAUDE_SKILL_DIR}/../../../scripts/`
 - All skills write findings to `.construction/agent_findings/` via graph entry pattern
 - Never fabricate dimensions, spec requirements, or code citations
 - Skills must pass eval before moving from `_dev/` to production

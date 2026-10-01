@@ -344,5 +344,5 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `scripts/markup_tags.py` — sheet markup with tag highlights
-- `../../scripts/pdf/annotate_pdf.py` — native PDF annotations
+- `../../../scripts/pdf/annotate_pdf.py` — native PDF annotations
 - `scripts/qto_to_xlsx.py` — QTO Excel export (4-sheet workbook)

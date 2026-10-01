@@ -481,5 +481,5 @@ duplicates during review in the Group Review Gallery.
 ## Allowed Scripts
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
-- `../../scripts/pdf/rasterize_page.py` — rasterize a sheet PDF page to PNG for vision
+- `../../../scripts/pdf/rasterize_page.py` — rasterize a sheet PDF page to PNG for vision
 - `scripts/markup_viewports.py` — overlay viewport boundary rectangles on a sheet image

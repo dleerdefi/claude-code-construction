@@ -191,5 +191,5 @@ Never overwrite existing split spec PDFs or extracted text. The split script ski
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `scripts/split_spec_manual.py` — split bound PDF into per-section PDFs
 - `scripts/extract_spec_text.py` — extract searchable text from section PDFs
-- `../../scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision fallback
-- `../../scripts/graph/write_finding.py` — graph entry (Step 9)
+- `../../../scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision fallback
+- `../../../scripts/graph/write_finding.py` — graph entry (Step 9)

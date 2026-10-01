@@ -346,8 +346,8 @@ Never overwrite an existing schedule extraction. The export script uses `safe_ou
 ## Allowed Scripts
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
-- `../../scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision extraction
-- `../../scripts/pdf/crop_region.py` — crop schedule region from full sheet image
+- `../../../scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision extraction
+- `../../../scripts/pdf/crop_region.py` — crop schedule region from full sheet image
 - `scripts/schedule_to_xlsx.py` — Excel export with reconciliation anchors
 - `scripts/xlsx_to_changeset.py` — diff edited Excel against DB for reconciliation
-- `../../scripts/graph/write_finding.py` — graph entry (Step 6)
+- `../../../scripts/graph/write_finding.py` — graph entry (Step 6)

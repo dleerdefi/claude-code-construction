@@ -181,7 +181,7 @@ If no `.construction/` directory exists, skip — the Excel workbook is the deli
 | 1b | `references/drawing-review.md` | Drawing sheets provided | Step 1b complete |
 | 2 | `references/buyout-domain.md` | Entering bid analysis | Step 2d complete |
 | 3 | `scripts/sample_input.json` | Building output JSON | Step 3 complete |
-| 5 | `../../scripts/graph/write_finding.py` | AgentCM mode detected | Step 5 complete |
+| 5 | `../../../scripts/graph/write_finding.py` | AgentCM mode detected | Step 5 complete |
 
 ## Error Handling
 

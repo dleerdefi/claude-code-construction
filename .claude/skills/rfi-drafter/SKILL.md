@@ -252,7 +252,7 @@ Read `references/rfi-format.md` for field-by-field content guidance.
 Created on first RFI, reused for all subsequent RFIs in the project.
 
 **Issue records** are JSON files in `.construction/issues/`.
-Managed via `../../scripts/issue_manager.py`.
+Managed via `../../../scripts/issue_manager.py`.
 
 ---
 
@@ -260,8 +260,8 @@ Managed via `../../scripts/issue_manager.py`.
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `scripts/rfi_export.py` — export RFI to .docx using a firm template or generic format
-- `../../scripts/issue_manager.py` — manage the ambient issue registry (read/write/escalate)
-- `../../scripts/rfi/generate_rfi_pdf.py` — generate RFI PDF output
-- `../../scripts/pdf/rasterize_page.py` — rasterize a drawing PDF page for issue context
-- `../../scripts/pdf/crop_region.py` — crop a region from a rasterized sheet for issue context
+- `../../../scripts/issue_manager.py` — manage the ambient issue registry (read/write/escalate)
+- `../../../scripts/rfi/generate_rfi_pdf.py` — generate RFI PDF output
+- `../../../scripts/pdf/rasterize_page.py` — rasterize a drawing PDF page for issue context
+- `../../../scripts/pdf/crop_region.py` — crop a region from a rasterized sheet for issue context
 

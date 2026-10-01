@@ -295,7 +295,7 @@ Step 1: Load all references.
 
 ```
 ${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py          ✓  (per-skill script)
-${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py        ✓  (shared script via relative path)
+${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py     ✓  (shared script via relative path)
 ${CLAUDE_SKILL_DIR}/references/output_schema.json              ✓  (skill-local reference)
 /absolute/path/to/anything                                      ✗  (never hardcode absolute paths)
 ```
@@ -407,7 +407,7 @@ Steps load exactly one reference at a time, use it, and release it before the ne
 Scripts are referenced via `${CLAUDE_SKILL_DIR}` for portability:
 ```bash
 ${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py          # per-skill script
-${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py        # shared script
+${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py     # shared script
 ```
 
 ---
