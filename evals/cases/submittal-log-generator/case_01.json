@@ -20,7 +20,7 @@
   ],
   "expected_outputs": {
     "excel_file": true,
-    "state_file": ".construction/submittal_extraction_state.yaml",
+    "state_file": ".construction/skills/submittal-log-generator/submittal_extraction_state.yaml",
     "graph_entry_type": "submittal_log_generated",
     "min_submittals": 20
   },

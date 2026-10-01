@@ -141,7 +141,7 @@ PROVENANCE: Every count traces to detection records
 
 Save the JSON to:
 ```
-.construction/qto/[tag_type]_[timestamp].json
+.construction/skills/tag-audit-and-takeoff/qto/[tag_type]_[timestamp].json
 ```
 
 If the user requests an Excel output, produce a workbook with:

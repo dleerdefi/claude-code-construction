@@ -298,10 +298,12 @@ The Excel script is rigid and parses specific key names. Required keys:
 The QTO is a complete count. Query the claimed-elements endpoint (Step 1.5) for
 existing items and merge them into `line_items[].instance_details[]`.
 
-**Flat File mode:** Write QTO JSON + marked-up PNGs to project directory.
+**Both modes:** Save the QTO JSON (working data) to
+`.construction/skills/tag-audit-and-takeoff/qto/{tag_type}_{timestamp}.json` and the
+marked-up PNGs (deliverables) to the project directory.
 
-**Excel export** (both modes): Write the QTO data JSON to a temp file,
-then invoke the export script to produce a styled multi-sheet workbook:
+**Excel export** (both modes): Pass that QTO JSON as `{qto_json_path}`
+and invoke the export script to produce a styled multi-sheet workbook:
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" \

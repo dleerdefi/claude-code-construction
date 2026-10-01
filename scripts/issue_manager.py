@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-issue_manager.py — CRUD for the .construction/issues/ registry.
+issue_manager.py — CRUD for the .construction/skills/issues/ registry.
 
 Usage:
   # Add a new issue
@@ -46,7 +46,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-DEFAULT_ISSUES_DIR = ".construction/issues"
+DEFAULT_ISSUES_DIR = ".construction/skills/issues"
+LEGACY_ISSUES_DIR = ".construction/issues"  # location before v0.3.0
 
 SEVERITY_ORDER = {"safety": 0, "conflict": 1, "warning": 2, "info": 3}
 CONFIDENCE_ORDER = {"high": 0, "medium": 1, "low": 2}
@@ -58,6 +59,11 @@ def get_issues_dir(base_dir: str = None) -> Path:
         d = Path(base_dir)
     else:
         d = Path(DEFAULT_ISSUES_DIR)
+        legacy = Path(LEGACY_ISSUES_DIR)
+        if not d.exists() and legacy.is_dir():
+            d.parent.mkdir(parents=True, exist_ok=True)
+            legacy.rename(d)
+            print(f"Moved issue registry {legacy} -> {d}", file=sys.stderr)
     d.mkdir(parents=True, exist_ok=True)
     return d
 

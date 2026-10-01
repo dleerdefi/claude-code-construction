@@ -28,13 +28,13 @@
     "All findings framed as research — never COMPLIANT/NON-COMPLIANT"
   ],
   "expected_outputs": {
-    "scope_definition_file": ".construction/code_research/scope_definition.yaml",
-    "pass1_inventory_file": ".construction/code_research/pass1_project_inventory.yaml",
-    "pass1_summary_file": ".construction/code_research/pass1_summary.yaml",
-    "jurisdiction_file": ".construction/code_research/jurisdiction.yaml",
-    "topic_files": ".construction/code_research/topics/",
-    "gap_analysis_file": ".construction/code_research/gap_analysis.yaml",
-    "report_file": ".construction/code_research/report_egress_*.md",
+    "scope_definition_file": ".construction/skills/code-researcher/scope_definition.yaml",
+    "pass1_inventory_file": ".construction/skills/code-researcher/pass1_project_inventory.yaml",
+    "pass1_summary_file": ".construction/skills/code-researcher/pass1_summary.yaml",
+    "jurisdiction_file": ".construction/skills/code-researcher/jurisdiction.yaml",
+    "topic_files": ".construction/skills/code-researcher/topics/",
+    "gap_analysis_file": ".construction/skills/code-researcher/gap_analysis.yaml",
+    "report_file": ".construction/skills/code-researcher/report_egress_*.md",
     "graph_entry_type": "code_gap_analysis"
   },
   "ground_truth": "expected/code_research_ground_truth_01.yaml",

@@ -28,7 +28,7 @@ error vs. intentional design.
 | Script | Location | Purpose |
 |--------|----------|---------|
 | `rfi_export.py` | `${CLAUDE_SKILL_DIR}/scripts/rfi_export.py` | Populate firm's .docx template or generate generic RFI |
-| `issue_manager.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` | CRUD for issue registry (.construction/issues/) |
+| `issue_manager.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` | CRUD for issue registry (.construction/skills/issues/) |
 | `generate_rfi_pdf.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/rfi/generate_rfi_pdf.py` | Generate PDF RFI (alternative format) |
 | `rasterize_page.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` | Rasterize drawing pages for vision reading |
 | `crop_region.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` | Crop regions for targeted reading |
@@ -56,14 +56,14 @@ RFIs — the output MUST match their format exactly.
    placeholders like `[PROJECT NAME]`, content controls)
 2. Build a field mapping JSON linking each RFI data field to its
    location in the template
-3. Store mapping at `.construction/rfi_template_map.json`
+3. Store mapping at `.construction/skills/rfi-drafter/rfi_template_map.json`
 4. Store a SHA-256 hash of the template for change detection
 
 **If PDF template provided:**
 1. Rasterize each page at 200 DPI
 2. Read with vision to understand field layout and structure
 3. Build the mapping JSON from visual analysis
-4. Store at `.construction/rfi_template_map.json`
+4. Store at `.construction/skills/rfi-drafter/rfi_template_map.json`
 
 **If no template available:**
 Fall back to the generic format built into `rfi_export.py`. Inform
@@ -144,7 +144,7 @@ Present the draft RFI to the user in conversation. The user may:
 # Template mode (preferred — matches firm's format):
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/rfi_export.py" \
   --template "path/to/firm_rfi_form.docx" \
-  --mapping .construction/rfi_template_map.json \
+  --mapping .construction/skills/rfi-drafter/rfi_template_map.json \
   --data rfi_draft.json \
   --output RFI-026.docx
 
@@ -163,7 +163,7 @@ The script uses `safe_output_path()` — never overwrites existing files.
 
 Other skills (tag-audit-and-takeoff, pe-review, spec-parser, etc.)
 surface potential issues during their normal work. These issues
-accumulate in `.construction/issues/` as JSON records, NOT as RFIs.
+accumulate in `.construction/skills/issues/` as JSON records, NOT as RFIs.
 
 ### How Issues Get Created
 
@@ -185,7 +185,7 @@ issues become RFIs.
 When the user asks to review issues ("check the issues list", "what
 issues have been found", "any problems detected"):
 
-1. Load issues from `.construction/issues/`
+1. Load issues from `.construction/skills/issues/`
 2. Sort by severity (safety > conflict > warning > info), then
    by confidence (high > medium > low)
 3. Present a summary table: severity, source skill, description,
@@ -251,10 +251,10 @@ Two modes:
 Output is always .docx — the user must be able to edit before sending.
 Read `references/rfi-format.md` for field-by-field content guidance.
 
-**Template mapping** is stored at `.construction/rfi_template_map.json`.
+**Template mapping** is stored at `.construction/skills/rfi-drafter/rfi_template_map.json`.
 Created on first RFI, reused for all subsequent RFIs in the project.
 
-**Issue records** are JSON files in `.construction/issues/`.
+**Issue records** are JSON files in `.construction/skills/issues/`.
 Managed via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`.
 
 ---

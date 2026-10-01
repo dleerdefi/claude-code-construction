@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The issue registry at `.construction/issues/` accumulates potential
+The issue registry at `.construction/skills/issues/` accumulates potential
 problems found by any skill during its normal work. Issues are NOT
 RFIs — they are observations that MAY become RFIs after user review.
 
@@ -10,7 +10,7 @@ RFIs — they are observations that MAY become RFIs after user review.
 
 Issues are stored as individual JSON files:
 ```
-.construction/issues/
+.construction/skills/issues/
 ├── ISS-2026-0001.json
 ├── ISS-2026-0002.json
 ├── ISS-2026-0003.json

@@ -416,10 +416,11 @@ def run_submittal_log_generator(case, run_dir):
     # Check for v2 JSON output (from Claude-based extraction)
     v2_json_path = run_dir / "submittal_extraction_items.json"
     if not v2_json_path.exists():
-        # Also check .construction directory relative to case
+        # Also check the skill's working data folder in the case's project
         project_dir = get_project_dir(case)
         if project_dir:
-            alt_path = Path(project_dir) / ".construction" / "submittal_extraction_items.json"
+            alt_path = (Path(project_dir) / ".construction" / "skills" / "submittal-log-generator"
+                        / "submittal_extraction_items.json")
             if alt_path.exists():
                 v2_json_path = alt_path
 

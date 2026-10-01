@@ -112,7 +112,7 @@ Collect minimum required project parameters. Check in this order:
 - Spec Section 01 35 13 or 01 35 14 — special project requirements, authority
   having jurisdiction contacts
 
-Minimum required context — write to `.construction/code_research/project_context.yaml` using the schema at:
+Minimum required context — write to `.construction/skills/code-researcher/project_context.yaml` using the schema at:
 → `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § project_context
 
 If any required field cannot be found in the documents, ask the user before
@@ -140,7 +140,7 @@ Parse the user's question to identify:
 3. **Scopes in scope** — if the engineer is managing multiple scopes (e.g.,
    scopes A through C), confirm which ones this research covers.
 
-Write to `.construction/code_research/scope_definition.yaml` using the schema at:
+Write to `.construction/skills/code-researcher/scope_definition.yaml` using the schema at:
 → `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § scope_definition
 
 Research topics are generated from the combination of:
@@ -218,7 +218,7 @@ For referenced standards within spec sections:
 ### 2b — Extract All Code and Standard Citations
 
 For each document read, extract every code reference, standard citation, and
-requirement into a structured inventory. Write to `.construction/code_research/pass1_project_inventory.yaml` using the schema at:
+requirement into a structured inventory. Write to `.construction/skills/code-researcher/pass1_project_inventory.yaml` using the schema at:
 → `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § pass1_project_inventory
 
 **Critical extraction discipline:**
@@ -230,7 +230,7 @@ requirement into a structured inventory. Write to `.construction/code_research/p
 
 ### 2c — Build the "Already Addressed" Inventory
 
-Summarize Pass 1 into a flat inventory used for gap diffing in Phase 4. Write to `.construction/code_research/pass1_summary.yaml` using the schema at:
+Summarize Pass 1 into a flat inventory used for gap diffing in Phase 4. Write to `.construction/skills/code-researcher/pass1_summary.yaml` using the schema at:
 → `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § pass1_summary
 
 ---
@@ -252,7 +252,7 @@ Search for:
 "{state} accessibility code requirements"
 ```
 
-Write to `.construction/code_research/jurisdiction.yaml` using the schema at:
+Write to `.construction/skills/code-researcher/jurisdiction.yaml` using the schema at:
 → `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § jurisdiction
 
 If jurisdiction code adoption cannot be confirmed via web search, mark as
@@ -281,7 +281,7 @@ Use shared reference files at `${CLAUDE_PLUGIN_ROOT}/reference/` to verify
 specific numeric thresholds (clearances, load factors, occupant capacities)
 during research.
 
-Write to `.construction/code_research/topics/{slug}.yaml` using the schema at:
+Write to `.construction/skills/code-researcher/topics/{slug}.yaml` using the schema at:
 → `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § topic_findings
 
 **Adaptive scope expansion:** If research reveals that a code requirement likely
@@ -325,7 +325,7 @@ Do you want me to dig deeper on any of these before continuing, or shall I proce
 ### 4a — Diff Research Against Project Inventory
 
 Compare every research finding from Phase 3 against the Pass 1 project
-inventory. Write to `.construction/code_research/gap_analysis.yaml` using the schema at:
+inventory. Write to `.construction/skills/code-researcher/gap_analysis.yaml` using the schema at:
 → `${CLAUDE_SKILL_DIR}/references/schemas.yaml` § gap_analysis
 
 Classify each finding into one of: `gaps` (with severity + confidence), `already_addressed`, or `uncertain`.
@@ -398,7 +398,7 @@ Before I write the report:
 
 ### 5a — Generate Gap Report
 
-Write to `.construction/code_research/report_{scope}_{date}.md` using the template at:
+Write to `.construction/skills/code-researcher/report_{scope}_{date}.md` using the template at:
 → `${CLAUDE_SKILL_DIR}/references/gap_report_template.md`
 
 Populate all placeholder fields from the gap_analysis.yaml and jurisdiction.yaml data. The report must include: applicable codes table, all gaps (action required + confirm and close), uncertain items, already addressed items, documents reviewed, and the disclaimer.
@@ -426,7 +426,7 @@ Populate all placeholder fields from the gap_analysis.yaml and jurisdiction.yaml
 
 ## Resumption
 
-Check for `.construction/code_research/` before starting:
+Check for `.construction/skills/code-researcher/` before starting:
 
 | Files Present | State | Action |
 |---------------|-------|--------|

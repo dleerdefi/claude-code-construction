@@ -255,7 +255,7 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 
 ### Cross-Skill Infrastructure
 
-**Issue Registry** — Any skill can log potential issues to `.construction/issues/` via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, spec-parser, etc.) and are reviewed/escalated by the user through `rfi-drafter`. No skill writes an RFI directly — only issue records.
+**Issue Registry** — Any skill can log potential issues to `.construction/skills/issues/` via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, spec-parser, etc.) and are reviewed/escalated by the user through `rfi-drafter`. No skill writes an RFI directly — only issue records.
 
 ### Behavioral Skills (setup / orientation)
 
@@ -288,9 +288,17 @@ with pdfplumber.open(pdf_path) as pdf:
     tables = pdf.pages[page_num].extract_tables()
 ```
 
-## Graph Context
+## Where Skills Write
 
-All skills output structured findings to `.construction/agent_findings/` for retention in the project graph. Every work product gets a graph entry so future queries can traverse prior work.
+- **Deliverables** (Excel, Word, PDF, reports, marked-up images, split sheets and spec sections) go where the user can see them: the matching project folder when there is one (e.g. the submittals folder), otherwise the project root. Never put a deliverable in `.construction/`: Finder and most Linux file managers hide dot-folders, so users can't find what's in them.
+- **Working data** (extraction state, intermediate JSON, spec section text, the issue registry) goes in `.construction/skills/`, in every project:
+  - `.construction/skills/spec_text/` — spec section text and `manifest.json` (spec-splitter; read by other skills)
+  - `.construction/skills/issues/` — the issue registry (`issue_manager.py`)
+  - `.construction/skills/project_context.yaml` — shared project facts
+  - `.construction/skills/<skill>/` — one skill's own state (e.g. `bid-tabulator/bids/`)
+- **AgentCM areas** — `agent_findings/` (graph entries via `write_finding.py`), the database and the API — are written only when AgentCM is present (`.construction/project.yaml` exists). There, every work product also gets a graph entry so future queries can traverse prior work. Everything else in `.construction/` belongs to AgentCM: read it, never write it.
+
+Older versions wrote working data directly into `.construction/` (`spec_text/`, `issues/`, `bid_tab/`, `code_research/`, `submittal_*`, `rfi_template_map.json`, `project_context.yaml`, `qto/`). If you find one of those and its `.construction/skills/` counterpart doesn't exist, move it there before continuing.
 
 ## Reference Data
 

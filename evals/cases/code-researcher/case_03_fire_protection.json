@@ -21,10 +21,10 @@
     "Phase 3: Report with IBC and NFPA citations side by side"
   ],
   "expected_outputs": {
-    "outline_file": ".construction/code_research/outline.yaml",
-    "jurisdiction_file": ".construction/code_research/jurisdiction.yaml",
-    "topic_files": ".construction/code_research/topics/",
-    "report_file": ".construction/code_research/report.md",
+    "outline_file": ".construction/skills/code-researcher/outline.yaml",
+    "jurisdiction_file": ".construction/skills/code-researcher/jurisdiction.yaml",
+    "topic_files": ".construction/skills/code-researcher/topics/",
+    "report_file": ".construction/skills/code-researcher/report.md",
     "graph_entry_type": "code_research_complete"
   },
   "ground_truth": "expected/fire_protection_research_ground_truth.yaml",

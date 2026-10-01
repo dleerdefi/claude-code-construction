@@ -65,7 +65,7 @@ Scan the project directory. No vision calls — use filename and folder pattern 
 **Also check for existing indexes:**
 - `sheet_index.yaml` → drawings already indexed
 - `spec_index.yaml` → specs already split
-- `.construction/spec_text/manifest.json` → spec text already extracted
+- `.construction/skills/spec_text/manifest.json` → spec text already extracted (an older version's `.construction/spec_text/` counts too: move it to `.construction/skills/spec_text/`)
 
 ### Step 3: Present Summary and Recommend Next Actions
 

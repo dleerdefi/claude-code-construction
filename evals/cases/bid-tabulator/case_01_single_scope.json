@@ -24,7 +24,7 @@
   ],
   "expected_outputs": {
     "excel_file": true,
-    "state_file": ".construction/bid_tab/extraction_state.yaml",
+    "state_file": ".construction/skills/bid-tabulator/extraction_state.yaml",
     "graph_entry_type": "bid_tabulation_complete",
     "min_bidders": 8,
     "required_tabs": [

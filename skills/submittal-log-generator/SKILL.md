@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 Long-running skill that processes every specification section to extract submittal requirements and produces a professional submittal register in Excel. Designed to handle full project manuals (200+ spec sections) with state persistence.
 
-**Prerequisite:** This skill depends on `/spec-splitter` to provision clean, per-section `.txt` files at `.construction/spec_text/`. The spec-splitter owns all text quality — extraction, repair, and quality assessment. This skill reads those `.txt` files and focuses on identifying submittal items.
+**Prerequisite:** This skill depends on `/spec-splitter` to provision clean, per-section `.txt` files at `.construction/skills/spec_text/`. The spec-splitter owns all text quality — extraction, repair, and quality assessment. This skill reads those `.txt` files and focuses on identifying submittal items.
 
 ## Design Philosophy: Scripts for Structure, Claude for Judgment
 
@@ -28,7 +28,7 @@ This skill uses a three-tier approach:
 Do not create, generate, or write any `.py`, `.sh`, or other script files. All data assembly is Claude writing JSON directly.
 
 ## Current Submittal State
-!`cat .construction/submittal_extraction_state.yaml 2>/dev/null || echo "No prior extraction — starting fresh"`
+!`cat .construction/skills/submittal-log-generator/submittal_extraction_state.yaml 2>/dev/null || echo "No prior extraction — starting fresh"`
 
 ---
 
@@ -77,16 +77,16 @@ Submittal Log Progress:
 
 ### Step 0: Ensure Spec Text Is Available — RIGID
 
-This skill reads from `.construction/spec_text/*.txt` files provisioned by `/spec-splitter`. Check whether they exist and invoke spec-splitter if needed.
+This skill reads from `.construction/skills/spec_text/*.txt` files provisioned by `/spec-splitter`. Check whether they exist and invoke spec-splitter if needed.
 
 **Branch A — Text already extracted:**
-1. Check `.construction/spec_text/manifest.json`
+1. Check `.construction/skills/spec_text/manifest.json` (older versions used `.construction/spec_text/`: if only that exists, move it to `.construction/skills/spec_text/` first)
 2. If present with corresponding `.txt` files → inventory them, build the processing queue, proceed to Step 1
 3. Note any sections with `quality_rating: "POOR"` in the manifest — items extracted from these sections will receive a minimum confidence of MEDIUM
 
 **Branch B — No text extracted:**
 1. Invoke `/spec-splitter` — it will handle everything: locating or splitting spec PDFs, extracting text, and repairing quality issues
-2. After `/spec-splitter` completes, read `.construction/spec_text/manifest.json` and proceed to Step 1
+2. After `/spec-splitter` completes, read `.construction/skills/spec_text/manifest.json` and proceed to Step 1
 
 **Important:** Always invoke `/spec-splitter` as a skill — do not call `extract_spec_text.py` or `split_spec_manual.py` directly. The spec-splitter skill manages directory discovery, naming conventions, text extraction, and text repair.
 
@@ -98,7 +98,7 @@ This skill reads from `.construction/spec_text/*.txt` files provisioned by `/spe
 
 Initialize state file:
 ```yaml
-# .construction/submittal_extraction_state.yaml
+# .construction/skills/submittal-log-generator/submittal_extraction_state.yaml
 run_id: "uuid"
 started: "ISO-8601"
 status: "in_progress"
@@ -112,7 +112,7 @@ errors: []
 
 ### Step 1: Submittal Identification — FLEXIBLE (Claude Intelligence)
 
-For each section in the queue, read the `.txt` file from `.construction/spec_text/` and identify submittal items.
+For each section in the queue, read the `.txt` file from `.construction/skills/spec_text/` and identify submittal items.
 
 This is where your understanding of construction specifications matters most.
 Do not follow a rigid script here — use the domain knowledge below to identify
@@ -298,7 +298,7 @@ Before writing to Excel:
 4. **Number sequentially**: Assign Submittal No. within each section
    (03 30 00-001, 03 30 00-002, etc.)
 
-Write the assembled data to: `.construction/submittal_extraction_items.json`
+Write the assembled data to: `.construction/skills/submittal-log-generator/submittal_extraction_items.json`
 
 This JSON file is the data contract between Claude's intelligence and the rigid export script. Schema:
 ```json
@@ -355,7 +355,7 @@ Discover the output location before running the export script:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" \
   "${CLAUDE_SKILL_DIR}/scripts/export_submittal_log.py" \
-  --data ".construction/submittal_extraction_items.json" \
+  --data ".construction/skills/submittal-log-generator/submittal_extraction_items.json" \
   --output "{resolved_output_path}"
 ```
 
@@ -386,11 +386,11 @@ output_file: "{resolved_output_path}"
 
 ### Per-Section Processing Pattern — RIGID
 
-The accumulator is `.construction/submittal_extraction_items.json`. Claude writes this file directly as JSON — no scripts, no intermediate tooling.
+The accumulator is `.construction/skills/submittal-log-generator/submittal_extraction_items.json`. Claude writes this file directly as JSON — no scripts, no intermediate tooling.
 
 **Sequential processing:**
 For each section in the queue, perform Steps 1-2 as a unit:
-1. Read `.txt` from `.construction/spec_text/`
+1. Read `.txt` from `.construction/skills/spec_text/`
 2. Check `quality_rating` in manifest — if POOR or DEGRADED, minimum confidence = MEDIUM
 3. Identify submittals (Step 1)
 4. Score confidence (Step 2)
@@ -400,9 +400,9 @@ For each section in the queue, perform Steps 1-2 as a unit:
 
 **Parallel processing (recommended for 60+ sections):**
 Sub-agents can process section batches simultaneously. Each agent MUST write its results directly to a numbered batch file on disk:
-- `.construction/submittal_batch_{NN}.json` — a bare JSON array of submittal items (no wrapper)
+- `.construction/skills/submittal-log-generator/submittal_batch_{NN}.json` — a bare JSON array of submittal items (no wrapper)
 - After all agents complete, merge batches with a single inline command:
-  `jq -s 'add' .construction/submittal_batch_*.json > .construction/submittal_items_merged.json`
+  `jq -s 'add' .construction/skills/submittal-log-generator/submittal_batch_*.json > .construction/skills/submittal-log-generator/submittal_items_merged.json`
 - Then wrap with `project_info` and `qa_sections` to produce the final `submittal_extraction_items.json`
 
 **Anti-pattern — never do this:** Do not have agents return JSON in their response text and then parse it from conversation logs (JSONL). This is fragile and leads to data corruption. If an agent's batch file is missing, re-run that agent.
@@ -413,7 +413,7 @@ After all sections are processed, write the final `submittal_extraction_items.js
 
 ## Resumption
 
-Check for `.construction/submittal_extraction_state.yaml`. If `status: in_progress`, resume from `queue_remaining`. Load previously extracted items from `.construction/submittal_extraction_items.json`.
+Check for `.construction/skills/submittal-log-generator/submittal_extraction_state.yaml`. If `status: in_progress`, resume from `queue_remaining`. Load previously extracted items from `.construction/skills/submittal-log-generator/submittal_extraction_items.json`.
 
 ---
 

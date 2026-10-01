@@ -4,7 +4,7 @@
 
 # ═══════════════════════════════════════════════════════════════
 # PHASE 1a — Project Context
-# Write to: .construction/code_research/project_context.yaml
+# Write to: .construction/skills/code-researcher/project_context.yaml
 # ═══════════════════════════════════════════════════════════════
 project_context:
   project_name: ""
@@ -27,7 +27,7 @@ project_context:
 
 # ═══════════════════════════════════════════════════════════════
 # PHASE 1b — Scope Definition
-# Write to: .construction/code_research/scope_definition.yaml
+# Write to: .construction/skills/code-researcher/scope_definition.yaml
 # ═══════════════════════════════════════════════════════════════
 scope_definition:
   research_question: "Are there code requirements for resinous flooring that we haven't addressed?"
@@ -50,7 +50,7 @@ scope_definition:
 
 # ═══════════════════════════════════════════════════════════════
 # PHASE 2b — Pass 1 Project Inventory
-# Write to: .construction/code_research/pass1_project_inventory.yaml
+# Write to: .construction/skills/code-researcher/pass1_project_inventory.yaml
 # ═══════════════════════════════════════════════════════════════
 pass1_project_inventory:
   source_documents_read:
@@ -107,7 +107,7 @@ pass1_project_inventory:
 
 # ═══════════════════════════════════════════════════════════════
 # PHASE 2c — Pass 1 Summary (flat inventory for gap diffing)
-# Write to: .construction/code_research/pass1_summary.yaml
+# Write to: .construction/skills/code-researcher/pass1_summary.yaml
 # ═══════════════════════════════════════════════════════════════
 pass1_summary:
   topics_addressed:
@@ -148,7 +148,7 @@ pass1_summary:
 
 # ═══════════════════════════════════════════════════════════════
 # PHASE 3a — Jurisdiction and Adopted Codes
-# Write to: .construction/code_research/jurisdiction.yaml
+# Write to: .construction/skills/code-researcher/jurisdiction.yaml
 # ═══════════════════════════════════════════════════════════════
 jurisdiction:
   state: ""
@@ -185,7 +185,7 @@ jurisdiction:
 
 # ═══════════════════════════════════════════════════════════════
 # PHASE 3b — Per-Topic Research Findings
-# Write to: .construction/code_research/topics/{slug}.yaml
+# Write to: .construction/skills/code-researcher/topics/{slug}.yaml
 # ═══════════════════════════════════════════════════════════════
 topic_findings:
   topic: "Slip Resistance"
@@ -239,7 +239,7 @@ topic_findings:
 
 # ═══════════════════════════════════════════════════════════════
 # PHASE 4a — Gap Analysis
-# Write to: .construction/code_research/gap_analysis.yaml
+# Write to: .construction/skills/code-researcher/gap_analysis.yaml
 # ═══════════════════════════════════════════════════════════════
 gap_analysis:
   gaps:

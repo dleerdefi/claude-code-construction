@@ -106,7 +106,7 @@ sheets/
 
 ### Step 6: Update Project Context
 
-After splitting and identifying, update `.construction/project_context.yaml` with:
+After splitting and identifying, update `.construction/skills/project_context.yaml` with:
 - `documents.drawing_count`: number of sheets
 - `documents.disciplines`: list of unique discipline prefixes found
 

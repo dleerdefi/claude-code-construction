@@ -45,7 +45,7 @@ Check what already exists:
 - If found, report count and skip to Step 7 (text extraction)
 
 **Text already extracted?**
-- Check `.construction/spec_text/manifest.json`
+- Check `.construction/skills/spec_text/manifest.json`. Older versions wrote it to `.construction/spec_text/`: if only that exists, move the folder to `.construction/skills/spec_text/` first
 - If manifest exists and covers all sections, report and skip Step 7
 
 ### Step 2: Discover Specifications Directory
@@ -103,13 +103,13 @@ After splitting (or if specs are already split), extract searchable text from ev
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/extract_spec_text.py" \
   --specs-dir "{resolved_spec_sections_dir}" \
-  --output-dir ".construction/spec_text"
+  --output-dir ".construction/skills/spec_text"
 ```
 
 The script:
 - Extracts text from each section PDF via pdfplumber
 - Assesses extraction quality (GOOD / DEGRADED / POOR)
-- Writes one `.txt` file per section to `.construction/spec_text/`
+- Writes one `.txt` file per section to `.construction/skills/spec_text/`
 - Writes `manifest.json` with quality metadata per section
 - Incremental: skips sections that already have `.txt` files (use `--force` to re-extract all)
 
@@ -140,7 +140,7 @@ After extraction, check `manifest.json` for sections rated DEGRADED or POOR. Spe
    section [SECTION NUMBER] - [SECTION TITLE].
    ```
 3. Concatenate extracted text in page order
-4. Write the vision-extracted text to `.construction/spec_text/`, overwriting the POOR pdfplumber output
+4. Write the vision-extracted text to `.construction/skills/spec_text/`, overwriting the POOR pdfplumber output
 5. Update manifest: `"extraction_method": "vision"`, `"repair_attempted": true`, new quality rating
 
 **Known abbreviation preservation list** (do not merge these during repair):
@@ -158,7 +158,7 @@ After extraction, check `manifest.json` for sections rated DEGRADED or POOR. Spe
   ...
   spec_index.yaml
 
-.construction/spec_text/
+.construction/skills/spec_text/
   01_10_00.txt
   03_30_00.txt
   08_71_00.txt

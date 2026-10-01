@@ -50,7 +50,7 @@ past experience with bidders.
 
 ### Mode Detection
 Check for AgentCM: `.construction/project.yaml` at the project root.
-- **AgentCM mode**: Read specs from `.construction/spec_text/{section}.txt`. Use sheet index from `.construction/index/sheet_index.yaml` for drawing identification.
+- **AgentCM mode**: Read specs from `.construction/skills/spec_text/{section}.txt`. Use sheet index from `.construction/index/sheet_index.yaml` for drawing identification.
 - **Flat File mode**: Discover spec PDFs via `CLAUDE.md` paths or directory search (`Specifications/`, `Specification Sections/`). Read drawing sheets directly from PDF.
 
 ### 1a. Spec Review

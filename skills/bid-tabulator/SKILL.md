@@ -110,11 +110,11 @@ Process each bid PDF individually. For each bid:
 3. **Extract all identified fields** from the bid document
 4. **Preserve original language** — do NOT paraphrase, normalize, or reformat line item descriptions. Extract them exactly as written in the bid.
 5. **Flag ambiguities** — if a value is unclear or could be interpreted multiple ways, include it with a note in brackets: `[unclear: possibly $45,000 or $45/SF]`
-6. **Save per-bid JSON** to `.construction/bid_tab/bids/{company_name_slug}.json`
+6. **Save per-bid JSON** to `.construction/skills/bid-tabulator/bids/{company_name_slug}.json`
 
 **State persistence** — write progress after each bid:
 ```yaml
-# .construction/bid_tab/extraction_state.yaml
+# .construction/skills/bid-tabulator/extraction_state.yaml
 scope: "Division 09 - Finishes"
 total_bids: 12
 processed: 5
@@ -128,7 +128,7 @@ errors: []
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py" \
-  --data .construction/bid_tab/bids/ \
+  --data .construction/skills/bid-tabulator/bids/ \
   --scope "Division 09 - Finishes" \
   --project "Project Name" \
   --output "Bid_Comparison_Div09.xlsx"
@@ -188,7 +188,7 @@ The Excel file is at [path]. All line items are extracted as-submitted — you'l
 
 ## Resumption
 
-Check for `.construction/bid_tab/extraction_state.yaml`. If `status: in_progress`, resume from the next unprocessed bid.
+Check for `.construction/skills/bid-tabulator/extraction_state.yaml`. If `status: in_progress`, resume from the next unprocessed bid.
 
 ## Tips
 

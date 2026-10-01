@@ -3,7 +3,7 @@
 Scores pre-extracted gap analysis artifacts against ground truth.
 
 The code-researcher skill produces YAML/markdown artifacts in a
-`.construction/code_research/` directory. This runner loads those
+`.construction/skills/code-researcher/` directory. This runner loads those
 artifacts from run_dir and scores them against a ground truth YAML.
 
 Scoring philosophy: measure what the engineer cares about — correct

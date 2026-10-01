@@ -7,7 +7,7 @@ persistent .txt files with a manifest for downstream skills.
 
 Usage:
     construction-python extract_spec_text.py --specs-dir path/to/sections
-    construction-python extract_spec_text.py --specs-dir path/to/sections --output-dir .construction/spec_text
+    construction-python extract_spec_text.py --specs-dir path/to/sections --output-dir .construction/skills/spec_text
     construction-python extract_spec_text.py --specs-dir path/to/sections --force
 """
 
@@ -181,8 +181,8 @@ if __name__ == "__main__":
         help="Directory containing split spec section PDFs"
     )
     parser.add_argument(
-        "--output-dir", default=".construction/spec_text",
-        help="Output directory for .txt files and manifest.json (default: .construction/spec_text)"
+        "--output-dir", default=".construction/skills/spec_text",
+        help="Output directory for .txt files and manifest.json (default: .construction/skills/spec_text)"
     )
     parser.add_argument(
         "--force", action="store_true",
