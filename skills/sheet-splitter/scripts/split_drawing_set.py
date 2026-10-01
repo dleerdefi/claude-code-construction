@@ -23,7 +23,52 @@ from pathlib import Path
 import fitz  # PyMuPDF
 
 
-def split_pages(pdf_path, output_dir, dry_run=False):
+def _same_as_source(src, new, first_page):
+    """True if every page of `new` renders and reads like its source page."""
+    for i, page in enumerate(new):
+        orig = src[first_page + i]
+        if sorted(w[4] for w in orig.get_text("words")) != sorted(w[4] for w in page.get_text("words")):
+            return False
+        a, b = orig.get_pixmap(dpi=30), page.get_pixmap(dpi=30)
+        if (a.width, a.height, a.n) != (b.width, b.height, b.n):
+            return False
+        if a.samples != b.samples:
+            differing = sum(1 for x, y in zip(a.samples, b.samples) if abs(x - y) > 32)
+            if differing > len(a.samples) * 0.001:
+                return False
+    return True
+
+
+def save_pages(src, first_page, last_page, out_path, clean=True):
+    """Write pages first_page..last_page of `src` to out_path, as small as possible.
+
+    insert_pdf copies each page's resource dictionary, and bound sets often
+    share one dictionary listing every sheet's fonts and images, so each split
+    file came out nearly as large as the whole set. clean_contents(sanitize=True)
+    drops resources the page never uses. It rewrites the page's content stream,
+    so cleaned pages are checked against the source (low-res render and words)
+    and the uncleaned pages are kept if anything differs. Saving with
+    garbage=4/deflate is lossless. Returns True if the cleaned pages were kept.
+    """
+    def extract(do_clean):
+        new = fitz.open()
+        new.insert_pdf(src, from_page=first_page, to_page=last_page)
+        if do_clean:
+            for page in new:
+                page.clean_contents(sanitize=True)
+        return new
+
+    new, cleaned = extract(clean), clean
+    if clean and not _same_as_source(src, new, first_page):
+        new.close()
+        new, cleaned = extract(False), False
+        print(f"  NOTE: kept {Path(out_path).name} uncleaned (cleaned copy did not match the source)")
+    new.save(str(out_path), garbage=4, deflate=True)
+    new.close()
+    return cleaned
+
+
+def split_pages(pdf_path, output_dir, dry_run=False, clean=True):
     """Split PDF into one file per page."""
     doc = fitz.open(str(pdf_path))
     total_pages = len(doc)
@@ -49,10 +94,7 @@ def split_pages(pdf_path, output_dir, dry_run=False):
 
         if not dry_run:
             out_path = output_dir / filename
-            new_doc = fitz.open()
-            new_doc.insert_pdf(doc, from_page=page_idx, to_page=page_idx)
-            new_doc.save(str(out_path))
-            new_doc.close()
+            save_pages(doc, page_idx, page_idx, out_path, clean=clean)
 
         print(f"  {page_idx + 1:3d}/{total_pages}: {filename}")
 
@@ -121,6 +163,7 @@ def main():
     parser.add_argument("pdf", help="Path to the bound drawing set PDF")
     parser.add_argument("--output-dir", default=None, help="Output directory (default: sheets/ next to PDF)")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be split without writing files")
+    parser.add_argument("--no-clean", action="store_true", help="Skip removing unused resources from each page (larger files)")
     args = parser.parse_args()
 
     pdf_path = Path(args.pdf)
@@ -140,7 +183,7 @@ def main():
     print(f"Output: {output_dir}")
 
     print(f"\n{'='*50}")
-    sheets = split_pages(pdf_path, output_dir, dry_run=args.dry_run)
+    sheets = split_pages(pdf_path, output_dir, dry_run=args.dry_run, clean=not args.no_clean)
 
     if not args.dry_run:
         try:

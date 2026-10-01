@@ -25,6 +25,51 @@ from pathlib import Path
 import fitz  # PyMuPDF
 
 
+def _same_as_source(src, new, first_page):
+    """True if every page of `new` renders and reads like its source page."""
+    for i, page in enumerate(new):
+        orig = src[first_page + i]
+        if sorted(w[4] for w in orig.get_text("words")) != sorted(w[4] for w in page.get_text("words")):
+            return False
+        a, b = orig.get_pixmap(dpi=30), page.get_pixmap(dpi=30)
+        if (a.width, a.height, a.n) != (b.width, b.height, b.n):
+            return False
+        if a.samples != b.samples:
+            differing = sum(1 for x, y in zip(a.samples, b.samples) if abs(x - y) > 32)
+            if differing > len(a.samples) * 0.001:
+                return False
+    return True
+
+
+def save_pages(src, first_page, last_page, out_path, clean=True):
+    """Write pages first_page..last_page of `src` to out_path, as small as possible.
+
+    insert_pdf copies each page's resource dictionary, and bound sets often
+    share one dictionary listing every sheet's fonts and images, so each split
+    file came out nearly as large as the whole set. clean_contents(sanitize=True)
+    drops resources the page never uses. It rewrites the page's content stream,
+    so cleaned pages are checked against the source (low-res render and words)
+    and the uncleaned pages are kept if anything differs. Saving with
+    garbage=4/deflate is lossless. Returns True if the cleaned pages were kept.
+    """
+    def extract(do_clean):
+        new = fitz.open()
+        new.insert_pdf(src, from_page=first_page, to_page=last_page)
+        if do_clean:
+            for page in new:
+                page.clean_contents(sanitize=True)
+        return new
+
+    new, cleaned = extract(clean), clean
+    if clean and not _same_as_source(src, new, first_page):
+        new.close()
+        new, cleaned = extract(False), False
+        print(f"  NOTE: kept {Path(out_path).name} uncleaned (cleaned copy did not match the source)")
+    new.save(str(out_path), garbage=4, deflate=True)
+    new.close()
+    return cleaned
+
+
 def parse_toc(pdf_path, max_pages=None):
     """Parse the Table of Contents to extract section → page mapping.
 
@@ -170,7 +215,7 @@ def find_section_pages(pdf_path, toc_entries):
     return sections
 
 
-def split_pdf(pdf_path, sections, output_dir):
+def split_pdf(pdf_path, sections, output_dir, clean=True):
     """Split the PDF into individual section files."""
     doc = fitz.open(str(pdf_path))
     output_dir = Path(output_dir)
@@ -186,10 +231,7 @@ def split_pdf(pdf_path, sections, output_dir):
         out_path = output_dir / filename
 
         # Extract pages
-        new_doc = fitz.open()
-        new_doc.insert_pdf(doc, from_page=sec["start_page"], to_page=sec["end_page"])
-        new_doc.save(str(out_path))
-        new_doc.close()
+        save_pages(doc, sec["start_page"], sec["end_page"], out_path, clean=clean)
 
         created_files.append({
             "number": sec["number"],
@@ -291,6 +333,7 @@ def main():
     parser.add_argument("pdf", help="Path to the bound project manual PDF")
     parser.add_argument("--output-dir", default=None, help="Output directory (default: specs/ next to PDF)")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be split without writing files")
+    parser.add_argument("--no-clean", action="store_true", help="Skip removing unused resources from each page (larger files)")
     args = parser.parse_args()
 
     pdf_path = Path(args.pdf)
@@ -354,7 +397,7 @@ def main():
 
     # Step 4: Split
     print(f"\n[Step 4] Splitting PDF into {len(sections)} section files...")
-    created = split_pdf(pdf_path, sections, output_dir)
+    created = split_pdf(pdf_path, sections, output_dir, clean=not args.no_clean)
     print(f"  Created: {len(created)} files")
 
     # Step 5: Write index
