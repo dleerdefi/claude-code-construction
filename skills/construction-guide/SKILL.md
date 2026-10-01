@@ -1,3 +1,13 @@
+---
+name: construction-guide
+description: >
+  Operating guide for construction project documents — load before reading
+  drawings, specs, schedules, RFIs, submittals or bids. Data-access rules
+  (never read PDFs directly; rasterize first), AgentCM graph-guided vision,
+  drawing and cross-reference conventions, document precedence. Triggers:
+  'construction project', 'drawings', 'specs', 'sheet', 'RFI', 'submittal'.
+---
+
 # Construction Management Skills for Claude Code
 
 You are a Project Engineer / Assistant Project Manager operating on construction project documents. These skills give you domain expertise for navigating drawings, specifications, schedules, and all construction project files.
@@ -135,11 +145,11 @@ You can also rasterize individual sheets on demand using the `rasterize_page.py`
    - `v_schedule_pivot` — schedule data if sheet contains schedules
 3. **Rasterize** — convert the PDF page to PNG (do NOT attempt to read the PDF directly):
    ```bash
-   ~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/rasterize_page.py "{filePath}" {pageIndex} --dpi 200 --output sheet.png
+   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{filePath}" {pageIndex} --dpi 200 --output sheet.png
    ```
 4. **Targeted crop** (optional) — if reviewing a specific area, crop using graph coordinates:
    ```bash
-   ~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py sheet.png --box {x1},{y1},{x2},{y2} --normalized --output detail.png
+   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" sheet.png --box {x1},{y1},{x2},{y2} --normalized --output detail.png
    ```
    - Use view `boundingRegion` for detail-level crops
    - Use centroid ± margin for room-level crops (e.g., `[0.35, 0.42]` ± 0.07 → `--box 0.28,0.35,0.42,0.49`)
@@ -245,7 +255,7 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 
 ### Cross-Skill Infrastructure
 
-**Issue Registry** — Any skill can log potential issues to `.construction/issues/` via `scripts/issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, spec-parser, etc.) and are reviewed/escalated by the user through `rfi-drafter`. No skill writes an RFI directly — only issue records.
+**Issue Registry** — Any skill can log potential issues to `.construction/issues/` via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, spec-parser, etc.) and are reviewed/escalated by the user through `rfi-drafter`. No skill writes an RFI directly — only issue records.
 
 ### Behavioral Skills (setup / orientation)
 
@@ -257,17 +267,17 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 
 **Rasterize for vision:**
 ```bash
-~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/rasterize_page.py "{pdf_path}" {page} --dpi 200 --output page.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 200 --output page.png
 ```
 
 **Crop specific regions:**
 ```bash
 # Normalized 0-1 coordinates (from graph centroids/bounding regions):
-~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py page.png --box x1,y1,x2,y2 --normalized --output detail.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --box x1,y1,x2,y2 --normalized --output detail.png
 # Pixel coordinates:
-~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py page.png --box x1,y1,x2,y2 --output detail.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --box x1,y1,x2,y2 --output detail.png
 # Anchor-based (e.g., title block):
-~/.claude/skills/construction/bin/construction-python ~/.claude/skills/construction/scripts/pdf/crop_region.py page.png --anchor bottom-right --width 2400 --height 1200 --output titleblock.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --anchor bottom-right --width 2400 --height 1200 --output titleblock.png
 ```
 
 **Extract text with pdfplumber:**
@@ -284,7 +294,7 @@ All skills output structured findings to `.construction/agent_findings/` for ret
 
 ## Reference Data
 
-Domain reference files are in `reference/`. Read only what you need:
+Domain reference files are in `${CLAUDE_PLUGIN_ROOT}/reference/`. Read only what you need:
 - `csi_masterformat.yaml` — CSI division/section taxonomy
 - `drawing_conventions.md` — sheet numbering, symbols, abbreviations, line types
 - `common_abbreviations.yaml` — 400+ construction abbreviations

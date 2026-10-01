@@ -95,7 +95,7 @@ Report what was found:
 
 ### Step 4: Amend Project CLAUDE.md
 
-Append construction-specific context to the **project root's CLAUDE.md** (the file created by `/init`). Do NOT modify the construction skills directory CLAUDE.md.
+Append construction-specific context to the **project root's CLAUDE.md** (the file created by `/init`). Do NOT modify any file inside the construction plugin.
 
 **Append format:**
 
@@ -114,6 +114,10 @@ Append construction-specific context to the **project root's CLAUDE.md** (the fi
 - Sheets indexed: {yes/no}
 - Specs split: {yes/no}
 - Spec text extracted: {yes/no}
+
+### Working With These Documents
+- Load the `construction:construction-guide` skill before reading drawings, specs or other project documents.
+- Never read construction PDFs directly; rasterize pages to PNG first (see the guide).
 ```
 
 Only append — never overwrite existing CLAUDE.md content.
