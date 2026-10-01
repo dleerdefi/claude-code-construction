@@ -53,7 +53,7 @@ This skill uses a document-grounded research approach:
 - **Construction documents are ground truth.** Every claim about what the project does or does not address must trace to a specific document read in Pass 1. Never infer project status from memory or assumption.
 - **Claude's domain knowledge drives topic discovery.** Use your training knowledge of construction codes, standards, and regulatory frameworks to identify what requirements SHOULD apply to this scope. The documents tell you what IS addressed; your knowledge tells you what to check for.
 - **Web research confirms jurisdiction-specific requirements.** Building codes vary by jurisdiction and edition. Use web search to confirm which edition is adopted, retrieve exact code language, and discover jurisdiction-specific overlays. Do not rely on training knowledge alone for specific code section numbers or thresholds — verify via web.
-- **Reference files verify numeric thresholds.** Shared reference files at `${CLAUDE_SKILL_DIR}/../../../reference/` contain structured ADA and IBC data useful for quick verification of specific dimensions and capacities during research.
+- **Reference files verify numeric thresholds.** Shared reference files at `${CLAUDE_PLUGIN_ROOT}/reference/` contain structured ADA and IBC data useful for quick verification of specific dimensions and capacities during research.
 
 ---
 
@@ -277,7 +277,7 @@ codes require. Organize research by logical topic clusters, not fixed batch size
    amendments, and non-building-code authorities (health department, fire
    marshal, USDA/FDA for food service, etc.) that operate independently.
 
-Use shared reference files at `${CLAUDE_SKILL_DIR}/../../../reference/` to verify
+Use shared reference files at `${CLAUDE_PLUGIN_ROOT}/reference/` to verify
 specific numeric thresholds (clearances, load factors, occupant capacities)
 during research.
 
@@ -406,8 +406,8 @@ Populate all placeholder fields from the gap_analysis.yaml and jurisdiction.yaml
 ### 5b — Write Graph Entry
 
 ```bash
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" \
-  "${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py" \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" \
+  "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
   --type "code_gap_analysis" \
   --title "Code gap analysis: {scope} — {n_gaps} gaps identified" \
   --data '{
@@ -452,5 +452,5 @@ Never overwrite an existing gap report. Version output files (`_v2`, `_v3`) if a
 
 ## Allowed Scripts
 
-- `${CLAUDE_SKILL_DIR}/../../../bin/construction-python`
-- `${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py`
+- `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`

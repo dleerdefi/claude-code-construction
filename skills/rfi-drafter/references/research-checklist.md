@@ -17,8 +17,8 @@ investigation before any draft is written.
 # Read database.yaml for query_command, then:
 {query_command} -c "SELECT * FROM v_sheet_contents WHERE sheet_number = '{sheet}'"
 # Rasterize + crop to the conflict zone for vision reading:
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py" "{pdf}" {page} --dpi 200 --output page.png
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/pdf/crop_region.py" page.png --box x1,y1,x2,y2 --normalized --output conflict_area.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf}" {page} --dpi 200 --output page.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --box x1,y1,x2,y2 --normalized --output conflict_area.png
 ```
 
 **Without AgentCM**:
@@ -83,7 +83,7 @@ investigation before any draft is written.
 
 **With AgentCM**: Query `file_manifest.yaml` for `type: rfi` files. Also check the issue registry:
 ```bash
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py" list --table
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" list --table
 ```
 
 **Without AgentCM**: Search the project directory for RFI logs (Excel/PDF). Ask the user if an RFI log exists.

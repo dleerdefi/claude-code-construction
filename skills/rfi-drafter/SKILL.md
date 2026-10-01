@@ -28,12 +28,12 @@ error vs. intentional design.
 | Script | Location | Purpose |
 |--------|----------|---------|
 | `rfi_export.py` | `${CLAUDE_SKILL_DIR}/scripts/rfi_export.py` | Populate firm's .docx template or generate generic RFI |
-| `issue_manager.py` | `${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py` | CRUD for issue registry (.construction/issues/) |
-| `generate_rfi_pdf.py` | `${CLAUDE_SKILL_DIR}/../../../scripts/rfi/generate_rfi_pdf.py` | Generate PDF RFI (alternative format) |
-| `rasterize_page.py` | `${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py` | Rasterize drawing pages for vision reading |
-| `crop_region.py` | `${CLAUDE_SKILL_DIR}/../../../scripts/pdf/crop_region.py` | Crop regions for targeted reading |
+| `issue_manager.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` | CRUD for issue registry (.construction/issues/) |
+| `generate_rfi_pdf.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/rfi/generate_rfi_pdf.py` | Generate PDF RFI (alternative format) |
+| `rasterize_page.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` | Rasterize drawing pages for vision reading |
+| `crop_region.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` | Crop regions for targeted reading |
 
-Run every script through `${CLAUDE_SKILL_DIR}/../../../bin/construction-python`, which
+Run every script through `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`, which
 selects the toolkit's Python on Windows, macOS and Linux. Never call bare `python`.
 
 Do NOT create custom scripts during execution. All output goes through the scripts above.
@@ -142,14 +142,14 @@ Present the draft RFI to the user in conversation. The user may:
 **On export**, write the RFI data to a JSON file, then invoke:
 ```bash
 # Template mode (preferred — matches firm's format):
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/rfi_export.py" \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/rfi_export.py" \
   --template "path/to/firm_rfi_form.docx" \
   --mapping .construction/rfi_template_map.json \
   --data rfi_draft.json \
   --output RFI-026.docx
 
 # Generic mode (fallback — no template):
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/rfi_export.py" \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/rfi_export.py" \
   --data rfi_draft.json \
   --output RFI-026.docx
 ```
@@ -195,24 +195,24 @@ issues have been found", "any problems detected"):
 
 ```bash
 # List all open issues (sorted by severity, then confidence)
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py" list
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" list
 
 # List with human-readable table format
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py" list --table
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" list --table
 
 # Filter by severity or source skill
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py" list --severity conflict
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py" list --source-skill "pe-review"
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" list --severity conflict
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" list --source-skill "pe-review"
 
 # Get a specific issue
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py" get --id ISS-2026-0001
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" get --id ISS-2026-0001
 
 # Escalate an issue to RFI
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py" update \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" update \
   --id ISS-2026-0001 --status escalated --rfi-number RFI-026
 
 # Summary statistics
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py" stats
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" stats
 ```
 
 ### Writing Issues from Other Skills
@@ -222,7 +222,7 @@ potential issue (schedule conflict, missing reference, spec/drawing
 mismatch), write it to the registry:
 
 ```bash
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py" add \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" add \
   --source-skill "tag-audit-and-takeoff" \
   --severity "warning" \
   --description "Door D-142 references HW set 7, not found in 08 71 00" \
@@ -233,7 +233,7 @@ mismatch), write it to the registry:
 
 Do NOT interrupt the current workflow to draft an RFI. Log and continue.
 
-See `references/common-issue-types.md` for the pattern vocabulary of
+See `${CLAUDE_PLUGIN_ROOT}/reference/common-issue-types.md` for the pattern vocabulary of
 what to watch for across skills.
 
 ---
@@ -255,7 +255,7 @@ Read `references/rfi-format.md` for field-by-field content guidance.
 Created on first RFI, reused for all subsequent RFIs in the project.
 
 **Issue records** are JSON files in `.construction/issues/`.
-Managed via `../../../scripts/issue_manager.py`.
+Managed via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`.
 
 ---
 
@@ -263,8 +263,8 @@ Managed via `../../../scripts/issue_manager.py`.
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `scripts/rfi_export.py` — export RFI to .docx using a firm template or generic format
-- `../../../scripts/issue_manager.py` — manage the ambient issue registry (read/write/escalate)
-- `../../../scripts/rfi/generate_rfi_pdf.py` — generate RFI PDF output
-- `../../../scripts/pdf/rasterize_page.py` — rasterize a drawing PDF page for issue context
-- `../../../scripts/pdf/crop_region.py` — crop a region from a rasterized sheet for issue context
+- `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — manage the ambient issue registry (read/write/escalate)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/rfi/generate_rfi_pdf.py` — generate RFI PDF output
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize a drawing PDF page for issue context
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — crop a region from a rasterized sheet for issue context
 

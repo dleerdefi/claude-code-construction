@@ -80,7 +80,7 @@ If the user specifies a single file (`/spec-splitter path/to/specific-volume.pdf
 Run the split script with the resolved output directory:
 
 ```bash
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/split_spec_manual.py" \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/split_spec_manual.py" \
   "{project_manual.pdf}" \
   --output-dir "{resolved_spec_sections_dir}"
 ```
@@ -101,7 +101,7 @@ The script:
 After splitting (or if specs are already split), extract searchable text from every section:
 
 ```bash
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/extract_spec_text.py" \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/extract_spec_text.py" \
   --specs-dir "{resolved_spec_sections_dir}" \
   --output-dir ".construction/spec_text"
 ```
@@ -130,7 +130,7 @@ After extraction, check `manifest.json` for sections rated DEGRADED or POOR. Spe
 
 1. Render each page of the section PDF as an image:
    ```bash
-   "${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py" "{section.pdf}" {page} --dpi 200 --output spec_page.png
+   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{section.pdf}" {page} --dpi 200 --output spec_page.png
    ```
 2. Process each page image through vision:
    ```
@@ -171,7 +171,7 @@ After extraction, check `manifest.json` for sections rated DEGRADED or POOR. Spe
 If `.construction/` directory exists, write a graph entry:
 
 ```bash
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py" \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
   --type "specs_split" \
   --title "Spec sections split: {N} sections from {source_pdf}" \
   --data '{"section_count": N, "source_pdf": "...", "output_dir": "...", "quality_summary": {"good": X, "degraded": Y, "poor": Z}}'
@@ -191,5 +191,5 @@ Never overwrite existing split spec PDFs or extracted text. The split script ski
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `scripts/split_spec_manual.py` — split bound PDF into per-section PDFs
 - `scripts/extract_spec_text.py` — extract searchable text from section PDFs
-- `../../../scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision fallback
-- `../../../scripts/graph/write_finding.py` — graph entry (Step 9)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision fallback
+- `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — graph entry (Step 9)

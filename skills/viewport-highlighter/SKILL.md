@@ -60,8 +60,8 @@ examine with vision.
 
 ```bash
 # Rasterize on demand if the pre-rendered PNG is missing
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" \
-  "${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py" \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" \
+  "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" \
   "{pdf_path}" {page_index} --dpi 200 --output "{sheet_number}.png"
 ```
 
@@ -289,7 +289,7 @@ exactly what was identified.
 # Build items JSON with rectangles for each viewport
 # Convert normalized 0-1 coordinates to pixel coordinates using image dims
 
-"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" \
   "${CLAUDE_SKILL_DIR}/scripts/markup_viewports.py" \
   --base "{sheet_image_path}" \
   --items "{items_json_path}" \
@@ -481,5 +481,5 @@ duplicates during review in the Group Review Gallery.
 ## Allowed Scripts
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
-- `../../../scripts/pdf/rasterize_page.py` — rasterize a sheet PDF page to PNG for vision
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize a sheet PDF page to PNG for vision
 - `scripts/markup_viewports.py` — overlay viewport boundary rectangles on a sheet image
