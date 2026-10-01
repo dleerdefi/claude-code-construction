@@ -75,6 +75,8 @@ The script splits each page into its own PDF: `page_001.pdf`, `page_002.pdf`, et
 
 After splitting, read each page to identify sheet numbers and titles:
 
+Use PDF bookmarks and the title-block text layer only as candidates — they are often abbreviated or stale (e.g. a bookmark "Site Grading Plan" on a sheet printed "Proposed Site Plan"). The printed title block wins. Read the title block by vision whenever there is no candidate, the candidate disagrees with the title-block text, or the sheet number carries a suffix (e.g. `C9.04H`, `K-1.1`).
+
 1. Rasterize the title block region of each page:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "page_NNN.pdf" 1 --dpi 200 --output tb.png
@@ -84,13 +86,13 @@ After splitting, read each page to identify sheet numbers and titles:
 
 3. Rename the file: `page_001.pdf` → `A-1.1 - FLOOR PLAN.pdf`
 
-4. Update `sheet_index.yaml` with the identified sheet number, title, and discipline.
+4. Update `sheet_index.yaml` with the identified sheet number, title, and discipline. When a bookmark title differs from the printed title, keep it as `bookmark_title`.
 
 **Title blocks vary significantly across firms** — they can be on the east side, south side, or bottom-center. Some use VA standard forms, some use firm-specific formats. Vision handles all these variations.
 
 ### Step 5: Write Sheet Index
 
-After identifying all sheets, write `.construction/index/sheet_index.yaml`.
+After identifying all sheets, write `{drawings_directory}/sheets/sheet_index.yaml` (shown below). Never write `.construction/index/` — that folder belongs to AgentCM; only read it.
 
 ### Output
 
