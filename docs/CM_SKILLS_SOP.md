@@ -300,6 +300,11 @@ ${CLAUDE_SKILL_DIR}/references/output_schema.json              ✓  (skill-local
 /absolute/path/to/anything                                      ✗  (never hardcode absolute paths)
 ```
 
+**Write commands that run unchanged on Windows, macOS and Linux.** Claude Code substitutes `${CLAUDE_SKILL_DIR}` with a native path — on Windows that means backslashes (`C:\Users\Jane Doe\.claude\skills\...`) — so in every command:
+
+- Double-quote each path: `"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export.py" --output "{output_path}"`. Unquoted, bash strips the backslashes and splits any path that contains a space.
+- Run Python through `bin/construction-python`, never bare `python` — stock macOS has no `python`, and on Windows it can resolve to the Microsoft Store alias instead of the toolkit venv.
+
 > **Always resolve project document paths through `CLAUDE.md` or directory discovery, never hardcode them.** A skill that hardcodes `./drawings/` will break on any project where the drawing folder has a different name.
 
 ---

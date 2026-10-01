@@ -102,7 +102,7 @@ Read the bid PDF using vision. Extract every field below. Mark any field not fou
 
 **If PDF template:** Use vision to read the template. Rasterize pages if needed:
 ```bash
-${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py template.pdf {page} --dpi 200 --output template_page_{page}.png
+"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py" "template.pdf" {page} --dpi 200 --output template_page_{page}.png
 ```
 
 Extract the list of required articles and any fill-field placeholders (`[DATE]`, `[CONTRACT SUM]`, `[SUBCONTRACTOR]`).
@@ -412,10 +412,10 @@ All display values in blocks must be pre-formatted strings (e.g., `"$1,392,618.0
 
 Call the thin formatter:
 ```bash
-${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/generate_subcontract_docx.py \
+"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/generate_subcontract_docx.py" \
   --template template_data.json \
   --scope scope_data.json \
-  --output Subcontract_[SubName]_[SCNumber].docx
+  --output "Subcontract_[SubName]_[SCNumber].docx"
 ```
 
 The formatter renders your pre-populated content into .docx format. It makes no content decisions.
@@ -469,7 +469,7 @@ Present a summary:
 
 Write graph entry:
 ```bash
-${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py \
+"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/../../../scripts/graph/write_finding.py" \
   --type "subcontract_generated" \
   --title "Subcontract: {scope} — {subcontractor}" \
   --output-file "{output_path}" \
