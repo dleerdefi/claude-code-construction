@@ -33,6 +33,9 @@ error vs. intentional design.
 | `rasterize_page.py` | `${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py` | Rasterize drawing pages for vision reading |
 | `crop_region.py` | `${CLAUDE_SKILL_DIR}/../../../scripts/pdf/crop_region.py` | Crop regions for targeted reading |
 
+Run every script through `${CLAUDE_SKILL_DIR}/../../../bin/construction-python`, which
+selects the toolkit's Python on Windows, macOS and Linux. Never call bare `python`.
+
 Do NOT create custom scripts during execution. All output goes through the scripts above.
 
 ---
@@ -139,14 +142,14 @@ Present the draft RFI to the user in conversation. The user may:
 **On export**, write the RFI data to a JSON file, then invoke:
 ```bash
 # Template mode (preferred — matches firm's format):
-python ${CLAUDE_SKILL_DIR}/scripts/rfi_export.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/rfi_export.py \
   --template path/to/firm_rfi_form.docx \
   --mapping .construction/rfi_template_map.json \
   --data rfi_draft.json \
   --output RFI-026.docx
 
 # Generic mode (fallback — no template):
-python ${CLAUDE_SKILL_DIR}/scripts/rfi_export.py \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/scripts/rfi_export.py \
   --data rfi_draft.json \
   --output RFI-026.docx
 ```
@@ -192,24 +195,24 @@ issues have been found", "any problems detected"):
 
 ```bash
 # List all open issues (sorted by severity, then confidence)
-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py list
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py list
 
 # List with human-readable table format
-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py list --table
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py list --table
 
 # Filter by severity or source skill
-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py list --severity conflict
-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py list --source-skill "pe-review"
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py list --severity conflict
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py list --source-skill "pe-review"
 
 # Get a specific issue
-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py get --id ISS-2026-0001
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py get --id ISS-2026-0001
 
 # Escalate an issue to RFI
-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py update \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py update \
   --id ISS-2026-0001 --status escalated --rfi-number RFI-026
 
 # Summary statistics
-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py stats
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py stats
 ```
 
 ### Writing Issues from Other Skills
@@ -219,7 +222,7 @@ potential issue (schedule conflict, missing reference, spec/drawing
 mismatch), write it to the registry:
 
 ```bash
-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py add \
+${CLAUDE_SKILL_DIR}/../../../bin/construction-python ${CLAUDE_SKILL_DIR}/../../../scripts/issue_manager.py add \
   --source-skill "tag-audit-and-takeoff" \
   --severity "warning" \
   --description "Door D-142 references HW set 7, not found in 08 71 00" \
