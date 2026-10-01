@@ -14,6 +14,8 @@ investigation before any draft is written.
 
 **With AgentCM** (`.construction/` exists):
 ```bash
+# ${CLAUDE_PLUGIN_ROOT} is not set in the shell here: use the plugin path that
+# rfi-drafter's SKILL.md commands show.
 # Read database.yaml for query_command, then:
 {query_command} -c "SELECT * FROM v_sheet_contents WHERE sheet_number = '{sheet}'"
 # Rasterize + crop to the conflict zone for vision reading:
