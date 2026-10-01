@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Link ~/.claude/skills/construction to this checkout so every Claude Code
+# session loads it live as the construction@skills-dir plugin. After editing,
+# run /reload-plugins in an open session.
+#
+# macOS/Linux only: Git Bash on Windows turns `ln -s` into a copy. On Windows,
+# start Claude Code with: claude --plugin-dir <this checkout>
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TARGET="$HOME/.claude/skills/construction"
+
+case "${OSTYPE:-}" in
+  msys*|cygwin*|win32*)
+    echo "Windows: Git Bash can't create a live link (ln -s copies). Start Claude Code with:"
+    echo "  claude --plugin-dir \"$SCRIPT_DIR\""
+    exit 0
+    ;;
+esac
+
+mkdir -p "$HOME/.claude/skills"
+
+if [ -L "$TARGET" ]; then
+  rm "$TARGET"
+  echo "Removed existing symlink."
+elif [ -e "$TARGET" ]; then
+  echo "ERROR: $TARGET exists and is not a symlink."
+  echo "Remove it manually before running dev/link."
+  exit 1
+fi
+
+ln -s "$SCRIPT_DIR" "$TARGET"
+echo "Symlinked: $TARGET -> $SCRIPT_DIR"
+echo "Claude Code loads it as construction@skills-dir. Run /reload-plugins after edits."

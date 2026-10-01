@@ -1,0 +1,17 @@
+{
+  "name": "construction-skills",
+  "owner": {
+    "name": "dleerdefi",
+    "url": "https://github.com/dleerdefi"
+  },
+  "metadata": {
+    "description": "Construction document skills for Claude Code: drawings, specs, schedules, submittals, bids, RFIs and subcontracts."
+  },
+  "plugins": [
+    {
+      "name": "construction",
+      "source": "./",
+      "description": "Skills that give Claude Code the working knowledge of a Project Engineer for construction documents."
+    }
+  ]
+}

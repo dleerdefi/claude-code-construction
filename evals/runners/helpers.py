@@ -53,7 +53,7 @@ def write_graph_entry(run_dir, finding_type, title, data, source_sheets=None, pr
 
     Writes to:
     1. The eval run directory (always)
-    2. The project's .construction/agent_findings/ (if project_dir provided)
+    2. The project's .construction/agent_findings/ (if project_dir is an AgentCM project)
     """
     import yaml
 
@@ -75,8 +75,9 @@ def write_graph_entry(run_dir, finding_type, title, data, source_sheets=None, pr
     with open(path, "w") as f:
         yaml.dump(entry, f, default_flow_style=False, sort_keys=False)
 
-    # Also persist to the project's .construction/agent_findings/
-    if project_dir:
+    # Also persist to the project's .construction/agent_findings/, which is
+    # AgentCM's area: only when AgentCM set up the project (project.yaml)
+    if project_dir and (Path(project_dir) / ".construction" / "project.yaml").exists():
         try:
             findings_dir = Path(project_dir) / ".construction" / "agent_findings"
             findings_dir.mkdir(parents=True, exist_ok=True)

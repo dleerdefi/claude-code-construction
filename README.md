@@ -4,58 +4,64 @@ Open-source skills that give Claude Code the working knowledge of a Project Engi
 
 ## Prerequisites
 
-- [Claude Code](https://claude.ai/code) (CLI, VS Code extension, or JetBrains)
+- [Claude Code](https://claude.ai/code) (CLI, VS Code extension, or JetBrains) on Windows, macOS or Linux
 - Python 3.10+
+- On Windows: [Git for Windows](https://git-scm.com/download/win), whose Git Bash runs the skills' commands
 - Your construction project documents (drawings, specs, bids, etc.)
 
 ## Setup
 
-**1. Install the skills:**
+The repo is a Claude Code plugin named `construction`. Install it one of two ways.
+
+**Option A — clone into your skills directory** (recommended; update with `git pull`). On Windows, run these in Git Bash:
 
 ```bash
-# Global install (available in all projects)
+# All projects
 git clone https://github.com/dleerdefi/claude-code-construction ~/.claude/skills/construction
+cd ~/.claude/skills/construction && ./setup
 
-# Or per-project install
+# Or one project: run from your project folder
 git clone https://github.com/dleerdefi/claude-code-construction .claude/skills/construction
+.claude/skills/construction/setup
 ```
 
-**2. Run setup** (installs Python dependencies into an isolated venv):
+Claude Code loads the clone as the `construction` plugin in new sessions. `./setup` creates the Python environment and removes skill links left by older versions.
 
-```bash
-cd ~/.claude/skills/construction    # or .claude/skills/construction
-./setup
-```
-
-**3. Connect to your project.** Add this line to your project's `CLAUDE.md`:
+**Option B — install from the marketplace** inside Claude Code:
 
 ```
-@~/.claude/skills/construction/.claude/skills/CLAUDE.md
+/plugin marketplace add dleerdefi/claude-code-construction
+/plugin install construction@construction-skills
 ```
 
-If your project doesn't have a `CLAUDE.md` yet, run `/init` in Claude Code first.
+The Python environment is created automatically the first time a skill runs a script (about a minute).
 
-**4. Start using skills.** Open Claude Code in your project folder and type:
+**Then start using skills.** Open Claude Code in your project folder and run:
 
 ```
-/project-setup
+/construction:project-setup
 ```
 
-This inventories your project files, classifies document types, and establishes context for the other skills.
+This inventories your project files, classifies document types, and adds construction context to your project's `CLAUDE.md` (run `/init` first if you don't have one).
+
+> **Upgrading from an earlier version?** Pull the update and re-run `./setup` once to clean up the old per-skill links. Remove the `@~/.claude/skills/construction/.claude/skills/CLAUDE.md` line from your project's `CLAUDE.md`: that guide now ships as the `construction-guide` skill.
 
 ## Skills
 
 | Command | What it does |
 |---------|-------------|
-| `/project-setup` | Inventory project files, classify documents, establish context |
-| `/sheet-splitter` | Split a bound drawing set PDF into individual sheet PDFs |
-| `/spec-splitter` | Split a bound project manual into individual spec section PDFs + text |
-| `/schedule-extractor` | Extract door, finish, window, or panel schedules to Excel |
-| `/submittal-log-generator` | Parse every spec section and generate a submittal register in Excel |
-| `/bid-tabulator` | Tabulate multiple subcontractor bids into a comparison spreadsheet |
-| `/bid-evaluator` | Evaluate tabulated bids — scope gaps, risk scoring, award recommendation |
-| `/code-researcher` | Research applicable building codes, standards, and jurisdiction requirements |
-| `/subcontract-writer` | Generate a scope-specific subcontract from your firm's template |
+| `/construction:project-setup` | Inventory project files, classify documents, establish context |
+| `/construction:sheet-splitter` | Split a bound drawing set PDF into individual sheet PDFs |
+| `/construction:spec-splitter` | Split a bound project manual into individual spec section PDFs + text |
+| `/construction:schedule-extractor` | Extract door, finish, window, or panel schedules to Excel |
+| `/construction:submittal-log-generator` | Parse every spec section and generate a submittal register in Excel |
+| `/construction:bid-tabulator` | Tabulate multiple subcontractor bids into a comparison spreadsheet |
+| `/construction:bid-evaluator` | Evaluate tabulated bids — scope gaps, risk scoring, award recommendation |
+| `/construction:code-researcher` | Research applicable building codes, standards, and jurisdiction requirements |
+| `/construction:subcontract-writer` | Generate a scope-specific subcontract from your firm's template |
+| `/construction:construction-guide` | Operating guide Claude loads before working with your documents (data-access rules, conventions, document precedence) |
+
+Type `/construction:` in Claude Code to list every skill. Claude also runs them on its own when your request matches.
 
 ## AgentCM (Optional)
 
@@ -63,7 +69,7 @@ If your project uses [AgentCM](https://github.com/dleerdefi/AgentCM), skills aut
 
 ## Output
 
-Skills save structured results to a `.construction/` directory in your project root. Excel files, split PDFs, and extracted text are written to your project folder. Each skill reports its output location when complete.
+Deliverables — Excel workbooks, Word documents, split sheet and spec PDFs, reports — are saved in your project folder where you can open them, and each skill tells you where. Skills keep their working data (extraction progress, extracted spec text, the issue registry) in a hidden `.construction/skills/` folder that you don't need to open. In AgentCM projects, skills also record their findings in AgentCM's `.construction/` data.
 
 ## Architecture & Technical Details
 
@@ -79,9 +85,9 @@ See [CM Skills SOP](docs/CM_SKILLS_SOP.md) for the full technical breakdown — 
 
 ## Requirements
 
-Python dependencies are installed automatically by `./setup` into an isolated venv at `~/.construction-skills/venv/`. No manual activation needed — all scripts run through `bin/construction-python`.
+Python dependencies are installed into an isolated venv at `~/.construction-skills/venv/`, by `./setup` or automatically on first use, and re-synced whenever `requirements.txt` changes. No manual activation needed — all scripts run through `bin/construction-python`.
 
-Packages: `pdfplumber`, `pymupdf`, `openpyxl`, `Pillow`, `PyYAML`
+Packages: `pdfplumber`, `pymupdf`, `openpyxl`, `Pillow`, `PyYAML`, `python-docx`, `fpdf2`
 
 ## License
 

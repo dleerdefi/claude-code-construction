@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-guide"
+  short_description: "Operating guide for construction documents — data-access rules, graph-guided vision, drawing conventions, document precedence."
+  default_prompt: "Use construction-guide for this task."
+policy:
+  allow_implicit_invocation: true

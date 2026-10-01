@@ -13,19 +13,23 @@ python -m pip install --user -r requirements.txt
 Or run the setup script which creates an isolated venv automatically.
 
 ### "Skill not found" / Skills don't appear in autocomplete
-Run setup to register skills with Claude Code:
-```bash
-cd ~/.claude/skills/construction  # or wherever you cloned
-./setup --global
-```
+The skills ship as the `construction` plugin, so their commands are namespaced: type `/construction:` to list them.
 
-Then verify: start Claude Code and type `/` — you should see construction skills listed.
+If none appear:
+- The clone must sit directly at `~/.claude/skills/construction` (all projects) or `<project>/.claude/skills/construction` (one project), with `.claude-plugin/plugin.json` at its top. Cloned somewhere else? Run `./setup --global`, or `setup --project` from your project folder.
+- Start a new session or run `/reload-plugins`. Per-project installs load once you trust the project folder.
+- Check `/plugin` (Installed tab), or run `claude plugin list` in a terminal: you should see `construction@skills-dir` (clone) or `construction@construction-skills` (marketplace).
+- Organizations that restrict plugin marketplaces can block plugins in skills directories; install from the marketplace instead, or ask your admin.
+
+### Old skills show up twice, or a command runs an old version
+Earlier versions linked (or, on Windows, copied) each skill into `~/.claude/skills/<skill>`. Pull the update and run `./setup` once: it removes those links and moves old copies to `~/.construction-skills/old-skill-copies/`.
 
 ### Setup hangs on Windows
 The venv creation or pip install may take a minute on Windows. If it hangs longer than 5 minutes, try:
 ```bash
-python -m venv ~/.construction-skills/venv
-~/.construction-skills/venv/Scripts/pip install -r requirements.txt
+py -3 -m venv ~/.construction-skills/venv
+~/.construction-skills/venv/Scripts/python -m pip install -r requirements.txt
+cp requirements.txt ~/.construction-skills/venv/.requirements-installed
 ```
 
 ## Skill Issues
@@ -34,7 +38,7 @@ python -m venv ~/.construction-skills/venv
 This is expected for construction drawings (26-60MB). Skills automatically rasterize large PDFs to PNG using PyMuPDF — no action needed. The rasterized PNG is typically 2-8MB and works with vision.
 
 ### "No .construction/ directory"
-Run `/project-onboarding` first. It creates the `.construction/` directory with indexes and context.
+That's fine: skills work without [AgentCM](https://github.com/dleerdefi/AgentCM), which creates `.construction/` (marked by `.construction/project.yaml`). Skills create `.construction/skills/` for their own working data on first use; your deliverables are always saved in the project folder. Run `/construction:project-setup` to inventory your project files.
 
 ### Schedule extraction returns few or no rows
 The skill tries pdfplumber first, then falls back to text extraction, then vision. If all fail:
@@ -43,19 +47,20 @@ The skill tries pdfplumber first, then falls back to text extraction, then visio
 - The rasterized PNG will be saved in the output for manual review
 
 ### "pdfplumber not installed" or import errors
-The setup script installs deps into a venv at `~/.construction-skills/venv/`. Skills use `bin/construction-python` which auto-detects this venv. If it's not working:
+Skills run Python through `bin/construction-python`, which creates the venv at `~/.construction-skills/venv/` on first use and re-installs `requirements.txt` whenever it changes. To force a re-install, delete `~/.construction-skills/venv/.requirements-installed` and run `./setup` (or any skill) again. To do it by hand (on Windows use `Scripts/python` instead of `bin/python`):
 ```bash
-~/.construction-skills/venv/bin/pip install pdfplumber openpyxl PyYAML Pillow PyMuPDF
+~/.construction-skills/venv/bin/python -m pip install -r requirements.txt
 ```
+Offline or locked-down machine? Set `CONSTRUCTION_SKILLS_NO_BOOTSTRAP=1` to stop the automatic install and use the Python already on your PATH.
 
 ### Submittal log has too many items
 The v3 extractor parses only under SUBMITTALS headings in Part 1 of each spec section. If you're still seeing noise:
-- Run `/spec-splitter` first to split the project manual — the extractor works better on individual section PDFs
+- Run `/construction:spec-splitter` first to split the project manual — the extractor works better on individual section PDFs
 - Division 01 items are separated to a "General Requirements" tab in the Excel output
 
 ### Code compliance checker gives incorrect jurisdiction
 The skill reads the project location from the title block. If it misidentifies the location:
-- Run `/project-onboarding` first so the project context file has the correct city/state
+- Run `/construction:project-setup` first so the project context file has the correct city/state
 - The skill will use `.construction/project_context.yaml` if it exists
 
 ## File Organization
@@ -71,7 +76,7 @@ my-project/
     project_manual.pdf
 ```
 
-The exact folder names don't matter — `/project-onboarding` will find and classify files anywhere in your project directory.
+The exact folder names don't matter — `/construction:project-setup` will find and classify files anywhere in your project directory.
 
 ### "Do I need AgentCM?"
 No. All skills work standalone with Claude Code's built-in vision and PDF tools. AgentCM is an optional structured data layer that makes skills faster and more accurate by pre-indexing drawings and specs.

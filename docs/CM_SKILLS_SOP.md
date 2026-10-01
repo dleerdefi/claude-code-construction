@@ -36,13 +36,13 @@ The Three Tiers of Information Loading for Construction Management:
 
 | Tier | Components | Loading Trigger | Context Impact |
 |---|---|---|---|
-| **Tier 1: Discovery** | YAML Front Matter (`name` + `description`) | Always loaded when the skill exists in `.claude/skills/`. ~100 tokens per skill. | High (Constant). Consumes the system-wide Context Budget. Descriptions **truncated at 250 characters** in the listing. |
+| **Tier 1: Discovery** | YAML Front Matter (`name` + `description`) | Always loaded when the skill is installed (a skills directory or an enabled plugin). ~100 tokens per skill. | High (Constant). Consumes the system-wide Context Budget. Descriptions **truncated at 250 characters** in the listing. |
 | **Tier 2: Execution** | `SKILL.md` Body (Workflow SOP, Routing Logic, Domain Knowledge) | Loaded only upon explicit skill activation | Moderate. Contains PE-level decision logic and document navigation patterns. Recommended ≤500 lines / ≤5,000 tokens. |
 | **Tier 3: Deep Knowledge** | `/references`, `/scripts`, `/assets` and the **Global Project Document Store** | Just-in-Time (JIT) via explicit reference in Tier 2 | Low (Ephemeral). Navigated with minimum viable precision. Cleared after step completion. |
 
 ### The Context Budget and 250-Character Description Truncation
 
-All skill descriptions within `.claude/skills/` share a cumulative budget of **1% of the context window (~8,000 characters fallback)**. This is configurable via `SLASH_COMMAND_TOOL_CHAR_BUDGET` but the default is tight. In a construction project with dozens of active skills (RFI, Submittal, Schedule, Punchlist, Closeout, etc.), budget overruns will degrade reasoning before a single document is parsed.
+All installed skill descriptions share a cumulative budget of **1% of the context window (~8,000 characters fallback)**. This is configurable via `SLASH_COMMAND_TOOL_CHAR_BUDGET` but the default is tight. In a construction project with dozens of active skills (RFI, Submittal, Schedule, Punchlist, Closeout, etc.), budget overruns will degrade reasoning before a single document is parsed.
 
 **Critical:** Each skill's `description` is **truncated at 250 characters** in the skill listing that Claude sees at startup. This means the first 250 characters of every description must contain the key use case and trigger keywords. Anything beyond 250 characters is only visible after the skill is activated.
 
@@ -71,7 +71,7 @@ For construction projects, `/init` will produce a generic `CLAUDE.md` that captu
 After `/init` creates the base `CLAUDE.md`, a construction-specific `/project-setup` skill enriches it with domain context:
 
 1. **Traverse the directory tree** — Walk the full folder structure and classify construction document types: drawing sets (by discipline prefix: A-, S-, M-, E-, P-, C-, L-), the specification book (Division folders or a single Project Manual PDF), schedule files, and active registers (RFI log, Submittal log, Change Order log).
-2. **Detect operational mode** — Check for `.construction/` directory existence. If present, the project is AgentCM-backed. If absent, it operates in Flat File Mode.
+2. **Detect operational mode** — Check for `.construction/project.yaml`, which AgentCM writes. If present, the project is AgentCM-backed. If absent, it operates in Flat File Mode.
 3. **Amend `CLAUDE.md`** — Append construction-specific context to the existing `CLAUDE.md`:
    - Project name, number, GC, Owner, Architect (if discoverable)
    - The canonical path to each document category
@@ -110,7 +110,7 @@ The `.construction/` directory contains the project graph and extracted data.
 - Graph summary (snapshot): .construction/graph/graph_summary.yaml — use database for current counts
 - Database config: .construction/database.yaml — psql connection info for Claude Code
 - Schema reference: .construction/db_schema.yaml — available tables, views, write endpoints
-- Spec text: .construction/spec_text/
+- Spec text: .construction/skills/spec_text/ (written by spec-splitter)
 - Sheet index: .construction/index/sheet_index.yaml
 - Spec index: .construction/index/spec_index.yaml
 ```
@@ -119,7 +119,7 @@ The `.construction/` directory contains the project graph and extracted data.
 
 ### 2.1 — Two Operational Modes
 
-CM skills must be **mode-aware**. The document navigation strategy differs depending on whether AgentCM's data layer is present. The detection mechanism is simple: **check for the `.construction/` directory at the project root.** If it exists, the project is in AgentCM mode. If not, Flat File mode.
+CM skills must be **mode-aware**. The document navigation strategy differs depending on whether AgentCM's data layer is present. The detection mechanism is simple: **check for `.construction/project.yaml` at the project root** — AgentCM writes it when it sets up a project. If it exists, the project is in AgentCM mode. If not, Flat File mode. Don't test for the `.construction/` folder itself: skills keep their own working data in `.construction/skills/` in every project.
 
 #### Mode A: Flat File Mode (Default)
 
@@ -133,7 +133,7 @@ The project folder is a standard directory of files. No pre-processed data layer
 
 **Example — finding a concrete mix design in Flat File Mode:**
 ```
-Step 1: Check if .construction/spec_text/03_30_00.txt exists (no — flat file mode)
+Step 1: Check if .construction/skills/spec_text/03_30_00.txt exists (no text extracted yet)
 Step 2: Look for split spec PDFs in Specification Sections/ folder
 Step 3: If found, read "03 30 00 - CAST-IN-PLACE CONCRETE.pdf"
 Step 4: If not split, search the bound project_manual.pdf for "SECTION 03 30 00"
@@ -142,7 +142,7 @@ Step 5: Return the relevant content — do not load the full spec book
 
 #### Mode B: AgentCM Mode
 
-The project has been processed through AgentCM. A `.construction/` directory exists at the project root containing structured data: a navigation graph (JSON), YAML indexes, extracted text files, and graph summaries.
+The project has been processed through AgentCM. Its `.construction/` directory (marked by `.construction/project.yaml`) contains structured data: a navigation graph (JSON), YAML indexes, extracted text files, and graph summaries.
 
 **How skills navigate in AgentCM Mode:**
 - Read `.construction/CLAUDE.md` for navigation context
@@ -154,8 +154,8 @@ The project has been processed through AgentCM. A `.construction/` directory exi
 
 **Example — finding a concrete mix design in AgentCM Mode:**
 ```
-Step 1: Check .construction/ directory exists (yes — AgentCM mode)
-Step 2: Read .construction/spec_text/03_30_00.txt (pre-extracted text)
+Step 1: Check .construction/project.yaml exists (yes — AgentCM mode)
+Step 2: Read .construction/skills/spec_text/03_30_00.txt (pre-extracted text)
 Step 3: Return the relevant content from the .txt file
 ```
 
@@ -163,6 +163,12 @@ Step 3: Return the relevant content from the .txt file
 > Skills navigate to the minimum viable document fragment. They do not load categories of documents — they load specific files, sections, pages, or text extracts.
 
 ---
+
+#### Where Skills Write (both modes)
+
+- **Deliverables** — Excel, Word, PDF, reports, marked-up images, split sheets and spec sections — go where users can see them: the matching project folder when there is one, otherwise the project root. Never inside `.construction/`: it is a dot-folder, hidden in Finder and most Linux file managers.
+- **Working data** — extraction state, intermediate JSON, spec section text, the issue registry — goes in `.construction/skills/` (shared: `spec_text/`, `issues/`, `project_context.yaml`; per skill: `.construction/skills/<skill>/`).
+- **AgentCM's areas** — `agent_findings/`, the database and the API — are written only in AgentCM mode. Every other file in `.construction/` is AgentCM's: read it, never write it.
 
 ### 2.2 — Layer 1: The Global Project Document Store
 
@@ -291,14 +297,22 @@ Step 1: Load all references.
 
 ### Pathing Standard
 
-**Use `${CLAUDE_SKILL_DIR}` for skill-relative paths.** This variable resolves to the skill's directory and ensures portability. For scripts shared across skills:
+**Use `${CLAUDE_SKILL_DIR}` for a skill's own files and `${CLAUDE_PLUGIN_ROOT}` for tooling shared across skills.** Claude Code substitutes both in the SKILL.md body (not in supporting files): `${CLAUDE_SKILL_DIR}` is the skill's directory and `${CLAUDE_PLUGIN_ROOT}` is the plugin's root, wherever and however the plugin is installed:
 
 ```
 ${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py          ✓  (per-skill script)
-${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py        ✓  (shared script via relative path)
+${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py            ✓  (shared script, plugin root)
 ${CLAUDE_SKILL_DIR}/references/output_schema.json              ✓  (skill-local reference)
+${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py        ✗  (relative climbs break in other install layouts)
 /absolute/path/to/anything                                      ✗  (never hardcode absolute paths)
 ```
+
+**Write commands that run unchanged on Windows, macOS and Linux.** Claude Code substitutes `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PLUGIN_ROOT}` with native paths — on Windows that can mean backslashes (`C:\Users\Jane Doe\.claude\skills\...`) — so in every command:
+
+- Double-quote each path: `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export.py" --output "{output_path}"`. Unquoted, bash strips the backslashes and splits any path that contains a space.
+- Run Python through `bin/construction-python`, never bare `python` — stock macOS has no `python`, and on Windows it can resolve to the Microsoft Store alias instead of the toolkit venv.
+- Write intermediate files (rasterized pages, crops) inside the project, e.g. `--output page.png`, never `/tmp`. On Windows `/tmp` exists only inside Git Bash; Claude Code's file tools read it as `C:\tmp`.
+- Don't commit symlinks: Git on Windows checks them out as plain text files. Point at shared files through `${CLAUDE_PLUGIN_ROOT}` instead.
 
 > **Always resolve project document paths through `CLAUDE.md` or directory discovery, never hardcode them.** A skill that hardcodes `./drawings/` will break on any project where the drawing folder has a different name.
 
@@ -333,8 +347,13 @@ Every skill is a directory, not a single file. The directory name **must match**
 **Our construction skills directory structure:**
 
 ```
-~/.claude/skills/construction/          # Plugin root
-├── .claude/skills/                     # All skill directories live here
+claude-code-construction/               # Plugin root = ${CLAUDE_PLUGIN_ROOT} (e.g. ~/.claude/skills/construction)
+├── .claude-plugin/
+│   ├── plugin.json                     # Plugin manifest: name "construction", version
+│   └── marketplace.json                # Marketplace listing for /plugin marketplace add
+├── skills/                             # All skill directories live here
+│   ├── construction-guide/
+│   │   └── SKILL.md                   # Operating guide (data-access rules, conventions)
 │   ├── spec-splitter/
 │   │   └── SKILL.md                   # Required. Uppercase. The SOP entry point.
 │   ├── sheet-splitter/
@@ -354,9 +373,10 @@ Every skill is a directory, not a single file. The directory name **must match**
 ├── scripts/                            # Shared Python tools
 │   ├── pdf/                            # PDF rasterize, crop, annotate, extract
 │   └── graph/                          # Graph write utilities (AgentCM)
-├── bin/                                # Python venv wrapper
-│   └── construction-python
-└── CLAUDE.md                           # Dev/contributor guide for the skills themselves
+├── bin/                                # On the Bash PATH while the plugin is enabled
+│   └── construction-python             # Python venv wrapper (creates the venv on first use)
+├── dev/                                # Contributor scripts (link a live checkout)
+└── .claude/CLAUDE.md                   # Dev/contributor guide (not loaded by plugin installs)
 ```
 
 Per-skill `references/`, `scripts/`, and `assets/` subdirectories are also valid per the official spec and appropriate for skill-specific resources (output schemas, decision trees). Currently our skills use the shared resources at the plugin root.
@@ -404,10 +424,10 @@ Steps load exactly one reference at a time, use it, and release it before the ne
 | **Per-skill scripts** | `{skill-name}/scripts/` | Canonical executable scripts for each skill |
 | **Per-skill references** | `{skill-name}/references/` | Data contracts, schemas, or domain knowledge specific to one skill |
 
-Scripts are referenced via `${CLAUDE_SKILL_DIR}` for portability:
+Scripts are referenced via `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PLUGIN_ROOT}` for portability:
 ```bash
 ${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py          # per-skill script
-${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py        # shared script
+${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py            # shared script
 ```
 
 ---
@@ -473,7 +493,7 @@ Identify the ratio of **workflow logic** (what the PE does) versus **embedded kn
 - Drawing sheet lists hardcoded into the skill body instead of read from `sheet_index.yaml`
 - Trade scope definitions written as prose in the skill body (move to `reference/` files)
 - Project document paths hardcoded in the skill (must always be resolved through `CLAUDE.md` or directory discovery)
-- AgentCM-specific logic without checking for `.construction/` directory existence first
+- AgentCM-specific logic without checking for `.construction/project.yaml` first
 - A skill that doesn't check operational mode at all — it should branch based on `.construction/` directory presence
 
 ### Step 2 — Abstract

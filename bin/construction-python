@@ -3,30 +3,95 @@
 #
 # Usage: construction-python script.py [args...]
 #
-# Falls back to system python if venv not found.
+# On first use, and again whenever requirements.txt changes, this creates the
+# venv at ~/.construction-skills/venv and installs requirements.txt into it, so
+# plugin installs work without running ./setup first. Set
+# CONSTRUCTION_SKILLS_NO_BOOTSTRAP=1 to skip that and use whatever Python is
+# already available.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REQUIREMENTS="$SCRIPT_DIR/../requirements.txt"
 VENV_DIR="$HOME/.construction-skills/venv"
+STAMP="$VENV_DIR/.requirements-installed"
 
-# Try venv Python (Unix then Windows)
-if [ -f "$VENV_DIR/bin/python" ]; then
-  exec "$VENV_DIR/bin/python" "$@"
-elif [ -f "$VENV_DIR/Scripts/python.exe" ]; then
-  exec "$VENV_DIR/Scripts/python.exe" "$@"
+venv_python() {
+  if [ -f "$VENV_DIR/bin/python" ]; then
+    echo "$VENV_DIR/bin/python"
+  elif [ -f "$VENV_DIR/Scripts/python.exe" ]; then
+    echo "$VENV_DIR/Scripts/python.exe"
+  fi
+}
+
+# The venv exists and was last synced with the current requirements.txt.
+venv_is_current() {
+  [ -n "$(venv_python)" ] && [ -f "$STAMP" ] &&
+    [ "$(cat "$STAMP")" = "$(cat "$REQUIREMENTS")" ]
+}
+
+# A Python 3.10+ to build the venv with. `py -3` covers Windows installs that
+# only register the launcher; the version check also skips the Microsoft Store
+# `python` alias, which exits non-zero.
+base_python() {
+  local cand
+  for cand in python3 python "py -3"; do
+    if $cand -c 'import sys; sys.exit(sys.version_info < (3, 10))' >/dev/null 2>&1; then
+      echo "$cand"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Runs in a subshell so the EXIT trap releases the lock before we exec Python.
+bootstrap() (
+  lock="$VENV_DIR.lock"
+  waited=0
+  mkdir -p "$(dirname "$VENV_DIR")" || exit 1
+  # One bootstrap at a time; a lock older than 15 minutes is a crashed run.
+  while ! mkdir "$lock" 2>/dev/null; do
+    if [ -n "$(find "$lock" -maxdepth 0 -mmin +15 2>/dev/null)" ]; then
+      rmdir "$lock" 2>/dev/null
+      continue
+    fi
+    [ "$waited" -ge 900 ] && exit 1
+    sleep 2
+    waited=$((waited + 2))
+  done
+  trap 'rmdir "$lock" 2>/dev/null' EXIT
+  venv_is_current && exit 0  # another process finished while we waited
+
+  if [ -z "$(venv_python)" ]; then
+    base="$(base_python)" || {
+      echo "construction-python: Python 3.10+ not found. Install it from https://www.python.org/downloads/" >&2
+      exit 1
+    }
+    echo "construction-python: creating the toolkit's Python environment at $VENV_DIR (one-time)..." >&2
+    $base -m venv "$VENV_DIR" >&2 || exit 1
+  fi
+  echo "construction-python: installing toolkit dependencies from requirements.txt..." >&2
+  "$(venv_python)" -m pip install --disable-pip-version-check --quiet -r "$REQUIREMENTS" >&2 || exit 1
+  cp "$REQUIREMENTS" "$STAMP"
+)
+
+if [ "${CONSTRUCTION_SKILLS_NO_BOOTSTRAP:-0}" != "1" ] && [ -f "$REQUIREMENTS" ] && ! venv_is_current; then
+  bootstrap || echo "construction-python: could not set up $VENV_DIR; falling back to another Python. Run ./setup or see docs/TROUBLESHOOTING.md." >&2
 fi
 
-# Fallback: read from config
+# Prefer the venv (even a partially synced one), then the configured Python,
+# then any Python 3.10+ on PATH.
+VENV_PYTHON="$(venv_python)"
+if [ -n "$VENV_PYTHON" ]; then
+  exec "$VENV_PYTHON" "$@"
+fi
+
 CONFIGURED=$("$SCRIPT_DIR/construction-config" get python_path 2>/dev/null)
 if [ -n "$CONFIGURED" ] && [ -f "$CONFIGURED" ]; then
   exec "$CONFIGURED" "$@"
 fi
 
-# Last resort: system python
-if command -v python3 &>/dev/null; then
-  exec python3 "$@"
-elif command -v python &>/dev/null; then
-  exec python "$@"
+if BASE="$(base_python)"; then
+  exec $BASE "$@"
 fi
 
-echo "ERROR: No Python found. Run ./setup to create the venv." >&2
+echo "ERROR: No Python 3.10+ found. Install Python, then run ./setup." >&2
 exit 1

@@ -1,0 +1,7 @@
+# Bash scripts must keep LF line endings. Git for Windows checks text files
+# out with CRLF by default (core.autocrlf=true), and bash then fails on the
+# stray \r: "/usr/bin/env: 'bash\r': No such file or directory".
+setup    text eol=lf
+bin/*    text eol=lf
+dev/*    text eol=lf
+*.sh     text eol=lf

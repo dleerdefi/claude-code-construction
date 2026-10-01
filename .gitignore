@@ -1,8 +1,10 @@
 # Deprecated skills (kept locally for reference, not shipped)
 .claude/skills/_deprecated_*/
+skills/_deprecated_*/
 
 # Dev skills (not production-ready)
 .claude/skills/_dev/
+skills/_dev/
 
 # Legacy template system (removed — SKILL.md files are canonical)
 _templates/
@@ -79,9 +81,12 @@ evals/cases/pe-review/scoring_rubric.md
 browse/
 
 .claude/skills/code-reviewer
+skills/code-reviewer
 docs/DISTRIBUTION_SPEC.md
 docs/construction-skills.code-workspace
 docs/AGENTCM_RECONCILIATION_AUDIT.md
 
 .claude/skills/tag-audit-and-takeoff/references/_deprecated_qto_aggregate.py
 .claude/skills/tag-audit-and-takeoff/references/_deprecated_spatial_query.py
+skills/tag-audit-and-takeoff/references/_deprecated_qto_aggregate.py
+skills/tag-audit-and-takeoff/references/_deprecated_spatial_query.py
