@@ -11,5 +11,17 @@
   "homepage": "https://github.com/dleerdefi/claude-code-construction",
   "repository": "https://github.com/dleerdefi/claude-code-construction",
   "license": "MIT",
-  "keywords": ["construction", "aec", "drawings", "specifications", "submittals", "rfi", "bids", "subcontracts"]
+  "keywords": [
+    "construction",
+    "aec",
+    "drawings",
+    "specifications",
+    "submittals",
+    "rfi",
+    "bids",
+    "subcontracts"
+  ],
+  "experimental": {
+    "evals": "evals/plugin"
+  }
 }

@@ -90,3 +90,7 @@ docs/AGENTCM_RECONCILIATION_AUDIT.md
 .claude/skills/tag-audit-and-takeoff/references/_deprecated_spatial_query.py
 skills/tag-audit-and-takeoff/references/_deprecated_qto_aggregate.py
 skills/tag-audit-and-takeoff/references/_deprecated_spatial_query.py
+
+# Plugin eval run output
+evals/plugin/results/
+.eval-home/
