@@ -34,7 +34,7 @@
     "jurisdiction_file": ".construction/skills/code-researcher/jurisdiction.yaml",
     "topic_files": ".construction/skills/code-researcher/topics/",
     "gap_analysis_file": ".construction/skills/code-researcher/gap_analysis.yaml",
-    "report_file": ".construction/skills/code-researcher/report_egress_*.md",
+    "report_file": "Code_Research_Report_*.md",
     "graph_entry_type": "code_gap_analysis"
   },
   "ground_truth": "expected/code_research_ground_truth_01.yaml",

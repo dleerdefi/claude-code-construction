@@ -270,7 +270,7 @@ def run_code_researcher(case, run_dir):
     - jurisdiction.yaml
     - topics/*.yaml
     - gap_analysis.yaml
-    - report_*.md
+    - Code_Research_Report_*.md (report_*.md before v0.3.0)
     """
     print(f"\n{'='*60}")
     print(f"SKILL: code-researcher")
@@ -294,7 +294,7 @@ def run_code_researcher(case, run_dir):
     gap_data = _load_yaml(gap_path) if gap_path.exists() else {}
 
     # Find report file
-    report_files = list(run_dir.glob("report_*.md"))
+    report_files = list(run_dir.glob("Code_Research_Report_*.md")) + list(run_dir.glob("report_*.md"))
     report_path = report_files[0] if report_files else None
 
     # Count topic files

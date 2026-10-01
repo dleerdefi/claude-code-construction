@@ -398,7 +398,8 @@ Before I write the report:
 
 ### 5a — Generate Gap Report
 
-Write to `.construction/skills/code-researcher/report_{scope}_{date}.md` using the template at:
+Write the report where the user can see it — the project root as
+`Code_Research_Report_{scope}_{date}.md`, never inside `.construction/` — using the template at:
 → `${CLAUDE_SKILL_DIR}/references/gap_report_template.md`
 
 Populate all placeholder fields from the gap_analysis.yaml and jurisdiction.yaml data. The report must include: applicable codes table, all gaps (action required + confirm and close), uncertain items, already addressed items, documents reviewed, and the disclaimer.
@@ -436,7 +437,7 @@ Check for `.construction/skills/code-researcher/` before starting:
 | `topics/` partial | Research in progress | Resume from next unresearched topic |
 | All topics complete, no `gap_analysis.yaml` | Research done | Begin Phase 4 |
 | `gap_analysis.yaml` exists | Gaps identified | Present to user, go to Phase 5 |
-| `report_*.md` exists | Complete | Offer to update or re-run |
+| `Code_Research_Report_{scope}_*.md` in the project root | Complete | Offer to update or re-run |
 
 ---
 
