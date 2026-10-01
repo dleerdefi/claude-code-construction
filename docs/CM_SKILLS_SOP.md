@@ -36,13 +36,13 @@ The Three Tiers of Information Loading for Construction Management:
 
 | Tier | Components | Loading Trigger | Context Impact |
 |---|---|---|---|
-| **Tier 1: Discovery** | YAML Front Matter (`name` + `description`) | Always loaded when the skill exists in `.claude/skills/`. ~100 tokens per skill. | High (Constant). Consumes the system-wide Context Budget. Descriptions **truncated at 250 characters** in the listing. |
+| **Tier 1: Discovery** | YAML Front Matter (`name` + `description`) | Always loaded when the skill is installed (a skills directory or an enabled plugin). ~100 tokens per skill. | High (Constant). Consumes the system-wide Context Budget. Descriptions **truncated at 250 characters** in the listing. |
 | **Tier 2: Execution** | `SKILL.md` Body (Workflow SOP, Routing Logic, Domain Knowledge) | Loaded only upon explicit skill activation | Moderate. Contains PE-level decision logic and document navigation patterns. Recommended ≤500 lines / ≤5,000 tokens. |
 | **Tier 3: Deep Knowledge** | `/references`, `/scripts`, `/assets` and the **Global Project Document Store** | Just-in-Time (JIT) via explicit reference in Tier 2 | Low (Ephemeral). Navigated with minimum viable precision. Cleared after step completion. |
 
 ### The Context Budget and 250-Character Description Truncation
 
-All skill descriptions within `.claude/skills/` share a cumulative budget of **1% of the context window (~8,000 characters fallback)**. This is configurable via `SLASH_COMMAND_TOOL_CHAR_BUDGET` but the default is tight. In a construction project with dozens of active skills (RFI, Submittal, Schedule, Punchlist, Closeout, etc.), budget overruns will degrade reasoning before a single document is parsed.
+All installed skill descriptions share a cumulative budget of **1% of the context window (~8,000 characters fallback)**. This is configurable via `SLASH_COMMAND_TOOL_CHAR_BUDGET` but the default is tight. In a construction project with dozens of active skills (RFI, Submittal, Schedule, Punchlist, Closeout, etc.), budget overruns will degrade reasoning before a single document is parsed.
 
 **Critical:** Each skill's `description` is **truncated at 250 characters** in the skill listing that Claude sees at startup. This means the first 250 characters of every description must contain the key use case and trigger keywords. Anything beyond 250 characters is only visible after the skill is activated.
 
@@ -291,20 +291,22 @@ Step 1: Load all references.
 
 ### Pathing Standard
 
-**Use `${CLAUDE_SKILL_DIR}` for skill-relative paths.** This variable resolves to the skill's directory and ensures portability. For scripts shared across skills:
+**Use `${CLAUDE_SKILL_DIR}` for a skill's own files and `${CLAUDE_PLUGIN_ROOT}` for tooling shared across skills.** Claude Code substitutes both in the SKILL.md body (not in supporting files): `${CLAUDE_SKILL_DIR}` is the skill's directory and `${CLAUDE_PLUGIN_ROOT}` is the plugin's root, wherever and however the plugin is installed:
 
 ```
 ${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py          ✓  (per-skill script)
-${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py     ✓  (shared script via relative path)
+${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py            ✓  (shared script, plugin root)
 ${CLAUDE_SKILL_DIR}/references/output_schema.json              ✓  (skill-local reference)
+${CLAUDE_SKILL_DIR}/../../scripts/pdf/rasterize_page.py        ✗  (relative climbs break in other install layouts)
 /absolute/path/to/anything                                      ✗  (never hardcode absolute paths)
 ```
 
-**Write commands that run unchanged on Windows, macOS and Linux.** Claude Code substitutes `${CLAUDE_SKILL_DIR}` with a native path — on Windows that means backslashes (`C:\Users\Jane Doe\.claude\skills\...`) — so in every command:
+**Write commands that run unchanged on Windows, macOS and Linux.** Claude Code substitutes `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PLUGIN_ROOT}` with native paths — on Windows that can mean backslashes (`C:\Users\Jane Doe\.claude\skills\...`) — so in every command:
 
-- Double-quote each path: `"${CLAUDE_SKILL_DIR}/../../../bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export.py" --output "{output_path}"`. Unquoted, bash strips the backslashes and splits any path that contains a space.
+- Double-quote each path: `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export.py" --output "{output_path}"`. Unquoted, bash strips the backslashes and splits any path that contains a space.
 - Run Python through `bin/construction-python`, never bare `python` — stock macOS has no `python`, and on Windows it can resolve to the Microsoft Store alias instead of the toolkit venv.
 - Write intermediate files (rasterized pages, crops) inside the project, e.g. `--output page.png`, never `/tmp`. On Windows `/tmp` exists only inside Git Bash; Claude Code's file tools read it as `C:\tmp`.
+- Don't commit symlinks: Git on Windows checks them out as plain text files. Point at shared files through `${CLAUDE_PLUGIN_ROOT}` instead.
 
 > **Always resolve project document paths through `CLAUDE.md` or directory discovery, never hardcode them.** A skill that hardcodes `./drawings/` will break on any project where the drawing folder has a different name.
 
@@ -339,8 +341,13 @@ Every skill is a directory, not a single file. The directory name **must match**
 **Our construction skills directory structure:**
 
 ```
-~/.claude/skills/construction/          # Plugin root
-├── .claude/skills/                     # All skill directories live here
+claude-code-construction/               # Plugin root = ${CLAUDE_PLUGIN_ROOT} (e.g. ~/.claude/skills/construction)
+├── .claude-plugin/
+│   ├── plugin.json                     # Plugin manifest: name "construction", version
+│   └── marketplace.json                # Marketplace listing for /plugin marketplace add
+├── skills/                             # All skill directories live here
+│   ├── construction-guide/
+│   │   └── SKILL.md                   # Operating guide (data-access rules, conventions)
 │   ├── spec-splitter/
 │   │   └── SKILL.md                   # Required. Uppercase. The SOP entry point.
 │   ├── sheet-splitter/
@@ -360,9 +367,10 @@ Every skill is a directory, not a single file. The directory name **must match**
 ├── scripts/                            # Shared Python tools
 │   ├── pdf/                            # PDF rasterize, crop, annotate, extract
 │   └── graph/                          # Graph write utilities (AgentCM)
-├── bin/                                # Python venv wrapper
-│   └── construction-python
-└── CLAUDE.md                           # Dev/contributor guide for the skills themselves
+├── bin/                                # On the Bash PATH while the plugin is enabled
+│   └── construction-python             # Python venv wrapper (creates the venv on first use)
+├── dev/                                # Contributor scripts (link a live checkout)
+└── .claude/CLAUDE.md                   # Dev/contributor guide (not loaded by plugin installs)
 ```
 
 Per-skill `references/`, `scripts/`, and `assets/` subdirectories are also valid per the official spec and appropriate for skill-specific resources (output schemas, decision trees). Currently our skills use the shared resources at the plugin root.
@@ -410,10 +418,10 @@ Steps load exactly one reference at a time, use it, and release it before the ne
 | **Per-skill scripts** | `{skill-name}/scripts/` | Canonical executable scripts for each skill |
 | **Per-skill references** | `{skill-name}/references/` | Data contracts, schemas, or domain knowledge specific to one skill |
 
-Scripts are referenced via `${CLAUDE_SKILL_DIR}` for portability:
+Scripts are referenced via `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PLUGIN_ROOT}` for portability:
 ```bash
 ${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py          # per-skill script
-${CLAUDE_SKILL_DIR}/../../../scripts/pdf/rasterize_page.py     # shared script
+${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py            # shared script
 ```
 
 ---
