@@ -71,12 +71,12 @@ NIC/NFC/By Others ≠ "nobody is responsible." Identify the responsible party. I
 
 ## Project Learning
 
-After sessions involving document review, record findings to `.construction/agent_findings/`:
+After sessions involving document review, record findings to `.construction/skills/pe-review/`:
 - `coordination_issues.md` — cross-scope conflicts found
 - `document_gaps.md` — missing sheets, details, or spec sections
 - `rfi_candidates.md` — issues that should become RFIs
 
-Before new queries on a previously-analyzed project, check `agent_findings/` for prior findings. Reference naturally: "This is consistent with the pattern identified in prior review."
+Before new queries on a previously-analyzed project, check `.construction/skills/pe-review/` (and, in AgentCM projects, `.construction/agent_findings/`) for prior findings. Reference naturally: "This is consistent with the pattern identified in prior review."
 
 ## Skills
 
