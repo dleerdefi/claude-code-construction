@@ -2,35 +2,42 @@
 set -euo pipefail
 
 # Construction Skills — Setup Script
-# Registers skills with Claude Code and installs dependencies.
+# Prepares the toolkit's Python environment and makes this checkout load in
+# Claude Code as the "construction" plugin. On Windows, run it from Git Bash.
 #
 # Usage:
-#   ./setup                    Install to project .claude/skills/ (default)
-#   ./setup --global           Install to ~/.claude/skills/
-#   ./setup --with-browser     Also build the browser daemon (requires Bun)
-#   ./setup --dev              Symlink for live development
+#   ./setup                  Python environment + cleanup of pre-plugin installs.
+#                            A checkout at ~/.claude/skills/construction (or at a
+#                            project's .claude/skills/construction) loads as-is.
+#   ./setup --global         Also copy this checkout to ~/.claude/skills/construction
+#   ./setup --project        Also copy this checkout to ./.claude/skills/construction
+#                            (run from your project directory)
+#   ./setup --dev            Link ~/.claude/skills/construction to this checkout
+#                            for live editing (macOS/Linux)
+#   ./setup --with-browser   Also build the browser daemon (requires Bun)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILLS_SOURCE="$SCRIPT_DIR/.claude/skills"
+SKILLS_SOURCE="$SCRIPT_DIR/skills"
 
 # --- Parse flags ---
-INSTALL_MODE="project"
+INSTALL_MODE="none"
 WITH_BROWSER=false
-DEV_MODE=false
 
 for arg in "$@"; do
   case $arg in
     --global)  INSTALL_MODE="global" ;;
     --project) INSTALL_MODE="project" ;;
+    --dev)     INSTALL_MODE="dev" ;;
     --with-browser) WITH_BROWSER=true ;;
-    --dev)     DEV_MODE=true; INSTALL_MODE="global" ;;
     --help|-h)
-      echo "Usage: ./setup [--global|--project] [--with-browser] [--dev]"
+      echo "Usage: ./setup [--global|--project|--dev] [--with-browser]"
       echo ""
-      echo "  --project        Install to ./.claude/skills/construction (default)"
-      echo "  --global         Install to ~/.claude/skills/construction"
+      echo "  (no flag)        Python environment only; a checkout in a Claude Code"
+      echo "                   skills directory loads as the construction plugin as-is"
+      echo "  --global         Copy this checkout to ~/.claude/skills/construction"
+      echo "  --project        Copy this checkout to ./.claude/skills/construction"
+      echo "  --dev            Link ~/.claude/skills/construction here (macOS/Linux)"
       echo "  --with-browser   Build headless browser daemon (requires Bun)"
-      echo "  --dev            Symlink for live development (implies --global)"
       echo ""
       exit 0
       ;;
@@ -41,147 +48,133 @@ for arg in "$@"; do
   esac
 done
 
-# --- Determine target ---
-if [ "$INSTALL_MODE" = "global" ]; then
-  TARGET_DIR="$HOME/.claude/skills/construction"
-else
-  TARGET_DIR="$(pwd)/.claude/skills/construction"
-fi
+# Copy this checkout (without .git) to $1, replacing an earlier toolkit install there.
+install_copy() {
+  local target="$1"
+  if [ -e "$target" ] && [ "$SCRIPT_DIR" -ef "$target" ]; then
+    echo "      Already at $target."
+    return 0
+  fi
+  if [ -L "$target" ]; then
+    rm "$target"
+  elif [ -d "$target" ]; then
+    if [ -f "$target/.claude-plugin/plugin.json" ] || [ -f "$target/.claude/skills/CLAUDE.md" ]; then
+      echo "      Replacing the existing install at $target..."
+      rm -rf "${target:?}"
+    else
+      echo "      ERROR: $target exists and is not a construction skills install."
+      echo "      Move it aside and re-run."
+      exit 1
+    fi
+  fi
+  mkdir -p "$target"
+  (cd "$SCRIPT_DIR" && tar cf - --exclude=.git .) | (cd "$target" && tar xf -)
+  echo "      Copied to $target. Re-run this after updating your checkout."
+}
+
+# Pre-plugin versions of this script made each skill discoverable through
+# <skills root>/<skill> -> construction/.claude/skills/<skill>. Those links now
+# dangle or shadow the plugin's skills. On Windows, where Git Bash's ln -s
+# copies, they are full directories: move those aside rather than delete them.
+cleanup_old_install() {
+  local root="$1" entry name backup=""
+  [ -d "$root" ] || return 0
+  for entry in "$root"/*; do
+    [ -e "$entry" ] || [ -L "$entry" ] || continue
+    name="$(basename "$entry")"
+    if [ -L "$entry" ]; then
+      case "$(readlink "$entry")" in
+        construction/.claude/skills/*|*/construction/.claude/skills/*)
+          rm "$entry"
+          echo "      Removed old skill link: $entry"
+          ;;
+      esac
+    elif [ -d "$SKILLS_SOURCE/$name" ] && [ -f "$entry/SKILL.md" ] &&
+         grep -q 'display_name: "construction-' "$entry/agents/openai.yaml" 2>/dev/null; then
+      [ -n "$backup" ] || backup="$HOME/.construction-skills/old-skill-copies/$(date +%Y%m%d-%H%M%S)"
+      mkdir -p "$backup"
+      mv "$entry" "$backup/"
+      echo "      Moved old skill copy aside: $entry -> $backup/$name"
+    fi
+  done
+}
 
 echo "=== Construction Skills Setup ==="
 echo ""
 
-# --- Step 1: Install Python dependencies ---
-# --- Step 0: Initialize construction-skills home ---
-echo "[0/5] Initializing ~/.construction-skills/..."
+# --- Step 1: Initialize construction-skills home ---
+echo "[1/5] Initializing ~/.construction-skills/..."
 mkdir -p "$HOME/.construction-skills/sessions"
 mkdir -p "$HOME/.construction-skills/analytics"
+chmod +x "$SCRIPT_DIR/bin/"* "$SCRIPT_DIR/dev/"* 2>/dev/null || true
 
-# Make bin scripts executable
-chmod +x "$SCRIPT_DIR/bin/"* 2>/dev/null || true
-
-# --- Step 1: Create venv and install Python dependencies ---
+# --- Step 2: Python environment ---
+# bin/construction-python creates the venv and installs requirements.txt on
+# first use; run it now so setup reports problems up front.
 VENV_DIR="$HOME/.construction-skills/venv"
-echo "[1/5] Setting up Python virtual environment..."
-
-# Find Python
-PYTHON_CMD=""
-if command -v python3 &>/dev/null; then
-  PYTHON_CMD="python3"
-elif command -v python &>/dev/null; then
-  PYTHON_CMD="python"
-fi
-
-if [ -z "$PYTHON_CMD" ]; then
-  echo "      ERROR: Python not found. Install Python 3.10+ and re-run."
-  exit 1
-fi
-
-# Create venv if it doesn't exist or is broken
-if [ ! -f "$VENV_DIR/bin/python" ] && [ ! -f "$VENV_DIR/Scripts/python.exe" ]; then
-  echo "      Creating venv at $VENV_DIR..."
-  $PYTHON_CMD -m venv "$VENV_DIR"
-fi
-
-# Determine pip path (Unix vs Windows)
-if [ -f "$VENV_DIR/bin/pip" ]; then
-  VENV_PIP="$VENV_DIR/bin/pip"
-  VENV_PYTHON="$VENV_DIR/bin/python"
-elif [ -f "$VENV_DIR/Scripts/pip.exe" ]; then
-  VENV_PIP="$VENV_DIR/Scripts/pip.exe"
-  VENV_PYTHON="$VENV_DIR/Scripts/python.exe"
-else
-  echo "      ERROR: venv creation failed. Try: $PYTHON_CMD -m venv $VENV_DIR"
-  exit 1
-fi
-
-echo "      Installing dependencies into venv..."
-"$VENV_PIP" install -r "$SCRIPT_DIR/requirements.txt" --quiet --upgrade
-echo "      Python venv ready at: $VENV_DIR"
+echo "[2/5] Setting up Python environment at $VENV_DIR..."
+VENV_PYTHON="$(CONSTRUCTION_SKILLS_NO_BOOTSTRAP=0 "$SCRIPT_DIR/bin/construction-python" -c 'import sys; print(sys.executable)')" || VENV_PYTHON=""
+case "$VENV_PYTHON" in
+  *.construction-skills*venv*) ;;
+  *)
+    echo "      ERROR: could not create the Python environment (see messages above)."
+    echo "      Install Python 3.10+ and re-run, or see docs/TROUBLESHOOTING.md."
+    exit 1
+    ;;
+esac
 echo "      Python: $VENV_PYTHON"
-
-# Write the venv python path to config so skills can find it
 "$SCRIPT_DIR/bin/construction-config" set python_path "$VENV_PYTHON" >/dev/null 2>&1 || true
 
-# --- Step 2: Register skills ---
-echo "[2/5] Registering skills..."
+# --- Step 3: Claude Code plugin ---
+echo "[3/5] Registering the Claude Code plugin..."
+PLUGIN_DIR="$SCRIPT_DIR"
+case "$INSTALL_MODE" in
+  global)
+    PLUGIN_DIR="$HOME/.claude/skills/construction"
+    install_copy "$PLUGIN_DIR"
+    ;;
+  project)
+    if [ "$(pwd)" -ef "$SCRIPT_DIR" ]; then
+      echo "      ERROR: run --project from your project directory, e.g.:"
+      echo "        cd /path/to/project && \"$SCRIPT_DIR/setup\" --project"
+      exit 1
+    fi
+    PLUGIN_DIR="$(pwd)/.claude/skills/construction"
+    install_copy "$PLUGIN_DIR"
+    ;;
+  dev)
+    "$SCRIPT_DIR/dev/link" | sed 's/^/      /'
+    # On Windows dev/link only prints the --plugin-dir hint; nothing was linked.
+    if [ "$HOME/.claude/skills/construction" -ef "$SCRIPT_DIR" ]; then
+      PLUGIN_DIR="$HOME/.claude/skills/construction"
+    fi
+    ;;
+esac
 
-# Create parent directory
-mkdir -p "$(dirname "$TARGET_DIR")"
-
-if [ "$DEV_MODE" = true ]; then
-  # Symlink for live editing
-  if [ -L "$TARGET_DIR" ]; then
-    rm "$TARGET_DIR"
-  elif [ -d "$TARGET_DIR" ]; then
-    echo "      WARNING: $TARGET_DIR exists and is not a symlink."
-    echo "      Remove it first or use --project instead."
-    exit 1
-  fi
-  ln -sf "$SCRIPT_DIR" "$TARGET_DIR"
-  echo "      Symlinked $TARGET_DIR -> $SCRIPT_DIR"
-  echo "      Live editing enabled — changes are reflected immediately."
-elif [ "$INSTALL_MODE" = "global" ]; then
-  if [ -L "$TARGET_DIR" ]; then
-    rm "$TARGET_DIR"
-  fi
-  if [ -d "$TARGET_DIR" ] && [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
-    echo "      Updating existing installation..."
-    rm -rf "$TARGET_DIR"
-  fi
-  if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
-    cp -r "$SCRIPT_DIR" "$TARGET_DIR"
-    echo "      Copied to $TARGET_DIR"
-  else
-    echo "      Already at target location."
-  fi
-else
-  # Project-level: repo should already be at .claude/skills/construction
-  if [ "$SCRIPT_DIR" = "$TARGET_DIR" ]; then
-    echo "      Already at project .claude/skills/construction."
-  else
-    echo "      NOTE: For project-level install, clone directly to:"
-    echo "      git clone <repo> .claude/skills/construction"
-    echo "      Copying instead..."
-    mkdir -p "$TARGET_DIR"
-    cp -r "$SCRIPT_DIR"/* "$TARGET_DIR"/
-    cp -r "$SCRIPT_DIR"/.claude "$TARGET_DIR"/
-    echo "      Copied to $TARGET_DIR"
-  fi
+# Keep skill files readable for Claude Code
+if [ -d "$PLUGIN_DIR/skills" ]; then
+  find "$PLUGIN_DIR/skills" -name "SKILL.md" -exec chmod 644 {} \;
+  find "$PLUGIN_DIR/skills" -path "*/references/*" -type f -exec chmod 644 {} \; 2>/dev/null || true
 fi
 
-# --- Step 2b: Create per-skill symlinks for discovery ---
-echo "[2b/5] Creating skill discovery symlinks..."
+case "$PLUGIN_DIR" in
+  "$HOME/.claude/skills/"*) PLUGIN_SCOPE="every project" ;;
+  */.claude/skills/*)       PLUGIN_SCOPE="the project at ${PLUGIN_DIR%/.claude/skills/*}" ;;
+  *)                        PLUGIN_SCOPE="" ;;
+esac
+if [ -n "$PLUGIN_SCOPE" ] && [ -e "$PLUGIN_DIR/.claude-plugin/plugin.json" ]; then
+  echo "      Claude Code loads $PLUGIN_DIR as the construction plugin for $PLUGIN_SCOPE."
+else
+  PLUGIN_SCOPE=""
+  echo "      This checkout is not in a Claude Code skills directory, so Claude Code won't load it yet."
+fi
 
-SKILLS_ROOT="$(dirname "$TARGET_DIR")"  # e.g., ~/.claude/skills/
-
-for skill_dir in "$TARGET_DIR/.claude/skills"/*/; do
-  [ -f "$skill_dir/SKILL.md" ] || continue
-  skill_name=$(basename "$skill_dir")
-  [[ "$skill_name" == _deprecated_* ]] && continue
-
-  link_path="$SKILLS_ROOT/$skill_name"
-  link_target="construction/.claude/skills/$skill_name"
-
-  if [ -L "$link_path" ]; then
-    rm "$link_path"
-  elif [ -e "$link_path" ]; then
-    echo "      SKIP $skill_name (non-symlink exists)"
-    continue
-  fi
-
-  ln -s "$link_target" "$link_path"
-  echo "      /$skill_name"
-done
-
-# Fix permissions so skills are readable
-find "$TARGET_DIR/.claude/skills" -name "SKILL.md" -exec chmod 644 {} \;
-find "$TARGET_DIR/.claude/skills" -path "*/references/*" -exec chmod 644 {} \; 2>/dev/null || true
-
-# --- Step 3: Detect other platforms ---
-echo "[3/5] Detecting platforms..."
-
-echo "      Claude Code: $([ -d "$HOME/.claude" ] && echo "detected" || echo "not found")"
+# --- Step 4: Clean up pre-plugin installs, register other platforms ---
+echo "[4/5] Cleaning up pre-plugin installs and detecting other platforms..."
+cleanup_old_install "$HOME/.claude/skills"
+case "$PLUGIN_DIR" in
+  */.claude/skills/*) cleanup_old_install "$(dirname "$PLUGIN_DIR")" ;;
+esac
 
 if [ -d "$HOME/.codex" ]; then
   echo "      Codex: detected"
@@ -199,9 +192,9 @@ if [ -d "$HOME/.kiro" ]; then
   echo "      Kiro skills registered at $KIRO_TARGET"
 fi
 
-# --- Step 4: Browser daemon (optional) ---
+# --- Step 5: Browser daemon (optional), verify config ---
 if [ "$WITH_BROWSER" = true ]; then
-  echo "[4/5] Building browser daemon..."
+  echo "[5/5] Building browser daemon..."
   if command -v bun &>/dev/null; then
     cd "$SCRIPT_DIR/browse"
     bun install
@@ -222,47 +215,33 @@ if [ "$WITH_BROWSER" = true ]; then
     echo "      Then re-run: ./setup --with-browser"
   fi
 else
-  echo "[4/5] Browser daemon: skipped (use --with-browser to enable)"
+  echo "[5/5] Browser daemon: skipped (use --with-browser to enable)"
 fi
 
-# --- Step 5: Verify config and analytics ---
-echo "[5/5] Verifying infrastructure..."
-echo "      Config dir: $HOME/.construction-skills/"
-echo "      Analytics:  $HOME/.construction-skills/analytics/"
-echo "      Sessions:   $HOME/.construction-skills/sessions/"
-
-# Test config script
 if "$SCRIPT_DIR/bin/construction-config" list >/dev/null 2>&1; then
-  echo "      Config system: OK"
+  echo "      Config system: OK ($HOME/.construction-skills/)"
 else
   echo "      Config system: WARNING — construction-config not working"
 fi
-
 echo "      Version: $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo "unknown")"
 
-# --- Verify ---
-echo ""
-echo "=== Verification ==="
-SKILL_COUNT=$(find "$SKILLS_SOURCE" -name "SKILL.md" -maxdepth 2 | wc -l | tr -d ' ')
-echo "Skills found: $SKILL_COUNT"
-
-if [ "$SKILL_COUNT" -ge 15 ]; then
-  echo "Status: OK"
-else
-  echo "Status: WARNING — expected 15+ skills, found $SKILL_COUNT"
-fi
-
-echo ""
-echo "Skills registered:"
-for skill_dir in "$SKILLS_SOURCE"/*/; do
-  if [ -f "$skill_dir/SKILL.md" ]; then
-    skill_name=$(basename "$skill_dir")
-    echo "  /$skill_name"
-  fi
-done
-
+# --- Summary ---
 echo ""
 echo "=== Setup complete ==="
 echo ""
-echo "Add to your project's CLAUDE.md:"
-echo "  @.claude/skills/construction/CLAUDE.md"
+echo "Skills ($(find "$SKILLS_SOURCE" -mindepth 2 -maxdepth 2 -name SKILL.md | wc -l | tr -d ' ')):"
+for skill_dir in "$SKILLS_SOURCE"/*/; do
+  [ -f "$skill_dir/SKILL.md" ] && echo "  /construction:$(basename "$skill_dir")"
+done
+echo ""
+if [ -n "$PLUGIN_SCOPE" ]; then
+  echo "Start Claude Code in your project (or run /reload-plugins in an open session),"
+  echo "then run /construction:project-setup."
+else
+  echo "To load the plugin, do one of:"
+  echo "  - re-run with --global (all projects), or --project from your project directory"
+  echo "  - clone the repo to ~/.claude/skills/construction"
+  echo "  - install from the marketplace inside Claude Code:"
+  echo "      /plugin marketplace add dleerdefi/claude-code-construction"
+  echo "      /plugin install construction@construction-skills"
+fi

@@ -1,6 +1,6 @@
 {
   "scripts": {
     "setup": "setup",
-    "teardown": "bin/dev-teardown"
+    "teardown": "dev/unlink"
   }
 }
