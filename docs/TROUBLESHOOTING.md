@@ -2,8 +2,11 @@
 
 ## Setup Issues
 
-### "Python not found"
-Install Python 3.10+ from [python.org](https://www.python.org/downloads/). On Windows, check "Add Python to PATH" during installation.
+### "Python not found" / "Python 3.10+ not found"
+Install Python 3.10+ from [python.org](https://www.python.org/downloads/). On Windows, check "Add Python to PATH" during installation (the `py` launcher also works). On macOS, Apple's built-in `python3` is 3.9, which is too old: install Python from python.org or with `brew install python`, then re-run `./setup`.
+
+### Windows: "bash\r: No such file or directory" or "set: pipefail: invalid option name"
+The scripts were checked out with Windows line endings. Current versions prevent this; if you see it, your clone predates the fix: delete it and clone again (or run `git rm -r --cached . && git reset --hard` inside it).
 
 ### "pip permission error" or "Access denied"
 Use the `--user` flag:

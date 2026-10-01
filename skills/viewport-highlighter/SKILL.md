@@ -3,8 +3,8 @@ name: viewport-highlighter
 description: >
   Identify and highlight viewports on construction drawing sheets using
   vision. Detects view boundaries, titles, scales, and view types. Creates
-  viewport overlays via AgentCM API. Requires AgentCM (.construction/
-  directory). Triggers: 'highlight viewports', 'find views'.
+  viewport overlays via AgentCM API. Requires AgentCM
+  (.construction/project.yaml). Triggers: 'highlight viewports', 'find views'.
 ---
 
 # Viewport Highlighter
