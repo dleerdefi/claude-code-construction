@@ -26,6 +26,7 @@ from cases import Case
 from guard import GUARDED_TOOLS, Policy, decide
 
 SCAFFOLD_TIMEOUT = 120
+SCAFFOLD_SKIP_EXIT = 3  # a scaffold exits 3 when the case's inputs are not available on this machine
 RESULT_TEXT_LIMIT = 4000
 TOOL_RESULT_LIMIT = 2000
 
@@ -55,6 +56,7 @@ class RunResult:
     is_error: bool = False
     error: str = ""
     result_text: str = ""
+    skipped: bool = False
 
     @property
     def tool_uses(self) -> list[dict]:
@@ -186,13 +188,20 @@ async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> R
             result.is_error = True
             result.error = f"timed out after {case.timeout_seconds}s"
         result.created_files = sorted(snapshot(workspace) - before)
+    except ScaffoldSkipped as e:
+        result.skipped = True
+        result.error = str(e)
+        shutil.rmtree(workspace, ignore_errors=True)
     except Exception as e:  # scaffold or transport failure: the run is an error, not a crash
         result.is_error = True
         result.error = f"{type(e).__name__}: {e}"
     result.elapsed_s = time.time() - t0
-    log(f"    run {run_index}: {result.num_turns or '?'} turns, {result.elapsed_s:.0f}s, "
-        f"${(result.cost_usd or 0):.2f}, {len(result.created_files)} files created"
-        + (f", ERROR: {result.error}" if result.error else ""))
+    if result.skipped:
+        log(f"    run {run_index}: SKIPPED: {result.error}")
+    else:
+        log(f"    run {run_index}: {result.num_turns or '?'} turns, {result.elapsed_s:.0f}s, "
+            f"${(result.cost_usd or 0):.2f}, {len(result.created_files)} files created"
+            + (f", ERROR: {result.error}" if result.error else ""))
     return result
 
 

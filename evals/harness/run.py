@@ -72,13 +72,17 @@ async def main_async(args) -> int:
     judge = JudgeOptions(model=args.judge_model, votes=args.judge_votes)
 
     summary = {"timestamp": stamp, "model": args.model, "judge_model": args.judge_model, "threshold": args.threshold,
-               "cases": [], "total_cost_usd": 0.0, "passed": 0, "total": len(cases)}
+               "cases": [], "total_cost_usd": 0.0, "passed": 0, "skipped": 0, "total": len(cases)}
     for case in cases:
         n_runs = args.runs or case.runs
         print(f"{case.dir.name} ({n_runs} run{'s' if n_runs != 1 else ''})")
         run_scores, run_details, cost = [], [], 0.0
+        skipped_reason = ""
         for i in range(1, n_runs + 1):
             run = await run_case(case, i, opts)
+            if run.skipped:
+                skipped_reason = run.error
+                break
             run_dir = write_run(out_dir, run, [])
             graders = await grade_run(case, run, judge, PLUGIN_ROOT, run_dir / "trace.jsonl")
             write_run(out_dir, run, graders)
@@ -93,6 +97,12 @@ async def main_async(args) -> int:
                                 "cost_usd": run.cost_usd, "error": run.error, "graders": [g.__dict__ for g in graders],
                                 "guard_denials": [d for d in run.guard_log if not d["allow"]],
                                 "kept_workspace": str(run.workspace) if (failed or args.keep) else ""})
+        if skipped_reason:
+            print(f"  SKIPPED  {skipped_reason.splitlines()[0][:160]}")
+            summary["cases"].append({"name": case.dir.name, "score": 0.0, "runs": 0, "cost_usd": 0.0,
+                                     "notes": "skipped: " + skipped_reason.splitlines()[0][:200], "run_details": []})
+            summary["skipped"] += 1
+            continue
         case_score = round(sum(run_scores) / len(run_scores), 4)
         ok = case_score >= args.threshold
         notes = "; ".join(f"run {d['run_index']}: {d['error']}" for d in run_details if d["error"]) or ("pass" if ok else "below threshold")

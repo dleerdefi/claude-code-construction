@@ -73,3 +73,6 @@ skills/tag-audit-and-takeoff/references/_deprecated_spatial_query.py
 # Plugin eval run output
 evals/plugin/results/
 .eval-home/
+
+# Eval fixtures derived from the downloaded Sanibel PDFs (make_fixtures.py)
+evals/plugin/_fixtures/sanibel/generated/
