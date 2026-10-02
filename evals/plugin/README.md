@@ -1,24 +1,19 @@
 # Plugin Eval Suite
 
-End-to-end checks that run the skills through Claude Code with `claude plugin eval` and grade what they produce.
+End-to-end checks that run the skills through Claude Code and grade what they produce. Each case is a folder here (`prompt.md`, `case.yaml`, `setup.sh`, `graders/*.md`), and two runners read the same folders:
 
-## Run it
+- **The harness** (`evals/harness/`) runs on Windows, macOS and Linux through a headless Claude Code session, and is the default:
+  ```bash
+  bin/construction-python evals/harness/run.py --tag smoke --runs 1
+  ```
+  See the [harness README](../harness/README.md) for requirements (on Windows, the native Claude Code install), options, and how runs are confined.
+- **`claude plugin eval`** runs on macOS, Linux and WSL2 inside Claude Code's own sandbox, with its HTML report and with/without-plugin comparison:
+  ```bash
+  claude plugin eval . --tag smoke --scaffold --allow-tools Bash Write Edit
+  ```
+  `--scaffold` lets each case copy the sample project into its workspace and link the toolkit's Python environment; `--allow-tools Bash Write Edit` lets the skills run their scripts and write files; add `--runs 1 --ablation none` for a quick single pass. The sandbox needs `bubblewrap` and `socat` on Linux (`sudo apt install bubblewrap socat`) and is not available on native Windows. Results go to `evals/plugin/results/<timestamp>/`. The first run builds the toolkit's Python environment once in `.eval-home/` at the plugin root (about a minute, needs internet); eval runs themselves have no network.
 
-From the plugin directory (your clone, e.g. `~/.claude/skills/construction`):
-
-```bash
-claude plugin eval . --tag smoke --scaffold --allow-tools Bash Write Edit
-```
-
-- `--scaffold` lets each case copy the sample project into its workspace and link the toolkit's Python environment.
-- `--allow-tools Bash Write Edit` lets the skills run their scripts and write files.
-- Add `--runs 1 --ablation none` for a quick single pass. By default each case runs 3 times with the plugin and 3 times without it, to show how much the plugin adds.
-
-Results and an HTML report go to `evals/plugin/results/<timestamp>/`.
-
-**Platforms:** macOS and Linux. Claude Code runs eval agents in its sandbox, which needs `bubblewrap` and `socat` on Linux (`sudo apt install bubblewrap socat`) and isn't available on Windows. On Windows, run the suite in WSL or use the manual checks in [docs/VALIDATING.md](../../docs/VALIDATING.md).
-
-**First run:** the scaffold builds the toolkit's Python environment once in `.eval-home/` at the plugin root (about a minute, needs internet). Eval runs themselves have no network.
+Harness-only additions to a case (Python checks for xlsx and docx deliverables) live in `harness.yaml` and `checks/`, which `claude plugin eval` ignores.
 
 ## Tiers
 
@@ -50,4 +45,4 @@ The full plan, including what each skill needs and the open decisions, is in [`e
 
 ## Writing a case
 
-Each case is a folder with `prompt.md` (frontmatter + the prompt), `case.yaml` (the scaffold), `setup.sh`, and `graders/*.md`. Copy an existing case. See the [plugin eval docs](https://code.claude.com/docs/en/plugin-evals) for grader types.
+Each case is a folder with `prompt.md` (frontmatter + the prompt), `case.yaml` (the scaffold), `setup.sh`, and `graders/*.md`. Copy an existing case. See the [plugin eval docs](https://code.claude.com/docs/en/plugin-evals) for grader types; the harness implements `file_exists`, `regex`, `tool_used`, `tool_order` and `llm`, plus `python` checks declared in `harness.yaml`.

@@ -50,16 +50,16 @@ Then check where things landed:
 
 The sample project is the Sanibel Fire and Rescue Station 172 plans and specifications, placed in `evals/test_docs/SANIBEL FIRE AND RESCUE STATION 172/`. Its PDFs are large, so they are downloaded separately: see [Running Evals](RUNNING_EVALS.md#get-test-documents) for the links and where to put them.
 
-## 5. Automated eval (macOS and Linux)
+## 5. Automated eval (Windows, macOS and Linux)
 
 Steps 1–4 can be run for you, graded, on a small built-in sample project:
 
 ```bash
 cd "$PLUGIN"
-claude plugin eval . --tag smoke --scaffold --allow-tools Bash Write Edit --runs 1 --ablation none
+bin/construction-python evals/harness/run.py --tag smoke --runs 1
 ```
 
-Every case should score 1.00. On Linux, install `bubblewrap` and `socat` first. Windows isn't supported by Claude Code's eval sandbox: use WSL or the manual steps above. See [the eval suite README](../evals/plugin/README.md).
+Every case should score 1.00. On Windows this needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`); see [the harness README](../evals/harness/README.md). On macOS and Linux you can run the same cases with Claude Code's own sandbox instead: `claude plugin eval . --tag smoke --scaffold --allow-tools Bash Write Edit --runs 1 --ablation none` (see [the eval suite README](../evals/plugin/README.md)).
 
 ## Report results
 

@@ -20,33 +20,17 @@ The earlier runner-based framework was this kind of test in spirit. It was remov
 
 **Layer 2: agent evals.** Run the real skill through Claude Code on a prepared workspace, then grade what it produced. Existing smoke cases in `evals/plugin/` already work this way with `claude plugin eval`.
 
-### Windows finding (tested)
+### Windows: decided and built
 
-On this machine (Windows 11, Claude Code 2.1.287):
-
-```
-claude plugin eval . --case project-setup --runs 1 --ablation none --allow-tools Bash Write Edit
-```
-
-was refused at $0.00 with:
+`claude plugin eval` refuses any case that grants Bash on native Windows (Windows 11, Claude Code 2.1.287/2.1.288):
 
 > sandbox required but unavailable: sandbox is enabled but the Windows sandbox is not active on this session (feature gate off)
 
-The plugin-evals docs say the same: native Windows has no sandbox backend, so shell-granting suites need WSL2. The error says "feature gate off", so this may change in a later release. Every skill runs its scripts through Bash, so this blocks all of Layer 2 on native Windows.
+The requirement is plugin eval's own (`sandbox.failIfUnavailable`), not a limit of headless mode. A spike on 2026-10-02 ran the sheet-splitter smoke case headlessly through the Agent SDK on this machine: Bash executed, the slash-invoked skill expanded despite `disable-model-invocation: true`, `max_turns` was honoured, a PreToolUse hook denied a planted `curl`, and all four sheets came out named from their title blocks ($1.76 on Sonnet, 22 turns, 198 s).
 
-### Layer 2 on Windows: decision needed
+**Decision:** `evals/harness/` is the Layer 2 runner on all three platforms. It reads the same case folders as `claude plugin eval` (one case format, two runners), confines runs by policy (a guard hook that denies writes outside the workspace, paths outside the allowed roots, and network, install and privileged commands), caps spend per run, and grades with the plugin-eval grader types plus `python` checks that can open xlsx and docx deliverables. `claude plugin eval` keeps working on macOS, Linux and WSL2 for its sandbox, HTML report and with/without-plugin comparison.
 
-| Option | Meets "runs on Windows"? | Cost |
-|---|---|---|
-| **A.** `claude plugin eval` only (mac, Linux, WSL2); native Windows gets Layer 1 plus the manual checks in `docs/VALIDATING.md` | No, for agent evals | None. Already built. |
-| **B.** A thin driver on `claude -p` (`--plugin-dir`, `--allowedTools`, `--output-format stream-json`, `--max-budget-usd`) that reads the same case files and grades with Python validators | Yes | A custom harness to build and maintain. Gives up plugin-eval's graders, HTML report and with/without-plugin comparison. **On Windows the agent's shell commands run unconfined**, which is exactly what `plugin eval` refuses to do. |
-| **C.** Wait for the Windows sandbox to leave its feature gate | Eventually | Not in our control. |
-
-Recommendation: build Layer 1 first, since it is needed under every option. For Layer 2, B is the only option that meets the cross-platform requirement today. If it is built, make it the one Layer 2 harness on all three platforms, not a Windows-only fallback beside `plugin eval`: two harnesses with two grading systems would double the maintenance. Its Python validators can open the real `.xlsx` and `.docx` deliverables and compare them with ground-truth files, which removes the JSON workarounds in section 7. Choose B only if you accept unconfined shell commands on Windows, with mitigations: a throwaway workspace under the temp directory, a restricted `--allowedTools`, a hard `--max-budget-usd`, and the plugin under test being our own. Keep the four existing `plugin eval` smoke cases as they are.
-
-Prove the harness on one skill before fanning out. schedule-extractor on sheet A500 is the natural first slice: one sheet, a clean table, and ground truth that is quick to make (section 3).
-
-Before building B, run one smoke case through `claude -p` on Windows. That checks that `--plugin-dir` loads the plugin, that `/construction:<skill>` runs, and that the stream-json trace has the tool calls we need to grade.
+Requirements and trade-offs: on Windows the SDK needs the native Claude Code install (it refuses npm's `claude.cmd` shim); shell commands on Windows run without an OS sandbox, so the guard is the confinement; `--sandbox auto` adds the OS sandbox on macOS and Linux. See `evals/harness/README.md`.
 
 ## 3. The test set (checked against the PDFs)
 
@@ -153,26 +137,24 @@ Secondary:
 - **spec-splitter** says it skips existing sections (`SKILL.md:184`), but `split_pdf` always overwrites.
 - **submittal-log-generator** merges batch files with `jq` (`:405`), which may not exist on Windows.
 
-## 7. Harness constraints (`claude plugin eval`)
+## 7. Harness constraints
 
-1. **No custom graders, and no direct `.xlsx` / `.docx` grading.** The grader types are `regex`, `tool_used`, `tool_order`, `file_exists`, `llm` and `baseline`, and the LLM judge refuses binary files. All seven xlsx/docx-producing skills write a text JSON before exporting, so grade that JSON.
-   - The path is fixed for submittal-log-generator, bid-tabulator and tag-audit-and-takeoff.
-   - It is not fixed for schedule-extractor, bid-evaluator, rfi-drafter and subcontract-writer, so those prompts must pin it.
-   - Renderer behavior (tab names, formulas, highlighting) belongs to Layer 1.
-   - Ground truth lives inside `llm` grader rubric text, so large tables are awkward, and numeric tolerance is only judgeable by the LLM. A Layer 2 driver with Python validators (option B) removes this limit.
-2. **Six skills have user-confirmation gates:** tag-audit-and-takeoff, code-researcher, rfi-drafter, bid-tabulator, bid-evaluator, subcontract-writer. The only mechanism is pre-answers via `append_system_prompt`, so the evals do not test whether a skill actually stops to ask. The docs do not say what `AskUserQuestion` does in an eval run.
-3. **No network from tools.** code-researcher cannot verify codes online. The first run of `bin/construction-python` pip-installs, so the venv must be pre-built (the existing `prepare-workspace.sh` does this).
-4. **Limits:** `max_turns` default 10, cap 200. `timeout_seconds` default 300, cap 3600. The scaffold script has a 120-second limit.
-5. **Workspaces:** `--keep-temp` preserves each run's workspace and `trace.jsonl`, so an out-of-harness Python scorer can read the output files. Not yet tested on a passing run.
+The harness (`evals/harness/`) reads the plugin-eval case format, so these apply to both runners unless noted.
+
+1. **Grading deliverables.** The `llm` judge refuses binary files in both runners. Under `claude plugin eval` that leaves the grader types `regex`, `tool_used`, `tool_order`, `file_exists` and `llm`, so xlsx and docx can only be graded through the text JSON the skills write before exporting (its path is fixed for submittal-log-generator, bid-tabulator and tag-audit-and-takeoff; schedule-extractor, bid-evaluator, rfi-drafter and subcontract-writer leave it to the prompt). The harness adds `python` checks (`harness.yaml` + `checks/*.py`) that open the real xlsx and docx with the toolkit's libraries and compare them with ground-truth files, so real-document cases should grade deliverables there. Renderer behaviour (tab names, formulas, highlighting) still belongs to Layer 1.
+2. **Six skills have user-confirmation gates:** tag-audit-and-takeoff, code-researcher, rfi-drafter, bid-tabulator, bid-evaluator, subcontract-writer. The only mechanism is pre-answers via `append_system_prompt`, so the evals do not test whether a skill actually stops to ask.
+3. **Network.** Under `claude plugin eval` tools have no network. Under the harness the guard denies network commands, and `WebFetch` and `WebSearch` are disallowed unless a case lists them, so code-researcher is offline in both unless a case opts in. The toolkit venv must exist before a run (`CONSTRUCTION_SKILLS_NO_BOOTSTRAP=1` is set so a missing venv fails fast).
+4. **Limits.** `max_turns` and `timeout_seconds` come from the case (plugin eval caps them at 200 and 3,600); the harness adds `--budget-usd` per run. The scaffold has a 120-second limit.
+5. **Workspaces.** The harness keeps a failed run's workspace and writes `trace.jsonl`, `guard_log.json` and `graders.json` per run under `evals/results/<timestamp>/`; `--keep` keeps every workspace.
+6. **Cost.** Each run is a real agent session: about $0.50 to $2 per smoke case on Sonnet.
 
 ## 8. Open items
 
 **Needs your decision:**
 
 1. **Missing disciplines.** Structural, plumbing, fire protection, technology and landscape sheets are in the cover index but not in the set (section 3). Deliberate, or are there more PDFs to add?
-2. **Layer 2 on Windows:** option A or B (section 2).
-3. **Download links** for the six PDFs (placeholders are in `docs/RUNNING_EVALS.md`).
-4. **Permission to share the set.** Sanibel was previously kept as an internal-only test project, and the sheets carry the architect's copyright notice. Publishing download links makes the set public, so confirm that is intended.
+2. **Download links** for the six PDFs (placeholders are in `docs/RUNNING_EVALS.md`).
+3. **Permission to share the set.** Sanibel was previously kept as an internal-only test project, and the sheets carry the architect's copyright notice. Publishing download links makes the set public, so confirm that is intended.
 
 **Still to change:** code-researcher's worked example (`SKILL.md`, `references/schemas.yaml`, `references/gap_report_template.md`) describes a Baltimore, Maryland project. Moving it to Florida needs verified code citations, so it belongs with the code-researcher ground-truth work.
 

@@ -26,6 +26,17 @@ Git ignores everything inside those two folders, so the downloads and anything t
 
 ## Run the Evals
 
-- **Smoke tier** (small built-in sample project, about a minute): see the [plugin eval suite README](../evals/plugin/README.md).
-- **Manual checks** on any platform, including native Windows: see [Validating Your Install](VALIDATING.md).
-- **Real-document tier** (the Sanibel set): in progress. The plan is in [`evals/EVAL_SUITE_PLAN.md`](../evals/EVAL_SUITE_PLAN.md).
+On Windows, macOS or Linux, from the plugin root:
+
+```bash
+bin/construction-python evals/harness/run.py --tag smoke --runs 1
+```
+
+This runs the smoke tier (a small built-in sample project) through a headless Claude Code session and grades the output; see the [harness README](../evals/harness/README.md) for options, requirements and how runs are confined. On Windows it needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`).
+
+Alternatives:
+
+- `claude plugin eval` runs the same cases with Claude Code's own sandbox and report on macOS, Linux and WSL2: see the [plugin eval suite README](../evals/plugin/README.md).
+- **Manual checks** on any platform: see [Validating Your Install](VALIDATING.md).
+
+The **real-document tier** (the Sanibel set) is in progress; the plan is in [`evals/EVAL_SUITE_PLAN.md`](../evals/EVAL_SUITE_PLAN.md).
