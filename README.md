@@ -107,7 +107,7 @@ Deliverables — Excel workbooks, Word documents, split sheet and spec PDFs, rep
 - [Validating your install](docs/VALIDATING.md) — check the plugin works on your machine
 - [Troubleshooting](docs/TROUBLESHOOTING.md) — common issues and fixes
 - [CM Skills SOP](docs/CM_SKILLS_SOP.md) — skill architecture and design standard
-- [Evaluation Spec](evals/EVAL_SPEC.md) and [Running Evals](docs/RUNNING_EVALS.md) — the scored eval framework for contributors
+- [Running Evals](docs/RUNNING_EVALS.md) and the [plugin eval suite](evals/plugin/README.md) — the scored evals for contributors
 
 ## Requirements
 
