@@ -83,9 +83,9 @@ def sheet_title(page: fitz.Page, number: str) -> str:
                 t = s["text"].strip()
                 if t and t != number and "SANIBEL" not in t.upper() and "STATION" not in t.upper():
                     spans.append((s["size"], t))
-    # Title block text is ~23.6pt; drawing titles are ~24.9pt. Prefer the 23-24pt band.
+    # Title block text is ~23.6pt and may wrap over several lines; drawing titles are ~24.9pt.
     band = [t for sz, t in spans if 23.0 <= sz <= 24.0]
-    return " ".join(band[:2]) if band else max(spans)[1]
+    return " ".join(band) if band else max(spans)[1]
 
 
 def toc_titles(doc: fitz.Document) -> dict[str, str]:

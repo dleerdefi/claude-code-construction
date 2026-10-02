@@ -1,0 +1,65 @@
+[
+ {
+  "door": "220",
+  "row": {
+   "Level": "SECOND FLOOR",
+   "DOOR NUMBER": "220",
+   "DOOR PANEL LEAF WIDTH": "3' - 0\"",
+   "DOOR PANEL LEAF HEIGHT": "8' - 0\"",
+   "DOOR PANEL LEAF TYPE": "F",
+   "DOOR PANEL LEAF MATERIAL": "WD",
+   "GLAZING TYPE": "",
+   "DOOR FRAME TYPE": "1",
+   "DOOR FRAME MATERIAL": "HM",
+   "DOOR/FRAME RATING": "20",
+   "STC RATING": "",
+   "DOOR HARDWARE": "10",
+   "ACCESS CONTROL": "",
+   "DETAILS HEAD": "A11/A510",
+   "DETAILS JAMB": "F11/A510",
+   "DETAILS THRESHOLD / SILL": "L1/A510"
+  }
+ },
+ {
+  "door": "001",
+  "row": {
+   "Level": "APPARATUS FLOOR",
+   "DOOR NUMBER": "001",
+   "DOOR PANEL LEAF WIDTH": "3' - 0\"",
+   "DOOR PANEL LEAF HEIGHT": "8' - 0\"",
+   "DOOR PANEL LEAF TYPE": "N",
+   "DOOR PANEL LEAF MATERIAL": "HM",
+   "GLAZING TYPE": "GL-1A",
+   "DOOR FRAME TYPE": "3",
+   "DOOR FRAME MATERIAL": "HM",
+   "DOOR/FRAME RATING": "",
+   "STC RATING": "",
+   "DOOR HARDWARE": "02",
+   "ACCESS CONTROL": "Y",
+   "DETAILS HEAD": "A1/A510",
+   "DETAILS JAMB": "F1/A510",
+   "DETAILS THRESHOLD / SILL": "L1/A510"
+  }
+ },
+ {
+  "door": "004A",
+  "row": {
+   "Level": "STORAGE FIN. FLR.",
+   "DOOR NUMBER": "004A",
+   "DOOR PANEL LEAF WIDTH": "10' - 0\"",
+   "DOOR PANEL LEAF HEIGHT": "8' - 0\"",
+   "DOOR PANEL LEAF TYPE": "OHS",
+   "DOOR PANEL LEAF MATERIAL": "STL",
+   "GLAZING TYPE": "",
+   "DOOR FRAME TYPE": "MFG",
+   "DOOR FRAME MATERIAL": "STL",
+   "DOOR/FRAME RATING": "",
+   "STC RATING": "",
+   "DOOR HARDWARE": "",
+   "ACCESS CONTROL": "",
+   "DETAILS HEAD": "J15/A512",
+   "DETAILS JAMB": "E15/A512",
+   "DETAILS THRESHOLD / SILL": "A15/A512"
+  }
+ }
+]

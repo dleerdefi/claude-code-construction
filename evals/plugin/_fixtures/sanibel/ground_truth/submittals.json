@@ -1,0 +1,42 @@
+{
+ "09 30 00": {
+  "title": "TILING",
+  "articles": {
+   "1.3 SUBMITTALS": [
+    "Product Data:  For each type of product indicated.",
+    "Shop Drawings:  Show locations of each type of tile and tile pattern.  Show widths, details, and locations of expansion, contraction, control, and isolation joints in tile substrates and finished tile",
+    "Samples for Verification:"
+   ]
+  }
+ },
+ "09 65 13": {
+  "title": "RESILIENT BASE AND ACCESSORIES",
+  "articles": {
+   "1.3 ACTION SUBMITTALS": [
+    "Product Data: For each type of product.",
+    "Samples: For each exposed product and for each color and texture specified, not less than 12 inches long.",
+    "Samples for Initial Selection: For each type of product indicated.",
+    "Samples for Verification: For each type of product indicated and for each color, texture, and pattern required in manufacturer's standard-size Samples, but not less than 12 inches long.",
+    "Product Schedule: For resilient base and accessory products. Use same designations indicated on Drawings."
+   ]
+  }
+ },
+ "09 65 40": {
+  "title": "LUXURY VINYL TILE",
+  "articles": {
+   "1.3 ACTION SUBMITTALS": [
+    "Product Data: For each type of product.",
+    "Shop Drawings: For each type of flooring.",
+    "Samples for Initial Selection: For each type of flooring indicated, and metal edge strips in 6-inch lengths.",
+    "Samples for Verification: For each type of flooring indicated, and metal edge strips in 6-inch lengths.",
+    "Product Schedule: For flooring. Use same designations indicated on Drawings."
+   ],
+   "1.4 INFORMATIONAL SUBMITTALS": [
+    "Qualification Data: For Installer."
+   ],
+   "1.5 CLOSEOUT SUBMITTALS": [
+    "Maintenance Data: For each type of flooring to include in maintenance manuals."
+   ]
+  }
+ }
+}
