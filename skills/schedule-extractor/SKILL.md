@@ -233,8 +233,8 @@ The ingest endpoint automatically:
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
   --type "schedule_extracted" \
   --title "Door schedule extracted from A-0.01" \
-  --source_sheet "A-0.01" \
-  --output_file "Door_Schedule_A-0.01.xlsx" \
+  --source-sheet "A-0.01" \
+  --output-file "Door_Schedule_A-0.01.xlsx" \
   --data '{"schedule_type": "door", "row_count": 45, "columns": ["MARK","SIZE","TYPE","FRAME","HARDWARE SET"]}'
 ```
 
