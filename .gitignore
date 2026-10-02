@@ -38,17 +38,19 @@ evals/cases/*/case_*_sanibel.json
 evals/cases/*/case_*_steam.json
 evals/cases/*/case_*_uccs.json
 
-# Test documents — only Holabird-Academy included
-# Other test projects are for internal testing only at this time
+# Test documents: internal test projects are not shipped
 evals/test_docs/CMURC*/
 evals/test_docs/EHRM*/
 evals/test_docs/Replace*/
-evals/test_docs/SANIBEL*/
 evals/test_docs/Steam*/
 evals/test_docs/UCCS*/
 
-# Holabird large PDFs (users download via links in docs/RUNNING_EVALS.md)
-evals/test_docs/Holabird-Academy/**/*.pdf
+# Sanibel test set: drawings and specifications are downloaded separately
+# (links in docs/RUNNING_EVALS.md). The rest of the folder is tracked.
+evals/test_docs/SANIBEL*/01 - Drawings/*
+evals/test_docs/SANIBEL*/02 - Specifications/*
+!evals/test_docs/SANIBEL*/01 - Drawings/.gitkeep
+!evals/test_docs/SANIBEL*/02 - Specifications/.gitkeep
 
 # Generated spec/sheet splits (created by skills at runtime)
 evals/test_docs/**/specs/

@@ -48,7 +48,7 @@ Then check where things landed:
 
 ### Sample project
 
-The repo includes the Holabird Academy sample project in `evals/test_docs/Holabird-Academy/`. Its drawing and specification PDFs are large, so they are downloaded separately: see [Running Evals](RUNNING_EVALS.md#get-test-documents) for the links and where to put them.
+The sample project is the Sanibel Fire and Rescue Station 172 plans and specifications, placed in `evals/test_docs/SANIBEL FIRE AND RESCUE STATION 172/`. Its PDFs are large, so they are downloaded separately: see [Running Evals](RUNNING_EVALS.md#get-test-documents) for the links and where to put them.
 
 ## 5. Automated eval (macOS and Linux)
 
