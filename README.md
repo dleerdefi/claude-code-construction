@@ -8,7 +8,7 @@ The skills ship as a Claude Code plugin named `construction` and work on Windows
 
 | | Windows | macOS | Linux |
 |---|---|---|---|
-| [Claude Code](https://claude.ai/code) (CLI, VS Code or JetBrains) | ✓ | ✓ | ✓ |
+| [Claude Code](https://claude.ai/code) | ✓ | ✓ | ✓ |
 | Shell for the skills' commands | [Git for Windows](https://git-scm.com/download/win) (Git Bash) | built in | built in |
 | Python 3.10 or newer | [python.org](https://www.python.org/downloads/) installer (the `py` launcher is fine) | [python.org](https://www.python.org/downloads/) or Homebrew — Apple's built-in `python3` is 3.9, too old | your distribution's `python3` (3.10+) with `venv` |
 | `git` | included in Git for Windows | `xcode-select --install` or Homebrew | your package manager |
@@ -92,10 +92,6 @@ Tested in Claude Code with **Claude Opus 5.5** and **Claude Sonnet 5.5** on Wind
 | All other skills | 🔄 Testing in progress |
 
 Found a problem? [Open an issue](https://github.com/dleerdefi/claude-code-construction/issues) with your OS, model, and the skill's output.
-
-## AgentCM (Optional)
-
-If your project uses [AgentCM](https://github.com/dleerdefi/AgentCM), skills automatically read from its pre-indexed structured data in `.construction/` for faster results. Skills work without AgentCM using Claude's built-in vision and PDF tools.
 
 ## Output
 
