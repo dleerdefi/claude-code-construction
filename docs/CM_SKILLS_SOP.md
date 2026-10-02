@@ -84,16 +84,16 @@ After `/init` creates the base `CLAUDE.md`, a construction-specific `/project-se
 
 **Example `CLAUDE.md` skeleton (flat file mode):**
 ```markdown
-# Project: Holabird Elementary School Renovation
+# Project: Sanibel Fire and Rescue Station 172
 
 ## Project Info
-- Project Number: 2024-0047
-- GC: Barton Malow Company
-- Owner: Baltimore City Public Schools
-- Architect: Ziger/Snead Architects
+- Project Number: 2023820
+- GC: Example Builders, Inc.
+- Owner: Sanibel Fire and Rescue District
+- Architect: Schenkel Shultz Architecture
 
 ## Document Store Paths
-- Drawing set: ./drawings/ (disciplines: A, S, M, E, P, FP, C, L)
+- Drawing set: ./drawings/ (disciplines: A, C, E, M)
 - Spec book: ./specifications/project_manual.pdf
 - Schedule: ./schedule/master_schedule.xlsx
 - RFI log: ./logs/rfi_log.xlsx
@@ -102,7 +102,7 @@ After `/init` creates the base `CLAUDE.md`, a construction-specific `/project-se
 
 **Example `CLAUDE.md` skeleton (AgentCM mode):**
 ```markdown
-# Project: Holabird Elementary School Renovation
+# Project: Sanibel Fire and Rescue Station 172
 
 ## AgentCM
 The `.construction/` directory contains the project graph and extracted data.
