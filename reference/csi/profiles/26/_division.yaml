@@ -22,11 +22,13 @@ review_checks:
   - id: d26.emergency-separation
     kind: conformance
     check: >
-      Emergency, legally required standby and optional standby wiring,
-      panels and transfer equipment are kept separate as the load
-      classification requires; no panel schedule mixes loads of different
-      classes, and emergency raceways and boxes carry the identification the
-      spec calls for.
+      Emergency system wiring, panels and transfer equipment are kept
+      independent of all other wiring, and essential electrical system
+      branches from each other where the facility has them; legally required
+      and optional standby loads are separated wherever the code, the spec or
+      the load classification requires it (the model code lets some share
+      raceways and panels). Emergency raceways and boxes carry the
+      identification the spec calls for.
     trace_to: [drawings.single_line, schedule.electrical_panel, spec.part3]
     severity: high
     owner: subcontractor

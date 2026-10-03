@@ -13,8 +13,8 @@ last_reviewed: null
 edges:
   # ── Utility service and site ──────────────────────────────────
   - id: if.26-utility-service
-    a: ["26 20 00"]
-    a_trade: Electrical service and distribution
+    a: ["26 21 00", "26 23 00", "26 24 13", "26 24 16", "26 27 13", "26 05 73"]
+    a_trade: Service equipment, metering and the power system study
     b: ["33 71 00", "33 73 00"]
     b_trade: Electrical utility distribution and utility transformers
     a_provides: Service size and voltage, load letter, and service equipment and metering drawings for the utility's acceptance
@@ -30,6 +30,7 @@ edges:
       milestone: procurement_release
       note: Get the utility's requirements and fault data in writing before service equipment is released
     severity: critical
+    failure: Pad, primary duct, metering and fault data assumed instead of obtained in writing; the utility refuses to set its transformer or energize, or equipment ratings and the study rest on the wrong fault current
 
   - id: if.26-site-duct-banks
     a: ["26 05 43"]
@@ -61,7 +62,7 @@ edges:
 
   # ── Communications ────────────────────────────────────────────
   - id: if.26-telecom-room-power
-    a: ["26 05 19", "26 05 33", "26 24 00", "26 27 26"]
+    a: ["26 05 19", "26 05 33", "26 24 16", "26 27 26"]
     a_trade: Electrical branch circuits and panelboards
     b: ["27 10 00", "27 11 00"]
     b_trade: Structured cabling and equipment room fittings
@@ -94,11 +95,11 @@ edges:
     severity: medium
 
   - id: if.26-errcs-power
-    a: ["26 05 19", "26 05 33", "26 24 00"]
+    a: ["26 05 19", "26 05 33", "26 24 16"]
     a_trade: Electrical branch circuits and panelboards
     b: ["27 53 19"]
     b_trade: In-building radio and antenna systems
-    a_provides: Dedicated circuit on the source the radio coverage code requires, with locking means and identification
+    a_provides: Dedicated circuit on the source the radio coverage code requires, with the circuit protection and identification that code calls for
     b_provides: Amplifier and headend locations and loads, battery cabinets, and the source the code requires
     gate:
       milestone: above_ceiling_close_in
@@ -126,7 +127,7 @@ edges:
 
   # ── Electronic safety and security ────────────────────────────
   - id: if.26-fire-alarm-power
-    a: ["26 05 19", "26 05 33", "26 24 00"]
+    a: ["26 05 19", "26 05 33", "26 24 16"]
     a_trade: Electrical branch circuits and panelboards
     b: ["28 46 00"]
     b_trade: Fire detection and alarm
@@ -143,7 +144,7 @@ edges:
     failure: Power extender panels located by the fire alarm designer with no circuits; circuits pulled through finished ceilings before the acceptance test
 
   - id: if.26-security-power
-    a: ["26 05 19", "26 05 33", "26 24 00"]
+    a: ["26 05 19", "26 05 33", "26 24 16"]
     a_trade: Electrical branch circuits and panelboards
     b: ["28 10 00", "28 20 00", "28 30 00"]
     b_trade: Access control, video surveillance and intrusion detection
@@ -153,28 +154,23 @@ edges:
     severity: medium
     failure: Lock power supplies and panels located late with no circuits, or on normal power where the owner expected standby
 
-  - id: if.26-generator-fuel
-    a: ["26 32 00"]
-    a_trade: Engine generators
-    b: ["33 56 00", "23 13 00", "23 11 13"]
-    b_trade: Site and facility fuel storage and fuel-oil piping
-    a_provides: Sub-base tank capacity and listing, or the remote tank and day tank the generator needs, fuel consumption at the rated load, supply and return connection sizes and locations
-    b_provides: Remote or day tank capacity, location, fill and vent points, fuel piping route and material, leak detection and overfill alarms with where they annunciate
-    responsibility:
-      - item: Fuel tank (sub-base, day tank or remote tank)
-        typical: {furnish: "26 32 00, 23 13 00 or 33 56 00", install: "26 32 00, 23 13 00 or 33 56 00"}
-        confirm_in: [spec.part1, drawings.electrical, drawings.civil]
-      - item: Fuel piping between the tank and the generator
-        typical: {furnish: "23 11 13 or 26 32 00", install: "23 11 13 or 26 32 00"}
-        confirm_in: [spec.part1, drawings.mechanical]
-      - item: Initial fuel fill and fuel for the acceptance test
-        typical: {furnish: "26 32 00 or owner"}
-        confirm_in: [spec.part1, spec.part3]
-    gate: {milestone: procurement_release}
-    severity: high
-    failure: The tank is assumed to come with the generator while the site and mechanical scopes assume the same, or nobody carries the fuel piping and fill and vent points; the generator arrives with nothing to run on
-
   # ── Within Division 26 ────────────────────────────────────────
+  - id: if.26-study-equipment
+    a: ["26 05 73"]
+    a_trade: Power system study
+    b: ["26 22 00", "26 23 00", "26 24 00", "26 28 00", "26 32 00", "26 36 00"]
+    b_trade: Transformers, switchgear, switchboards and panelboards, overcurrent devices, generators and transfer switches
+    a_provides: Calculated fault at each bus against each device and assembly rating, the device types, frames and trip units selectivity needs, recommended settings, and arc-flash results with any energy-reduction feature they depend on
+    b_provides: Submitted equipment data the study models (device types, frames, trip units and ratings, series combinations, transformer impedances, generator reactances, transfer switch withstand basis) and feeder sizes and lengths
+    responsibility:
+      - item: Preparing the study and applying its settings in the field
+        typical: {furnish: "26 05 73, often by the equipment manufacturer or an independent engineer", install: "26 05 73 or the testing agency"}
+        confirm_in: [spec.part1, spec.part3]
+    gate:
+      milestone: procurement_release
+      note: Review the study with the distribution equipment submittals, before release
+    severity: high
+
   - id: if.26-lighting-controls-luminaires
     a: ["26 09 00"]
     a_trade: Lighting controls

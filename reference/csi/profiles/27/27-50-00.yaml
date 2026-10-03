@@ -7,79 +7,16 @@ maintainers: [dleerdefi]
 reviewed_by: []
 last_reviewed: null
 
+# Deliberately thin: the three families under this number share little but
+# pathways and power. Paging, masking and intercom knowledge lives in
+# 27 51 00, nurse call in 27 52 23 and radio coverage in 27 53 19, so a nurse
+# call or radio coverage review does not inherit paging checks.
+
 scope_summary: >
-  Paging and public address, intercom, sound masking, emergency
-  communications, clocks and in-building antenna systems (27 51 00 through
-  27 53 00 inherit from here; nurse call and radio coverage add their own).
-  These systems overlap life safety: the fire alarm has to silence them
-  during an alarm, two-way communication at areas of refuge and elevator
-  landings is a code requirement that often has no section, and a paging
-  system can carry emergency messages only if it is listed and accepted for
-  it.
-
-review_checks:
-  - id: 27dc.fire-alarm-mute
-    kind: coordination
-    check: >
-      Paging, background music and sound masking are muted or shut down by
-      the fire alarm during an alarm through a listed interface, and the
-      relay and its wiring appear on both systems' drawings.
-    trace_to: [drawings.fire_alarm, drawings.technology]
-    severity: high
-    owner: gc
-
-  - id: 27dc.emergency-messages
-    kind: conformance
-    check: >
-      A paging or intercom system proposed to deliver emergency voice
-      messages is listed for that use and accepted by the AHJ; otherwise
-      emergency messages come only from the fire alarm or mass notification
-      system.
-    trace_to: [spec.part2, drawings.fire_alarm]
-    severity: high
-    owner: subcontractor
-
-  - id: 27dc.two-way-communication
-    kind: absence
-    check: >
-      Two-way communication at areas of refuge and elevator landings, where
-      the code requires it, is designed with its master station location,
-      power source and monitoring, and assigned to one section.
-    trace_to: [drawings.life_safety, drawings.technology]
-    severity: high
-    owner: design_team
-
-  - id: 27dc.zoning
-    kind: conformance
-    check: >
-      Paging zones, speaker taps and coverage follow the zone schedule and
-      room uses; sound masking levels and zoning follow the acoustical
-      report.
-    trace_to: [drawings.technology, report.acoustical]
-    severity: medium
-    owner: subcontractor
-
-failure_modes:
-  - id: 27dc.fm.music-over-alarm
-    what_happens: Background music or sound masking keeps playing during a voice alarm
-    consequence: Voice messages unintelligible; the acceptance test fails
-    caught_by: [27dc.fire-alarm-mute, if.27-paging-fire-alarm]
-    source: industry_practice
-
-  - id: 27dc.fm.refuge-comm-missing
-    what_happens: Area of refuge and elevator landing two-way communication left out because no section carried it
-    consequence: Added at the end, with pathways through finished stairs and lobbies
-    caught_by: [27dc.two-way-communication]
-    source: industry_practice
-
-regulatory_hooks:
-  - id: 27dc.rh.two-way
-    topic: two-way-emergency-communication
-    question: >
-      Where does the adopted building code require two-way communication
-      systems (areas of refuge, elevator landings), and what must they
-      provide (audible and visible signals, monitoring location, standby
-      power)?
-    applies_when: Multistory buildings with elevators or areas of refuge
-    source_families: [building_code, accessibility]
-    severity: high
+  Three families of distributed systems: audio-video communications such as
+  paging, sound masking, intercom and emergency communication (27 51 00),
+  healthcare communications such as nurse call (27 52 00), and distributed
+  systems such as clocks and in-building antenna and radio coverage
+  (27 53 00). Each carries its own profile; what they share is the pathway,
+  power and monitoring they need from others, and a frequent overlap with
+  life safety.

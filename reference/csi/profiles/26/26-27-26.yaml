@@ -9,6 +9,46 @@ last_reviewed: null
 
 contractor_designed: never
 
+# Wiring devices sit under 26 20 00 by number but carry none of the
+# distribution-equipment questions (fault ratings, study, footprint, utility,
+# neutral bonding). 26ds.equipment-connections stays: a cord-connected item
+# needs its receptacle.
+suppress:
+  - {id: 26ds.sub.shop-drawings, reason: "Switchboard and panelboard shop drawing content; not part of a wiring device submittal"}
+  - {id: 26ds.sub.product-data, reason: "Transformer and overcurrent device product data; not part of a wiring device submittal"}
+  - {id: 26ds.sub.design-data, reason: "Seismic data for floor-standing distribution equipment"}
+  - {id: 26ds.sub.utility-approval, reason: "Utility acceptance applies to service equipment"}
+  - {id: 26ds.disconnect-furnish, reason: "Disconnects, starters and drives are reviewed with distribution equipment and controllers"}
+  - {id: 26ds.sccr-vs-fault, reason: "Receptacles and switches carry no short-circuit or interrupting rating to compare"}
+  - {id: 26ds.study-before-release, reason: "The study gates distribution equipment, not wiring devices"}
+  - {id: 26ds.utility-requirements, reason: "Applies to service equipment"}
+  - {id: 26ds.fits-room-and-path, reason: "Applies to floor-standing distribution equipment"}
+  - {id: 26ds.dedicated-space, reason: "Applies to switchboards and panelboards"}
+  - {id: 26ds.stub-ups, reason: "Applies to floor-standing distribution equipment"}
+  - {id: 26ds.grounding-neutral, reason: "Applies to services, separately derived systems and panelboards"}
+  - {id: 26ds.transformers, reason: "Applies to transformers"}
+  - {id: 26ds.gfp-testing, reason: "Ground-fault protection of equipment is set on service and feeder devices, not wiring devices"}
+  - {id: 26ds.rc.equipment-nameplate, reason: "Panel-level reconciliation; the receptacle-to-plug match is 26wd.plug-configurations"}
+  - {id: 26ds.rc.single-line, reason: "Applies to switchboards, panelboards and transformers"}
+  - {id: 26ds.fm.substitution-not-carried, reason: "Caught at panel level by a reconciliation suppressed here"}
+  - {id: 26ds.fm.double-furnished, reason: "Disconnect and drive scope; suppressed with its check"}
+  - {id: 26ds.fm.fault-rises, reason: "Fault rating; suppressed with its check"}
+  - {id: 26ds.fm.released-before-study, reason: "Study timing; suppressed with its check"}
+  - {id: 26ds.fm.utility-rejects, reason: "Service equipment; suppressed with its check"}
+  - {id: 26ds.fm.no-path-in, reason: "Floor-standing equipment; suppressed with its check"}
+  - {id: 26ds.fm.pipe-over-gear, reason: "Dedicated space; suppressed with its check"}
+  - {id: 26ds.fm.stubs-misaligned, reason: "Floor-standing equipment; suppressed with its check"}
+  - {id: 26ds.fm.downstream-bond, reason: "Neutral bonding; suppressed with its check"}
+  - {id: 26ds.std.neta-ats, reason: "Acceptance testing of distribution equipment"}
+  - {id: 26ds.rh.working-space, reason: "Working space applies to equipment serviced while energized"}
+  - {id: 26ds.rh.selective-coordination, reason: "Answered by the study and distribution equipment reviews"}
+  - {id: 26ds.rh.ground-fault, reason: "Ground-fault protection of equipment, not GFCI (26wd.rh.receptacle-protection covers GFCI)"}
+  - {id: 26ds.rh.equipment-marking, reason: "Marking applies to service and distribution equipment"}
+  - {id: 26ds.rh.utility, reason: "Applies to service equipment"}
+  - {id: 26ds.rh.arc-energy-reduction, reason: "Applies to large circuit breakers and fuses"}
+  - {id: 26ds.xf.available-fault, reason: "No fault rating to reconcile on wiring devices"}
+  - {id: 26ds.xf.footprint, reason: "Applies to floor-standing distribution equipment"}
+
 scope_summary: >
   Receptacles, switches, dimmers, floor boxes and their plates. The product
   data is easy; the decisions are on the drawings: which device goes where,
@@ -72,6 +112,19 @@ review_checks:
     severity: medium
     owner: subcontractor
 
+  - id: 26wd.plug-configurations
+    kind: coordination
+    check: >
+      Special-purpose receptacles (voltage, ampere rating, locking or
+      straight-blade configuration) match the cord caps of the equipment that
+      plugs into them, taken from the approved equipment submittals and the
+      owner's equipment list rather than the design-stage schedule; owner
+      equipment still unselected is listed as an open item before rough-in.
+    trace_to: [schedule.equipment, schedule.foodservice_equipment, drawings.electrical, submittals.approved]
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
   - id: 26wd.floor-boxes
     kind: constructability
     check: >
@@ -107,6 +160,12 @@ failure_modes:
     what_happens: Standard receptacles installed in a space type where the code requires tamper-resistant devices
     consequence: Devices replaced before final inspection
     caught_by: [26wd.device-ratings]
+    source: industry_practice
+
+  - id: 26wd.fm.plug-mismatch
+    what_happens: Receptacles installed to the design-stage schedule; the approved or owner-furnished equipment arrives with a different plug, voltage or ampere rating
+    consequence: Receptacles swapped at move-in, and circuits or boxes changed where the rating differs
+    caught_by: [26wd.plug-configurations]
     source: industry_practice
 
   - id: 26wd.fm.floor-box-missed

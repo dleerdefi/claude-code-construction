@@ -99,3 +99,13 @@ regulatory_hooks:
     applies_when: Any licensed care facility with nurse call or emergency call, whether or not the project is typed as health care
     source_families: [health_facility_licensing, fgi_guidelines]
     severity: critical
+
+  - id: 27nc.rh.power-source
+    topic: health-facility-essential-electrical-system
+    question: >
+      Must nurse call and code blue controllers, power supplies and
+      annunciators be served from an essential electrical system branch or
+      another emergency source in this facility type, and from which branch?
+    applies_when: Hospitals and other facilities with an essential electrical system
+    source_families: [electrical_code, health_facility_licensing]
+    severity: high

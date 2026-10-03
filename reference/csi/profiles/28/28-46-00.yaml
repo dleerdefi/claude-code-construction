@@ -7,8 +7,10 @@ maintainers: [dleerdefi]
 reviewed_by: []
 last_reviewed: null
 
-# Current MasterFormat number. Projects on older editions specify this scope as
-# 28 31 00, which current MasterFormat assigns to Intrusion Detection (28 30 00 profile).
+# Current MasterFormat number (since MasterFormat 2016). Projects on older
+# editions specify this scope as 28 31 00, which current MasterFormat assigns to
+# Intrusion Detection; the 28 30 00 scope summary tells a 28 31 00 query to
+# resolve this section instead.
 
 contractor_designed: typical
 
@@ -137,6 +139,17 @@ review_checks:
     owner: owner
     gate: substantial_completion
 
+  - id: 28fa.detector-protection
+    kind: constructability
+    check: >
+      Smoke detectors are installed after construction cleaning, or, where
+      phased occupancy or the AHJ needs them in service earlier, are
+      protected during dusty work and cleaned or replaced before the
+      acceptance test, with the cost and responsibility for that assigned.
+    trace_to: [spec.part3, schedule.master]
+    severity: medium
+    owner: gc
+
   - id: 28fa.acceptance
     kind: completeness
     check: >
@@ -151,7 +164,6 @@ review_checks:
 
 reconciliations:
   - id: 28fa.rc.sequence-matrix
-    reflex: true
     between: [drawings.fire_alarm, drawings.mechanical, schedule.door_hardware, drawings.fire_protection, drawings.electrical]
     key: Each input and each controlled output
     fields: [initiating device or system, air handler shutdown or smoke control mode, damper action, door hold-open release and locked-door unlock, elevator recall floors and shunt trip, sprinkler and suppression supervision, generator and fire pump supervision]
@@ -184,7 +196,7 @@ failure_modes:
   - id: 28fa.fm.matrix-orphan
     what_happens: The matrix lists outputs to air handlers, dampers or doors the other trades never wired for, or the mechanical sequence expects a fire alarm signal the matrix lacks
     consequence: Acceptance test fails on integrations; retest with the AHJ and occupancy delayed
-    caught_by: [28fa.rc.sequence-matrix, if.23-fire-alarm-hvac, if.08-fire-alarm-doors, if.21-supervision]
+    caught_by: [28fa.rc.sequence-matrix, if.23-fire-alarm-hvac, if.08-fire-alarm-doors]
     source: industry_practice
 
   - id: 28fa.fm.recall-floors
@@ -221,6 +233,12 @@ failure_modes:
     what_happens: Monitoring lines or cellular communicator not live when the AHJ arrives for the acceptance test
     consequence: Test rescheduled; occupancy delayed
     caught_by: [28fa.monitoring-path, if.27-fire-alarm-communicator]
+    source: industry_practice
+
+  - id: 28fa.fm.dusty-detectors
+    what_happens: Smoke detectors installed and energized during drywall sanding and floor finishing to support early or phased occupancy
+    consequence: Trouble signals and false alarms; detectors cleaned or replaced across the floor before acceptance
+    caught_by: [28fa.detector-protection]
     source: industry_practice
 
   - id: 28fa.fm.existing-incompatible

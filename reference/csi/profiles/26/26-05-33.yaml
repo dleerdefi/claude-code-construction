@@ -1,0 +1,116 @@
+schema_version: 1
+kind: section
+id: "26 05 33"
+title: Raceway and Boxes for Electrical Systems
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Conduit, fittings, boxes and surface raceway (26 05 33.13 through
+  26 05 33.23 inherit from here). Raceway is where electrical gets cast in,
+  built into walls and closed into ceilings, so most of what matters is
+  sequence: slab conduit and floor boxes before the pour, boxes in rated and
+  acoustic walls before close-in, feeders on the coordination drawings
+  before other trades take the space. The product misses are raceway and
+  fitting types used where the spec's application table does not allow them.
+
+submittals:
+  - id: 26rw.sub.product-data
+    type: Product Data
+    must_show:
+      - Raceway and fitting type for each location and condition in the spec's application table
+      - Boxes for rated and acoustic walls, with the listed pads or inserts used
+
+review_checks:
+  - id: 26rw.raceway-applications
+    kind: conformance
+    check: >
+      Raceway and fitting types follow the spec's application table by
+      location (exposed or concealed, damp or wet, in or under slabs,
+      underground, hazardous, subject to damage, air-handling spaces). The
+      usual substitutions are thin-wall or nonmetallic conduit where rigid
+      metal is required, set-screw fittings where compression or raintight
+      fittings are required, and nonmetallic elbows where the spec requires
+      metal elbows at underground risers and stub-ups.
+    trace_to: [spec.part2, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26cw.slab-conduit
+    kind: constructability
+    check: >
+      Conduit in or below slabs (floor boxes, island equipment, feeders) is
+      laid out from current architectural, furniture and equipment layouts,
+      within the size, spacing and location limits the structural drawings
+      set for embedded conduit, and placed before the pour. Post-tensioned
+      slabs get the same scrutiny as the tendons: coring later may not be
+      allowed.
+    trace_to: [drawings.electrical, drawings.structural, drawings.plans]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 26cw.wall-boxes
+    kind: conformance
+    check: >
+      Boxes in rated walls use what the listed wall design or the code
+      allows (box material and size, separation of boxes on opposite faces,
+      listed pads or inserts); boxes in acoustically rated walls are offset or
+      padded as the acoustic details require.
+    trace_to: [schedule.partition_type, drawings.electrical, report.acoustical]
+    severity: medium
+    owner: subcontractor
+    gate: wall_close_in
+
+  - id: 26cw.feeder-coordination
+    kind: coordination
+    check: >
+      Feeders, cable tray and grouped conduit appear on the trade
+      coordination drawings with their routes and elevations, leaving pull
+      points accessible and room for future feeders, rather than being routed
+      in the field after ducts and sprinkler mains take the space.
+    trace_to: [spec.division_01, drawings.electrical, drawings.mechanical]
+    severity: medium
+    owner: gc
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 26rw.fm.wrong-raceway
+    what_happens: Thin-wall conduit with set-screw fittings run in wet locations or slabs, or nonmetallic conduit left exposed where the spec requires rigid metal
+    consequence: Rejected at rough-in inspection, or corroded and replaced after turnover
+    caught_by: [26rw.raceway-applications]
+    source: industry_practice
+
+  - id: 26cw.fm.pt-slab-coring
+    what_happens: Floor boxes or slab conduit missed before a post-tensioned slab is placed
+    consequence: Coring needs tendon scanning and engineer approval, or the device moves to a wall or a less convenient location
+    caught_by: [26cw.slab-conduit]
+    source: industry_practice
+
+  - id: 26cw.fm.back-to-back-boxes
+    what_happens: Boxes set back to back in rated or acoustically rated walls without the listed protection or offset
+    consequence: Wall rating or acoustic performance lost; walls reopened to add pads or move boxes
+    caught_by: [26cw.wall-boxes, if.firestop-mep-penetrations, if.09-boxes-in-sound-walls]
+    source: industry_practice
+
+  - id: 26cw.fm.feeders-squeezed-out
+    what_happens: Feeders and tray left out of coordination drawings and routed after ductwork and sprinkler mains are in
+    consequence: Offsets, extra pull boxes and conduit runs that exceed pulling limits; lost ceiling height
+    caught_by: [26cw.feeder-coordination]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 26cw.rh.wall-box-protection
+    topic: membrane-penetration-allowances
+    question: >
+      For outlet and switch boxes in this project's fire-rated walls, which
+      box materials, sizes, total areas and separations between boxes on
+      opposite faces are permitted without listed protection, and when are
+      putty pads or listed inserts needed?
+    applies_when: Electrical boxes in fire-rated walls
+    source_families: [building_code]
+    severity: medium

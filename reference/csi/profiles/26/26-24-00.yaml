@@ -40,6 +40,7 @@ review_checks:
     trace_to: [schedule.electrical_panel, register.asi_bulletin_log]
     severity: high
     owner: subcontractor
+    gate: procurement_release
 
   - id: 26pb.spares
     kind: conformance
@@ -109,6 +110,16 @@ failure_modes:
     consequence: Field replacement and re-inspection
     caught_by: [26pb.schedule-match]
     source: industry_practice
+
+standards:
+  - id: 26pb.std.ul-891
+    name: UL 891
+    title: Switchboards
+    verify: The assembly's short-circuit current rating, and any series-combination rating, as marked on the switchboard as listed
+  - id: 26pb.std.ul-67
+    name: UL 67
+    title: Panelboards
+    verify: The panelboard's short-circuit current rating, and any series-combination rating with the upstream device, as marked on the panelboard as listed
 
 extract_fields:
   - id: 26pb.xf.main

@@ -7,183 +7,19 @@ maintainers: [dleerdefi]
 reviewed_by: []
 last_reviewed: null
 
-contractor_designed: never
+# Deliberately thin. Everything under 26 05 inherits this file, and the family
+# is mixed: conductors, raceway, grounding and underground ducts sit beside
+# identification, seismic controls and power system studies. Their knowledge
+# lives in 26 05 19, 26 05 26, 26 05 33, 26 05 43 and 26 05 73 so that a study
+# or an identification review does not inherit raceway and grounding checks.
+equivalents: ["26 05 19", "26 05 26", "26 05 33", "26 05 43"]
 
 scope_summary: >
-  Conductors, raceway and boxes, grounding and bonding, supports, sleeves,
-  underground ducts and identification (26 05 19 through 26 05 53 inherit
-  from here). This is where the wiring method is chosen and where it gets
-  cast in, buried or closed in. The misses are wiring methods the spec or the
-  jurisdiction does not allow, grounding electrodes and slab conduit that had
-  to be in before the pour, boxes that break rated and acoustic walls, and
-  feeders nobody drew into the coordination drawings.
-
-submittals:
-  - id: 26cw.sub.product-data
-    type: Product Data
-    must_show:
-      - Conductor material and insulation type for each use (feeders, branch circuits, wet and underground)
-      - Raceway type for each location and condition, and any cable assemblies with the uses the spec allows them in
-      - Boxes for rated and acoustic walls, with the listed pads or inserts used
-  - id: 26cw.sub.shop-drawings
-    type: Shop Drawings
-    must_show:
-      - Underground duct bank routing, sections, encasement and manholes or handholes where the spec requires drawings
-      - Grounding electrode system as it will be built, with connections to footing reinforcing, building steel and water service
-  - id: 26cw.sub.test-reports
-    type: Test Reports
-    must_show:
-      - Grounding electrode resistance and feeder insulation resistance results where specified
-
-review_checks:
-  - id: 26cw.wiring-methods
-    kind: conformance
-    check: >
-      Proposed wiring methods (raceway types by location, cable assemblies,
-      flexible connections, aluminum conductors) are ones the spec allows for
-      that use and location. A contractor-preferred method (cable assemblies
-      for conduit, aluminum feeders for copper) is a substitution, and a local
-      amendment may forbid it outright.
-    trace_to: [spec.part2, spec.part3]
-    severity: high
-    owner: subcontractor
-
-  - id: 26cw.conductor-changes
-    kind: conformance
-    check: >
-      Changes to conductors (aluminum for copper, shared neutrals on
-      multiwire branch circuits, combined homeruns, rerouted feeders) come
-      with recalculated voltage drop, ampacity adjustment for bundling and
-      ambient, and raceway fill, and are ones the spec permits.
-    trace_to: [spec.part2, schedule.electrical_panel, drawings.single_line]
-    severity: high
-    owner: subcontractor
-
-  - id: 26cw.grounding-electrode
-    kind: constructability
-    check: >
-      The grounding electrode system (concrete-encased electrode in the
-      footing, ground ring, building steel, water service, supplemental rods)
-      is detailed, and the footing electrode or bonded reinforcing stub-up is
-      placed and inspected before the footing pour.
-    trace_to: [drawings.electrical, drawings.foundation, drawings.details]
-    severity: high
-    owner: gc
-    gate: foundation_pour
-
-  - id: 26cw.slab-conduit
-    kind: constructability
-    check: >
-      Conduit in or below slabs (floor boxes, island equipment, feeders) is
-      laid out from current architectural, furniture and equipment layouts,
-      within the size, spacing and location limits the structural drawings
-      set for embedded conduit, and placed before the pour. Post-tensioned
-      slabs get the same scrutiny as the tendons: coring later may not be
-      allowed.
-    trace_to: [drawings.electrical, drawings.structural, drawings.plans]
-    severity: high
-    owner: gc
-    gate: slab_pour
-
-  - id: 26cw.wall-boxes
-    kind: conformance
-    check: >
-      Boxes in rated walls use what the listed wall design or the code
-      allows (box material and size, separation of boxes on opposite faces,
-      listed pads or inserts); boxes in acoustically rated walls are offset or
-      padded as the acoustic details require.
-    trace_to: [schedule.partition_type, drawings.electrical, report.acoustical]
-    severity: medium
-    owner: subcontractor
-    gate: wall_close_in
-
-  - id: 26cw.feeder-coordination
-    kind: coordination
-    check: >
-      Feeders, cable tray and grouped conduit appear on the trade
-      coordination drawings with their routes and elevations, leaving pull
-      points accessible and room for future feeders, rather than being routed
-      in the field after ducts and sprinkler mains take the space.
-    trace_to: [spec.division_01, drawings.electrical, drawings.mechanical]
-    severity: medium
-    owner: gc
-    gate: overhead_rough_in
-
-  - id: 26cw.underground-ducts
-    kind: constructability
-    check: >
-      Underground duct banks show routing, depth, encasement, separation from
-      other utilities, spare ducts and pull points as the spec and the utility
-      require, and they are inspected and their as-built location recorded
-      before backfill.
-    trace_to: [drawings.electrical, drawings.civil, drawings.site, report.utility_requirements]
-    severity: high
-    owner: subcontractor
-    gate: trench_backfill
-
-failure_modes:
-  - id: 26cw.fm.electrode-missed
-    what_happens: Concrete-encased grounding electrode not placed or not bonded before the footing pour
-    consequence: Supplemental electrodes or chipping to reach reinforcing; inspection hold at service energization
-    caught_by: [26cw.grounding-electrode]
-    source: industry_practice
-
-  - id: 26cw.fm.pt-slab-coring
-    what_happens: Floor boxes or slab conduit missed before a post-tensioned slab is placed
-    consequence: Coring needs tendon scanning and engineer approval, or the device moves to a wall or a less convenient location
-    caught_by: [26cw.slab-conduit]
-    source: industry_practice
-
-  - id: 26cw.fm.back-to-back-boxes
-    what_happens: Boxes set back to back in rated or acoustically rated walls without the listed protection or offset
-    consequence: Wall rating or acoustic performance lost; walls reopened to add pads or move boxes
-    caught_by: [26cw.wall-boxes, if.firestop-mep-penetrations, if.09-boxes-in-sound-walls]
-    source: industry_practice
-
-  - id: 26cw.fm.unapproved-wiring-method
-    what_happens: Cable assemblies or aluminum feeders installed where the spec or a local amendment requires raceway or copper
-    consequence: Rejected at rough-in inspection; rewired at the contractor's cost and schedule
-    caught_by: [26cw.wiring-methods]
-    source: industry_practice
-
-  - id: 26cw.fm.shared-neutral
-    what_happens: Homeruns combined onto shared neutrals serving GFCI or AFCI breakers, dimmers or electronic loads
-    consequence: Nuisance tripping and overheated neutrals; circuits rewired after trim-out
-    caught_by: [26cw.conductor-changes]
-    source: industry_practice
-
-  - id: 26cw.fm.feeders-squeezed-out
-    what_happens: Feeders and tray left out of coordination drawings and routed after ductwork and sprinkler mains are in
-    consequence: Offsets, extra pull boxes and conduit runs that exceed pulling limits; lost ceiling height
-    caught_by: [26cw.feeder-coordination]
-    source: industry_practice
-
-  - id: 26cw.fm.duct-bank-conflict
-    what_happens: Electrical duct banks cross storm, water or sanitary lines at the same elevation, found in the trench
-    consequence: Duct banks re-profiled in the field, separation lost, extra bends that exceed pulling tension
-    caught_by: [26cw.underground-ducts, if.26-site-duct-banks]
-    source: industry_practice
-
-regulatory_hooks:
-  - id: 26cw.rh.wall-box-protection
-    topic: membrane-penetration-allowances
-    question: >
-      For outlet and switch boxes in this project's fire-rated walls, which
-      box materials, sizes, total areas and separations between boxes on
-      opposite faces are permitted without listed protection, and when are
-      putty pads or listed inserts needed?
-    applies_when: Electrical boxes in fire-rated walls
-    source_families: [building_code]
-    severity: medium
-
-extract_fields:
-  - id: 26cw.xf.wiring-methods
-    label: Wiring method by location and use
-    type: list
-    per: package
-    reconcile_against: [spec.part2]
-  - id: 26cw.xf.conductor-material
-    label: Conductor material for feeders and branch circuits
-    type: string
-    per: package
-    reconcile_against: [spec.part2, drawings.single_line]
+  The 26 05 family: conductors (26 05 19), grounding (26 05 26), raceway and
+  boxes (26 05 33), underground ducts (26 05 43), supports, sleeves,
+  identification, seismic controls and power system studies (26 05 73). As a
+  section of its own, 26 05 00 usually carries general installation
+  requirements, sleeves and sleeve seals. Where a project specifies
+  conductors, raceway, grounding or underground ducts inside 26 05 00
+  instead of under their own numbers, resolve 26 05 19, 26 05 33, 26 05 26 and
+  26 05 43 for those parts of the submittal.

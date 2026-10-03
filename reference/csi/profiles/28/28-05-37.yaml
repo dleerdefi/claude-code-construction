@@ -1,0 +1,28 @@
+schema_version: 1
+kind: section
+id: "28 05 37"
+title: Security Voice Communications - Distributed Antenna System
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Current MasterFormat places this number under 28 05 31 Communications
+# Equipment for Electronic Safety and Security, beside 28 05 43 Private Mobile
+# Radio. An in-building antenna system for emergency responder radio is the
+# 27 53 19 scope, so compile it as 27 53 19 rather than under 28 05 00's
+# security network checks. The scope summary says when that does not hold.
+same_as: "27 53 19"
+equivalents: ["27 53 19"]
+
+scope_summary: >
+  In-building distributed antenna systems for public safety and security
+  radio, specified under Division 28. When the system is the emergency
+  responder radio coverage the fire code or AHJ requires, everything below
+  applies: whether coverage is needed is usually not known until a signal
+  survey of the enclosed building, which makes amplifiers, a donor antenna,
+  survivable cabling, rated enclosures and fire alarm monitoring the classic
+  late surprise, and the AHJ and the radio licensee both have to accept it.
+  When it serves only the owner's private security radio, the code-driven
+  items (need determination, survivability, monitoring, AHJ acceptance) may
+  not apply; confirm which system the section specifies.

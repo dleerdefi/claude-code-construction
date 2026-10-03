@@ -10,7 +10,8 @@ last_reviewed: null
 scope_summary: >
   Power sources, surge protection, cybersecurity, servers and storage,
   network equipment and systems integration for security systems (28 05 07
-  through 28 05 53 inherit from here). These are the parts that connect
+  through 28 05 53 inherit from here, except 28 05 37, which compiles as
+  radio coverage under 27 53 19). These are the parts that connect
   security to everything else: the network it rides on, the power it needs
   during an outage, and the interfaces to fire alarm, elevators and building
   automation that nobody owns unless the documents say who does.

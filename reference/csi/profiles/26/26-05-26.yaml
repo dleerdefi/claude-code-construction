@@ -1,0 +1,49 @@
+schema_version: 1
+kind: section
+id: "26 05 26"
+title: Grounding and Bonding for Electrical Systems
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  The grounding electrode system, bonding of building steel and piping, and
+  the equipment grounding the spec adds beyond the code (separate grounding
+  conductors, isolated grounds, ground bars in electrical and telecom rooms).
+  The expensive part is buried or cast in first: the concrete-encased
+  electrode and ground ring go in with the footings, long before anyone
+  reviews the service equipment, and the telecom and lightning protection
+  grounding have to connect to it.
+
+submittals:
+  - id: 26gb.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Grounding electrode system as it will be built, with connections to footing reinforcing, building steel and water service
+  - id: 26gb.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Grounding electrode resistance results, with the method, where specified
+
+review_checks:
+  - id: 26cw.grounding-electrode
+    kind: constructability
+    check: >
+      The grounding electrode system (concrete-encased electrode in the
+      footing, ground ring, building steel, water service, supplemental rods)
+      is detailed, and the footing electrode or bonded reinforcing stub-up is
+      placed and inspected before the footing pour.
+    trace_to: [drawings.electrical, drawings.foundation, drawings.details]
+    severity: high
+    owner: gc
+    gate: foundation_pour
+
+failure_modes:
+  - id: 26cw.fm.electrode-missed
+    what_happens: Concrete-encased grounding electrode not placed or not bonded before the footing pour
+    consequence: Supplemental electrodes or chipping to reach reinforcing; inspection hold at service energization
+    caught_by: [26cw.grounding-electrode]
+    source: industry_practice

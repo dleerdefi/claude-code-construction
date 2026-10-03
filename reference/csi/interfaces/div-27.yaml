@@ -62,7 +62,7 @@ edges:
     severity: high
 
   - id: if.27-paging-fire-alarm
-    a: ["27 50 00"]
+    a: ["27 51 00"]
     a_trade: Paging, music and sound masking
     b: ["28 46 00"]
     b_trade: Fire detection and alarm

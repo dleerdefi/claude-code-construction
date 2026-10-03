@@ -60,7 +60,6 @@ review_checks:
 
 reconciliations:
   - id: 26el.rc.egress-paths
-    reflex: true
     between: [drawings.life_safety, drawings.electrical]
     key: Egress path segment (room, corridor, stair and landing, exit discharge)
     fields: [emergency luminaires present, exit signs at exits and changes of direction, source]
