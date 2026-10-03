@@ -29,14 +29,17 @@ Git ignores everything inside those two folders, so the downloads and anything t
 On Windows, macOS or Linux, from the plugin root:
 
 ```bash
-bin/construction-python evals/harness/run.py --tag smoke --runs 1
+bin/construction-python evals/harness/run.py --tag smoke --runs 1      # built-in sample project, 4 cases, about $5
+bin/construction-python evals/harness/run.py --tag real --runs 1       # the Sanibel documents, 9 cases
+bin/construction-python evals/harness/run.py --tag synthetic --runs 1  # generated bids and templates, 3 cases
+bin/construction-python evals/harness/run.py --runs 1                  # everything, about $25-30 on Sonnet
 ```
 
-This runs the smoke tier (a small built-in sample project) through a headless Claude Code session and grades the output; see the [harness README](../evals/harness/README.md) for options, requirements and how runs are confined. On Windows it needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`).
+Each run is a headless Claude Code session that is then graded; see the [harness README](../evals/harness/README.md) for options, requirements and how runs are confined, and the [eval suite README](../evals/plugin/README.md) for what every case checks. On Windows the harness needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`). The `real` cases are skipped, not failed, when the Sanibel PDFs have not been downloaded.
 
 Alternatives:
 
 - `claude plugin eval` runs the same cases with Claude Code's own sandbox and report on macOS, Linux and WSL2: see the [plugin eval suite README](../evals/plugin/README.md).
 - **Manual checks** on any platform: see [Validating Your Install](VALIDATING.md).
 
-The **real-document tier** (the Sanibel set) is in progress; the plan is in [`evals/EVAL_SUITE_PLAN.md`](../evals/EVAL_SUITE_PLAN.md).
+Every skill except `viewport-highlighter` (which needs a running AgentCM project) has at least one case. The design notes behind the suite are in [`evals/EVAL_SUITE_PLAN.md`](../evals/EVAL_SUITE_PLAN.md).

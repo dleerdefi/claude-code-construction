@@ -1,6 +1,6 @@
-# Eval Suite Plan: All Skills (draft for review)
+# Eval Suite Plan: All Skills
 
-Status: draft, 2026-10-01. Nothing here is built yet. This document sets the direction for the new eval suite, classifies each skill by what it needs to be evaluated, inventories the synthetic data and hand-made ground truth we have to produce, and lists the open decisions.
+Status: built, 2026-10-02. Every skill except viewport-highlighter has a case in `evals/plugin/` (see its README for what each checks), the harness in `evals/harness/` runs them on Windows, macOS and Linux, and the fixtures and ground truth described below exist. This document keeps the design reasoning: what each skill needs to be evaluated, where the ground truth and synthetic documents come from, and what is still open.
 
 It replaces the "Planned coverage" table in [`evals/plugin/README.md`](plugin/README.md) and the earlier runner-based eval framework, which has been removed.
 
@@ -65,7 +65,7 @@ What this means for the suite:
 | spec-splitter | Yes (specs) | Text layer is present. Scope to a subset of sections. |
 | submittal-log-generator | Yes (specs) | Scope to one division or a pre-split subset. Needs ground-truth items for 2-3 sections. |
 | schedule-extractor | Yes | Target: the A500 door schedule. Standalone output is only the xlsx. |
-| tag-audit-and-takeoff | Yes, to confirm | Flat mode only (vision, no OCR). Door tags on the floor plans against the A500 schedule gives a completeness check. The floor plan sheets are not yet looked at. Hand-count ground truth. |
+| tag-audit-and-takeoff | Yes | Flat mode only (vision, no OCR). Door tags on A101 against the door numbers the sheet's text layer carries (16 of the 17 ground-floor doors in the A500 schedule). |
 | pe-review | Yes | Needs real conflicts found by someone with PE judgment (section 5). Limited to the four disciplines in the set. |
 | rfi-drafter | **Partial** | Needs a seeded issue, and the prompt must supply RFI number, from-party and dates. Template mode needs a synthetic template. Registry operations are deterministic (Layer 1). |
 | code-researcher | **Partial** | Offline it can only do Pass 1 and mark the rest `uncertain`. Grade the project inventory, the framing rule (no COMPLIANT / NON-COMPLIANT) and `uncertain` handling. It stops at checkpoint 1c. |
@@ -122,10 +122,10 @@ You cannot plant a conflict in a real PDF drawing set. Either someone with PE ju
 
 ## 6. Fix before eval
 
-These make graders fail by construction. All five were re-checked directly against the files on 2026-10-01. They are bugs users hit today, with or without evals.
+All five were re-checked directly against the files on 2026-10-01. They are bugs users hit today, with or without evals. Items 1 and 2 were fixed on 2026-10-02 because cases depended on them; the cases for items 3 to 5 were designed not to depend on the broken behaviour (no registry assertion after pe-review, no `docx_template_path`, no highlighting assertion), so those remain open.
 
-1. **schedule-extractor** `SKILL.md:236-237` uses `--source_sheet` and `--output_file`; `write_finding.py:56,58` takes `--source-sheet` and `--output-file`.
-2. **tag-audit-and-takeoff** needs `rasterize_page.py` (`SKILL.md:40`) but does not allow-list it (`:348-350`). Its output path is contradictory between `:288` and `:302`.
+1. ~~**schedule-extractor** used `--source_sheet` and `--output_file`; `write_finding.py` takes the hyphenated names.~~ Fixed.
+2. ~~**tag-audit-and-takeoff** needed `rasterize_page.py` without allow-listing it, and gave two output paths.~~ Fixed.
 3. **pe-review** never writes to the issue registry, but `rfi-drafter` and `issue-schema.md:111-115` say it does. Fix the docs or add the step.
 4. **subcontract-writer** appends its output after the template's existing body instead of filling placeholders (`generate_subcontract_docx.py:32-37`). Template-mode grading and the template design depend on this.
 5. **bid-tabulator** promises lowest/highest highlighting and a Total row (`SKILL.md:140-142`) that the script does not build. There is also no "Base Bid" row, and allowances are never rendered.
@@ -160,10 +160,12 @@ The harness (`evals/harness/`) reads the plugin-eval case format, so these apply
 
 **Not yet verified:** whether `claude -p` loads the plugin and runs a skill unattended on Windows; whether a `claude -p` driver can turn the sandbox on where the OS has one (macOS, Linux); what `AskUserQuestion` does inside an eval run; whether granting only `Write` (no Bash) avoids the Windows restriction; whether symlinks are allowed in case folders (the existing scaffold avoids them).
 
-## 9. Build order
+## 9. Build order (done)
 
-1. Resolve the open decisions above.
-2. Layer 1 script tests, and the fix-before-eval list.
-3. Ground truth and the trimmed subsets.
-4. Synthetic bids, templates and prompts.
-5. Layer 2 cases, starting with the plans-and-specs skills.
+1. Open decisions resolved for the test set; `.gitignore` and the Sanibel README written.
+2. Harness built; the two blocking skill fixes made.
+3. Ground truth derived by script from the PDFs; fixtures derived from the downloads.
+4. Synthetic bids, templates and the addendum generated.
+5. One case per skill, each run once through the harness on Windows before commit.
+
+Not done: Layer 1 script tests (the exporters, splitters, `issue_manager.py` and markup scripts have no direct tests yet); fixes 3 to 5 above; a viewport-highlighter case (needs AgentCM or a mocked API).
