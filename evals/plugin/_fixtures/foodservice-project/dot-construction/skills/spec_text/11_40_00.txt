@@ -1,0 +1,26 @@
+SECTION 11 40 00 - FOODSERVICE EQUIPMENT
+
+PART 1 - GENERAL
+1.1  SUMMARY
+A.  Section includes the foodservice equipment scheduled on Drawing FS-601, furnished, set and
+made ready for final connection. Hand sinks and the hood fire suppression system are included.
+1.2  COORDINATION
+A.  Electrical characteristics of each item shall match the Kitchen Equipment Connection Schedule
+on Drawing E-601. Report any difference before release for fabrication.
+B.  Exhaust hood length, model and capture area shall be as scheduled; coordinate duct collars with
+Division 23 and the fire suppression system with the fire alarm system.
+1.3  ACTION SUBMITTALS
+A.  Product Data: For every item scheduled on FS-601, keyed to the item number, with the scheduled
+model, options, accessories and electrical characteristics clearly marked.
+B.  Include wiring diagrams and utility connection data for each item.
+C.  Do not include items not scheduled unless submitted as a substitution under Section 01 25 00.
+1.4  REGULATORY REQUIREMENTS
+A.  Comply with the food code and plan review requirements of the health department having
+jurisdiction. Equipment shall be listed to the applicable NSF/ANSI standards.
+PART 2 - PRODUCTS
+2.1  EQUIPMENT
+A.  As scheduled on FS-601. Substitutions only under Section 01 25 00.
+PART 3 - EXECUTION
+3.1  INSTALLATION
+A.  Set equipment level, seal to adjacent surfaces, and coordinate final connections.
+END OF SECTION 11 40 00

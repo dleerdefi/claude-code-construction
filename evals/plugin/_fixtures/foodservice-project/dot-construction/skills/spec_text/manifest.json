@@ -1,0 +1,12 @@
+{
+  "11_40_00": {
+    "spec_title": "Foodservice Equipment",
+    "extraction_method": "pdfplumber",
+    "quality_rating": "GOOD",
+    "repair_attempted": false,
+    "pages_extracted": 1,
+    "character_count": 1436,
+    "failure_modes": [],
+    "extracted_at": "2026-10-01T12:00:00+00:00"
+  }
+}
