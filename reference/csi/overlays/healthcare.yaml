@@ -1,0 +1,108 @@
+schema_version: 1
+kind: overlay
+id: healthcare
+facility_type: healthcare
+title: Healthcare facilities
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Default scope for items without their own `sections`.
+sections: ["12 3*", "06 41*"]
+
+review_checks:
+  - id: hc.cleanable-surfaces
+    kind: conformance
+    sections: ["12 3*", "06 41*", "09"]
+    check: >
+      In patient care and clinical areas, exposed surfaces are non-porous,
+      cleanable and compatible with the owner's disinfectants, and edges are
+      sealed at wet locations (no exposed core at sinks).
+    trace_to: [spec.part2, schedule.finish]
+    severity: high
+    owner: subcontractor
+
+  - id: hc.handwash-stations
+    kind: coordination
+    sections: ["12 3*", "06 41*", "22 4*"]
+    check: >
+      Casework layouts do not block, replace or crowd required hand-washing
+      stations, and sink casework at those stations matches the scheduled
+      fixture type.
+    trace_to: [drawings.plans, schedule.plumbing_fixture]
+    severity: high
+    owner: gc
+
+  - id: hc.medication-security
+    kind: conformance
+    check: >
+      Casework in medication rooms and pharmacy areas carries the locking and
+      security hardware the program and owner standards require.
+    trace_to: [spec.part2, schedule.casework_hardware]
+    severity: medium
+    owner: subcontractor
+
+  - id: hc.headwall-conflicts
+    kind: coordination
+    check: >
+      Casework at patient care locations does not conflict with medical gas
+      outlets, nurse call devices or headwall equipment.
+    trace_to: [drawings.plans, drawings.lab_gas, drawings.electrical]
+    severity: medium
+    owner: gc
+
+escalate:
+  - target: cw.counter-heights
+    severity: critical
+    reason: Health facility licensing rules can govern casework heights beyond what the drawings show
+
+failure_modes:
+  - id: hc.fm.licensing-heights
+    what_happens: Counter heights checked against the drawings only; the state health facility rules governed and the drawings didn't reflect them
+    consequence: Casework fails licensing review after fabrication; rework and occupancy risk
+    caught_by: [cw.counter-heights]
+    source: field_experience
+
+regulatory_hooks:
+  - id: hc.rh.licensing-casework
+    topic: health-facility-licensing-casework
+    question: >
+      Does the state health facility licensing agency, or the FGI Guidelines
+      edition it adopts, impose casework, counter or work-surface requirements
+      beyond the drawings (heights, clearances, hand-washing adjacency, nurse
+      station and medication room configuration)?
+    applies_when: Any casework in a licensed healthcare occupancy
+    source_families: [health_facility_licensing, fgi_guidelines]
+    severity: critical
+
+  - id: hc.rh.infection-control-surfaces
+    topic: health-facility-cleanable-surfaces
+    sections: ["12 3*", "06 41*", "09"]
+    question: >
+      What surface, finish and ceiling cleanability requirements apply by space
+      type under the adopted FGI edition and state rules?
+    applies_when: Finishes and casework in clinical spaces
+    source_families: [health_facility_licensing, fgi_guidelines]
+    severity: high
+
+  - id: hc.rh.handwash-fixtures
+    topic: health-facility-handwashing-stations
+    sections: ["22 4*", "12 3*", "06 41*"]
+    question: >
+      What are the hand-washing station requirements (controls, splash
+      control, dispensers, adjacency) by space type?
+    applies_when: Sinks in clinical spaces
+    source_families: [health_facility_licensing, fgi_guidelines]
+    severity: high
+
+  - id: hc.rh.nonstructural-anchorage
+    topic: health-facility-nonstructural-anchorage
+    sections: ["12 3*", "06 41*", "11"]
+    question: >
+      Does the jurisdiction require pre-approved or engineered anchorage for
+      nonstructural components in healthcare occupancies, with submittal to the
+      health facility agency?
+    applies_when: Casework and equipment in healthcare occupancies
+    source_families: [health_facility_licensing, building_code_seismic]
+    severity: high

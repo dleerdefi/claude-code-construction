@@ -1,0 +1,85 @@
+schema_version: 1
+kind: division
+id: "12"
+title: Furnishings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+legacy_scope_file: reference/pe_expertise/scope-12-furnishings.md
+
+scope_summary: >
+  Casework, countertops, window treatments, furniture, rugs and mats, and site
+  furnishings. Much of the risk sits at interfaces: backing before close-in,
+  power and data matching furniture layouts, and plumbing at countertops.
+  Casework may be specified in Division 06 instead; check both.
+
+equivalents: ["06 41 00"]
+
+review_checks:
+  - id: d12.element-coverage
+    kind: completeness
+    check: >
+      Every tagged furnishing location on plans and elevations appears in the
+      submittal, and every submitted item maps back to a tag. List both
+      directions of the gap.
+    trace_to: [drawings.plans, drawings.interior_elevations]
+    severity: high
+    owner: subcontractor
+
+  - id: d12.finish-selections
+    kind: conformance
+    submittal_types: [Samples, Product Data]
+    check: >
+      Colors, finishes and patterns match the finish schedule, material legend
+      and the architect's selections.
+    trace_to: [schedule.finish, drawings.material_legend]
+    severity: medium
+    owner: subcontractor
+
+  - id: d12.furnished-by
+    kind: coordination
+    check: >
+      Owner-furnished and contractor-furnished designations (OFCI, OFOI, CFCI)
+      for each item match the contract documents.
+    trace_to: [spec.part1, drawings.plans]
+    severity: high
+    owner: gc
+
+  - id: d12.anchorage
+    kind: constructability
+    submittal_types: [Shop Drawings]
+    check: >
+      Wall and floor anchorage and support method are shown, with required
+      backing identified for each wall-mounted item.
+    trace_to: [drawings.details, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: d12.power-data
+    kind: coordination
+    check: >
+      Items needing power, data or integral lighting show device locations,
+      and those match the electrical drawings.
+    trace_to: [drawings.electrical]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: d12.fm.outlets-vs-layout
+    what_happens: Electrical rough-in follows an outdated furniture or casework layout
+    consequence: Outlets behind cabinets or in the wrong place; rework after finishes
+    caught_by: [d12.power-data]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: d12.rh.composite-wood-formaldehyde
+    topic: composite-wood-formaldehyde
+    question: >
+      Are composite wood products (particleboard, MDF, hardwood plywood) in
+      furnishings certified to the applicable formaldehyde emission standard,
+      and does the spec require more (e.g. no added formaldehyde)?
+    applies_when: Composite wood cores or panels in the submittal
+    source_families: [environmental]
+    severity: low

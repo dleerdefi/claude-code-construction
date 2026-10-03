@@ -1,0 +1,140 @@
+schema_version: 1
+kind: global
+id: global
+title: Rules for every submittal
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Checks that apply to every submittal regardless of section, drawn from
+  Division 01 submittal, substitution and product requirements practice
+  (01 33 00, 01 25 00, 01 60 00). The project's own Division 01 governs
+  where it is more specific.
+
+review_mode: package
+
+review_checks:
+  - id: g.section-identified
+    kind: completeness
+    check: >
+      Submittal identifies the spec section and article it responds to, and
+      covers one section unless Division 01 allows combined submittals.
+    trace_to: [spec.part1_submittals]
+    severity: low
+    owner: subcontractor
+
+  - id: g.required-items-present
+    kind: completeness
+    check: >
+      Every submittal item the section's Part 1 requires (product data, shop
+      drawings, samples, certificates, calculations, qualifications) is
+      included, or is logged as a separate pending submittal.
+    trace_to: [spec.part1_submittals, register.submittal_log]
+    severity: high
+    owner: subcontractor
+
+  - id: g.current-documents
+    kind: conformance
+    check: >
+      The submittal reflects the current contract documents, including
+      addenda, ASIs, bulletins and responded RFIs, not the bid set. Note the
+      drawing revision the submitter worked from.
+    trace_to: [drawings.revision_blocks, register.asi_bulletin_log, register.rfi_log]
+    severity: high
+    owner: gc
+
+  - id: g.basis-of-design
+    kind: conformance
+    check: >
+      Proposed manufacturer and model match the basis of design or a listed
+      acceptable manufacturer. Anything else is a substitution and needs an
+      approved substitution request before review.
+    trace_to: [spec.part2_manufacturers, register.substitutions]
+    severity: high
+    owner: gc
+
+  - id: g.products-marked
+    kind: completeness
+    submittal_types: [Product Data]
+    check: >
+      Cut sheets covering a product family have the proposed model, size,
+      options, finish and accessories clearly marked; unmarked sheets are
+      returned.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: g.deviations-identified
+    kind: conformance
+    check: >
+      Every deviation from the contract documents is clouded or listed by the
+      submitter. Compare independently; do not rely on the submitter's list.
+    trace_to: [spec.part2, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: g.by-others-mapped
+    kind: coordination
+    check: >
+      Every "by others", "NIC", "furnished by owner" or "by GC" note is
+      mapped to a specific responsible party in the contract documents or a
+      subcontract. An unmapped "by others" is a scope gap.
+    trace_to: [spec.part1, drawings.details]
+    severity: high
+    owner: gc
+
+  - id: g.field-verify
+    kind: constructability
+    submittal_types: [Shop Drawings]
+    check: >
+      Dimensions marked "verify in field" are listed with who verifies them
+      and the milestone they depend on, before fabrication release.
+    trace_to: [schedule.master]
+    severity: medium
+    owner: gc
+
+  - id: g.delegated-design
+    kind: completeness
+    submittal_types: [Delegated Design, Design Data]
+    check: >
+      Delegated design carries the required professional seal and is routed
+      for Engineer of Record review.
+    trace_to: [spec.part1_submittals]
+    severity: high
+    owner: subcontractor
+
+  - id: g.lead-time
+    kind: constructability
+    check: >
+      Stated lead time supports the schedule activity that needs the product,
+      counting review and resubmittal cycles.
+    trace_to: [schedule.master]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: g.fm.superseded-revision
+    what_happens: Shop drawings prepared from the bid set; later ASIs and RFI responses never incorporated
+    consequence: Fabrication to a superseded design; rework or field modification
+    caught_by: [g.current-documents]
+    source: industry_practice
+
+  - id: g.fm.unmarked-cut-sheet
+    what_happens: Product data for a whole product family approved with nothing marked
+    consequence: Wrong model, voltage or finish ordered; approval stamp can't settle the dispute
+    caught_by: [g.products-marked]
+    source: industry_practice
+
+  - id: g.fm.silent-deviation
+    what_happens: Sub changes a material or dimension without clouding it
+    consequence: Approval stamp argued as acceptance of the change
+    caught_by: [g.deviations-identified]
+    source: industry_practice
+
+  - id: g.fm.by-others-gap
+    what_happens: Submittal notes an item "by others" that no other contract includes
+    consequence: Scope gap discovered at install; change order
+    caught_by: [g.by-others-mapped]
+    source: industry_practice

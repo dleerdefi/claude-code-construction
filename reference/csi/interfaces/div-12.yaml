@@ -1,0 +1,125 @@
+schema_version: 1
+kind: interfaces
+id: div-12
+title: Interfaces involving Division 12 casework
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+edges:
+  - id: if.casework-backing
+    a: ["12 30 00", "06 41 00"]
+    a_trade: Casework
+    b: ["06 10 53", "09 22 16", "05 50 00"]
+    b_trade: Framing / rough carpentry / misc. metals
+    a_provides: In-wall supports and backing per elevation — type, location, height, load, bracket model
+    b_provides: Backing type for each wall assembly; confirmation it is installed and inspected before close-in
+    responsibility:
+      - item: Concealed in-wall brackets for wall-hung counters
+        typical: {furnish: "12 30 00", install: "06 10 53 or 09 22 16"}
+        confirm_in: [spec.part1, drawings.details]
+    gate: {milestone: wall_close_in, note: Before second-side gypsum board}
+    severity: critical
+    failure: Backing or brackets missed; finished walls opened after drywall
+
+  - id: if.casework-plumbing
+    a: ["12 30 00", "06 41 00"]
+    a_trade: Casework
+    b: ["22 40 00"]
+    b_trade: Plumbing
+    a_provides: Sink and faucet cutouts, bowl depth limits, access panels, knee-space and pipe-protection conditions
+    b_provides: Approved fixture models and cut sheets, rough-in heights and locations for supply and waste
+    responsibility:
+      - item: Sinks and faucets in casework tops
+        typical: {furnish: "22 40 00", install: "12 30 00 or 22 40 00", connect: "22 40 00"}
+        confirm_in: [spec.part1, schedule.plumbing_fixture]
+    gate: {milestone: in_wall_rough_in}
+    severity: high
+    failure: Tops cut for a fixture that was later substituted; rough-in lands inside a cabinet back or drawer
+
+  - id: if.casework-electrical
+    a: ["12 30 00", "06 41 00"]
+    a_trade: Casework
+    b: ["26 27 26", "26 51 00"]
+    b_trade: Electrical
+    a_provides: Device and light cutouts, backsplash heights, wiring chases and access
+    b_provides: Device locations and heights, under-cabinet fixture models and drivers
+    gate: {milestone: in_wall_rough_in}
+    severity: high
+    failure: Boxes behind upper cabinets or split by the backsplash; lights with no wiring path
+
+  - id: if.casework-base
+    a: ["12 30 00", "06 41 00"]
+    a_trade: Casework
+    b: ["09 65 13"]
+    b_trade: Resilient flooring
+    a_provides: Toe kick height and finish
+    b_provides: Base type at casework
+    responsibility:
+      - item: Base at casework toe kicks
+        typical: {furnish: "09 65 13", install: "09 65 13"}
+        confirm_in: [drawings.details, schedule.finish]
+    gate: {milestone: equipment_set}
+    severity: low
+    failure: Nobody carries base at casework; punch list item with no owner
+
+  - id: if.lab-casework-fume-hoods
+    a: ["12 35 53"]
+    a_trade: Laboratory casework
+    b: ["11 53 13"]
+    b_trade: Fume hoods
+    a_provides: Base cabinets and work surface under each hood, cutouts for hood services
+    b_provides: Hood dimensions, service locations, sash clearance, weight
+    gate: {milestone: procurement_release, note: Review hood and casework shops together}
+    severity: high
+    failure: Hood size changed; base cabinets and tops built to the old size
+
+  - id: if.lab-casework-services
+    a: ["12 35 53"]
+    a_trade: Laboratory casework
+    b: ["22 63 00", "22 40 00"]
+    b_trade: Laboratory gases and plumbing
+    a_provides: Service fixture types and locations on casework and tops
+    b_provides: Piping rough-in to each fixture; connection scope
+    responsibility:
+      - item: Laboratory service fixtures (turrets, valves, outlets)
+        typical: {furnish: "12 35 53", install: "12 35 53", connect: "22 63 00"}
+        confirm_in: [spec.part1, drawings.lab_gas]
+    gate: {milestone: in_wall_rough_in}
+    severity: high
+    failure: Fixtures furnished twice or not at all; final connections missed
+
+  - id: if.lab-casework-exhaust
+    a: ["12 35 53"]
+    a_trade: Laboratory casework
+    b: ["23 31 00"]
+    b_trade: HVAC ductwork
+    a_provides: Ventilated storage cabinet locations and vent connection sizes
+    b_provides: Exhaust connection or confirmation that cabinets stay unvented
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+    failure: Vented cabinets with no exhaust path
+
+  - id: if.lab-casework-eyewash
+    a: ["12 35 53"]
+    a_trade: Laboratory casework
+    b: ["22 45 00"]
+    b_trade: Emergency plumbing fixtures
+    a_provides: Top cutouts and access for deck-mounted eyewash and drench hose
+    b_provides: Fixture models, supply and tempering
+    gate: {milestone: in_wall_rough_in}
+    severity: medium
+    failure: Eyewash with no cutout or blocked by casework
+
+  - id: if.casework-headwall
+    a: ["12 30 00", "06 41 00"]
+    a_trade: Casework
+    b: ["22 63 00", "27 52 23"]
+    b_trade: Medical gas / nurse call
+    a_provides: Casework extents at patient care locations
+    b_provides: Outlet and device locations at headwalls and care stations
+    gate: {milestone: in_wall_rough_in}
+    severity: medium
+    failure: Upper cabinets or countertops cover medical gas outlets or nurse call devices
+    facility_types: [healthcare]

@@ -1,0 +1,158 @@
+schema_version: 1
+kind: section
+id: "12 35 53"
+title: Laboratory Casework
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Laboratory casework, chemical-resistant work surfaces, service fixtures,
+  storage for hazardous materials, and the casework side of fume hoods. On top
+  of casework review, the risk is the furnish / install / connect split for
+  service fixtures and the fit between casework, hoods, exhaust and plumbing,
+  which are usually separate submittals from separate vendors.
+
+review_checks:
+  - id: cw.grade-construction
+    override: true
+    check: >
+      Casework material and construction (metal, wood, phenolic, polypropylene,
+      plastic laminate) match Part 2, and the conformance claims and test data
+      are to the SEFA 8 document for that material, as the spec requires.
+    submittal_types: [Shop Drawings, Product Data, Test Reports]
+
+  - id: lc.work-surfaces
+    kind: conformance
+    submittal_types: [Product Data, Samples, Shop Drawings]
+    check: >
+      Work surface material, thickness and chemical resistance match the spec
+      and the lab program; marine edges, drip grooves and cup sinks are where
+      the CDs show them.
+    trace_to: [spec.part2, drawings.interior_elevations, drawings.details]
+    severity: medium
+    owner: subcontractor
+
+  - id: lc.service-fixtures
+    kind: coordination
+    submittal_types: [Shop Drawings, Product Data]
+    check: >
+      Every service fixture (lab gases, vacuum, air, water, purified water,
+      electrical pedestals) matches the CDs by location and type, and who
+      furnishes, installs and connects each one is explicit.
+    trace_to: [drawings.lab_gas, drawings.plumbing, drawings.electrical, spec.part1]
+    severity: high
+    owner: gc
+
+  - id: lc.fume-hood-interface
+    kind: coordination
+    submittal_types: [Shop Drawings]
+    check: >
+      Hood base cabinets, work surface under the hood, and cutouts match the
+      current fume hood submittal (width, depth, services, sash clearance), not
+      the original hood basis of design.
+    trace_to: [schedule.equipment, drawings.interior_elevations]
+    severity: high
+    owner: gc
+
+  - id: lc.ventilated-storage
+    kind: coordination
+    submittal_types: [Shop Drawings, Product Data]
+    check: >
+      Flammable and corrosive storage cabinets are vented or unvented as the CDs
+      and owner standards require; where vented, the connection size and
+      location are on the mechanical drawings.
+    trace_to: [drawings.mechanical, spec.part2]
+    severity: high
+    owner: gc
+
+  - id: lc.emergency-fixtures
+    kind: coordination
+    submittal_types: [Shop Drawings]
+    check: >
+      Deck-mounted eyewashes and drench hoses have top cutouts and clear access
+      as shown on the plumbing drawings.
+    trace_to: [drawings.plumbing, drawings.interior_elevations]
+    severity: medium
+    owner: gc
+
+  - id: lc.top-support
+    kind: constructability
+    submittal_types: [Shop Drawings]
+    check: >
+      Heavy work surfaces and tables have support frames, legs or wall rails
+      shown per the manufacturer; adjustable-height tables show their
+      electrical needs.
+    trace_to: [drawings.details, drawings.electrical]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: lc.fm.service-fixture-split
+    what_happens: Casework vendor furnishes service fixtures, plumbing assumes they are in its scope or vice versa
+    consequence: Duplicate fixtures or none; connections missed at turnover
+    caught_by: [lc.service-fixtures]
+    source: industry_practice
+
+  - id: lc.fm.vented-cabinet-no-duct
+    what_happens: Vented storage cabinets submitted with no exhaust connection in the mechanical design
+    consequence: Late duct and fan work, or cabinets plugged contrary to owner standards
+    caught_by: [lc.ventilated-storage]
+    source: industry_practice
+
+  - id: lc.fm.hood-size-changed
+    what_happens: Fume hood width changed in the hood submittal; casework base and top still built to the old width
+    consequence: Rework of base cabinets and tops at hood locations
+    caught_by: [lc.fume-hood-interface]
+    source: industry_practice
+
+standards:
+  - id: lc.std.sefa-8
+    name: SEFA 8 series
+    title: Laboratory grade casework — 8-M metal, 8-W wood, 8-PH phenolic, 8-P polypropylene, 8-PL plastic laminate
+    verify: Conformance and test data claims for the specified material
+    note: Confirm the edition the spec cites
+
+  - id: lc.std.sefa-3
+    name: SEFA 3
+    title: Laboratory Work Surfaces
+    verify: Work surface chemical-resistance and performance claims
+
+  - id: lc.std.sefa-7
+    name: SEFA 7
+    title: Laboratory Fixtures
+    verify: Service fixture claims
+
+regulatory_hooks:
+  - id: lc.rh.hazardous-storage
+    topic: laboratory-hazardous-materials-storage
+    question: >
+      What do the adopted fire code and laboratory fire protection standard
+      require for flammable and corrosive storage cabinets (construction,
+      labeling, quantity limits, venting)?
+    applies_when: Any flammable or corrosive storage cabinet in the casework
+    source_families: [fire_code]
+    severity: high
+
+  - id: lc.rh.emergency-eyewash
+    topic: emergency-eyewash-shower
+    question: >
+      Do emergency eyewash and shower locations, travel distance, water supply
+      and tempering meet the standard the owner or jurisdiction applies?
+    applies_when: Eyewash or drench hose integrated with the casework
+    source_families: [occupational_safety]
+    severity: high
+
+extract_fields:
+  - id: lc.xf.service-fixtures
+    label: Service fixtures (type, location, furnished by)
+    type: list
+    per: element
+    reconcile_against: [drawings.lab_gas, drawings.plumbing]
+
+  - id: lc.xf.storage-cabinets
+    label: Hazardous storage cabinets (type, vented or not)
+    type: list
+    per: element
+    reconcile_against: [drawings.mechanical]
