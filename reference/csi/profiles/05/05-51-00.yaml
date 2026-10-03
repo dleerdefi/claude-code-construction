@@ -1,0 +1,215 @@
+schema_version: 1
+kind: section
+id: "05 51 00"
+title: Metal Stairs
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # stringers, landings and connections by the stair fabricator's engineer
+review_mode: per_element
+element_types: [stair]
+equivalents: ["05 71 00"]
+
+scope_summary: >
+  Steel pan, plate and grating stairs, their landings, guards and handrails,
+  feature stairs, and ladders where they are specified with the stairs. The
+  architect sets the geometry; the stair engineer designs stringers, landings
+  and connections to the loads and criteria the documents give, and every
+  reaction lands on structure or walls someone else built. Riser uniformity is
+  unforgiving, so floor-to-floor heights and finish thicknesses have to be
+  known before fabrication. Stairs usually go in early as construction access,
+  so sequence, pan fill and protection of nosings are part of the review.
+
+suppress:
+  - id: 05mf.scope-coverage
+    reason: Miscellaneous-item buyout check; stair scope gaps are covered by the stair checks
+  - id: 05mf.fm.support-steel-orphan
+    reason: Miscellaneous-item buyout failure; not a stair pattern
+  - id: 05mf.bollards
+    reason: Not part of stair work
+  - id: 05mf.fm.bollard-utility-strike
+    reason: Not part of stair work
+  - id: 05mf.rh.vehicle-impact
+    reason: Not part of stair work
+
+submittals:
+  - id: 05mf.sub.shop-drawings
+    override: true
+    merge: replace
+    type: Shop Drawings
+    must_show:
+      - Plan and section of each stair with field-verified floor-to-floor heights, riser and tread dimensions, landing elevations and headroom
+      - Stringer, landing and support framing with every connection to structure or enclosure walls, and the embeds those connections need
+      - Tread and landing construction (pan and fill, plate, grating), nosing type and finish
+      - Guards and handrails with heights, infill, extensions and post and bracket attachment
+  - id: 05mf.sub.delegated-design
+    override: true
+    merge: replace
+    type: Delegated Design
+    must_show:
+      - Sealed calculations with the live, guard and handrail loads used, deflection and vibration criteria, and the reaction at each support
+
+review_checks:
+  - id: 05ms.design-criteria
+    kind: completeness
+    scope: package
+    check: >
+      The documents give the stair engineer what to design to: live loads
+      from the structural general notes, guard and handrail loads, deflection
+      limits, vibration criteria for long-span and feature stairs, and the
+      supports available at each floor and landing. Feature stairs also carry
+      the architect's limits on stringer depth and visible connections.
+    trace_to: [drawings.structural, spec.part1, drawings.details]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 05ms.field-verify
+    kind: constructability
+    check: >
+      Floor-to-floor heights are measured on the built slabs before the stair
+      is released for fabrication, and the risers are laid out for the
+      as-built heights so riser and tread variation stays within the adopted
+      code's tolerance.
+    trace_to: [drawings.building_sections, schedule.master]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 05ms.support
+    kind: constructability
+    check: >
+      Every stringer and landing lands on something designed for its
+      reaction: hangers from the floor above, posts to the slab, or embeds in
+      concrete or masonry enclosure walls placed before the pour or grout
+      lift. Support from gypsum shaft walls or non-structural framing needs
+      structural framing designed in, and attachments to rated exit enclosure
+      walls keep the wall's listing.
+    trace_to: [drawings.structural, drawings.enlarged_plans, schedule.partition_type]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 05ms.treads-finish
+    kind: coordination
+    check: >
+      Tread and landing construction is resolved: concrete fill in pans and
+      landings with its reinforcing and the trade that places it, nosing type
+      and profile to the accessibility standard, and the thickness of any
+      applied tread or landing finish carried into the riser layout.
+    trace_to: [drawings.details, schedule.finish, spec.part1]
+    severity: medium
+    owner: gc
+
+  - id: 05ms.rails-scope
+    kind: coordination
+    scope: package
+    check: >
+      One section furnishes the stair guards and handrails (this one or
+      05 52 00), they are detailed with the stair, and they carry through
+      landings and turns with the extensions the hook requires.
+    trace_to: [spec.part1, drawings.details]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+  - id: 05ms.construction-use
+    kind: constructability
+    scope: package
+    check: >
+      If stairs serve as construction access, the plan says when each stair is
+      set relative to the structure (shafts are hard to reach once the floors
+      above are framed), how unfilled pans get temporary treads, and how
+      nosings and finishes are protected until turnover.
+    trace_to: [schedule.master, spec.part1]
+    severity: medium
+    owner: gc
+    gate: steel_erection
+
+reconciliations:
+  - id: 05ms.rc.geometry
+    between: [drawings.enlarged_plans, drawings.building_sections, drawings.structural, schedule.finish]
+    key: Stair and flight
+    fields: [floor-to-floor height, riser count and height, tread depth, landing size and elevation, headroom, finish thickness at floors and landings]
+    check: >
+      Floor-to-floor heights, riser counts and landing elevations agree
+      across the stair plans, sections and the structural slab elevations,
+      and the finishes at floors and landings are included so the top and
+      bottom risers match the rest of the flight.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 05ms.fm.drawn-floor-heights
+    what_happens: Stair fabricated to the drawn floor-to-floor height instead of the built slabs
+    consequence: Top or bottom riser out of tolerance; flights refabricated or rejected at inspection
+    caught_by: [05ms.field-verify, 05ms.rc.geometry]
+    source: industry_practice
+
+  - id: 05ms.fm.finish-thickness
+    what_happens: Floor or landing finishes thicker or thinner than the riser layout assumed
+    consequence: Uneven first and last risers after finishes; grinding, built-up nosings or rebuilt landings
+    caught_by: [05ms.rc.geometry, 05ms.treads-finish]
+    source: industry_practice
+
+  - id: 05ms.fm.shaft-wall-support
+    what_happens: Stringers or landings fastened to gypsum shaft wall framing never designed to carry them
+    consequence: Posts or hangers added inside a finished enclosure, and the enclosure rating compromised by the fix
+    caught_by: [05ms.support]
+    source: industry_practice
+
+  - id: 05ms.fm.pan-fill-gap
+    what_happens: Concrete fill in stair pans and landings carried by neither the stair nor the concrete subcontract
+    consequence: Change order, and stairs that cannot be used as access until someone fills them
+    caught_by: [05ms.treads-finish, if.03-stair-pan-fill]
+    source: industry_practice
+
+  - id: 05ms.fm.lively-feature-stair
+    what_happens: Feature stair designed for strength only, with no vibration criterion
+    consequence: A lively stair the owner rejects; stiffening that changes the architecture
+    caught_by: [05ms.design-criteria]
+    source: industry_practice
+
+  - id: 05ms.fm.set-too-late
+    what_happens: Stairs scheduled after the floors above closed off crane access to the shaft
+    consequence: Flights hand-set in pieces, temporary access kept longer, schedule loss
+    caught_by: [05ms.construction-use]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 05ms.rh.geometry
+    topic: stair-geometry-requirements
+    question: >
+      What riser and tread limits, dimensional uniformity tolerance, nosing
+      projection and profile, headroom, and landing depth and width do the
+      adopted building code and accessibility standard require for these
+      stairs, including any exit stair width set by occupant load?
+    applies_when: Every stair
+    source_families: [building_code, accessibility]
+    severity: high
+
+  - id: 05ms.rh.tread-marking
+    topic: stair-nosing-contrast-marking
+    question: >
+      Must these metal stairs carry luminous egress path markings (on
+      nosings, landings and handrails, by building height or occupancy) or
+      contrasting stripes on treads and nosings, and where does each marking
+      have to go?
+    applies_when: Exit stairs in high-rise or covered occupancies, and stairs under accessibility rules that require marked nosings
+    source_families: [building_code, fire_code, accessibility]
+    severity: medium
+
+extract_fields:
+  - id: 05ms.xf.geometry
+    label: Floor-to-floor height, riser count and height, tread depth per flight
+    type: list
+    per: element
+    reconcile_against: [drawings.building_sections, drawings.enlarged_plans]
+  - id: 05ms.xf.reactions
+    label: Support reactions per stair
+    type: list
+    per: element
+    reconcile_against: [drawings.structural]

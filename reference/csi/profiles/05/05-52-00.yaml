@@ -1,0 +1,204 @@
+schema_version: 1
+kind: section
+id: "05 52 00"
+title: Metal Railings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # railing and anchorage design delegated to the fabricator's engineer
+equivalents: ["05 73 00"]
+
+scope_summary: >
+  Guards and handrails of steel, stainless steel and aluminum, with metal,
+  mesh or glass infill, on stairs, ramps, balconies, mezzanines, roofs and
+  site walls. The railing engineer designs to loads the code sets, but the
+  weak point is almost always the anchorage: posts at slab edges, on
+  stringers, on parapets and on walls that were never designed for them.
+  Geometry is code-driven and fails in the details (infill openings,
+  extensions, continuity). Exterior and pool-side railings fail at the finish
+  or the metal grade, not the structure.
+
+suppress:
+  - id: 05mf.scope-coverage
+    reason: Miscellaneous-item buyout check; railing scope gaps are covered by 05rl.site-railings
+  - id: 05mf.fm.support-steel-orphan
+    reason: Miscellaneous-item buyout failure; not a railing pattern
+  - id: 05mf.ladders
+    reason: Not part of railing work
+  - id: 05mf.fm.ladder-noncompliant
+    reason: Not part of railing work
+  - id: 05mf.rh.fixed-ladders
+    reason: Not part of railing work
+  - id: 05mf.bollards
+    reason: Not part of railing work
+  - id: 05mf.fm.bollard-utility-strike
+    reason: Not part of railing work
+  - id: 05mf.rh.vehicle-impact
+    reason: Not part of railing work
+
+submittals:
+  - id: 05mf.sub.shop-drawings
+    override: true
+    merge: replace
+    type: Shop Drawings
+    must_show:
+      - Each railing type with heights, infill and its openings, and handrail profile, extensions and returns
+      - Every mounting condition (embedded, core-drilled, fascia, top-of-slab, stringer, wall bracket, through roofing) with its anchor
+      - Expansion joints or slip splices in long runs
+  - id: 05mf.sub.delegated-design
+    override: true
+    merge: replace
+    type: Delegated Design
+    must_show:
+      - Sealed calculations for posts, rails, infill and glass, and for each anchorage condition, with the reactions given to the supporting structure
+  - id: 05rl.sub.samples
+    type: Samples
+    must_show:
+      - Finish samples for each metal and coating, including stainless finish and powder coat color
+
+review_checks:
+  - id: 05rl.anchorage
+    kind: constructability
+    check: >
+      Each mounting condition has a detail and the delegated calculation
+      covers it: posts embedded or core-drilled near slab edges and in
+      post-tensioned slabs, fascia posts on slab edges and stringers, wall
+      brackets, and posts through roofing, waterproofing or the air barrier
+      with a sleeve or flashing the membrane manufacturer accepts.
+    trace_to: [drawings.details, drawings.structural, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 05rl.geometry
+    kind: conformance
+    check: >
+      Guard heights, infill openings, bottom rail and stair-triangle openings,
+      handrail heights, extensions at the top and bottom of each run,
+      continuity through landings and turns, and clearance to walls match the
+      drawings and the guard and handrail hook.
+    trace_to: [drawings.details, drawings.enlarged_plans, drawings.building_sections]
+    severity: high
+    owner: subcontractor
+
+  - id: 05rl.glass
+    kind: conformance
+    check: >
+      Glass infill and structural glass guards use the glass type, makeup and
+      support arrangement (posts, base shoe, top rail) the delegated design
+      and the glass-guard hook require, and what holds the rail if a panel
+      breaks is stated.
+    trace_to: [drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 05rl.exposure
+    kind: conformance
+    check: >
+      Metal grade and finish suit the exposure the spec names (pools,
+      coastal sites, deicing salts, exterior): the stainless grade and
+      surface finish, galvanizing with a compatible topcoat, or anodized or
+      coated aluminum; powder coat over galvanizing includes the outgassing
+      step.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 05rl.thermal-movement
+    kind: constructability
+    check: >
+      Long exterior runs have expansion joints or slip splices sized for the
+      material's movement and aligned with building expansion joints.
+    trace_to: [drawings.details, drawings.plans]
+    severity: low
+    owner: subcontractor
+
+  - id: 05rl.site-railings
+    kind: absence
+    check: >
+      Railings and guards at site ramps and stairs, retaining walls, loading
+      docks and areaways shown on civil or landscape drawings are in a
+      section and a subcontract; they often fall between the site and
+      building specifications.
+    trace_to: [drawings.civil, drawings.landscape, drawings.site, spec.part1]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+failure_modes:
+  - id: 05rl.fm.slab-edge-posts
+    what_happens: Guard posts anchored near slab edges or into post-tensioned slabs with no embed or edge-distance check
+    consequence: Spalled slab edges or cut tendons; posts re-anchored with added steel
+    caught_by: [05rl.anchorage, d05.post-installed-anchors]
+    source: industry_practice
+
+  - id: 05rl.fm.bracket-no-backing
+    what_happens: Wall-mounted handrail brackets with no backing installed before the board went on
+    consequence: Walls opened to add backing, or brackets in board alone that pull out
+    caught_by: [if.05-railing-backing]
+    source: industry_practice
+
+  - id: 05rl.fm.infill-openings
+    what_happens: Infill, stair-triangle or bottom-rail openings larger than the code allows
+    consequence: Guards rejected at inspection; infill added in the field
+    caught_by: [05rl.geometry]
+    source: industry_practice
+
+  - id: 05rl.fm.missing-extensions
+    what_happens: Handrails stopped at the top and bottom risers without the required extensions and returns
+    consequence: Rails cut, extended and refinished in place
+    caught_by: [05rl.geometry]
+    source: industry_practice
+
+  - id: 05rl.fm.glass-guard
+    what_happens: Glass guard designed without the code's glass requirements or the rail it needs if a panel breaks
+    consequence: Glass replaced or a rail added after installation
+    caught_by: [05rl.glass]
+    source: industry_practice
+
+  - id: 05rl.fm.corrosion
+    what_happens: A standard stainless grade or painted steel used at a pool, coastal or salted exposure
+    consequence: Rust staining within a season or two; railings replaced
+    caught_by: [05rl.exposure]
+    source: industry_practice
+
+  - id: 05rl.fm.site-gap
+    what_happens: Site railings at ramps and walls in neither the civil nor the building subcontract
+    consequence: Change order late in the job, with accessibility inspection waiting on it
+    caught_by: [05rl.site-railings]
+    source: industry_practice
+
+standards:
+  - id: 05rl.std.astm-e935
+    name: ASTM E935
+    title: Standard Test Methods for Performance of Permanent Metal Railing Systems and Rails for Buildings
+    verify: Load test data offered in place of, or alongside, calculations
+  - id: 05rl.std.naamm-railing
+    name: NAAMM Pipe Railing Systems Manual
+    title: Pipe Railing Systems Manual (National Association of Architectural Metal Manufacturers)
+    verify: Fabrication and anchorage practice the spec references
+
+regulatory_hooks:
+  - id: 05rl.rh.glass-guards
+    topic: glass-in-guards
+    question: >
+      What does the adopted code require of glass in guards and handrail
+      assemblies (glazing type and makeup, design loads and factors, whether
+      a top rail or handrail must remain if a panel fails), and does the
+      submitted design meet it?
+    applies_when: Glass infill or structural glass guards
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: 05rl.xf.types
+    label: Railing types with height, infill and mounting condition
+    type: list
+    per: package
+    reconcile_against: [drawings.details]
+  - id: 05rl.xf.anchors
+    label: Anchor product and embedment per mounting condition
+    type: list
+    per: package
+    reconcile_against: [drawings.details, drawings.structural]

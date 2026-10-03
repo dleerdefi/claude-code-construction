@@ -1,0 +1,19 @@
+schema_version: 1
+kind: section
+id: "05 71 00"
+title: Decorative Metal Stairs
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+same_as: "05 51 00"   # feature and monumental stairs specified under Decorative Metal; reviewed as metal stairs
+
+scope_summary: >
+  Feature and monumental stairs specified as decorative metal. Everything in
+  metal stairs applies, and the design criteria matter more: long spans and
+  slender stringers make vibration, deflection and the reactions on the floor
+  edges the governing issues, and the architect's limits on visible
+  connections and stringer depth constrain the stair engineer. Exposed finishes
+  are approved by sample or mock-up and have to survive the rest of
+  construction.

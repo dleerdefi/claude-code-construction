@@ -1,0 +1,271 @@
+schema_version: 1
+kind: section
+id: "05 12 00"
+title: Structural Steel Framing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # members by the EOR; connections often delegated to the fabricator's engineer
+
+scope_summary: >
+  Structural steel members, connections, base plates and anchor rods, and the
+  bracing that makes the frame stable. The engineer of record sizes members;
+  connections are designed by the engineer of record or delegated to the
+  fabricator's engineer, and the documents must say which and supply the
+  forces. Shop and erection drawings fix every hole, plate and opening long
+  before erection, so beam web penetrations, the coating plan, items for other
+  trades and depressed or stepped slabs have to be settled before release.
+  Anchor rods are set by another trade before the steel exists and are
+  surveyed before it is erected.
+
+submittals:
+  - id: 05st.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Erection drawings with member marks, top-of-steel elevations, and anchor rod and embed plans keyed to the foundation drawings
+      - The lateral system and the elements it relies on, with any temporary bracing the erector needs until they are complete
+      - Every connection type, identified as detailed by the EOR, selected from tables, or designed by the fabricator's engineer
+      - Beam web penetrations with any reinforcement the EOR requires
+      - Shop coating by member and surface, with faying surfaces and field-weld areas masked
+      - Items fabricated for other trades (cladding and curtain wall supports, hoist and divider beams, deck support angles, slab-edge plates)
+  - id: 05st.sub.delegated-design
+    type: Delegated Design
+    must_show:
+      - Connection calculations sealed by the fabricator's engineer, listing the force used for each connection and where on the drawings it came from
+
+review_checks:
+  - id: 05st.connection-responsibility
+    kind: absence
+    reflex: true
+    check: >
+      The contract documents say who designs the connections: the engineer of
+      record on the drawings, the detailer completing them from tables the
+      EOR allows, or the fabricator's licensed engineer. Where it is
+      delegated, they say which connection types are included (simple shear
+      only, or moment, bracing, collector and transfer connections too) and
+      whether calculations are submitted for review.
+    trace_to: [spec.part1, drawings.structural]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 05st.connection-forces
+    kind: completeness
+    check: >
+      For delegated connections the drawings give the connection designer the
+      forces: beam reactions, axial transfer forces, moments, brace and
+      collector forces, whether they are factored or service level, and the
+      design method. A percentage-of-uniform-load note is a weak basis for
+      short heavily loaded beams, transfer girders and beams carrying
+      concentrated loads; those need actual reactions on the drawings.
+    trace_to: [drawings.structural, spec.part1]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 05st.connection-review-sequence
+    kind: completeness
+    submittal_types: [Delegated Design, Shop Drawings]
+    check: >
+      Shop drawings are not released for fabrication until the engineer of
+      record has reviewed the connection design they use, and connections
+      changed later for fabrication or erection convenience (field welds for
+      bolts, a different plate or bolt layout) go back through the connection
+      designer and the EOR.
+    trace_to: [spec.part1_submittals]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 05st.anchor-rod-survey
+    kind: constructability
+    check: >
+      An as-built survey of anchor rods, embeds and bearing elevations is
+      compared with the approved erection drawings before any steel is set.
+      Rods out of tolerance get a repair the engineer of record approves (no
+      field bending, cutting or heating without it), and base plate leveling
+      and grouting are sequenced so columns are not loaded on leveling nuts
+      longer than the erection plan allows.
+    trace_to: [drawings.foundation, drawings.structural, spec.part3]
+    severity: high
+    owner: gc
+    gate: steel_erection
+
+  - id: 05st.coating-plan
+    kind: coordination
+    check: >
+      Coating is decided member by member before fabrication: bare where the
+      fireproofing listing or encasement in concrete needs it, faying surfaces
+      of slip-critical joints left uncoated or coated with a product qualified
+      for the slip class, field-weld areas masked, and exposed or exterior
+      members on the specified system. Shop primer applied by default to
+      everything is the usual error.
+    trace_to: [spec.part2, drawings.structural]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 05st.web-penetrations
+    kind: coordination
+    check: >
+      Duct and pipe penetrations through beam webs on the coordinated MEP
+      drawings or model are on the steel shop drawings before fabrication,
+      sized and located within the engineer of record's limits or reinforced
+      as the EOR directs. A hole cut in the field through a fabricated beam
+      needs the EOR's review one by one.
+    trace_to: [drawings.mechanical, drawings.plumbing, drawings.structural]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 05st.erection-stability
+    kind: constructability
+    check: >
+      The drawings identify the lateral force-resisting system and the
+      elements it depends on (deck or slab diaphragm, concrete cores, masonry
+      walls, bracing installed later). Where the frame is not self-supporting
+      until those are complete, the erector's temporary bracing plan says what
+      stays in place and until which work is finished.
+    trace_to: [drawings.structural, spec.part1]
+    severity: high
+    owner: gc
+    gate: steel_erection
+
+  - id: 05st.seismic-provisions
+    kind: conformance
+    check: >
+      Where frames are designed under the steel seismic provisions, the shop
+      drawings mark protected zones and demand-critical welds, the welding
+      procedures follow the seismic supplement, and the other trades are told
+      that nothing is welded, shot or bolted into a protected zone.
+    trace_to: [drawings.structural, spec.part1]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+reconciliations:
+  - id: 05st.rc.grids-elevations
+    between: [drawings.plans, drawings.structural, drawings.building_sections]
+    key: Grid line and floor level
+    fields: [grid spacing, column location, top-of-steel elevation, slab and topping thickness, slab depressions and steps]
+    check: >
+      Grids and column locations agree between architectural and structural
+      plans, and top-of-steel elevations equal the architectural floor
+      elevation less slab, topping and finish, with lowered steel where the
+      floor is depressed for thick-set finishes, recessed mats, showers or
+      walk-in boxes and stepped at roof and floor edges.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 05st.fm.connections-unassigned
+    what_happens: The spec delegates connections but the drawings give no forces, or neither party designs the moment and brace connections
+    consequence: Shop drawings stall in review while forces are produced; fabrication and erection slip
+    caught_by: [05st.connection-responsibility, 05st.connection-forces]
+    source: industry_practice
+
+  - id: 05st.fm.uniform-load-rule
+    what_happens: Connections for short heavily loaded beams or transfer girders designed to the percentage-of-uniform-load note
+    consequence: Under-strength connections found late in review or after erection; field reinforcement
+    caught_by: [05st.connection-forces]
+    source: industry_practice
+
+  - id: 05st.fm.anchor-rods-off
+    what_happens: Anchor rods cast out of position, rotated or at the wrong projection, found as the column is set
+    consequence: Erection stops; base plate modifications or post-installed anchors designed under schedule pressure
+    caught_by: [if.03-steel-anchorage, 05st.anchor-rod-survey]
+    source: industry_practice
+
+  - id: 05st.fm.torch-cut-webs
+    what_happens: Trades torch-cut holes through beam webs for ducts and pipes that were never on the shop drawings
+    consequence: Beams weakened without review; EOR evaluation and reinforcement in place, often after fireproofing
+    caught_by: [05st.web-penetrations, if.01-structural-cutting]
+    source: industry_practice
+
+  - id: 05st.fm.primed-faying-surfaces
+    what_happens: Shop primer applied over faying surfaces of slip-critical joints with a coating not qualified for the slip class
+    consequence: Joints rejected at inspection; disassembled and cleaned, or redesigned
+    caught_by: [05st.coating-plan]
+    source: industry_practice
+
+  - id: 05st.fm.protected-zone-attachments
+    what_happens: Other trades weld clips or shoot pins into protected zones of seismic frames
+    consequence: Damage the EOR must evaluate and repair at each location
+    caught_by: [05st.seismic-provisions, if.05-hanger-attachment]
+    source: industry_practice
+
+  - id: 05st.fm.bracing-removed-early
+    what_happens: Temporary bracing removed before the deck, slab or concrete core that stabilizes the frame is complete
+    consequence: Frame instability during construction, up to collapse
+    caught_by: [05st.erection-stability]
+    source: industry_practice
+
+  - id: 05st.fm.depression-not-in-steel
+    what_happens: Architectural slab depressions and steps not carried into structural top-of-steel elevations
+    consequence: Slab cast flat; finishes do not fit, so floors are ground, built up or ramped across the area
+    caught_by: [05st.rc.grids-elevations]
+    source: industry_practice
+
+  - id: 05st.fm.cladding-support-late
+    what_happens: Curtain wall and storefront anchor loads and support steel settled after the frame is fabricated
+    consequence: Field-welded kickers, edge plates and reinforced spandrel beams added from lifts at the building perimeter
+    caught_by: [if.05-cladding-anchorage]
+    source: industry_practice
+
+standards:
+  - id: 05st.std.aisc-360
+    name: ANSI/AISC 360
+    title: Specification for Structural Steel Buildings
+    verify: Design basis and the quality control and quality assurance provisions the spec invokes
+  - id: 05st.std.aisc-303
+    name: ANSI/AISC 303
+    title: Code of Standard Practice for Steel Buildings and Bridges
+    verify: Connection design option in force, shop drawing approval process, erection tolerances, and AESS categories where steel is exposed
+  - id: 05st.std.aisc-341
+    name: ANSI/AISC 341
+    title: Seismic Provisions for Structural Steel Buildings
+    verify: Protected zones, demand-critical welds and quality requirements for the seismic force-resisting system
+  - id: 05st.std.rcsc
+    name: RCSC Specification
+    title: Specification for Structural Joints Using High-Strength Bolts
+    verify: Joint type (snug-tight, pretensioned, slip-critical), faying surface class, installation and inspection method
+  - id: 05st.std.aws-d1-1
+    name: AWS D1.1/D1.1M
+    title: Structural Welding Code — Steel
+    verify: Welding procedures, qualifications and inspection for structural welds
+  - id: 05st.std.aws-d1-8
+    name: AWS D1.8/D1.8M
+    title: Structural Welding Code — Seismic Supplement
+    verify: Added requirements for demand-critical welds in the seismic force-resisting system
+
+regulatory_hooks:
+  - id: 05st.rh.seismic-steel
+    topic: steel-seismic-force-resisting-system
+    question: >
+      Do the seismic design category and the structural system require the
+      steel seismic provisions for this building, which frames form the
+      seismic force-resisting system, and what added welding, inspection and
+      attachment restrictions follow?
+    applies_when: Steel-framed buildings whose seismic force-resisting system is steel
+    source_families: [building_code_seismic]
+    severity: high
+
+extract_fields:
+  - id: 05st.xf.connection-option
+    label: Connection design option and the designer of each connection type
+    type: string
+    per: package
+    reconcile_against: [spec.part1, drawings.structural]
+  - id: 05st.xf.coating-by-member
+    label: Shop coating by member type and surface (bare, primer, galvanized, masked)
+    type: list
+    per: package
+    reconcile_against: [spec.part2]
+  - id: 05st.xf.anchor-rods
+    label: Anchor rod pattern, diameter, grade and projection per column
+    type: list
+    per: item
+    reconcile_against: [drawings.foundation, drawings.structural]

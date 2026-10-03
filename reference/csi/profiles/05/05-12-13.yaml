@@ -1,0 +1,123 @@
+schema_version: 1
+kind: section
+id: "05 12 13"
+title: Architecturally-Exposed Structural Steel Framing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Structural steel left exposed to view and held to an appearance standard on
+  top of the structural one. The AESS category assigned to each element sets
+  what the fabricator must do: weld profiles and grinding, seam orientation,
+  mill marks, connection appearance, tolerances. Most disputes come from steel
+  called AESS with no category, or a category with no mock-up to define
+  acceptance. Exposed steel also needs a coating, and often an intumescent
+  fire protection, that work together and survive erection.
+
+submittals:
+  - id: 05aess.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - AESS members and connections marked with their category, distinct from concealed steel
+      - Weld type and finish, bolt type and head orientation, and seam orientation for exposed hollow sections
+      - Vent, drain and erection-aid locations on exposed surfaces and how each is finished
+  - id: 05aess.sub.samples
+    type: Samples
+    must_show:
+      - Fabrication and finish sample or mock-up the category or spec requires, with the full coating system applied
+
+review_checks:
+  - id: 05aess.category
+    kind: absence
+    check: >
+      Every exposed member and connection has an AESS category on the
+      drawings or in the spec, and the shop drawings show which members and
+      faces are AESS. Steel noted only as "AESS", or exposed steel that is
+      never designated, is raised before detailing starts.
+    trace_to: [drawings.structural, drawings.building_sections, spec.part1]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 05aess.mock-up
+    kind: completeness
+    check: >
+      Where the category or the spec calls for a sample or mock-up, it is
+      fabricated, coated and approved before production fabrication and is
+      kept as the standard of acceptance, including the visible finish of any
+      intumescent coating.
+    trace_to: [spec.part1, spec.part3]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 05aess.connection-appearance
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Connection type and appearance match the architect's intent (bolted or
+      welded, concealed or expressed, continuous or ground welds, bolt heads
+      aligned), and changes made for fabrication or erection convenience go
+      to both the architect and the engineer of record.
+    trace_to: [drawings.details, drawings.structural]
+    severity: medium
+    owner: subcontractor
+
+  - id: 05aess.coating-fire
+    kind: coordination
+    check: >
+      The coating system and the fire protection work together: the
+      intumescent coating is listed over the specified primer or
+      galvanizing, the topcoat is compatible with both, and the dry film
+      build for the rating is achievable within the finish the mock-up
+      established.
+    trace_to: [spec.part2, drawings.structural]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 05aess.protection
+    kind: constructability
+    check: >
+      Shipping, rigging and erection protect AESS surfaces (softeners on
+      chokers, lifting lugs removed and ground, no temporary welds left
+      showing), and field touch-up and final finish are assigned to a trade
+      with access planned before lifts leave.
+    trace_to: [spec.part3]
+    severity: medium
+    owner: gc
+    gate: steel_erection
+
+failure_modes:
+  - id: 05aess.fm.no-category
+    what_happens: Exposed steel specified as AESS with no category, so the fabricator prices standard finishing
+    consequence: Architect rejects welds and surfaces after erection; finish dispute and grinding at height
+    caught_by: [05aess.category, 05aess.mock-up]
+    source: industry_practice
+
+  - id: 05aess.fm.galvanized-appearance
+    what_happens: Galvanized exposed steel accepted without a mock-up of the galvanized finish
+    consequence: Roughness, drips, distortion and vent holes rejected after erection
+    caught_by: [05aess.mock-up, d05.galvanizing-fabrication]
+    source: industry_practice
+
+  - id: 05aess.fm.intumescent-incompatible
+    what_happens: Intumescent coating applied over a shop primer or galvanizing its listing does not include
+    consequence: Delamination or a rating that cannot be documented; exposed steel stripped in place
+    caught_by: [05aess.coating-fire, if.fireproofing-steel-primer]
+    source: industry_practice
+
+  - id: 05aess.fm.erection-scars
+    what_happens: Exposed steel marked by chokers, temporary welds and lifting lugs during erection
+    consequence: Finish repaired at height, with patches that never match
+    caught_by: [05aess.protection]
+    source: industry_practice
+
+extract_fields:
+  - id: 05aess.xf.categories
+    label: AESS category per member group
+    type: list
+    per: package
+    reconcile_against: [spec.part1, drawings.structural]
