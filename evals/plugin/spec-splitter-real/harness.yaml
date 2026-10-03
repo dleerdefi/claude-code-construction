@@ -1,0 +1,4 @@
+checks:
+  - name: section-list
+    script: checks/section_list.py
+    weight: 3

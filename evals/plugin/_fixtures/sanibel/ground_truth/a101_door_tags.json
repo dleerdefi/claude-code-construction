@@ -1,0 +1,30 @@
+{
+ "sheet": "A101",
+ "level_in_schedule": "GROUND FLOOR (13' NAVD)",
+ "doors_in_schedule": 17,
+ "printed_on_sheet": {
+  "100": 2,
+  "101": 2,
+  "102": 2,
+  "103": 2,
+  "103A": 1,
+  "104": 2,
+  "104A": 1,
+  "105": 2,
+  "105A": 1,
+  "107": 2,
+  "108": 2,
+  "110": 2,
+  "111": 2,
+  "111A": 1,
+  "112": 2,
+  "113": 2,
+  "124": 0
+ },
+ "other_level_doors_printed_on_sheet": [
+  "001",
+  "001A",
+  "003"
+ ],
+ "doors_printed_at_least_once": 16
+}

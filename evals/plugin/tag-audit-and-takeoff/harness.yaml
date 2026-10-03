@@ -1,0 +1,4 @@
+checks:
+  - name: door-tag-count
+    script: checks/door_tags.py
+    weight: 4

@@ -1,0 +1,126 @@
+{
+  "company_name": "Palmetto Surface Systems Corp.",
+  "contact_name": "Renee Castellano",
+  "contact_phone": "(239) 555-0192",
+  "contact_email": "proposals@palmettosurface.example",
+  "bid_date": "February 16, 2024",
+  "bid_validity_period": "60 days",
+  "base_bid_amount": 599570.0,
+  "bond_included": true,
+  "schedule_duration": "11 weeks from notice to proceed",
+  "payment_terms": "Net 45 from approved pay application",
+  "addenda_acknowledged": [
+    "Addendum 1",
+    "Addendum 2"
+  ],
+  "line_items": [
+    {
+      "spec_section": "09 30 00",
+      "description": "Porcelain floor tile, installed",
+      "qty": 4200,
+      "unit": "SF",
+      "unit_price": 48.0,
+      "extended_price": 201600.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 30 00",
+      "description": "Ceramic wall tile, installed",
+      "qty": 2600,
+      "unit": "SF",
+      "unit_price": 33.0,
+      "extended_price": 85800.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 65 13",
+      "description": "Rubber base, 4 inch, with accessories",
+      "qty": 6800,
+      "unit": "LF",
+      "unit_price": 3.4,
+      "extended_price": 23120.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 65 40",
+      "description": "Luxury vinyl tile, installed",
+      "qty": 9500,
+      "unit": "SF",
+      "unit_price": 8.6,
+      "extended_price": 81700.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 65 40",
+      "description": "Allowance - substrate patching",
+      "qty": 1,
+      "unit": "LS",
+      "unit_price": 5000,
+      "extended_price": 5000.0,
+      "notes": "Allowance"
+    },
+    {
+      "spec_section": "09 65 67",
+      "description": "Resilient athletic flooring, installed",
+      "qty": 3800,
+      "unit": "SF",
+      "unit_price": 29.0,
+      "extended_price": 110200.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 67 00",
+      "description": "Resinous flake flooring EPX-2",
+      "qty": 2900,
+      "unit": "SF",
+      "unit_price": 12.0,
+      "extended_price": 34800.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 67 10",
+      "description": "Resinous quartz flooring EPX-3 and EPX-4",
+      "qty": 3100,
+      "unit": "SF",
+      "unit_price": 18.5,
+      "extended_price": 57350.0,
+      "notes": ""
+    }
+  ],
+  "alternates": [
+    {
+      "name": "Alternate A",
+      "description": "Polished concrete in lieu of luxury vinyl tile (09 65 40)",
+      "amount": 12500
+    },
+    {
+      "name": "Alternate B",
+      "description": "Delete resilient athletic finishes (09 65 67)",
+      "amount": -8000
+    }
+  ],
+  "scope_inclusions": [
+    "Furnish and install all materials, labor and equipment for the priced sections",
+    "Layout and cleaning of own work"
+  ],
+  "scope_exclusions": [
+    "Work outside normal hours",
+    "Painting or sealing of non-flooring surfaces"
+  ],
+  "qualifications": [
+    "Pricing assumes a single mobilization for each section",
+    "Pricing is budgetary only and not a firm offer",
+    "Alternate A: ADD $12,500 (polished concrete in lieu of luxury vinyl tile, 09 65 40)",
+    "Alternate B: DEDUCT $8,000 (delete resilient athletic finishes, 09 65 67)",
+    "An allowance of $5,000 is included for substrate patching; actual cost will be billed against the allowance",
+    "Material price increases after the validity period will be passed through",
+    "Moisture mitigation and ASTM F 1869 / F 2170 substrate testing are excluded"
+  ],
+  "allowances": [
+    {
+      "description": "Substrate patching",
+      "amount": 5000
+    }
+  ],
+  "insurance_confirmed": true
+}

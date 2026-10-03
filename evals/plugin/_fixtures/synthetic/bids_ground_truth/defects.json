@@ -1,0 +1,110 @@
+[
+  {
+    "bid": "B",
+    "slug": "island_tile_surface_inc",
+    "company_name": "Island Tile & Surface, Inc.",
+    "defect_type": "silent_omission",
+    "where": "09 65 13 Resilient Base and Accessories: no line item and no exclusion or mention anywhere in the bid",
+    "expected_tabulator_behaviour": "Extract only the lines present; do not invent a 09 65 13 line.",
+    "expected_evaluator_behaviour": "coverage_map 09 65 13 = SILENT (most dangerous); exclusion_scores CRITICAL (spec-required, uncarried, >1% of bid / >$5K); value it from another bidder's 09 65 13 line item and add it to the adjusted total as a documented adjustment."
+  },
+  {
+    "bid": "B",
+    "slug": "island_tile_surface_inc",
+    "company_name": "Island Tile & Surface, Inc.",
+    "defect_type": "math_error",
+    "where": "Stated base bid is $4,200 higher than the sum of the line items",
+    "expected_tabulator_behaviour": "Record base_bid_amount as stated; flag [MATH ERROR: line items sum to $X, bid states $Y]; workbook reconciliation row shows DISCREPANCY of -$4,200.",
+    "expected_evaluator_behaviour": "Flag the discrepancy, do not correct it; request clarification before award."
+  },
+  {
+    "bid": "C",
+    "slug": "palmetto_surface_systems_corp",
+    "company_name": "Palmetto Surface Systems Corp.",
+    "defect_type": "buried_exclusion",
+    "where": "Qualification #7 (page 3): moisture mitigation and ASTM F 1869 / F 2170 substrate testing excluded; absent from the exclusions list",
+    "expected_tabulator_behaviour": "Capture qualification #7 verbatim in qualifications; do not drop it for not being in the exclusions list.",
+    "expected_evaluator_behaviour": "coverage_map for moisture testing (09 65 40) = EXCLUDED; exclusion_scores CRITICAL if estimated >1% of bid or >$5K, otherwise SIGNIFICANT; spec requires the testing, so add its value (professional judgment, flagged as estimated) to the adjusted price."
+  },
+  {
+    "bid": "C",
+    "slug": "palmetto_surface_systems_corp",
+    "company_name": "Palmetto Surface Systems Corp.",
+    "defect_type": "budget_pricing",
+    "where": "Qualification #2: pricing is budgetary only and not a firm offer",
+    "expected_tabulator_behaviour": "Capture the qualification verbatim; do not present the base bid as firm.",
+    "expected_evaluator_behaviour": "Budget pricing is not a firm bid: not awardable. Segregate from firm bids with a caveat and do not rank it as an award candidate on price."
+  },
+  {
+    "bid": "C",
+    "slug": "palmetto_surface_systems_corp",
+    "company_name": "Palmetto Surface Systems Corp.",
+    "defect_type": "alternate_in_qualifications",
+    "where": "Qualifications #3 and #4: 'Alternate A: ADD $12,500' and 'Alternate B: DEDUCT $8,000'",
+    "expected_tabulator_behaviour": "Populate alternates[] with signed amounts (+12500, -8000) and keep the qualification text; the xlsx VE parser also picks them up.",
+    "expected_evaluator_behaviour": "Preserve the sign; never mix alternate amounts into the base bid; compare both alternates against the other bidders."
+  },
+  {
+    "bid": "C",
+    "slug": "palmetto_surface_systems_corp",
+    "company_name": "Palmetto Surface Systems Corp.",
+    "defect_type": "allowance",
+    "where": "Line 'Allowance - substrate patching' $5,000 (included in the base bid)",
+    "expected_tabulator_behaviour": "Record in allowances[] and as a line item with notes 'Allowance'.",
+    "expected_evaluator_behaviour": "Track as an allowance, not firm scope; adjust for allowance overrun risk and confirm units."
+  },
+  {
+    "bid": "C",
+    "slug": "palmetto_surface_systems_corp",
+    "company_name": "Palmetto Surface Systems Corp.",
+    "defect_type": "unit_price_outlier",
+    "where": "09 30 00 tiling unit prices ($48.00 and $33.00/SF vs $20.00 to $22.00 and $14.00 to $15.00/SF for the others)",
+    "expected_tabulator_behaviour": "Extract unit prices and units exactly as written.",
+    "expected_evaluator_behaviour": "Flag unit price outlier (>2x median) on 09 30 00 and calculate the exposure range."
+  },
+  {
+    "bid": "D",
+    "slug": "sandbar_flooring_contractors",
+    "company_name": "Sandbar Flooring Contractors",
+    "defect_type": "unclear_value",
+    "where": "09 67 10 extended price is hidden under an opaque smudge on the scan",
+    "expected_tabulator_behaviour": "Record extended_price as '[unclear: smudged on scan]' (never guess, never 0); text layer is empty so vision is required; true value is in ground_truth_hidden.",
+    "expected_evaluator_behaviour": "Flag the value as unclear, request clarification, and do not treat it as zero or silently back-solve it from the base bid."
+  },
+  {
+    "bid": "D",
+    "slug": "sandbar_flooring_contractors",
+    "company_name": "Sandbar Flooring Contractors",
+    "defect_type": "missing_addenda",
+    "where": "Addenda acknowledgement line is blank",
+    "expected_tabulator_behaviour": "addenda_acknowledged = [] (not acknowledged).",
+    "expected_evaluator_behaviour": "Flag no addenda acknowledgment (red flag / bid completeness); obtain written acknowledgement of Addenda 1 and 2 before award."
+  },
+  {
+    "bid": "E",
+    "slug": "mangrove_interiors_group",
+    "company_name": "Mangrove Interiors Group",
+    "defect_type": "short_validity",
+    "where": "Proposal valid for only 15 days (60 days required)",
+    "expected_tabulator_behaviour": "bid_validity_period = '15 days'.",
+    "expected_evaluator_behaviour": "Flag validity below 30 days and below the 60 days required; expires before a typical award date; request extension."
+  },
+  {
+    "bid": "E",
+    "slug": "mangrove_interiors_group",
+    "company_name": "Mangrove Interiors Group",
+    "defect_type": "no_bond",
+    "where": "Bond not mentioned (required for awards over $250,000)",
+    "expected_tabulator_behaviour": "bond_included = false.",
+    "expected_evaluator_behaviour": "Flag no bond on a bonded award (red flag); require a bond or exclude from award."
+  },
+  {
+    "bid": "E",
+    "slug": "mangrove_interiors_group",
+    "company_name": "Mangrove Interiors Group",
+    "defect_type": "stale_drawing_date",
+    "where": "09 65 67 priced 'per plans dated December 1, 2023'; current set is dated January 5, 2024",
+    "expected_tabulator_behaviour": "Capture the phrase verbatim in the line note and qualifications.",
+    "expected_evaluator_behaviour": "Flag wrong drawing date: the price may not reflect the current set; verify against Addenda 1 and 2 and the January 5, 2024 documents."
+  }
+]

@@ -1,0 +1,106 @@
+{
+  "company_name": "Mangrove Interiors Group",
+  "contact_name": "Priya Raman",
+  "contact_phone": "(239) 555-0163",
+  "contact_email": "hello@mangroveinteriors.example",
+  "bid_date": "February 19, 2024",
+  "bid_validity_period": "15 days",
+  "base_bid_amount": 426240.0,
+  "bond_included": false,
+  "schedule_duration": "10 weeks from notice to proceed",
+  "payment_terms": "Net 30",
+  "addenda_acknowledged": [
+    "Addendum 1",
+    "Addendum 2"
+  ],
+  "line_items": [
+    {
+      "spec_section": "09 30 00",
+      "description": "Porcelain floor tile, installed",
+      "qty": 4200,
+      "unit": "SF",
+      "unit_price": 20.0,
+      "extended_price": 84000.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 30 00",
+      "description": "Ceramic wall tile, installed",
+      "qty": 2600,
+      "unit": "SF",
+      "unit_price": 14.5,
+      "extended_price": 37700.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 65 13",
+      "description": "Rubber base, 4 inch, with accessories",
+      "qty": 6800,
+      "unit": "LF",
+      "unit_price": 3.3,
+      "extended_price": 22440.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 65 40",
+      "description": "Luxury vinyl tile, installed",
+      "qty": 9500,
+      "unit": "SF",
+      "unit_price": 9.0,
+      "extended_price": 85500.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 65 67",
+      "description": "Resilient athletic flooring, installed",
+      "qty": 3800,
+      "unit": "SF",
+      "unit_price": 27.5,
+      "extended_price": 104500.0,
+      "notes": "Priced per plans dated December 1, 2023"
+    },
+    {
+      "spec_section": "09 67 00",
+      "description": "Resinous flake flooring EPX-2",
+      "qty": 2900,
+      "unit": "SF",
+      "unit_price": 12.25,
+      "extended_price": 35525.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 67 10",
+      "description": "Resinous quartz flooring EPX-3 and EPX-4",
+      "qty": 3100,
+      "unit": "SF",
+      "unit_price": 18.25,
+      "extended_price": 56575.0,
+      "notes": ""
+    }
+  ],
+  "alternates": [
+    {
+      "name": "Alternate A",
+      "description": "Polished concrete in lieu of luxury vinyl tile (09 65 40)",
+      "amount": 39500
+    },
+    {
+      "name": "Alternate B",
+      "description": "Delete resilient athletic finishes (09 65 67)",
+      "amount": -97500
+    }
+  ],
+  "scope_inclusions": [
+    "Furnish and install all materials, labor and equipment for the priced sections",
+    "Moisture testing of concrete substrates per ASTM F 1869 and ASTM F 2170 before installation (09 65 40)"
+  ],
+  "scope_exclusions": [
+    "Patching of substrate beyond 1/8 inch",
+    "Work outside normal hours"
+  ],
+  "qualifications": [
+    "Section 09 65 67 is priced per plans dated December 1, 2023"
+  ],
+  "allowances": [],
+  "insurance_confirmed": true
+}

@@ -1,0 +1,97 @@
+{
+  "company_name": "Island Tile & Surface, Inc.",
+  "contact_name": "Daniel Okafor",
+  "contact_phone": "(239) 555-0178",
+  "contact_email": "bids@islandtileandsurface.example",
+  "bid_date": "February 20, 2024",
+  "bid_validity_period": "60 days",
+  "base_bid_amount": 417325.0,
+  "bond_included": true,
+  "schedule_duration": "14 weeks from notice to proceed",
+  "payment_terms": "Net 30",
+  "addenda_acknowledged": [
+    "Addendum 1",
+    "Addendum 2"
+  ],
+  "line_items": [
+    {
+      "spec_section": "09 30 00",
+      "description": "Porcelain floor tile, installed",
+      "qty": 4200,
+      "unit": "SF",
+      "unit_price": 22.0,
+      "extended_price": 92400.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 30 00",
+      "description": "Ceramic wall tile, installed",
+      "qty": 2600,
+      "unit": "SF",
+      "unit_price": 15.0,
+      "extended_price": 39000.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 65 40",
+      "description": "Luxury vinyl tile, installed",
+      "qty": 9500,
+      "unit": "SF",
+      "unit_price": 9.1,
+      "extended_price": 86450.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 65 67",
+      "description": "Resilient athletic flooring, installed",
+      "qty": 3800,
+      "unit": "SF",
+      "unit_price": 27.0,
+      "extended_price": 102600.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 67 00",
+      "description": "Resinous flake flooring EPX-2",
+      "qty": 2900,
+      "unit": "SF",
+      "unit_price": 13.25,
+      "extended_price": 38425.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 67 10",
+      "description": "Resinous quartz flooring EPX-3 and EPX-4",
+      "qty": 3100,
+      "unit": "SF",
+      "unit_price": 17.5,
+      "extended_price": 54250.0,
+      "notes": ""
+    }
+  ],
+  "alternates": [
+    {
+      "name": "Alternate A",
+      "description": "Polished concrete in lieu of luxury vinyl tile (09 65 40)",
+      "amount": 41000
+    },
+    {
+      "name": "Alternate B",
+      "description": "Delete resilient athletic finishes (09 65 67)",
+      "amount": -99500
+    }
+  ],
+  "scope_inclusions": [
+    "Furnish and install all materials, labor and equipment for the priced sections",
+    "Moisture testing of concrete substrates per ASTM F 1869 and ASTM F 2170 before installation (09 65 40)"
+  ],
+  "scope_exclusions": [
+    "Work outside normal hours",
+    "Permit fees"
+  ],
+  "qualifications": [
+    "Pricing is based on the Construction Documents dated January 5, 2024"
+  ],
+  "allowances": [],
+  "insurance_confirmed": true
+}

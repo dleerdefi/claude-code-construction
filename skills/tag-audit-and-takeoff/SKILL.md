@@ -42,9 +42,11 @@ You can also rasterize individual sheets on demand using the rasterize_page.py s
 - Write results back via API: `POST /api/projects/{id}/tag-detections/ingest`
 
 **Flat File mode** (no `.construction/project.yaml`):
-- Discover sheet images from CLAUDE.md or user-provided paths
+- Discover sheet images from CLAUDE.md or user-provided paths; rasterize sheet
+  PDFs with `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py <pdf> <page> --dpi 200 --output <png>`
 - Vision-only pipeline (Steps 2-3 skipped)
-- Write marked-up PNGs and QTO JSON to project directory
+- Write marked-up PNGs and the Excel workbook to the project directory; the QTO
+  JSON goes to `.construction/skills/tag-audit-and-takeoff/qto/` (Step 8)
 
 ## Step 1: User Scopes the Task
 
@@ -285,7 +287,7 @@ Each detection: `{ tag_text, tag_type, element_ids, bounding_box, confidence, vi
 `bounding_box` must be `{ x, y, width, height }` in normalized 0-1 coordinates.
 Results appear as highlighted overlays in AgentCM's canvas UI.
 
-Also write JSON to `.construction/agent_findings/qto_{tag_type}_{timestamp}.json`.
+In AgentCM mode, also write the finding to `.construction/agent_findings/qto_{tag_type}_{timestamp}.json`.
 
 **CRITICAL — use the EXACT schema from `references/qto-output-format.md`.**
 The Excel script is rigid and parses specific key names. Required keys:
@@ -345,6 +347,7 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 ## Allowed Scripts
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize a sheet PDF page to PNG (flat file mode, or on demand)
 - `scripts/markup_tags.py` — sheet markup with tag highlights
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/annotate_pdf.py` — native PDF annotations
 - `scripts/qto_to_xlsx.py` — QTO Excel export (4-sheet workbook)

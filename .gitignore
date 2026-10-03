@@ -21,34 +21,19 @@ __pycache__/
 # Eval results (generated, not tracked)
 evals/results/
 
-# Deprecated skill eval cases
-evals/cases/_deprecated_*/
-
-# Dev skill eval cases (not production)
-evals/cases/bulk-sheet-extraction/
-evals/cases/quantity-takeoff/
-evals/cases/qa-qc-auditor/
-evals/cases/rfi-drafter/
-
-# Eval cases for internal test projects (not shipped)
-evals/cases/*/case_*_cmurc.json
-evals/cases/*/case_*_ehrm.json
-evals/cases/*/case_*_ust.json
-evals/cases/*/case_*_sanibel.json
-evals/cases/*/case_*_steam.json
-evals/cases/*/case_*_uccs.json
-
-# Test documents — only Holabird-Academy included
-# Other test projects are for internal testing only at this time
+# Test documents: internal test projects are not shipped
 evals/test_docs/CMURC*/
 evals/test_docs/EHRM*/
 evals/test_docs/Replace*/
-evals/test_docs/SANIBEL*/
 evals/test_docs/Steam*/
 evals/test_docs/UCCS*/
 
-# Holabird large PDFs (users download via links in docs/RUNNING_EVALS.md)
-evals/test_docs/Holabird-Academy/**/*.pdf
+# Sanibel test set: drawings and specifications are downloaded separately
+# (links in docs/RUNNING_EVALS.md). The rest of the folder is tracked.
+evals/test_docs/SANIBEL*/01 - Drawings/*
+evals/test_docs/SANIBEL*/02 - Specifications/*
+!evals/test_docs/SANIBEL*/01 - Drawings/.gitkeep
+!evals/test_docs/SANIBEL*/02 - Specifications/.gitkeep
 
 # Generated spec/sheet splits (created by skills at runtime)
 evals/test_docs/**/specs/
@@ -71,12 +56,6 @@ Thumbs.db
 # PE expertise archive (retained for A/B testing, not shipped)
 reference/pe_expertise/
 
-# Eval cases with hardcoded local paths or A/B test artifacts (not shipped)
-evals/cases/bid-evaluator/case_01_flooring_eval.json
-evals/cases/pe-review/case_01_ab_test.json
-evals/cases/pe-review/test_queries.md
-evals/cases/pe-review/scoring_rubric.md
-
 # Browse daemon (not used by production skills)
 browse/
 
@@ -94,3 +73,6 @@ skills/tag-audit-and-takeoff/references/_deprecated_spatial_query.py
 # Plugin eval run output
 evals/plugin/results/
 .eval-home/
+
+# Eval fixtures derived from the downloaded Sanibel PDFs (make_fixtures.py)
+evals/plugin/_fixtures/sanibel/generated/

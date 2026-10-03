@@ -1,0 +1,4 @@
+checks:
+  - name: submittal-items
+    script: checks/submittal_items.py
+    weight: 4

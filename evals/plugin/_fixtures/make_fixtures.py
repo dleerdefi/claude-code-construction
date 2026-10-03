@@ -16,7 +16,7 @@ from pathlib import Path
 import fitz  # PyMuPDF
 
 OUT = Path(__file__).resolve().parent / "sample-project"
-PROJECT = "HOLABIRD ACADEMY RENOVATION"
+PROJECT = "SAMPLE OFFICE RENOVATION"
 
 SHEETS = [  # number, printed title, bookmark title
     ("G-001", "COVER SHEET AND DRAWING INDEX", "COVER SHEET AND DRAWING INDEX"),

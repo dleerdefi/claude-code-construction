@@ -1,0 +1,4 @@
+checks:
+  - name: door-schedule-accuracy
+    script: checks/door_schedule.py
+    weight: 4
