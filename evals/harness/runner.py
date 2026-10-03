@@ -149,7 +149,7 @@ async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunRes
         system_prompt={"type": "preset", "preset": "claude_code", "append": case.append_system_prompt}
         if case.append_system_prompt else {"type": "preset", "preset": "claude_code"},
         max_turns=case.max_turns,
-        max_budget_usd=opts.budget_usd,
+        max_budget_usd=case.budget_usd or opts.budget_usd,
         max_buffer_size=MAX_MESSAGE_BYTES,
         model=opts.model,
         add_dirs=[str(d) for d in case.add_dirs],
@@ -195,7 +195,8 @@ async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> R
         except asyncio.TimeoutError:
             result.is_error = True
             result.error = f"timed out after {case.timeout_seconds}s"
-        result.created_files = sorted(snapshot(workspace) - before)
+        finally:
+            result.created_files = sorted(snapshot(workspace) - before)
     except ScaffoldSkipped as e:
         result.skipped = True
         result.error = str(e)

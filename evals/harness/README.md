@@ -18,7 +18,7 @@ bin/construction-python evals/harness/run.py --tag smoke --runs 1
 | `--model M` | `sonnet` | Model for the agent under test |
 | `--judge-model M` | `haiku` | Model for `llm` graders |
 | `--judge-votes N` | 1 | Votes per `llm` grader; 3 matches plugin eval |
-| `--budget-usd X` | 3.0 | Hard spend cap per run |
+| `--budget-usd X` | 3.0 | Hard spend cap per run; a case can raise it with `budget_usd` in its `harness.yaml` |
 | `--threshold X` | 1.0 | A case passes at or above this score |
 | `--sandbox auto` | off | Turn the OS sandbox on where one exists (macOS, Linux) |
 | `--keep` | | Keep every workspace (failed runs are always kept) |

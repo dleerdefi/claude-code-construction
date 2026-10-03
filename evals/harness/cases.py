@@ -44,6 +44,7 @@ class Case:
     add_dirs: list[Path]
     graders: list[Grader]
     checks: list[Check] = field(default_factory=list)
+    budget_usd: float | None = None  # harness.yaml `budget_usd`, overriding the CLI default for this case
 
     @property
     def tags(self) -> list[str]:
@@ -96,15 +97,16 @@ def load_case(case_dir: Path) -> Case:
     for g in sorted((case_dir / "graders").glob("*.md")) if (case_dir / "graders").is_dir() else []:
         gmeta, body = split_frontmatter(g.read_text(encoding="utf-8"))
         graders.append(Grader(name=g.stem, type=str(gmeta.get("type", "")), fields=gmeta, body=body))
-    checks = []
+    checks, budget = [], None
     harness_yaml = case_dir / "harness.yaml"
     if harness_yaml.exists():
         hcfg = yaml.safe_load(harness_yaml.read_text(encoding="utf-8")) or {}
         for c in hcfg.get("checks", []):
             checks.append(Check(name=str(c.get("name") or Path(c["script"]).stem), script=case_dir / c["script"],
                                 weight=float(c.get("weight", 1))))
+        budget = float(hcfg["budget_usd"]) if hcfg.get("budget_usd") else None
     return Case(name=str(meta.get("name") or case_dir.name), dir=case_dir, prompt=prompt, meta=meta,
-                scaffold=scaffold, add_dirs=add_dirs, graders=graders, checks=checks)
+                scaffold=scaffold, add_dirs=add_dirs, graders=graders, checks=checks, budget_usd=budget)
 
 
 def load_cases(eval_dir: Path) -> list[Case]:
