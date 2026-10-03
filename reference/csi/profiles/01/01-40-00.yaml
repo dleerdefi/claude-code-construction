@@ -114,11 +114,14 @@ reconciliations:
     check: >
       Every inspection in the statement of special inspections has an
       engaged agency whose contract includes it, a schedule activity ahead of
-      the work it covers, and a notice procedure. Inspection types missing
-      from the agency's scope are raised before that work starts.
+      the work it covers, and a notice procedure, settled before the first
+      inspected activity starts. That activity is often fill placement, pile
+      installation, post-installed anchors in a renovation or shop
+      fabrication, not the first pour. Inspection types missing from the
+      agency's scope are raised before that work starts.
     severity: critical
     owner: gc
-    gate: foundation_pour
+    gate: procurement_release
 
 failure_modes:
   - id: 01qr.fm.covered-uninspected

@@ -10,8 +10,8 @@ last_reviewed: null
 contractor_designed: sometimes   # engineered demolition sequences and temporary shoring
 
 scope_summary: >
-  Structure demolition, selective demolition and selective site demolition
-  (02 41 13, 02 41 16 and 02 41 19 inherit). The review is about what has to
+  Selective site demolition, structure demolition and selective demolition
+  (02 41 13, 02 41 16 and 02 41 19 inherit, in that order). The review is about what has to
   be true before anything comes out: abatement cleared, services
   disconnected while the ones feeding areas that stay in use are kept alive,
   load-bearing elements shored to an engineered sequence, and
@@ -202,12 +202,6 @@ failure_modes:
     caught_by: [02dm.after-clearance, if.02-abatement-before-demolition]
     source: industry_practice
 
-  - id: 02dm.fm.abandoned-utility
-    what_happens: Site utilities abandoned without capping, filling or recording, or disconnected at the building instead of at the main
-    consequence: Live gas or water hit during excavation, voids under paving, and conflicts with new utility routing
-    caught_by: [if.02-site-utility-abandonment]
-    source: industry_practice
-
 standards:
   - id: 02dm.std.ansi-a10-6
     name: ANSI/ASSP A10.6
@@ -246,7 +240,7 @@ regulatory_hooks:
     severity: high
 
   - id: 02dm.rh.adjoining-property
-    topic: demolition-adjoining-property-protection
+    topic: adjoining-property-protection
     question: >
       What does the adopted building code require to protect adjoining
       property and the public during demolition (notice to adjoining owners,

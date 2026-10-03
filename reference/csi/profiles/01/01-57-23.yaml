@@ -1,0 +1,12 @@
+schema_version: 1
+kind: section
+id: "01 57 23"
+title: Temporary Storm Water Pollution Control
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# The construction stormwater permit and SWPPP, specified here or under
+# 01 57 13 or 31 25 00; one profile holds the knowledge for all three.
+same_as: "31 25 00"

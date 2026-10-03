@@ -55,7 +55,7 @@ failure_modes:
     source: industry_practice
 
   - id: 02asb.fm.sealer-blocks-fireproofing
-    what_happens: Lockdown sealer applied after fireproofing removal, and new fireproofing sprayed over it without bond data
+    what_happens: After fireproofing removal, the abatement contractor applies a lockdown sealer the replacement fireproofing's listing does not accept, and new fireproofing is sprayed over it without bond data
     consequence: Bond test failures; new fireproofing removed and the steel prepared again
     caught_by: [if.02-asbestos-fireproofing]
     source: industry_practice

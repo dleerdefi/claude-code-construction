@@ -28,7 +28,6 @@ submittals:
 review_checks:
   - id: sd.outlet
     kind: absence
-    reflex: true
     check: >
       Every subdrain has a defined outlet (storm structure, daylight, or a
       sump whose pump the plumbing drawings show) at an invert that drains

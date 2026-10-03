@@ -14,8 +14,8 @@ scope_summary: >
   and bollards. A small scope, but it is where accessible parking, curb
   ramps and fire lanes become countable by an inspector: stalls and access
   aisles against the accessibility standard and the site plan, detectable
-  warnings at every curb ramp and vehicular crossing, fire lane markings to
-  the fire department's rules. Cast-in detectable warnings must be on site
+  warnings wherever the public-way or state standard requires them, fire
+  lane markings to the fire department's rules. Cast-in detectable warnings must be on site
   before the ramp is poured, and markings on new asphalt wait for it to cure.
 
 suppress:
@@ -59,8 +59,10 @@ review_checks:
     kind: absence
     check: >
       Detectable warnings are shown at every curb ramp, blended transition
-      and hazardous vehicular crossing on the accessible route, including
-      at drive aisles that cross a walk without a curb.
+      and vehicular crossing where the detectable warnings hook finds them
+      required (the agency's standard on the public way; the adopted or
+      state standard on the site, which can differ), including drive aisles
+      that cross a walk without a curb.
     trace_to: [drawings.site, drawings.details]
     severity: high
     owner: design_team

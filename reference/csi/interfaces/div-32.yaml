@@ -13,7 +13,6 @@ last_reviewed: null
 edges:
   # ── Paving over utilities ─────────────────────────────────────
   - id: if.32-utilities-under-paving
-    reflex: true
     a: ["32 10 00"]
     a_trade: Paving
     b: ["33", "32 84 00"]
@@ -31,8 +30,8 @@ edges:
     severity: high
 
   - id: if.32-permeable-paving-stormwater
-    a: ["32 14 00", "32 12 00", "32 13 00"]
-    a_trade: Permeable pavements (pavers, porous asphalt, pervious concrete), where used
+    a: ["32 14 00", "32 12 43", "32 13 43"]
+    a_trade: Permeable pavements (permeable pavers, porous asphalt, pervious concrete), where used
     b: ["33 46 00"]
     b_trade: Stormwater management
     a_provides: Where the pavement is permeable, reservoir aggregate, underdrain and surface built after the contributing area is stabilized and kept free of sediment

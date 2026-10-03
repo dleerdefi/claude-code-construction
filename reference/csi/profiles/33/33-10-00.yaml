@@ -94,10 +94,12 @@ review_checks:
   - id: wa.meter-backflow
     kind: conformance
     check: >
-      Meter and backflow vaults or enclosures have freeze protection, test
-      access, and a drain or daylight outlet sized for a reduced pressure
-      assembly's relief discharge; a reduced pressure assembly in a pit
-      without a drain is rejected.
+      Meter and backflow vaults or enclosures have freeze protection and
+      test access. A reduced pressure assembly goes below grade only where
+      the service backflow hook finds the code and the purveyor allow it
+      (many require it above grade in a heated enclosure), and then in a
+      vault with a gravity drain to daylight sized for the full relief
+      discharge.
     trace_to: [drawings.civil, drawings.details, report.utility_requirements]
     severity: medium
     owner: design_team
@@ -140,8 +142,8 @@ failure_modes:
     source: industry_practice
 
   - id: wa.fm.rp-in-pit
-    what_happens: Reduced pressure assembly placed in a vault with no drain
-    consequence: Vault floods on relief discharge; the purveyor rejects the installation
+    what_happens: Reduced pressure assembly placed in a below-grade vault the code or purveyor does not allow, or one with no drain
+    consequence: The purveyor rejects the installation, or the vault floods on relief discharge and submerges the relief port; the assembly is moved above grade into a new enclosure
     caught_by: [wa.meter-backflow]
     source: industry_practice
 
@@ -173,10 +175,20 @@ regulatory_hooks:
     question: >
       What fire flow, hydrant spacing, distance from the building and from
       the fire department connection, and hydrant type do the fire code and
-      the fire department require, and how recent must the flow test used
-      for sprinkler design be?
+      the fire department require?
     applies_when: New buildings, hydrants or fire service mains
     source_families: [fire_code, public_works]
+    severity: high
+
+  - id: wa.rh.flow-test
+    topic: fire-protection-water-supply-test
+    question: >
+      For the fire service this main feeds, how old may the hydrant flow
+      test behind the sprinkler and standpipe design be, on which hydrants
+      and main must it be taken, and does the purveyor or fire department
+      have to perform or witness it?
+    applies_when: New fire service mains, and fire protection designs that rely on a flow test
+    source_families: [fire_code, utility_service_rules]
     severity: high
 
   - id: wa.rh.separation

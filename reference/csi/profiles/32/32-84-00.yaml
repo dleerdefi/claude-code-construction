@@ -126,7 +126,7 @@ standards:
 
 regulatory_hooks:
   - id: ir.rh.backflow
-    topic: irrigation-backflow-prevention
+    topic: cross-connection-backflow-protection
     question: >
       What backflow prevention do the plumbing code and the water purveyor
       require for landscape irrigation (assembly type for the hazard, with

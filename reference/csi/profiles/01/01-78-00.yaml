@@ -63,10 +63,11 @@ review_checks:
     kind: conformance
     submittal_types: [Warranty]
     check: >
-      Each warranty starts at substantial completion of the whole or of the
-      area the owner accepted, not at shipment, start-up or installation.
-      Where the manufacturer's standard terms start earlier, the submittal
-      shows the extension that covers the gap.
+      Each warranty starts on the date the contract sets (usually
+      substantial completion of the whole or of the area the owner
+      accepted), not at shipment, start-up or installation. Where the
+      manufacturer's standard terms start earlier, the submittal shows the
+      extension that covers the gap.
     trace_to: [spec.division_01, spec.part1, contract.general_conditions]
     severity: high
     owner: subcontractor

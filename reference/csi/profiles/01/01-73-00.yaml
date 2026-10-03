@@ -29,7 +29,6 @@ submittals:
 review_checks:
   - id: 01cp.patching-assigned
     kind: coordination
-    reflex: true
     check: >
       Cutting, patching the substrate, and finishing the patch to match are
       assigned by trade in Division 01 or the subcontracts, including
@@ -44,10 +43,12 @@ review_checks:
   - id: 01cp.structural-cutting
     kind: constructability
     check: >
-      No slab, beam, joist, bearing wall, post-tensioned or precast member is
-      cut, cored or drilled without the engineer's acceptance of the location
-      and a scan of the element; openings in joists, beam webs and
-      post-tensioned slabs stay inside the limits the engineer sets.
+      Cuts and cores through slabs, beams, joists, bearing walls and precast
+      members, and any drilling into post-tensioned or precast members, have
+      the engineer's acceptance of the location and, in concrete and
+      masonry, a scan for reinforcing, tendons and embedded services;
+      openings in joists, beam webs and post-tensioned slabs stay inside the
+      limits the engineer sets.
     trace_to: [drawings.structural, spec.division_01]
     severity: critical
     owner: gc
