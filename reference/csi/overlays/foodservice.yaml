@@ -1,0 +1,396 @@
+schema_version: 1
+kind: overlay
+id: foodservice
+facility_type: foodservice
+title: Foodservice facilities (commercial kitchens)
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# A commercial kitchen answers to the health department as well as the building
+# official: plan approval before construction and a pre-opening inspection that
+# no drawing mentions. Equipment, hoods, suppression, walk-ins and rough-in
+# plans are carried by 11 40 00 and 11 41 00 and their interface edges; this
+# overlay carries what the kitchen asks of the other trades (finishes, hand
+# sinks, receptors and interceptors, backflow, grease duct enclosures, building
+# pressure, lighting, pest exclusion, the roof) and the health department's
+# review of all of it. Default scope: foodservice equipment.
+sections: ["11 4*"]
+
+review_checks:
+  - id: food.plan-review
+    kind: completeness
+    scope: package
+    sections: ["11 4*", "13 21*", "09", "22", "23 38*", "26 5*"]
+    check: >
+      The health department's plan approval is in hand and its conditions are
+      carried into the submittals. Any equipment, sink or finish change made
+      after approval (substitution, relocation, owner reselection) is checked
+      against the approved plans and resubmitted where the health department
+      requires it, before the item is ordered.
+    trace_to: [drawings.foodservice, register.substitutions, spec.division_01]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: food.hand-sinks
+    kind: coordination
+    sections: ["22 4*", "11 4*"]
+    check: >
+      Hand sinks sit in or next to each food preparation, dispensing and
+      warewashing area as the health department requires, are not blocked by
+      equipment, carts or a door swing, and are separate from prep and utility
+      sinks. Whether each hand sink is a plumbing fixture or part of a custom
+      fabrication is settled, and tempered water, splash guards beside prep
+      surfaces, and soap and towel dispensers are each assigned to a trade or to
+      the owner.
+    trace_to: [drawings.foodservice, drawings.plumbing, schedule.plumbing_fixture]
+    severity: high
+    owner: gc
+
+  - id: food.required-sinks
+    kind: absence
+    sections: ["22 4*", "11 4*"]
+    check: >
+      The other sinks the health department requires are on the drawings and
+      assigned to the plumbing or foodservice scope: a warewashing sink with
+      the compartments and drainboards it requires, large enough for the
+      biggest utensil; a separate food preparation sink where produce washing
+      or thawing calls for one; and a service sink or curbed cleaning facility
+      for mop water.
+    trace_to: [drawings.foodservice, drawings.plumbing, schedule.plumbing_fixture]
+    severity: high
+    owner: design_team
+
+  - id: food.grease-interceptor
+    kind: constructability
+    sections: ["22 1*", "33 3*"]
+    check: >
+      The grease interceptor can be serviced where it is drawn: an indoor unit
+      outside food preparation and storage areas, with clearance above to open
+      it and remove baffles; an exterior unit with covers rated for the traffic
+      over it, a pump-truck route and hose reach, and the sampling point the
+      sewer authority's grease program requires.
+    trace_to: [drawings.plumbing, drawings.civil, drawings.site]
+    severity: high
+    owner: design_team
+    gate: underslab_rough_in
+
+  - id: food.grease-duct-enclosure
+    kind: coordination
+    sections: ["07 84*", "09 2*", "08 31*"]
+    check: >
+      Where grease duct runs in a rated shaft, the shaft builder works from the
+      duct's cleanout locations and clearances: a rated access door aligned with
+      every cleanout, the clearance between duct and shaft the code requires,
+      no other services in the shaft, and listed firestopping where the duct
+      leaves the hood ceiling and the roof. Where a listed wrap or factory-built
+      enclosure replaces the shaft, its listing's clearances and access panels
+      are followed.
+    trace_to: [drawings.mechanical, drawings.life_safety, drawings.details]
+    severity: critical
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: food.building-pressure
+    kind: coordination
+    scope: package
+    sections: ["23"]
+    check: >
+      With every hood running at its approved airflow, make-up air, transfer
+      air from dining and the building's outdoor air keep the kitchen negative
+      to dining and the building neutral or positive to outdoors, tempered as
+      the code and owner require. Balancing includes a capture and containment
+      check at each hood with the appliances hot, not only an airflow reading.
+    trace_to: [drawings.mechanical, schedule.mechanical_equipment, report.commissioning]
+    severity: high
+    owner: design_team
+
+  - id: food.cleanable-finishes
+    kind: conformance
+    sections: ["09"]
+    check: >
+      In food preparation, storage, warewashing and walk-in areas, floors,
+      walls and ceilings are smooth, nonabsorbent and washable as the health
+      department requires: coved base sealed to the floor, wall finish carried
+      behind equipment, washable non-perforated ceiling tile or gypsum rather
+      than standard acoustical tile, no exposed unsealed structure or utility
+      lines over open food, and floors sloped to drains where they are hosed.
+    trace_to: [schedule.finish, drawings.rcp, drawings.details]
+    severity: high
+    owner: design_team
+
+  - id: food.freezer-slab
+    kind: constructability
+    sections: ["03 3*", "13 21*"]
+    check: >
+      Before the slab is formed, each walk-in's floor type is settled
+      (insulated floor panels, or an insulated slab by the concrete trade), and
+      freezers on grade have under-floor heat or ventilation conduits placed
+      under the insulation with power, a control and monitoring, and a named
+      installer.
+    trace_to: [drawings.foodservice, drawings.structural, drawings.electrical]
+    severity: critical
+    owner: gc
+    gate: slab_pour
+
+  - id: food.lighting
+    kind: conformance
+    sections: ["26 5*"]
+    check: >
+      Fixtures over food preparation, display, storage and warewashing and
+      inside walk-ins are shielded, coated or shatter-resistant, rated for the
+      location (wet, damp, low temperature), and deliver the illumination the
+      health department requires in each area.
+    trace_to: [schedule.lighting_fixture, drawings.rcp]
+    severity: medium
+    owner: subcontractor
+
+  - id: food.backflow
+    kind: completeness
+    sections: ["22 1*", "22 4*"]
+    check: >
+      Every potable connection to kitchen equipment has the backflow device its
+      hazard calls for: beverage dispensers and carbonators, ice machines,
+      dishwashers, coffee, steam and combination ovens, chemical dispensers at
+      sinks and warewashers, and hose connections. Who furnishes each device
+      (equipment supplier or plumber) is explicit, and testable devices are
+      accessible.
+    trace_to: [drawings.plumbing, schedule.foodservice_equipment, spec.part2]
+    severity: high
+    owner: gc
+
+  - id: food.pest-exclusion
+    kind: absence
+    sections: ["08 7*", "07 84*", "07 92*", "09 2*"]
+    check: >
+      Pest exclusion is detailed and assigned: sweeps or seals and closers on
+      exterior doors, air curtains or screens where doors and windows open to
+      outdoors, sealing of pipe, conduit and duct penetrations through
+      non-rated walls and floors in food areas (firestopping covers only rated
+      ones), and sealed joints where equipment, casework and walls meet.
+    trace_to: [schedule.door_hardware, drawings.details, spec.part3]
+    severity: medium
+    owner: design_team
+
+  - id: food.roof-grease
+    kind: conformance
+    sections: ["07 5*"]
+    check: >
+      Around kitchen exhaust fans the membrane, walkway pads or sacrificial
+      layer are ones the roofing manufacturer accepts for grease exposure, and
+      grease containment at each fan is shown, so grease damage is not excluded
+      from the roof warranty.
+    trace_to: [drawings.roof_plan, drawings.details, spec.part2]
+    severity: medium
+    owner: gc
+    gate: roof_membrane
+
+reconciliations:
+  - id: food.rc.receptors
+    sections: ["22 1*", "22 4*"]
+    between: [drawings.plumbing, schedule.foodservice_equipment]
+    key: Floor sink, floor drain or trench receptor tag
+    fields: [equipment items draining to it, location relative to their outlets, grease or sanitary waste connection, size]
+    check: >
+      Working from the plumbing side, every floor sink and receptor serves an
+      item on the approved equipment schedule within reach of its outlet, and
+      is piped to grease waste or sanitary waste according to what drains to
+      it; receptors left over from the bid layout and items with no receptor
+      are listed.
+    severity: high
+    owner: design_team
+    gate: underslab_rough_in
+
+  - id: food.rc.food-areas
+    sections: ["09"]
+    between: [drawings.foodservice, schedule.finish]
+    key: Room or area
+    fields: [use on the foodservice plans (preparation, storage, warewashing, walk-in, service), floor, base, wall and ceiling finish]
+    check: >
+      Every room the foodservice plans use for preparation, storage or
+      warewashing carries washable finishes on the finish schedule; rooms
+      added to or renamed within the kitchen by the foodservice consultant
+      after the finish schedule was drawn are the usual gap.
+    severity: high
+    owner: design_team
+
+escalate:
+  - target: rf.roof-vapor-retarder
+    sections: ["07 5*"]
+    severity: high
+    reason: Dishwashing and cooking make kitchens humid spaces; without a roof vapor retarder, moisture condenses in the roof assembly over them in heating seasons
+
+failure_modes:
+  - id: food.fm.change-after-approval
+    sections: ["11 4*", "13 21*", "09", "22", "23 38*", "26 5*"]
+    what_happens: Equipment substituted, a sink dropped or a finish changed after health department plan approval, without resubmitting
+    consequence: Pre-opening inspection fails; opening slips while items are replaced or plans re-reviewed
+    caught_by: [food.plan-review]
+    source: field_experience
+
+  - id: food.fm.hand-sink-items-unassigned
+    sections: ["22 4*", "11 4*"]
+    what_happens: Soap and towel dispensers, splash guards or tempering at hand sinks fall between the foodservice contractor, the plumber and the owner
+    consequence: Missing at the pre-opening inspection; last-minute purchases and a re-inspection
+    caught_by: [food.hand-sinks]
+    source: field_experience
+
+  - id: food.fm.no-service-sink
+    sections: ["22 4*", "11 4*"]
+    what_happens: No service sink or mop basin in the kitchen, or a warewashing sink too small for the largest pots, because each scope assumed the other drew it
+    consequence: Plan review or pre-opening comment; a sink squeezed into a finished kitchen with new waste and supply lines
+    caught_by: [food.required-sinks]
+    source: field_experience
+
+  - id: food.fm.interceptor-unserviceable
+    sections: ["22 1*", "33 3*"]
+    what_happens: Interceptor placed under the cooking line, or in a drive aisle without traffic-rated covers or a pump-truck route
+    consequence: Pumping means opening a food area or blocking the drive; covers fail under traffic; relocation after opening
+    caught_by: [food.grease-interceptor]
+    source: field_experience
+
+  - id: food.fm.grease-shaft-no-access
+    sections: ["07 84*", "09 2*", "08 31*"]
+    what_happens: Shaft or wrap built around the grease duct with no rated access door at the duct cleanouts
+    consequence: Duct cannot be inspected or cleaned; enclosure cut open and access doors retrofitted before the final inspection
+    caught_by: [food.grease-duct-enclosure]
+    source: field_experience
+
+  - id: food.fm.building-negative
+    sections: ["23"]
+    what_happens: Make-up air and transfer air left at the bid-stage hood airflow after the approved hoods grew
+    consequence: Building runs negative; doors hard to open, flue gases spill from water heaters, hoods lose capture
+    caught_by: [food.building-pressure]
+    source: industry_practice
+
+  - id: food.fm.acoustical-tile
+    sections: ["09"]
+    what_happens: Standard acoustical ceiling tile carried into the kitchen because the finish schedule lists one ceiling type for the floor
+    consequence: Health department requires washable tile at pre-opening; ceiling replaced around installed hoods and fixtures
+    caught_by: [food.cleanable-finishes, food.rc.food-areas]
+    source: field_experience
+
+  - id: food.fm.freezer-heave
+    sections: ["03 3*", "13 21*"]
+    what_happens: Freezer slab on grade poured with insulation but no heat or vent conduits beneath it
+    consequence: Ground freezes over time; slab heaves and cracks and doors bind; floor replaced with the kitchen in operation
+    caught_by: [food.freezer-slab]
+    source: industry_practice
+
+  - id: food.fm.receptor-wrong-waste
+    sections: ["22 1*", "22 4*"]
+    what_happens: Receptors under grease-producing equipment piped to sanitary waste, or clean receptors piped through the interceptor, because the plumbing plan was drawn before the equipment list settled
+    consequence: Sewer authority violation, or an interceptor loaded past its capacity; underslab piping rerouted
+    caught_by: [food.rc.receptors]
+    source: field_experience
+
+  - id: food.fm.nonrated-penetrations-open
+    sections: ["08 7*", "07 84*", "07 92*", "09 2*"]
+    what_happens: Penetrations through non-rated kitchen walls left open because firestopping covers only rated assemblies and no section assigns the rest
+    consequence: Pest harborage found by the health department or pest control; walls opened behind installed equipment
+    caught_by: [food.pest-exclusion]
+    source: field_experience
+
+  - id: food.fm.roof-grease
+    sections: ["07 5*"]
+    what_happens: Grease from kitchen exhaust fans reaches a membrane not suited to it, with no containment at the fan
+    consequence: Membrane degrades around the fans; the roofing manufacturer excludes the damage from the warranty
+    caught_by: [food.roof-grease]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: food.rh.plan-review
+    topic: foodservice-plan-review
+    sections: ["11 4*", "13 21*", "09", "22", "23 38*", "26 5*"]
+    question: >
+      Does the health department require plan review and approval of the
+      kitchen before construction, resubmittal of later changes, and a
+      pre-opening inspection and permit to operate separate from the
+      certificate of occupancy; which Food Code edition has the state adopted?
+    applies_when: Any new or remodeled food establishment
+    source_families: [food_code, public_health]
+    severity: high
+
+  - id: food.rh.hand-sinks
+    topic: foodservice-handwashing-sinks
+    sections: ["22 4*", "11 4*"]
+    question: >
+      How many hand sinks are required and where (preparation, dispensing,
+      warewashing, bars, toilet rooms), at what minimum water temperature, and
+      with what splash guards, dispensers and signage?
+    applies_when: Hand sinks in food establishments
+    source_families: [food_code, plumbing_code]
+    severity: high
+
+  - id: food.rh.required-sinks
+    topic: foodservice-required-sinks
+    sections: ["22 4*", "11 4*"]
+    question: >
+      Besides hand sinks, which sinks does the adopted Food Code and health
+      department require (warewashing compartments and drainboards, food
+      preparation sinks, service sinks or curbed cleaning facilities), and how
+      are they sized?
+    applies_when: Kitchens, bars and food preparation areas
+    source_families: [food_code]
+    severity: high
+
+  - id: food.rh.receptors
+    topic: foodservice-indirect-waste
+    sections: ["22 1*", "22 4*"]
+    question: >
+      For the plumbing design, which kitchen fixtures and equipment need an air
+      gap or air break to a receptor, may any connect directly, and what limits
+      apply to receptor location, accessibility and the length of indirect
+      waste lines?
+    applies_when: Floor sinks, floor drains and receptors in food areas
+    source_families: [plumbing_code, food_code]
+    severity: high
+
+  - id: food.rh.interceptor-access
+    topic: grease-interceptor-sizing
+    sections: ["22 1*", "33 3*"]
+    question: >
+      Where may the grease interceptor be located (inside the building, in
+      food areas, under vehicle traffic), and what maintenance access, cover
+      rating, sampling point and pumping frequency does the sewer authority's
+      grease program require?
+    applies_when: Any kitchen discharging grease-laden waste
+    source_families: [plumbing_code, public_works]
+    severity: high
+
+  - id: food.rh.grease-shaft
+    topic: grease-duct-requirements
+    sections: ["07 84*", "09 2*", "08 31*"]
+    question: >
+      What fire-resistance rating, clearance to the duct, access openings and
+      exclusive use does the adopted code require of a shaft enclosing grease
+      duct, and which listed wraps or factory-built enclosures does the AHJ
+      accept in its place?
+    applies_when: Grease duct enclosures
+    source_families: [mechanical_code, building_code]
+    severity: high
+
+  - id: food.rh.surfaces-lighting
+    topic: food-establishment-surfaces-lighting
+    sections: ["09", "26 5*"]
+    question: >
+      What floor, wall and ceiling surface characteristics, coving, light
+      intensity and lamp shielding does the adopted Food Code require in each
+      area?
+    applies_when: Finishes and lighting in food preparation, storage and warewashing areas
+    source_families: [food_code]
+    severity: medium
+
+  - id: food.rh.backflow
+    topic: foodservice-backflow-prevention
+    sections: ["22 1*", "22 4*"]
+    question: >
+      Which backflow device do the adopted plumbing code and the water purveyor
+      require at each foodservice connection (beverage carbonators and the
+      piping material downstream of them, chemical dispensers, dishwashers,
+      hose connections), and must devices be tested and registered before use?
+    applies_when: Potable water connections to food equipment
+    source_families: [plumbing_code]
+    severity: high

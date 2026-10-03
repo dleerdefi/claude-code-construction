@@ -1,0 +1,203 @@
+schema_version: 1
+kind: overlay
+id: occupied_renovation
+facility_type: occupied_renovation
+title: Renovation in an occupied building
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# A project condition, listed in building.facility_types alongside the building
+# type. Demolition, hazardous-material procedures, temporary separation and
+# protection of existing work live in Divisions 01 and 02; this overlay carries
+# the condition into every trade's submittals: dimensions from the field,
+# shutdowns that cannot go wrong, life safety kept in service phase by phase,
+# and new work that has to work with what stays.
+sections: ["05 5*", "06 4*", "08", "09", "10", "12", "14", "21", "22", "23", "26", "27", "28"]
+
+review_checks:
+  - id: reno.field-measure-basis
+    kind: constructability
+    scope: package
+    check: >
+      Shop drawings for work that fits existing construction state where each
+      governing dimension came from (field measurement, scan or survey, or
+      record drawings). Anything taken from record or original drawings is
+      field-verified before release, and where verification needs ceilings or
+      walls opened in occupied areas, that access is arranged with the owner
+      ahead of fabrication.
+    trace_to: [report.existing_conditions, drawings.demolition, schedule.master]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: reno.shutdown-procedure
+    kind: completeness
+    scope: package
+    sections: ["21", "22", "23", "26", "27", "28"]
+    check: >
+      Each shutdown or tie-in of a system serving occupied areas has a written
+      method of procedure submitted within the owner's notice period: what is
+      affected (traced in the field, not assumed from drawings), isolation
+      valves and breakers proven to hold beforehand, sequence and duration,
+      temporary service, restoration checks, and a back-out plan if the work
+      overruns its window.
+    trace_to: [spec.division_01, drawings.demolition, schedule.master]
+    severity: high
+    owner: gc
+
+  - id: reno.phased-life-safety
+    kind: completeness
+    scope: package
+    sections: ["21 1*", "23 09*", "23 3*", "28 4*"]
+    check: >
+      Fire alarm, sprinkler and smoke control changes are phased so protection
+      stays in service outside work hours: device or zone cutovers, impairments
+      restored each shift, interim detection or fire watch where they cannot
+      be, and acceptance testing and the fire official's sign-off of each
+      phase before occupants return to it.
+    trace_to: [drawings.fire_alarm, drawings.fire_protection, spec.division_01, schedule.master]
+    severity: critical
+    owner: gc
+
+  - id: reno.odor-noise-work
+    kind: constructability
+    sections: ["03 8*", "07 1*", "07 5*", "07 92*", "09 6*", "09 9*"]
+    check: >
+      Products and methods that put odor, fumes, noise or vibration into
+      occupied space (solvent adhesives and coatings, hot or torch-applied
+      roofing near air intakes, coring, chipping, powder-actuated fastening)
+      are identified at submittal with the work windows, low-odor alternates,
+      intake protection and ventilation they need, before the first complaint
+      rather than after.
+    trace_to: [spec.division_01, spec.part2, drawings.roof_plan]
+    severity: medium
+    owner: gc
+
+  - id: reno.trade-disturbance
+    kind: absence
+    scope: package
+    sections: ["09 5*", "21", "22", "23", "26", "27", "28"]
+    check: >
+      Above-ceiling, in-wall and floor work by the finish and MEP trades in
+      existing areas is checked against the hazardous materials survey before
+      it starts: ceiling tile and plaster, pipe and duct insulation,
+      fireproofing, mastics and caulks, painted surfaces to be cut or sanded.
+      Material the survey did not sample is suspect until tested.
+    trace_to: [report.hazmat_survey, drawings.demolition]
+    severity: high
+    owner: gc
+
+  - id: reno.existing-systems-compatibility
+    kind: conformance
+    sections: ["08 7*", "09 5*", "23 09*", "26 09*", "26 5*", "27", "28"]
+    check: >
+      New work that connects to systems or finishes that remain is checked
+      against the existing items themselves: fire alarm devices listed as
+      compatible with the existing control panel, controllers on the existing
+      automation front end and protocol, cylinders in the existing keyway and
+      master key system, ceiling grid and tile profile, lighting controls that
+      work with existing circuits.
+    trace_to: [report.existing_conditions, spec.part2, spec.part2_manufacturers]
+    severity: high
+    owner: subcontractor
+
+  - id: reno.existing-rated-assemblies
+    kind: conformance
+    sections: ["07 84*", "09 2*"]
+    check: >
+      Penetrations and new openings in existing rated walls and floors use
+      systems listed for the existing construction as found (plaster on lath,
+      clay tile, hollow units, slabs of unconfirmed thickness), with the rating
+      taken from the life safety drawings and the construction confirmed in
+      the field; conditions no listing fits get engineering judgments before
+      the work, not after inspection.
+    trace_to: [drawings.life_safety, report.existing_conditions]
+    severity: high
+    owner: subcontractor
+
+failure_modes:
+  - id: reno.fm.record-drawing-fabrication
+    what_happens: Items fabricated to record or original drawings of the existing building without field verification
+    consequence: Items do not fit; refabrication in the middle of a phase while occupants wait for their space
+    caught_by: [reno.field-measure-basis]
+    source: field_experience
+
+  - id: reno.fm.valve-wont-hold
+    sections: ["21", "22", "23", "26", "27", "28"]
+    what_happens: A tie-in starts on a verbal OK; an isolation valve does not hold, or the circuit feeds more than the drawings show
+    consequence: Unplanned outage or flooding in occupied areas; damage claims and lost owner trust
+    caught_by: [reno.shutdown-procedure]
+    source: field_experience
+
+  - id: reno.fm.phase-reoccupied-untested
+    sections: ["21 1*", "23 09*", "23 3*", "28 4*"]
+    what_happens: Occupants return to a renovated phase before its fire alarm and sprinkler changes are acceptance-tested
+    consequence: Occupancy of the phase refused or revoked, or occupants protected by an untested system
+    caught_by: [reno.phased-life-safety]
+    source: field_experience
+
+  - id: reno.fm.fumes-at-intakes
+    sections: ["03 8*", "07 1*", "07 5*", "07 92*", "09 6*", "09 9*"]
+    what_happens: Roofing, adhesive or coating work runs upwind of outdoor air intakes of the occupied building
+    consequence: Fumes drawn inside, evacuation and a stop-work; intake protection and night shifts arranged after the fact
+    caught_by: [reno.odor-noise-work]
+    source: field_experience
+
+  - id: reno.fm.above-ceiling-asbestos
+    sections: ["09 5*", "21", "22", "23", "26", "27", "28"]
+    what_happens: An MEP crew removes ceiling tile or pipe insulation on an occupied floor without checking the survey
+    consequence: Uncontrolled asbestos disturbance in an occupied building; area evacuation, emergency abatement and regulatory exposure
+    caught_by: [reno.trade-disturbance]
+    source: field_experience
+
+  - id: reno.fm.incompatible-devices
+    sections: ["08 7*", "09 5*", "23 09*", "26 09*", "26 5*", "27", "28"]
+    what_happens: New devices or controllers submitted without listed compatibility with the existing panel or front end
+    consequence: Devices cannot be connected or supervised; panel replacement or a gateway at the end of the job
+    caught_by: [reno.existing-systems-compatibility]
+    source: field_experience
+
+  - id: reno.fm.existing-assembly-unlisted
+    sections: ["07 84*", "09 2*"]
+    what_happens: Firestop systems listed for new gypsum or concrete assemblies used on existing plaster, clay tile or hollow-unit walls
+    consequence: Penetrations rejected at inspection; engineering judgments and rework late in the phase
+    caught_by: [reno.existing-rated-assemblies]
+    source: industry_practice
+
+escalate:
+  - target: js.rh.voc
+    severity: medium
+    reason: Occupants next to the work breathe sealant and primer emissions while they cure
+  - target: rf.rh.reroofing
+    severity: high
+    reason: >
+      Reroofing an occupied building turns on the existing assembly (recover
+      limits, wet insulation) and on keeping the roof watertight over
+      occupants every night
+
+regulatory_hooks:
+  - id: reno.rh.existing-building-compliance
+    topic: existing-building-alteration-compliance
+    question: >
+      Which compliance method of the adopted existing building code applies to
+      this work (prescriptive, work area by level of alteration, or
+      performance), and what must the work area and adjacent areas be
+      upgraded to (sprinklers, fire alarm, egress, the accessible route and
+      path of travel to altered areas)?
+    applies_when: Alterations, additions and changes of occupancy in existing buildings
+    source_families: [building_code, accessibility]
+    severity: high
+
+  - id: reno.rh.phased-acceptance
+    topic: phased-occupancy-life-safety-acceptance
+    sections: ["21 1*", "23 09*", "23 3*", "28 4*"]
+    question: >
+      What acceptance testing, inspection and approval does the fire code
+      official require before a renovated phase of an occupied building is
+      reoccupied, and what interim measures apply while fire protection
+      systems are being cut over?
+    applies_when: Phased fire alarm, sprinkler or smoke control work in occupied buildings
+    source_families: [fire_code, owner_insurer_standards]
+    severity: high

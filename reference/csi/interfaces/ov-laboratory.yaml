@@ -1,0 +1,29 @@
+schema_version: 1
+kind: interfaces
+id: ov-laboratory
+title: Interfaces that exist only in laboratory facilities
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Facility-filtered edges. Lab casework, fume hood and lab equipment service
+# edges live in div-11.yaml and div-12.yaml. An edge carries `failure` only when
+# no failure mode names it.
+
+edges:
+  - id: if.lab-gas-detection
+    a: ["22 63 00"]
+    a_trade: Laboratory gas systems
+    b: ["28 42 00"]
+    b_trade: Gas detection and alarm
+    a_provides: Gas types, cylinder and manifold locations, use points, and the automatic shutoff valves and their control requirements
+    b_provides: Detectors at sources, gas cabinets and use rooms, alarm devices at room entrances, and shutoff interlock wiring and power
+    responsibility:
+      - item: Automatic gas shutoff valves operated by the detection system
+        typical: {furnish: "22 63 00", install: "22 63 00", connect: "28 42 00"}
+        confirm_in: [spec.part1, drawings.lab_gas]
+    gate: {milestone: in_wall_rough_in}
+    severity: high
+    failure: A toxic, flammable or asphyxiant gas piped with no detector or no shutoff wiring; it cannot be put into service until both are added
+    facility_types: [laboratory]

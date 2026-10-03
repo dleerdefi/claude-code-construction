@@ -1,0 +1,292 @@
+schema_version: 1
+kind: overlay
+id: parking_structure
+facility_type: parking_structure
+title: Parking structures
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# A structure exposed to water, deicing salts and vehicles for its whole life,
+# classified as open or enclosed by its facade, and used by people who need
+# clearance, slope limits and charging. Precast connection durability and
+# tee-joint sealing are in 03 41 00, post-tensioning encapsulation in 03 23 00.
+sections: ["03 31*", "03 38*", "03 41*", "07 1*", "07 95*", "22 1*", "23 3*", "26 5*"]
+
+review_checks:
+  - id: park.deck-protection-zones
+    kind: conformance
+    sections: ["03 35*", "07 1*"]
+    check: >
+      Each deck area gets the protection the drawings assign: a
+      traffic-bearing waterproof membrane over occupied or enclosed space
+      below, a penetrating sealer on open decks, and a heavier wear and
+      UV-resistant system on the roof level and ramps. Membranes terminate at
+      drains, joints, curbs and columns per detail, crack-bridging suits the
+      deck type, and recoat or reseal intervals are in the maintenance data.
+    trace_to: [drawings.plans, drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: park.expansion-joints
+    kind: conformance
+    sections: ["07 95*"]
+    check: >
+      Deck expansion joint systems match the joint width and movement range
+      the structural design gives, are rated for vehicle and snowplow
+      traffic, and stay watertight through turn-ups at curbs, walls, ramps and
+      stair and elevator towers; every termination is detailed, not left to
+      the installer.
+    trace_to: [drawings.structural, drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: park.vehicle-barriers
+    kind: conformance
+    sections: ["03 31*", "03 38*", "03 41*", "05 52*", "34 71*"]
+    check: >
+      Vehicle barriers at deck edges, ramps and the ends of drive aisles
+      (cable systems, precast spandrels, walls, steel rails) are designed for
+      the code impact load at the required height, with anchorage into an
+      element checked for that load, and cable anchors and embeds placed
+      before post-tensioned or precast elements are cast.
+    trace_to: [drawings.structural, drawings.details, spec.part2]
+    severity: critical
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: park.openness
+    kind: conformance
+    sections: ["03 45*", "04 2*", "05 7*", "07 4*", "08 9*", "10 82*", "32 35*"]
+    check: >
+      Facade screens, louvers, panels, spandrels, planting and signage on the
+      garage perimeter keep the openness the code classification relies on.
+      A garage designed as open that loses openness through a screen,
+      louver or panel change needs mechanical ventilation and sprinklers it
+      was not designed for.
+    trace_to: [drawings.exterior_elevations, drawings.life_safety, spec.part2]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: park.enclosed-ventilation
+    kind: completeness
+    scope: package
+    sections: ["23 09*", "23 3*", "28 4*"]
+    check: >
+      In enclosed garages the exhaust fans, gas detection (carbon monoxide,
+      and nitrogen dioxide where diesel vehicles use the garage), sensor
+      layout and calibration, the control sequence that stages fans on gas
+      level with any minimum ventilation mode, and makeup air are submitted
+      together and agree with each other.
+    trace_to: [drawings.mechanical, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: park.van-clearance
+    kind: coordination
+    sections: ["10 14*", "21 1*", "22 1*", "23 3*", "26 5*"]
+    check: >
+      Along the vehicle route to van-accessible spaces and at those spaces,
+      sprinkler and drain piping, light fixtures, signs, ducts and
+      height-limit bars stay above the required vertical clearance, and the
+      accessible spaces and aisles sit on deck areas whose drainage slope is
+      within the accessible slope limit.
+    trace_to: [drawings.plans, drawings.fire_protection, drawings.structural]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: park.ev-readiness
+    kind: coordination
+    sections: ["03 31*", "03 38*", "26 0*", "26 2*"]
+    check: >
+      The charging scope the project must deliver (installed chargers, ready
+      and capable spaces, accessible charging spaces) is carried into service
+      and distribution capacity, raceways and space for future equipment;
+      where future raceways must cross post-tensioned or precast decks,
+      sleeves are cast in now rather than cored later.
+    trace_to: [drawings.electrical, drawings.single_line, drawings.structural]
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+reconciliations:
+  - id: park.rc.drains
+    sections: ["03 31*", "03 38*", "22 1*"]
+    between: [drawings.structural, drawings.plumbing, drawings.plans]
+    key: Floor drain
+    fields: [location, deck elevation and slope at the drain, low points after camber and deflection, pipe route and tendon or beam conflicts]
+    check: >
+      Drain locations on the plumbing drawings sit at the low points of the
+      deck as the structural drawings define them, including camber and
+      deflection, and their bodies and piping are coordinated with tendons
+      and beams before the pour.
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+failure_modes:
+  - id: park.fm.wrong-protection-zone
+    sections: ["03 35*", "07 1*"]
+    what_happens: Penetrating sealer used where a traffic-bearing membrane was required over occupied space, or a membrane without the needed crack-bridging substituted
+    consequence: Leaks onto rooms, storefronts or cars below; membrane retrofit while the garage operates
+    caught_by: [park.deck-protection-zones]
+    source: field_experience
+
+  - id: park.fm.joint-termination-leak
+    sections: ["07 95*"]
+    what_happens: Expansion joint seal stops at the curb or wall with no turn-up detail
+    consequence: Salt-laden water runs down beams and columns below the joint; corrosion at bearings and leaks onto vehicles
+    caught_by: [park.expansion-joints]
+    source: field_experience
+
+  - id: park.fm.barrier-anchorage
+    sections: ["03 31*", "03 38*", "03 41*", "05 52*", "34 71*"]
+    what_happens: Barrier designed for the impact load but anchored to a column, beam or spandrel never checked for it, or anchors left out of the pour
+    consequence: Barrier that passes on paper but pulls out on impact; post-installed retrofit in stressed or prestressed concrete
+    caught_by: [park.vehicle-barriers, if.park-barrier-anchorage]
+    source: industry_practice
+
+  - id: park.fm.lost-openness
+    sections: ["03 45*", "04 2*", "05 7*", "07 4*", "08 9*", "10 82*", "32 35*"]
+    what_happens: A facade screen, louver or panel with less free area substituted on an open garage
+    consequence: Garage no longer qualifies as open; mechanical ventilation and sprinklers added late or the facade replaced
+    caught_by: [park.openness]
+    source: field_experience
+
+  - id: park.fm.no-diesel-detection
+    sections: ["23 09*", "23 3*", "28 4*"]
+    what_happens: Gas detection limited to carbon monoxide in a garage used by diesel vehicles
+    consequence: Diesel exhaust accumulates without starting the fans; detectors and sequences added after occupancy
+    caught_by: [park.enclosed-ventilation]
+    source: industry_practice
+
+  - id: park.fm.pipe-below-van-route
+    sections: ["10 14*", "21 1*", "22 1*", "23 3*", "26 5*"]
+    what_happens: Sprinkler mains or drain piping routed below the beams along the van route
+    consequence: Required clearance lost; piping rerouted after inspection
+    caught_by: [park.van-clearance]
+    source: field_experience
+
+  - id: park.fm.sloped-accessible-spaces
+    sections: ["10 14*", "21 1*", "22 1*", "23 3*", "26 5*"]
+    what_happens: Accessible spaces laid out on ramped or drainage-sloped deck
+    consequence: Spaces fail the slope limit; restriping and relocated signage after inspection
+    caught_by: [park.van-clearance]
+    source: field_experience
+
+  - id: park.fm.cored-for-charging
+    sections: ["03 31*", "03 38*", "26 0*", "26 2*"]
+    what_happens: Charging raceways added later by coring post-tensioned or precast decks
+    consequence: Scanning and engineering for every core with tendon or strand strikes at risk, or surface raceway exposed to traffic
+    caught_by: [park.ev-readiness]
+    source: industry_practice
+
+  - id: park.fm.cip-ponding
+    sections: ["03 31*", "03 38*", "22 1*"]
+    what_happens: Drains set at column lines on a cast-in-place or post-tensioned deck whose camber and deflection put the low points elsewhere
+    consequence: Ponding, ice and chlorides standing on the deck; drains added later by coring
+    caught_by: [park.rc.drains]
+    source: field_experience
+
+escalate:
+  - target: js.joint-schedule
+    severity: high
+    reason: >
+      In a parking deck, joint sealants are part of the waterproofing and
+      keep chlorides off connections and reinforcement
+  - target: 03spc.parking-durability
+    severity: critical
+    reason: >
+      Flange connectors and tee joints in a garage live with deicing salts for
+      the life of the structure; corroded connections lose diaphragm capacity
+      and are repaired under traffic
+  - target: 03pt.encapsulation
+    severity: critical
+    reason: >
+      Unencapsulated anchorages in a chloride-exposed deck corrode out of
+      sight, and tendon replacement means closing levels of an operating
+      garage
+
+regulatory_hooks:
+  - id: park.rh.open-or-enclosed
+    topic: open-parking-garage-classification
+    sections: ["03 45*", "04 2*", "05 7*", "07 4*", "08 9*", "10 82*", "21 1*", "23 3*", "32 35*"]
+    question: >
+      Does the garage meet the adopted code's definition of an open parking
+      garage (openness area and its distribution around the perimeter,
+      interior wall limits), or is it enclosed, and what ventilation,
+      sprinkler and construction requirements follow from the
+      classification?
+    applies_when: Every parking structure
+    source_families: [building_code, mechanical_code, fire_code]
+    severity: critical
+
+  - id: park.rh.enclosed-ventilation
+    topic: enclosed-garage-ventilation-detection
+    sections: ["23 09*", "23 3*", "28 4*"]
+    question: >
+      What ventilation rate, contaminant-controlled operation and gas
+      detection coverage does the adopted mechanical code require for
+      enclosed parking garages, and what sensor listing and calibration?
+    applies_when: Enclosed garages or enclosed levels
+    source_families: [mechanical_code]
+    severity: high
+
+  - id: park.rh.drain-discharge
+    topic: garage-floor-drainage-discharge
+    sections: ["22 1*"]
+    question: >
+      Where must garage floor drains discharge (sanitary or storm, through an
+      oil and sand separator or not) under the adopted plumbing code and local
+      stormwater rules, and does that differ for the roof level?
+    applies_when: Floor drains in parking structures
+    source_families: [plumbing_code, environmental]
+    severity: medium
+
+  - id: park.rh.vehicle-barriers
+    topic: vehicle-barrier-design
+    sections: ["03 31*", "03 38*", "03 41*", "05 52*", "34 71*"]
+    question: >
+      What vehicle barrier design load, application height and locations does
+      the adopted code require for this garage, and where does a pedestrian
+      guard also apply at the same edge?
+    applies_when: Deck edges, ramps and drive-aisle ends
+    source_families: [building_code]
+    severity: critical
+
+  - id: park.rh.accessible-parking
+    topic: accessible-parking-van-clearance
+    sections: ["10 14*", "21 1*", "22 1*", "23 3*", "26 5*"]
+    question: >
+      How many accessible and van-accessible spaces are required and how are
+      they dispersed, what vertical clearance applies along the van route and
+      at those spaces, and what slope is allowed at accessible spaces and
+      access aisles?
+    applies_when: Every parking structure
+    source_families: [accessibility]
+    severity: high
+
+  - id: park.rh.ev-charging
+    topic: ev-charging-requirements
+    sections: ["26 0*", "26 2*"]
+    question: >
+      What electric vehicle charging requirements apply under the adopted
+      building, energy or green code and local ordinances (installed, ready
+      and capable space counts, capacity, accessible charging spaces)?
+    applies_when: New parking structures and major alterations
+    source_families: [building_code, energy, electrical_code, accessibility]
+    severity: high
+
+  - id: park.rh.lighting-controls
+    topic: parking-garage-lighting-controls
+    sections: ["26 09*", "26 5*"]
+    question: >
+      What lighting power limits and controls (occupancy-based reduction,
+      daylight-responsive control near perimeter openings) does the adopted
+      energy code require for parking garage lighting?
+    applies_when: Garage lighting
+    source_families: [energy]
+    severity: medium

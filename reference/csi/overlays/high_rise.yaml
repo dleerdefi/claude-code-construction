@@ -1,0 +1,214 @@
+schema_version: 1
+kind: overlay
+id: high_rise
+facility_type: high_rise
+title: High-rise buildings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# A building condition, listed in building.facility_types alongside the
+# occupancy. Height brings the life-safety systems a fire department relies on
+# when it cannot reach the fire from outside, tied together across trades, and
+# it brings movement and pressure: shortening, drift, wind tunnel pressures and
+# stack effect. Standpipe pressure regulation is in 21 12 00, radio coverage in
+# 27 53 19, elevator lobbies and standby power in 14 20 00, and load
+# classification in the Division 26 baseline.
+sections: ["08", "14 2*", "21", "23 3*", "26 3*", "28 4*"]
+
+review_checks:
+  - id: hr.smoke-control-inspection
+    kind: completeness
+    scope: package
+    sections: ["23 09*", "23 3*", "28 4*"]
+    check: >
+      Smoke control and pressurization systems are submitted with their design
+      basis (the rational analysis or design report the spec requires), a
+      sequence matrix by zone and initiating device, the firefighter's control
+      panel, and fan and damper position feedback. Duct leakage testing and
+      the recording of device locations happen with the special inspector
+      before shafts and ceilings conceal them, and pressure, flow and
+      end-to-end acceptance tests are scheduled well before occupancy.
+    trace_to: [drawings.mechanical, drawings.fire_alarm, register.special_inspections]
+    severity: critical
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: hr.stack-effect
+    kind: coordination
+    sections: ["08 1*", "08 4*", "08 7*", "14 2*", "23 3*"]
+    check: >
+      Ground-floor entrances, loading and garage doors, elevator hoistway and
+      lobby doors, and pressurized stair doors are checked against
+      stack-effect pressure in the heating season, added to any
+      pressurization: vestibules or revolving doors at main entries,
+      operators and closers sized for the combined pressure within the allowed
+      opening force, and elevator lobbies or hoistway separation where doors
+      would otherwise fail to close.
+    trace_to: [drawings.plans, drawings.mechanical, schedule.door_hardware]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: hr.frame-shortening
+    kind: conformance
+    sections: ["05 5*", "07 84*", "08 4*", "09 2*", "14 2*", "21 1*", "22 1*", "23 2*"]
+    check: >
+      In a tall frame, movement accumulates over the height: differential
+      shortening and creep between core and perimeter columns, interstory
+      drift and slab-edge creep. Piping riser anchors and expansion joints,
+      elevator rails and entrances, stair slip connections, curtain wall stack
+      joints, and partition heads at the core are designed for the values the
+      structural engineer gives for this building, not generic allowances.
+    trace_to: [drawings.structural, drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: hr.wind-tunnel-pressures
+    kind: conformance
+    sections: ["05 5*", "07 4*", "07 5*", "08 4*", "08 5*", "08 9*", "23 7*"]
+    check: >
+      Where a wind tunnel study sets cladding and component pressures, the
+      curtain wall, window, louver, roofing attachment, rooftop equipment and
+      anchorage designs use the current study's pressure zones, which can
+      exceed code-calculated values at corners, setbacks and the roof, and
+      name the study revision they used.
+    trace_to: [report.wind_tunnel, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: hr.fire-service-elevator-support
+    kind: completeness
+    scope: package
+    sections: ["08 1*", "21 1*", "28 4*"]
+    check: >
+      Where fire service access or occupant evacuation elevators are
+      required, the trades around them deliver what those elevators depend
+      on: rated lobby doors held open and released correctly, sprinkler and
+      standpipe water kept out of the hoistways (lobby drains, slopes or
+      barriers), standpipe hose connections where the lobby layout needs
+      them, and fire alarm monitoring and status at the fire command center.
+    trace_to: [drawings.life_safety, drawings.fire_alarm, drawings.fire_protection]
+    severity: high
+    owner: gc
+
+reconciliations:
+  - id: hr.rc.movement-criteria
+    sections: ["05 5*", "07 84*", "08 4*", "09 2*", "14 2*", "21 1*", "22 1*", "23 2*"]
+    between: [drawings.structural, spec.part2, drawings.details]
+    key: Movement at each interface (stack joint, slab edge, head of wall, stair, riser, elevator rail)
+    fields: [interstory drift, slab-edge deflection, column shortening and creep, joint or anchor movement capacity]
+    check: >
+      The movements on the structural drawings, the curtain wall and joint
+      performance criteria in the spec, and the joint and anchor details all
+      use the same values; a delegated designer working to its own
+      assumption is a finding.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: hr.rc.life-safety-loads
+    sections: ["14 2*", "21 3*", "23 3*", "26 2*", "26 3*", "27", "28 4*"]
+    between: [drawings.single_line, schedule.mechanical_equipment, drawings.fire_protection, drawings.fire_alarm]
+    key: Each life-safety load
+    fields: [power system and branch, transfer and start sequence, feeder protection or survivability, load size]
+    check: >
+      Every load the high-rise provisions put on emergency or standby power
+      (fire pump, smoke control and pressurization fans, fire service and
+      evacuation elevators, radio coverage system, fire command center, egress
+      lighting) is on the single line on the correct system, with the feeder
+      protection the code requires and a load and start sequence that match
+      the equipment schedules.
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: hr.fm.smoke-control-late
+    sections: ["23 09*", "23 3*", "28 4*"]
+    what_happens: Smoke control sequences, fire alarm interface and damper feedback first exercised at the acceptance test
+    consequence: Weeks of retesting at the end of the job; the certificate of occupancy waits
+    caught_by: [hr.smoke-control-inspection]
+    source: field_experience
+
+  - id: hr.fm.stack-effect-doors
+    sections: ["08 1*", "08 4*", "08 7*", "14 2*", "23 3*"]
+    what_happens: Lobby, elevator and stair doors selected for traffic, wind and pressurization without the winter stack effect
+    consequence: Elevator doors fail to close, entry doors stand open or slam, and stair doors exceed the opening force; vestibules, operators or relief added after occupancy
+    caught_by: [hr.stack-effect]
+    source: field_experience
+
+  - id: hr.fm.shortening-ignored
+    sections: ["05 5*", "07 84*", "08 4*", "09 2*", "14 2*", "21 1*", "22 1*", "23 2*"]
+    what_happens: Stack joints, riser anchors and partition heads sized for thermal movement and live-load deflection only, without the frame's long-term shortening and creep
+    consequence: Over the first years joints close, glass and mullions bind, riser anchors and guides fail; repairs floor after floor in an occupied tower
+    caught_by: [hr.frame-shortening, hr.rc.movement-criteria]
+    source: field_experience
+
+  - id: hr.fm.code-default-pressures
+    sections: ["05 5*", "07 4*", "07 5*", "08 4*", "08 5*", "08 9*", "23 7*"]
+    what_happens: Delegated cladding, roofing or equipment anchorage designed to code-calculated pressures where the wind tunnel study governs
+    consequence: Under-designed glass, anchors or attachment at corners and the roof; redesign after fabrication starts
+    caught_by: [hr.wind-tunnel-pressures]
+    source: industry_practice
+
+  - id: hr.fm.hoistway-water
+    sections: ["08 1*", "21 1*", "28 4*"]
+    what_happens: Sprinkler and standpipe water from the lobby or stair can drain into a fire service elevator hoistway
+    consequence: Elevator unusable for firefighting; lobby drains, slopes or barriers added late
+    caught_by: [hr.fire-service-elevator-support]
+    source: industry_practice
+
+  - id: hr.fm.load-wrong-system
+    sections: ["14 2*", "21 3*", "23 3*", "26 2*", "26 3*", "27", "28 4*"]
+    what_happens: Pressurization fans or fire service elevators fed from normal or optional standby power
+    consequence: Failed acceptance; feeders and transfer equipment reworked at the end of the job
+    caught_by: [hr.rc.life-safety-loads]
+    source: industry_practice
+
+escalate:
+  - target: fs.joint-systems
+    severity: critical
+    reason: >
+      Slab-edge and head-of-wall joints in a high-rise take drift and
+      shortening that a joint rated for deflection alone will not survive
+  - target: js.joint-sizing
+    severity: high
+    reason: Building drift and column shortening make default-width joints fail
+  - target: fs.rh.special-inspection
+    severity: critical
+    reason: Building height is a common trigger for firestop special inspection
+  - target: 14el.rh.fire-service-access
+    severity: critical
+    reason: >
+      At high-rise heights these elevators are how firefighters reach the
+      fire floor, and their lobby, water protection and power involve trades
+      beyond the elevator contractor
+
+regulatory_hooks:
+  - id: hr.rh.smoke-control
+    topic: smoke-control-system-requirements
+    sections: ["23 3*", "28 4*"]
+    question: >
+      For this high-rise, which smoke control systems does the adopted code
+      require (stair pressurization, elevator hoistway or lobby
+      pressurization, floor or atrium exhaust), designed to which provisions
+      or NFPA 92, and which special inspections must happen before ducts and
+      dampers are concealed?
+    applies_when: High-rise buildings
+    source_families: [building_code, fire_code, mechanical_code]
+    severity: critical
+
+  - id: hr.rh.fire-command-center
+    topic: fire-command-center-contents
+    sections: ["14 2*", "21 3*", "23 09*", "26 3*", "27", "28 4*"]
+    question: >
+      What must the fire command center contain under the adopted code and the
+      fire department's rules, and does each system (fire alarm, smoke
+      control, elevators, radio coverage, fire pump, generator) provide its
+      panel, annunciator or status display there?
+    applies_when: High-rise buildings
+    source_families: [building_code, fire_code]
+    severity: high

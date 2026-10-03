@@ -1,0 +1,414 @@
+schema_version: 1
+kind: overlay
+id: laboratory
+facility_type: laboratory
+title: Laboratory facilities (chemical and biological research and teaching labs)
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# A lab building is designed around its chemicals and its exhaust. The chemical
+# inventory sets control areas and separations; the fume hoods set airflow,
+# controls, standby power and the roof. Hoods, biosafety cabinets and lab
+# casework carry their own knowledge in 11 53 00, 11 53 13 and 12 35 53; this
+# overlay carries what the lab asks of the building and the other trades.
+# Default scope: lab equipment and lab casework.
+sections: ["11 53*", "12 35*"]
+
+review_checks:
+  - id: lab.hazmat-quantities
+    kind: absence
+    scope: package
+    sections: ["07 84*", "09 2*", "21 1*", "11 53*", "12 35*"]
+    check: >
+      The hazardous-materials basis of the design is stated: the owner's
+      chemical inventory, or the quantities the design assumed per control area
+      or laboratory unit. Control-area boundaries and their rated separations,
+      laboratory unit fire hazard classes and the sprinkler design on the life
+      safety and fire protection drawings follow from it, and the storage
+      cabinets the design counts on for quantity increases are in the casework
+      or equipment scope.
+    trace_to: [report.chemical_inventory, drawings.life_safety, drawings.fire_protection]
+    severity: critical
+    owner: design_team
+
+  - id: lab.hood-test-readiness
+    kind: completeness
+    sections: ["23 05*", "23 09*"]
+    check: >
+      The balancing and controls scopes include what as-installed hood testing
+      depends on: each hood's exhaust verified at its sash positions and at
+      minimum flow, monitor calibration and alarms, response time to sash
+      movement, and room offsets set and trended stable, all before the hood
+      test date.
+    trace_to: [spec.part3, report.commissioning]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+  - id: lab.exhaust-plume
+    kind: conformance
+    sections: ["23 3*"]
+    check: >
+      Lab exhaust keeps the stack exit velocity and plume rise the design basis
+      or dispersion study assumed at every turndown and fan staging condition
+      (bypass air, staged fans), and no rooftop screen wall, penthouse or
+      intake added since the study sits in the plume's path or wake.
+    trace_to: [drawings.roof_plan, drawings.mechanical, schedule.mechanical_equipment]
+    severity: high
+    owner: design_team
+
+  - id: lab.hood-exhaust-path
+    kind: conformance
+    reflex: true
+    sections: ["23 3*", "07 84*", "09 2*"]
+    check: >
+      Fume hood exhaust ducts cross rated floors and walls only inside rated
+      shafts, with no fire or smoke dampers unless the adopted laboratory
+      standard allows them; a damper drawn into hood exhaust from the general
+      HVAC details, or hood duct through a rated wall outside a shaft, is a
+      flag.
+    trace_to: [drawings.mechanical, drawings.life_safety, spec.part2]
+    severity: critical
+    owner: design_team
+
+  - id: lab.pressurization
+    kind: conformance
+    sections: ["23"]
+    check: >
+      Each lab holds its designed pressure relationship (normally negative to
+      corridors and offices) through sash movement, occupancy setback and fan
+      failure, by airflow offset or pressure control, with room pressure
+      monitors where the design calls for them; door undercuts, transfer paths
+      and room tightness match the offset the design assumed.
+    trace_to: [drawings.mechanical, schedule.mechanical_equipment, schedule.door]
+    severity: high
+    owner: design_team
+
+  - id: lab.eyewash-shower
+    kind: conformance
+    sections: ["22 45*"]
+    check: >
+      Every hazard location has an emergency shower and eyewash reachable along
+      an unobstructed path within the applicable standard's limits (no door
+      opening against the path, no casework or equipment in the way), fed with
+      tempered water through a mixing valve made for emergency fixtures, with
+      the flow alarms and floor drains the owner requires.
+    trace_to: [drawings.plumbing, drawings.plans, schedule.plumbing_fixture]
+    severity: high
+    owner: design_team
+
+  - id: lab.lab-waste
+    kind: conformance
+    sections: ["22 66*", "22 13*", "07 84*"]
+    check: >
+      Laboratory waste and vent piping is a material listed for the chemistry
+      and temperature the program expects (polypropylene, PVDF, borosilicate
+      glass, high-silicon iron or as specified) with its own joining method,
+      stays separate from sanitary waste until after neutralization or the
+      point the sewer authority allows, and has firestop systems listed for that
+      exact pipe material at rated penetrations.
+    trace_to: [drawings.plumbing, spec.part2, schedule.partition_type]
+    severity: high
+    owner: subcontractor
+
+  - id: lab.neutralization
+    kind: constructability
+    sections: ["22 66*", "22 13*"]
+    check: >
+      The neutralization system (passive media tank or active pH adjustment) is
+      sized for the connected fixtures, can be reached to recharge media and
+      pull samples without breaking finishes, and has the monitoring and
+      sampling point the sewer authority requires.
+    trace_to: [drawings.plumbing, spec.part2]
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+  - id: lab.lab-gases
+    kind: conformance
+    sections: ["22 6*"]
+    check: >
+      Laboratory gas and vacuum systems deliver the purity the program needs:
+      piping material and cleaning grade (cleaned for oxygen service where
+      required), kept capped during construction, purity and pressure tested;
+      cylinder and bulk sources, manifolds and gas cabinets sit where the fire
+      code allows, with gas detection and oxygen-depletion monitoring where
+      needed; and no lab outlet is served from a medical gas system.
+    trace_to: [drawings.lab_gas, spec.part2, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: lab.finishes
+    kind: conformance
+    sections: ["09 6*", "09 9*"]
+    submittal_types: [Product Data, Test Reports, Samples]
+    check: >
+      Lab floors, base and wall coatings have chemical-resistance data against
+      the reagents and decontamination agents in the owner's program, not a
+      generic list, and floors are seamless with integral cove base where
+      spills are expected.
+    trace_to: [schedule.finish, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: lab.vibration
+    kind: absence
+    sections: ["03 3*", "05 1*", "11 53*", "23 05*"]
+    check: >
+      Vibration-sensitive instruments (microscopes, imaging, balances, lasers)
+      have a stated vibration criterion and assigned locations that meet it,
+      with isolation of nearby mechanical equipment and any isolated slab or
+      pad detailed; an instrument moved in a later layout is re-checked against
+      the structure under its new location.
+    trace_to: [drawings.structural, drawings.plans, report.acoustical]
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+  - id: lab.standby-power
+    kind: coordination
+    sections: ["26", "23 09*"]
+    check: >
+      Lab loads that need emergency or standby power (hood exhaust and its
+      controls, the supply needed to keep labs negative, freezers and
+      incubators, environmental rooms, gas detection, pressure monitors) are
+      agreed with the owner and shown on the intended branch, and exhaust and
+      supply restart in a sequence that keeps labs negative after a transfer.
+    trace_to: [schedule.electrical_panel, drawings.single_line, schedule.equipment]
+    severity: high
+    owner: design_team
+
+  - id: lab.containment-suite
+    kind: conformance
+    sections: ["07 84*", "09", "23 3*", "23 09*"]
+    check: >
+      Where the program includes a biological containment suite, its
+      construction supports the containment level: penetrations sealed so the
+      room can hold pressure for gaseous decontamination, finishes that resist
+      the decontaminant, directional airflow with alarms and verification, HEPA
+      exhaust where required, and certification of the suite and its
+      biosafety cabinets scheduled before occupancy.
+    trace_to: [drawings.plans, drawings.mechanical, spec.part3]
+    severity: high
+    owner: gc
+
+reconciliations:
+  - id: lab.rc.room-airflow
+    sections: ["23", "12 35*"]
+    between: [schedule.mechanical_equipment, schedule.equipment, drawings.mechanical]
+    key: Laboratory room
+    fields: [fume hoods and design exhaust at the sash basis, snorkels and canopy hoods, vented storage cabinets, ducted biosafety cabinets, supply, offset, minimum air change rate, occupied and setback modes]
+    check: >
+      The room airflow schedule includes every exhaust device as submitted
+      (hood sizes and sash basis, snorkels, canopy hoods, vented storage
+      cabinets, ducted biosafety cabinets), and supply and offset still balance
+      in occupied and setback modes.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: lab.rc.hood-diffusers
+    sections: ["23 3*"]
+    between: [drawings.rcp, drawings.mechanical, drawings.plans]
+    key: Fume hood
+    fields: [supply diffuser type and location relative to the hood face, nearest door, main traffic aisle]
+    check: >
+      No supply diffuser throws across a fume hood face and no hood sits beside
+      a door or main aisle; a diffuser moved during ceiling coordination is
+      re-checked against the hoods.
+    severity: high
+    owner: design_team
+    gate: above_ceiling_close_in
+
+escalate:
+  - target: lc.emergency-fixtures
+    sections: ["12 35*"]
+    severity: high
+    reason: In a laboratory an eyewash or drench hose blocked by casework is a life-safety finding, not a fit-up detail
+
+  - target: 23dt.exhaust-segregation
+    sections: ["23 3*"]
+    severity: critical
+    reason: Fume hood exhaust tied into general or another stream's exhaust carries chemical vapors into shared ducts and can reverse into occupied rooms
+
+failure_modes:
+  - id: lab.fm.inventory-exceeds
+    sections: ["07 84*", "09 2*", "21 1*", "11 53*", "12 35*"]
+    what_happens: Lab fit-out designed without the owner's chemical inventory; the inventory moved in exceeds what the control areas or laboratory units allow
+    consequence: Rated separations, sprinkler changes or an occupancy reclassification after finishes, or the owner cannot store what the program needs
+    caught_by: [lab.hazmat-quantities]
+    source: field_experience
+
+  - id: lab.fm.hood-flow-unverified
+    sections: ["23 05*", "23 09*"]
+    what_happens: Balancing and controls scopes stop at the air valve; nobody verifies each hood's flow at its sash positions, its monitor calibration or its response to sash movement
+    consequence: As-installed hood tests fail, and the hood vendor, balancer and controls contractor each call the fix another's work
+    caught_by: [lab.hood-test-readiness]
+    source: field_experience
+
+  - id: lab.fm.plume-at-turndown
+    sections: ["23 3*"]
+    what_happens: Lab exhaust fans turned down with lab airflow at night, or a screen wall added around the stacks, without keeping the plume clear
+    consequence: Exhaust re-enters intakes; odor and exposure complaints, bypass dampers added or stacks extended
+    caught_by: [lab.exhaust-plume]
+    source: industry_practice
+
+  - id: lab.fm.damper-in-hood-duct
+    sections: ["23 3*", "07 84*", "09 2*"]
+    what_happens: Fire damper drawn into hood exhaust at a rated wall from the standard HVAC details, or hood duct run through a rated wall outside a shaft
+    consequence: Rejected by the AHJ or the owner's safety office; duct rerouted into a shaft after ceilings
+    caught_by: [lab.hood-exhaust-path]
+    source: field_experience
+
+  - id: lab.fm.exhaust-device-added
+    sections: ["23", "12 35*"]
+    what_happens: Snorkels, vented cabinets or a larger hood added in casework or equipment submittals but never added to the room airflow schedule
+    consequence: Lab runs positive or hood face velocity drops; terminal units and controls resized
+    caught_by: [lab.rc.room-airflow]
+    source: field_experience
+
+  - id: lab.fm.wrong-mixing-valve
+    sections: ["22 45*"]
+    what_happens: A standard thermostatic mixing valve used on emergency fixtures, or tempering left out
+    consequence: Flow stops or turns hot when the valve fails, or water too cold to use; valves replaced and fixtures retested
+    caught_by: [lab.eyewash-shower]
+    source: industry_practice
+
+  - id: lab.fm.firestop-wrong-plastic
+    sections: ["22 66*", "22 13*", "07 84*"]
+    what_happens: Firestop systems listed for PVC or CPVC used on polypropylene or PVDF lab waste
+    consequence: Failed firestop inspection; penetrations redone with systems listed for the actual pipe
+    caught_by: [lab.lab-waste]
+    source: field_experience
+
+  - id: lab.fm.neutralization-buried
+    sections: ["22 66*", "22 13*"]
+    what_happens: Neutralization tank buried under the slab or behind casework with no way to recharge media or sample
+    consequence: Media never maintained; discharge violations, and an access pit cut later
+    caught_by: [lab.neutralization]
+    source: field_experience
+
+  - id: lab.fm.gas-contamination
+    sections: ["22 6*"]
+    what_happens: Lab gas piping left open during construction or not cleaned to the specified grade
+    consequence: Fails purity testing; lines cleaned or replaced before turnover
+    caught_by: [lab.lab-gases]
+    source: industry_practice
+
+  - id: lab.fm.instrument-relocated
+    sections: ["03 3*", "05 1*", "11 53*", "23 05*"]
+    what_happens: A vibration-sensitive instrument moved in a later layout to a bay near mechanical equipment or with a livelier floor
+    consequence: Instrument cannot meet its performance; isolation added or the room relocated after fit-out
+    caught_by: [lab.vibration]
+    source: field_experience
+
+  - id: lab.fm.standby-mismatch
+    sections: ["26", "23 09*"]
+    what_happens: Hood exhaust put on standby power while the supply or controls it depends on stay on normal power, or the reverse
+    consequence: After a transfer labs go positive or doors cannot be opened against the pressure; circuits and sequences redone
+    caught_by: [lab.standby-power]
+    source: industry_practice
+
+  - id: lab.fm.suite-leaks
+    sections: ["07 84*", "09", "23 3*", "23 09*"]
+    what_happens: Containment suite built with ordinary penetration sealing and finishes
+    consequence: Room cannot hold pressure for decontamination or verification; penetrations and finishes redone before the program can start
+    caught_by: [lab.containment-suite]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: lab.rh.control-areas
+    topic: hazardous-materials-control-areas
+    sections: ["07 84*", "09 2*", "21 1*", "11 53*", "12 35*"]
+    question: >
+      How many control areas are allowed on each floor, what fire-resistance
+      rating must separate them, and what maximum allowable quantities apply per
+      control area for the hazard classes in the owner's inventory (with
+      sprinkler and cabinet increases); or does the jurisdiction accept NFPA 45
+      laboratory units instead, and in which fire hazard class?
+    applies_when: Any laboratory storing or using hazardous materials
+    source_families: [fire_code, building_code]
+    severity: critical
+
+  - id: lab.rh.hood-performance
+    topic: fume-hood-performance-testing
+    sections: ["23 05*", "23 09*"]
+    question: >
+      Which fume hood face velocity, containment and alarm criteria and which
+      test protocol apply, from the owner's environmental health and safety
+      standard or the laboratory ventilation standard it adopts (ANSI/ASSP Z9.5,
+      ASHRAE 110)?
+    applies_when: Any chemical fume hood
+    source_families: [occupational_safety, owner_insurer_standards]
+    severity: high
+
+  - id: lab.rh.hood-duct-dampers
+    topic: laboratory-fume-hood-exhaust
+    sections: ["07 84*", "09 2*", "23 33*"]
+    question: >
+      Where fume hood exhaust crosses rated walls and floors, do the adopted
+      codes and the NFPA 45 edition they reference prohibit fire and smoke
+      dampers in it, and what shaft construction do they require instead?
+    applies_when: Hood exhaust ducts that cross rated assemblies
+    source_families: [mechanical_code, fire_code]
+    severity: critical
+
+  - id: lab.rh.eyewash
+    topic: emergency-eyewash-shower
+    sections: ["22 45*"]
+    question: >
+      Does the jurisdiction enforce ANSI/ISEA Z358.1 through occupational
+      safety rules or the plumbing code, and what travel distance, tempered
+      water range, flow, alarm and floor drain requirements follow for these
+      fixtures?
+    applies_when: Emergency showers and eyewashes in laboratories
+    source_families: [occupational_safety, plumbing_code]
+    severity: high
+
+  - id: lab.rh.neutralization
+    topic: laboratory-waste-neutralization
+    sections: ["22 66*", "22 13*"]
+    question: >
+      What pH limits, monitoring, sampling access and discharge permit does the
+      sewer authority attach to laboratory waste, and what does that mean for
+      the neutralization system's type and location?
+    applies_when: Laboratory sinks and process drains
+    source_families: [public_works, plumbing_code]
+    severity: high
+
+  - id: lab.rh.compressed-gases
+    topic: laboratory-compressed-gases
+    sections: ["22 6*", "11 53*"]
+    question: >
+      For the gases in this program (flammable, toxic, oxidizing, cryogenic,
+      inert asphyxiant), what do the adopted fire code and NFPA 55 edition
+      require for cylinder storage, gas cabinets and exhausted enclosures,
+      detection, automatic shutoff and oxygen-depletion monitoring?
+    applies_when: Compressed or cryogenic gases piped or stored in the lab
+    source_families: [fire_code]
+    severity: high
+
+  - id: lab.rh.standby-power
+    topic: laboratory-emergency-power
+    sections: ["26", "23 09*"]
+    question: >
+      Which laboratory loads must be on emergency or legally required standby
+      power under the adopted codes (hazardous exhaust, gas detection, alarms),
+      as distinct from optional standby the owner chooses?
+    applies_when: Laboratories with hazardous exhaust, gas detection or critical equipment
+    source_families: [electrical_code, fire_code]
+    severity: high
+
+  - id: lab.rh.biosafety
+    topic: biosafety-containment-requirements
+    sections: ["07 84*", "09", "23 3*", "23 09*"]
+    question: >
+      Does the program's biosafety level (under the BMBL, the owner's
+      biosafety committee, and any federal select-agent registration) set
+      design and verification requirements before occupancy, and who certifies
+      them?
+    applies_when: Biological research, teaching or clinical labs
+    source_families: [occupational_safety, public_health]
+    severity: high
