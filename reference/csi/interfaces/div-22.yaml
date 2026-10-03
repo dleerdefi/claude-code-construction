@@ -62,7 +62,7 @@ edges:
   - id: if.22-hvac-drains
     a: ["22 13 00"]
     a_trade: Sanitary drainage
-    b: ["23 52 00", "23 65 00", "23 70 00", "23 80 00"]
+    b: ["23 52 00", "23 65 00", "23 70 00", "23 80 00", "23 54 00"]
     b_trade: Boilers, cooling towers, air handlers and terminal equipment
     a_provides: Receptors (floor sinks, funnel and hub drains) sized and placed for each equipment discharge, and neutralization where condensate is acidic
     b_provides: Condensate, blowdown, relief valve and drain discharges with their location, flow and temperature, and the drain piping to the receptor

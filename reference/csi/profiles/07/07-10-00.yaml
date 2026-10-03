@@ -129,7 +129,7 @@ failure_modes:
   - id: wp.fm.pit-left-out
     what_happens: Elevator pit below the water table left out of the waterproofing scope
     consequence: Water in the pit; elevator inspection and turnover delayed
-    caught_by: [wp.pits-and-sumps]
+    caught_by: [wp.pits-and-sumps, if.waterproofing-elevator-pit]
     source: industry_practice
 
   - id: wp.fm.early-hydration

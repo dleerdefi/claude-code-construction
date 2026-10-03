@@ -133,7 +133,7 @@ regulatory_hooks:
       inspection, property-line cleanout, backwater valve, pretreatment or
       interceptor)?
     applies_when: Any connection to a public sewer
-    source_families: [plumbing_code]
+    source_families: [plumbing_code, public_works]
     severity: high
 
   - id: sa.rh.onsite-wastewater
@@ -143,7 +143,7 @@ regulatory_hooks:
       authority permits the system, who must design and install it, and
       which inspections come before cover?
     applies_when: Septic or other onsite wastewater systems
-    source_families: [environmental, plumbing_code]
+    source_families: [public_health, environmental]
     severity: high
 
 extract_fields:

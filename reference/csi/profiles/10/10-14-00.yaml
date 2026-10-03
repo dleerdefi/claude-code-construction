@@ -133,7 +133,7 @@ failure_modes:
   - id: 10sg.fm.device-at-sign
     what_happens: Light switches or card readers roughed in on the latch-side wall where the room sign belongs
     consequence: Sign moved outside its required zone, or devices relocated and walls patched after paint
-    caught_by: [10sg.latch-side-devices]
+    caught_by: [10sg.latch-side-devices, if.08-door-signage]
     source: field_experience
 
   - id: 10sg.fm.code-signs-missing
@@ -145,7 +145,7 @@ failure_modes:
   - id: 10sg.fm.sign-on-glass
     what_happens: At double doors, sidelights and storefronts the sign is put on the door or the glass because no wall is available
     consequence: Rejected by the accessibility inspector; backer panels added or signs relocated
-    caught_by: [10sg.tactile-room-signs]
+    caught_by: [10sg.tactile-room-signs, if.08-door-signage]
     source: industry_practice
 
 standards:

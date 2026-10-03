@@ -112,7 +112,7 @@ failure_modes:
   - id: 11ld.fm.pit-wrong-size
     what_happens: Pits formed to a generic detail or another manufacturer's dimensions before the leveler was approved
     consequence: Saw-cut pit edges, or shimmed and grouted frames that crack under traffic
-    caught_by: [11ld.pit-embeds, 11ld.rc.dock-positions]
+    caught_by: [11ld.pit-embeds, 11ld.rc.dock-positions, if.03-dock-leveler-pits]
     source: field_experience
 
   - id: 11ld.fm.restraint-no-mount

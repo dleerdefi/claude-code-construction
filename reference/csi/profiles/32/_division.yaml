@@ -63,5 +63,5 @@ regulatory_hooks:
       aprons, street cuts and restoration), and which accessibility
       guidelines does that agency apply to pedestrian facilities?
     applies_when: Any work in or connecting to the public right-of-way
-    source_families: [accessibility, building_code]
+    source_families: [public_works, accessibility]
     severity: high

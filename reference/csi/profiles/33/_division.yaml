@@ -182,5 +182,5 @@ regulatory_hooks:
       carriers), what inspections and acceptance do they perform, and what
       do they require at the point of connection?
     applies_when: Any service connected to a public or utility-owned system
-    source_families: [plumbing_code, electrical_code]
+    source_families: [public_works, utility_service_rules]
     severity: high

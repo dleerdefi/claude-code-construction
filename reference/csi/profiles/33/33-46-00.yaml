@@ -139,7 +139,7 @@ regulatory_hooks:
       certification by an engineer, infiltration testing, recorded
       maintenance agreement, bond release)?
     applies_when: Any permanent stormwater management facility
-    source_families: [environmental]
+    source_families: [environmental, public_works]
     severity: high
 
   - id: sm.rh.infiltration-siting
@@ -149,7 +149,7 @@ regulatory_hooks:
       building foundations do the stormwater rules require for infiltration
       practices, and how must it be verified?
     applies_when: Infiltration basins, trenches, chambers or permeable pavement
-    source_families: [environmental]
+    source_families: [environmental, public_works]
     severity: medium
 
 extract_fields:

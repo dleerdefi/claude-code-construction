@@ -61,7 +61,7 @@ edges:
 
   # ── Communications ────────────────────────────────────────────
   - id: if.26-telecom-room-power
-    a: ["26 05 00", "26 24 00"]
+    a: ["26 05 19", "26 05 33", "26 24 00", "26 27 26"]
     a_trade: Electrical branch circuits and panelboards
     b: ["27 10 00", "27 11 00"]
     b_trade: Structured cabling and equipment room fittings
@@ -94,7 +94,7 @@ edges:
     severity: medium
 
   - id: if.26-errcs-power
-    a: ["26 05 00", "26 24 00"]
+    a: ["26 05 19", "26 05 33", "26 24 00"]
     a_trade: Electrical branch circuits and panelboards
     b: ["27 53 19"]
     b_trade: In-building radio and antenna systems
@@ -126,7 +126,7 @@ edges:
 
   # ── Electronic safety and security ────────────────────────────
   - id: if.26-fire-alarm-power
-    a: ["26 05 00", "26 24 00"]
+    a: ["26 05 19", "26 05 33", "26 24 00"]
     a_trade: Electrical branch circuits and panelboards
     b: ["28 46 00"]
     b_trade: Fire detection and alarm
@@ -134,7 +134,7 @@ edges:
     b_provides: Number, locations and loads of control units and power extender panels from the fire alarm shop drawings, and the electrical status points it must monitor
     responsibility:
       - item: Branch circuits to power extender panels added by the fire alarm shop drawings
-        typical: {install: "26 05 00 or 28 46 00"}
+        typical: {install: "Division 26 or 28 46 00"}
         confirm_in: [spec.part1, drawings.fire_alarm]
     gate:
       milestone: above_ceiling_close_in
@@ -143,7 +143,7 @@ edges:
     failure: Power extender panels located by the fire alarm designer with no circuits; circuits pulled through finished ceilings before the acceptance test
 
   - id: if.26-security-power
-    a: ["26 05 00", "26 24 00"]
+    a: ["26 05 19", "26 05 33", "26 24 00"]
     a_trade: Electrical branch circuits and panelboards
     b: ["28 10 00", "28 20 00", "28 30 00"]
     b_trade: Access control, video surveillance and intrusion detection
@@ -152,6 +152,27 @@ edges:
     gate: {milestone: above_ceiling_close_in}
     severity: medium
     failure: Lock power supplies and panels located late with no circuits, or on normal power where the owner expected standby
+
+  - id: if.26-generator-fuel
+    a: ["26 32 00"]
+    a_trade: Engine generators
+    b: ["33 56 00", "23 13 00", "23 11 13"]
+    b_trade: Site and facility fuel storage and fuel-oil piping
+    a_provides: Sub-base tank capacity and listing, or the remote tank and day tank the generator needs, fuel consumption at the rated load, supply and return connection sizes and locations
+    b_provides: Remote or day tank capacity, location, fill and vent points, fuel piping route and material, leak detection and overfill alarms with where they annunciate
+    responsibility:
+      - item: Fuel tank (sub-base, day tank or remote tank)
+        typical: {furnish: "26 32 00, 23 13 00 or 33 56 00", install: "26 32 00, 23 13 00 or 33 56 00"}
+        confirm_in: [spec.part1, drawings.electrical, drawings.civil]
+      - item: Fuel piping between the tank and the generator
+        typical: {furnish: "23 11 13 or 26 32 00", install: "23 11 13 or 26 32 00"}
+        confirm_in: [spec.part1, drawings.mechanical]
+      - item: Initial fuel fill and fuel for the acceptance test
+        typical: {furnish: "26 32 00 or owner"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: procurement_release}
+    severity: high
+    failure: The tank is assumed to come with the generator while the site and mechanical scopes assume the same, or nobody carries the fuel piping and fill and vent points; the generator arrives with nothing to run on
 
   # ── Within Division 26 ────────────────────────────────────────
   - id: if.26-lighting-controls-luminaires

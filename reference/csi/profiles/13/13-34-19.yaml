@@ -160,7 +160,7 @@ failure_modes:
   - id: 13mb.fm.preliminary-reactions
     what_happens: Footings and anchor bolts built from preliminary reactions or another manufacturer's bolt plan
     consequence: Bolts in the wrong pattern or undersized foundations; post-installed anchors, footing rework and erection delay
-    caught_by: [13mb.reactions-foundation, 13mb.rc.anchor-bolts]
+    caught_by: [13mb.reactions-foundation, 13mb.rc.anchor-bolts, if.03-metal-building-anchorage]
     source: industry_practice
 
   - id: 13mb.fm.hung-loads-exceeded
@@ -184,7 +184,7 @@ failure_modes:
   - id: 13mb.fm.condensation
     what_happens: Vapor retarder laps left unsealed, or no thermal spacer at the purlins
     consequence: Condensation dripping inside, wet insulation, and an assembly that misses the energy compliance
-    caught_by: [13mb.envelope-assembly]
+    caught_by: [13mb.envelope-assembly, if.metal-building-envelope]
     source: industry_practice
 
 standards:

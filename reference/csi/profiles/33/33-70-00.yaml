@@ -113,7 +113,7 @@ regulatory_hooks:
       and clearances, inspections before backfill, easements), and has it
       issued its design?
     applies_when: New or modified electrical service
-    source_families: [electrical_code]
+    source_families: [utility_service_rules, electrical_code]
     severity: high
 
 extract_fields:

@@ -153,7 +153,7 @@ failure_modes:
   - id: dp.fm.cap-before-review
     what_happens: A pile cap formed and reinforced before the logs and as-built survey are reviewed
     consequence: A short or out-of-tolerance element found after the pour; cap demolition or supplemental elements
-    caught_by: [dp.logs-reviewed, dp.rejected-elements]
+    caught_by: [dp.logs-reviewed, dp.rejected-elements, if.03-pile-caps]
     source: industry_practice
 
   - id: dp.fm.inspector-absent

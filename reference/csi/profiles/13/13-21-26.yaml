@@ -112,13 +112,13 @@ failure_modes:
   - id: 13cs.fm.frost-heave
     what_happens: Freezer built on grade without heat trace or a ventilated subfloor, or the heat trace never energized or monitored
     consequence: The slab heaves over months; floor, panels and doors rebuilt with the room out of service
-    caught_by: [13cs.floor-frost, if.13-cold-storage-power]
+    caught_by: [13cs.floor-frost, if.13-cold-storage-power, if.03-cold-storage-floors]
     source: field_experience
 
   - id: 13cs.fm.no-recess
     what_happens: Slab poured flat under a room whose insulated floor needs a recess
     consequence: The room floor sits above the corridor; a ramp at the door that carts and the accessible route can't use
-    caught_by: [13cs.floor-frost]
+    caught_by: [13cs.floor-frost, if.03-cold-storage-floors]
     source: field_experience
 
   - id: 13cs.fm.frozen-drain

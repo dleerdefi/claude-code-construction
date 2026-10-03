@@ -365,7 +365,7 @@ regulatory_hooks:
       and service-entrance conductors, and has it accepted the service
       equipment drawings?
     applies_when: New services, service upgrades and added metering
-    source_families: [electrical_code]
+    source_families: [utility_service_rules, electrical_code]
     severity: high
 
 extract_fields:

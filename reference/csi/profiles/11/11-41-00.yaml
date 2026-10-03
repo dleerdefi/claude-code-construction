@@ -180,13 +180,13 @@ failure_modes:
   - id: 11wi.fm.frost-heave
     what_happens: Freezer built on grade without underfloor heat, or with heating cable never energized or monitored
     consequence: The slab and box heave over months; repair means removing the freezer and the floor under it
-    caught_by: [11wi.freezer-underfloor]
+    caught_by: [11wi.freezer-underfloor, if.03-cold-storage-floors]
     source: field_experience
 
   - id: 11wi.fm.no-depression
     what_happens: Slab poured flat where the walk-in needed a depression, or depressed for a different floor assembly
     consequence: Ramps at the door, carts that will not roll in, or a topping slab added inside the box
-    caught_by: [11wi.floor-depression]
+    caught_by: [11wi.floor-depression, if.03-cold-storage-floors]
     source: field_experience
 
   - id: 11wi.fm.condensate-freezes

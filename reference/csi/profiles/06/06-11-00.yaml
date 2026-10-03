@@ -132,7 +132,7 @@ failure_modes:
   - id: 06wf.fm.anchors-missed
     what_happens: Hold-down anchors missed or misplaced in the podium or foundation pour
     consequence: Drilled anchors with engineering for each one, and framing held up
-    caught_by: [06wf.anchor-layout]
+    caught_by: [06wf.anchor-layout, if.03-wood-frame-anchorage]
     source: industry_practice
 
   - id: 06wf.fm.overcut-framing

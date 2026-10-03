@@ -15,7 +15,8 @@ scope_summary: >
   MasterFormat editions). The gas utility usually designs and installs the
   service and meter, so the contractor's scope starts at the meter outlet,
   and the delivery pressure, meter location and load letter have to be
-  settled with the utility early. Fuel storage tanks carry registration,
+  settled with the utility early (the Division 23 edge carries that
+  exchange). Fuel storage tanks carry registration,
   leak detection, spill and fire code requirements the drawings rarely show.
 
 submittals:
@@ -30,18 +31,6 @@ submittals:
       - Pressure tests of gas and fuel piping witnessed as the code and utility require
 
 review_checks:
-  - id: hc.load-letter
-    kind: completeness
-    check: >
-      The load letter (connected load by appliance and the delivery pressure
-      requested) has gone to the gas utility, and the pressure and meter
-      location it confirms match the pressure the building gas design is
-      sized for.
-    trace_to: [drawings.mechanical, drawings.plumbing, report.utility_requirements]
-    severity: high
-    owner: gc
-    gate: procurement_release
-
   - id: hc.meter-location
     kind: coordination
     check: >
@@ -78,13 +67,13 @@ failure_modes:
   - id: hc.fm.pressure-mismatch
     what_happens: The utility delivers a lower pressure than the building gas piping was sized for
     consequence: Piping resized or boosters added late; equipment fails to fire at start-up
-    caught_by: [hc.load-letter]
+    caught_by: [if.23-gas-service]
     source: industry_practice
 
   - id: hc.fm.meter-refused
     what_happens: Meter set location does not meet the clearances to openings or air intakes
     consequence: The utility refuses to set the meter; relocation and delayed gas service
-    caught_by: [hc.meter-location]
+    caught_by: [hc.meter-location, if.23-gas-service]
     source: industry_practice
 
   - id: hc.fm.tank-not-registered
@@ -107,7 +96,7 @@ regulatory_hooks:
       service lines, meter location and clearances, buried piping material
       and protection, and pressure testing?
     applies_when: Natural gas or propane service
-    source_families: [mechanical_code, plumbing_code]
+    source_families: [fuel_gas_code, utility_service_rules]
     severity: high
 
   - id: hc.rh.fuel-storage

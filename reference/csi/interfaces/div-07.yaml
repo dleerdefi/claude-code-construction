@@ -25,7 +25,7 @@ edges:
   - id: if.firestop-mep-penetrations
     a: ["07 84 00"]
     a_trade: Firestopping
-    b: ["21 10 00", "22 10 00", "23 20 00", "23 30 00", "26 05 00", "27 05 00", "28 05 00"]
+    b: ["21 10 00", "22 10 00", "23 20 00", "23 30 00", "26 05 33", "26 05 36", "26 05 44", "27 05 28", "27 05 36", "27 05 44", "27 10 00", "28 46 00"]
     b_trade: Penetrating trades (sprinkler, plumbing, HVAC piping and duct, electrical, low voltage)
     a_provides: Listed system per penetrant and assembly, with annular space and opening limits
     b_provides: Penetrant types, materials, sizes and insulation through each rated assembly; openings sized within system limits
@@ -93,7 +93,7 @@ edges:
     reflex: true
     a: ["07 81 00"]
     a_trade: Applied fireproofing
-    b: ["21 05 00", "22 05 00", "23 05 00", "26 05 00", "09 50 00", "05 50 00"]
+    b: ["21 05 29", "22 05 29", "23 05 29", "26 05 29", "23 31 00", "26 05 36", "09 50 00", "05 50 00"]
     b_trade: MEP hangers, ceiling suspension and cladding supports
     a_provides: Application sequence by area, and the patching procedure for later attachments
     b_provides: Hangers, clips and supports attached to steel before application in each area
@@ -161,6 +161,41 @@ edges:
     gate: {milestone: equipment_set}
     severity: medium
 
+  - id: if.roof-device-mounts
+    a: ["07 50 00"]
+    a_trade: Roofing
+    b: ["27 53 19", "28 20 00", "27 10 00"]
+    b_trade: Radio coverage antennas, cameras and other rooftop low-voltage devices
+    a_provides: Manufacturer-accepted support and penetration details (pipe supports, curbs, pitch-pan or boot penetrations) and the roofer's schedule
+    b_provides: Device and mast locations, mount type and wind and ice loading basis, cable entry points, and grounding or bonding needs
+    responsibility:
+      - item: Supports and penetrations for rooftop antennas and cameras
+        typical: {furnish: "07 50 00, 27 53 19 or 28 20 00", install: "07 50 00"}
+        confirm_in: [spec.part3, drawings.roof_plan]
+    gate:
+      milestone: roof_membrane
+      note: Donor antenna locations come from the radio coverage survey, often after the roof is on; ask for them before the membrane goes down
+    severity: medium
+    failure: Masts and cameras clamped to parapets or fastened through the finished membrane by the low-voltage installer; leaks, and a roof warranty exclusion
+
+  - id: if.roof-skylights
+    a: ["07 50 00"]
+    a_trade: Roofing
+    b: ["08 62 00", "08 63 00"]
+    b_trade: Unit and metal-framed skylights
+    a_provides: Roof assembly thickness at each skylight, base flashing height the roof manufacturer's warranty requires, and the air and vapor barrier to connect to
+    b_provides: Curb type (integral or site-built) and height above the finished roof, frame perimeter seal, counterflashing, and fall-protection screens where provided
+    responsibility:
+      - item: Skylight curb
+        typical: {furnish: "08 62 00, 08 63 00 or 06 10 53", install: "08 62 00, 08 63 00 or 06 10 53"}
+        confirm_in: [drawings.details, spec.part2]
+      - item: Air seal from skylight frame to the roof air or vapor barrier
+        typical: {install: "07 50 00 or 08 62 00"}
+        confirm_in: [drawings.details, spec.part3]
+    gate: {milestone: roof_membrane}
+    severity: high
+    failure: Curb too low for the warranted base flashing once insulation and cover board are in, or no air seal at the frame; leaks and condensation at the skylight perimeter
+
   - id: if.roof-wall-air-barrier
     a: ["07 50 00"]
     a_trade: Roofing
@@ -182,8 +217,8 @@ edges:
   - id: if.air-barrier-openings
     a: ["07 27 00", "07 62 00"]
     a_trade: Air barrier and sheet metal flashing
-    b: ["08 40 00", "08 50 00"]
-    b_trade: Storefront, curtain wall and windows
+    b: ["08 40 00", "08 50 00", "08 11 13", "08 33 00", "08 36 00", "08 91 00"]
+    b_trade: Storefront, curtain wall, windows, exterior door frames, overhead doors and louvers
     a_provides: Rough opening wrap, sill pan where the system uses one, and transition membrane ready for the frame
     b_provides: Frame installation sequence, perimeter seal design and the surfaces the transition bonds to
     responsibility:
@@ -192,6 +227,9 @@ edges:
         confirm_in: [drawings.details, spec.part3]
       - item: Transition from air barrier to frame
         typical: {install: "07 27 00, 08 40 00 or 08 50 00"}
+        confirm_in: [drawings.details, spec.part3]
+      - item: Perimeter seal at overhead door jambs and head, and at louver frames and sills
+        typical: {install: "07 27 00, 08 33 00, 08 36 00 or 08 91 00"}
         confirm_in: [drawings.details, spec.part3]
     gate: {milestone: opening_install}
     severity: critical
@@ -206,6 +244,23 @@ edges:
     gate: {milestone: envelope_close_in}
     severity: medium
     failure: Attachment penetrations left unsealed behind the cladding
+
+  - id: if.metal-building-envelope
+    a: ["07 21 00", "07 26 00", "07 27 00"]
+    a_trade: Insulation, vapor retarders and air barriers
+    b: ["13 34 19"]
+    b_trade: Metal building systems
+    a_provides: The insulation, vapor retarder and air barrier the energy compliance path assumes, and their transitions to adjacent wall and roof assemblies
+    b_provides: Insulation system furnished with the building (faced blanket, liner system, thermal spacers), panel and trim sequence, and eave, rake, base and opening trims the seals land on
+    responsibility:
+      - item: Roof and wall insulation and vapor retarder facing
+        typical: {furnish: "13 34 19 or 07 21 00", install: "13 34 19 or 07 21 00"}
+        confirm_in: [spec.part1, report.energy_compliance]
+      - item: Air barrier continuity where the metal building meets masonry, storefront or another roof
+        typical: {install: "07 27 00 or 13 34 19"}
+        confirm_in: [drawings.details]
+    gate: {milestone: envelope_close_in}
+    severity: high
 
   - id: if.exterior-wall-fire-test
     a: ["07 20 00"]
@@ -248,7 +303,7 @@ edges:
   - id: if.waterproofing-utility-entries
     a: ["07 10 00"]
     a_trade: Below-grade waterproofing
-    b: ["21 10 00", "22 10 00", "26 05 00", "27 05 00", "33"]
+    b: ["21 10 00", "22 10 00", "26 05 43", "26 05 44", "27 05 43", "27 05 44", "33"]
     b_trade: Utility services entering below grade
     a_provides: Membrane-compatible sleeve and seal details for every below-grade entry
     b_provides: Entry locations, sleeve sizes and seal products, set before the pour
@@ -264,6 +319,39 @@ edges:
     a_provides: Inspection release of membrane, protection and drainage composite
     b_provides: Foundation drain installation, backfill material and compaction method next to the wall
     gate: {milestone: backfill}
+    severity: high
+
+  - id: if.waterproofing-elevator-pit
+    a: ["07 10 00"]
+    a_trade: Below-grade waterproofing
+    b: ["14 20 00"]
+    b_trade: Elevators
+    a_provides: The pit waterproofing system and side (blindside, positive or negative), which penetrations it tolerates and how each is sealed
+    b_provides: Pit depth, sump and drain needs, hydraulic cylinder casing through the pit floor, and the rail bracket, buffer and ladder anchors that will be drilled into pit walls and floor
+    responsibility:
+      - item: Sleeve and seal for a hydraulic cylinder casing through the waterproofed pit floor
+        typical: {furnish: "14 20 00", install: "07 10 00 or 03 30 00"}
+        confirm_in: [drawings.details, spec.part3]
+    gate:
+      milestone: foundation_pour
+      note: Penetrations through blindside membrane are set before the pit is poured; later drilled anchors need the membrane maker's repair detail
+    severity: high
+
+  - id: if.waterproofing-under-tile
+    a: ["07 10 00"]
+    a_trade: Sheet and fluid-applied waterproofing
+    b: ["09 30 00"]
+    b_trade: Tiling
+    a_provides: Membrane system, its bond to the substrate, terminations at walls and curbs, and connection to the drain flange or clamping ring
+    b_provides: Setting method over the membrane, depression depth, and the tile manufacturer's membrane compatibility
+    responsibility:
+      - item: Waterproofing membrane under tile in showers and wet rooms
+        typical: {furnish: "07 10 00 or 09 30 00", install: "07 10 00 or 09 30 00"}
+        confirm_in: [spec.part2, drawings.details]
+      - item: Flood test before tile is set
+        typical: {install: "07 10 00 or 09 30 00"}
+        confirm_in: [spec.part3]
+    gate: {milestone: floor_finish_install}
     severity: high
 
   - id: if.waterproofing-to-air-barrier
@@ -282,6 +370,23 @@ edges:
     failure: Gap at the grade line covered by backfill on one side and cladding on the other
 
   # ── Sealants ──────────────────────────────────────────────────
+  - id: if.acoustical-sealant-partitions
+    a: ["07 92 19"]
+    a_trade: Acoustical joint sealants
+    b: ["09 21 16", "09 22 16"]
+    b_trade: Gypsum board assemblies and framing
+    a_provides: Sealant product matching the tested assembly, and where it goes (runners, perimeter, each board layer, penetrations and boxes)
+    b_provides: Which partitions are sound-rated and to what tested assembly, board layer sequence, and when each layer closes
+    responsibility:
+      - item: Acoustical sealant at perimeters, layers and penetrations of sound-rated partitions
+        typical: {furnish: "07 92 19 or 09 21 16", install: "07 92 19 or 09 21 16"}
+        confirm_in: [spec.part1, schedule.partition_type]
+    gate:
+      milestone: wall_close_in
+      note: Sealant at the first board layer and the runners is inaccessible once the next layer goes on
+    severity: medium
+    failure: Each trade assumes the other seals the sound-rated walls; the perimeter and box penetrations are left open and field sound tests fail
+
   - id: if.sealant-substrates
     a: ["07 92 00"]
     a_trade: Joint sealants

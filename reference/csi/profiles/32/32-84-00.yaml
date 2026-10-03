@@ -85,8 +85,8 @@ failure_modes:
     source: industry_practice
 
   - id: ir.fm.backflow-rejected
-    what_happens: Backflow assembly type or location not accepted by the purveyor or inspector
-    consequence: Assembly replaced or relocated before the water is turned on
+    what_happens: Backflow assembly too low for the hazard, such as a double check or vacuum breaker where fertilizer injection calls for a reduced pressure assembly
+    consequence: Assembly replaced before the purveyor or inspector releases the system
     caught_by: [ir.backflow]
     source: industry_practice
 
@@ -133,7 +133,7 @@ regulatory_hooks:
       or without chemical injection, location, testing at installation and
       periodically, tester certification)?
     applies_when: Any irrigation connected to a potable supply
-    source_families: [plumbing_code]
+    source_families: [plumbing_code, public_works]
     severity: high
 
   - id: ir.rh.water-efficiency
@@ -144,7 +144,7 @@ regulatory_hooks:
       controllers, rain shutoff, a dedicated meter, drip in narrow areas, a
       water budget)?
     applies_when: New landscape irrigation
-    source_families: [environmental, plumbing_code]
+    source_families: [public_works, environmental]
     severity: medium
 
 extract_fields:

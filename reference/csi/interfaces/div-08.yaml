@@ -97,7 +97,6 @@ edges:
       milestone: in_wall_rough_in
       note: Card reader and actuator boxes fix the latch-side wall before signs are made
     severity: low
-    failure: A door's swing or hardware changed after the sign schedule; the sign has no wall at the latch side and ends up on glass or a rated door leaf
 
   # ── Division 11 ───────────────────────────────────────────────
   - id: if.08-dock-equipment
@@ -142,7 +141,6 @@ edges:
       milestone: procurement_release
       note: Review the door, frame and window submittals with the shielding submittal
     severity: high
-    failure: Unlined frames, unshielded hardware preps or a view window below the barrier's equivalence; leakage found at the physicist's survey and frames or doors replaced
 
   # ── Division 21 ───────────────────────────────────────────────
   - id: if.08-sprinklered-glazing
@@ -215,7 +213,7 @@ edges:
   - id: if.08-access-doors-mep
     a: ["08 31 00"]
     a_trade: Access doors and panels
-    b: ["21 05 00", "21 13 00", "22 05 00", "22 10 00", "23 21 00", "23 33 00", "23 36 00", "26 05 00", "09 21 00"]
+    b: ["21 05 00", "21 13 00", "22 05 00", "22 10 00", "23 21 00", "23 33 00", "23 36 00", "26 05 00", "09 21 00", "23 81 00"]
     b_trade: Sprinkler, plumbing, hydronic and air-side trades with concealed valves, dampers and terminal units; electrical junction boxes; the board installer
     a_provides: Door sizes, ratings and frame types for each substrate
     b_provides: Location and required size of every concealed device that needs service, taken from approved MEP submittals; framed openings in board walls and ceilings

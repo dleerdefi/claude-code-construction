@@ -46,7 +46,7 @@ edges:
     severity: high
 
   - id: if.27-fire-alarm-communicator
-    a: ["27 05 00", "27 10 00"]
+    a: ["27 05 28", "27 05 43", "27 10 00"]
     a_trade: Communications services and cabling
     b: ["28 46 00"]
     b_trade: Fire detection and alarm

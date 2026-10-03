@@ -55,7 +55,6 @@ edges:
     b_provides: As-built pile location and cut-off elevation survey, and pile acceptance (load tests, integrity tests, driving or drilling records) before caps are formed
     gate: {milestone: foundation_pour}
     severity: high
-    failure: Piles out of position discovered after the cap is reinforced; cap redesign or added piles under schedule pressure
 
   - id: if.03-masonry-dowels
     a: ["03 20 00", "03 30 00"]

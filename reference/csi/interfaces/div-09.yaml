@@ -67,7 +67,7 @@ edges:
   - id: if.09-ceiling-service-access
     a: ["09 50 00"]
     a_trade: Suspended and specialty ceilings
-    b: ["21 13 00", "22 11 00", "22 13 00", "23 21 00", "23 33 00", "23 36 00", "23 82 00", "26 05 33"]
+    b: ["21 13 00", "22 11 00", "22 13 00", "23 21 00", "23 33 00", "23 36 00", "23 82 00", "26 05 33", "23 81 00"]
     b_trade: Piping, duct accessories, terminal and fan-coil units, and boxes with concealed service points (valves, dampers, cleanouts, junction boxes)
     a_provides: Ceiling type and layout at each service point, which panels are removable, and where fixed bulkheads, clouds or monolithic areas need access doors instead
     b_provides: Service points placed over removable panels and clear of fixtures, ducts, mains and bulkheads, with the clearance each needs for its actuator, filter or coil to come out

@@ -132,7 +132,7 @@ regulatory_hooks:
       paralleling with its system, and what protection, agreement and witness
       testing does it require?
     applies_when: Closed-transition or paralleling transfer equipment, or on-site generation that can parallel the utility
-    source_families: [electrical_code]
+    source_families: [utility_service_rules, electrical_code]
     severity: medium
 
 extract_fields:

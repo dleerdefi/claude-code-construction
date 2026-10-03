@@ -153,7 +153,7 @@ edges:
   - id: if.05-equipment-support-steel
     a: ["05 12 00", "05 21 00", "05 50 00"]
     a_trade: Structural framing and metal fabrications
-    b: ["23 60 00", "23 70 00", "22 30 00", "26 30 00", "23 05 48"]
+    b: ["23 60 00", "23 70 00", "22 30 00", "26 30 00", "23 05 48", "23 80 00"]
     b_trade: Mechanical, plumbing and electrical equipment, and vibration isolation and seismic restraint
     a_provides: Support framing and dunnage as scheduled, and the engineer of record's acceptance of each equipment load and support point (not a stair or railing item)
     b_provides: Approved equipment weights, footprints, support points, isolation rails or bases, and which frames and supports each trade furnishes

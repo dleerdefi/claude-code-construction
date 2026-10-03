@@ -168,7 +168,7 @@ failure_modes:
   - id: 09ti.fm.untested-membrane
     what_happens: Tile set before the shower or wet-room membrane is flood tested
     consequence: Leak found after tile and fixtures are in; demolition to reach it
-    caught_by: [09ti.wet-area-waterproofing]
+    caught_by: [09ti.wet-area-waterproofing, if.waterproofing-under-tile]
     source: industry_practice
 
   - id: 09ti.fm.slope-in-setting-bed

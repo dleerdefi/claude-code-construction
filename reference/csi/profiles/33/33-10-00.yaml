@@ -72,11 +72,10 @@ review_checks:
   - id: wa.fire-service
     kind: conformance
     check: >
-      The fire service from the public main to the riser uses materials and
-      joint restraint approved for fire service, puts the end of the
-      underground scope at the same point as the sprinkler contract, and is
-      flushed and tested to the fire service standard before connection to
-      the riser.
+      The fire service uses pipe, fittings, joint restraint and valves
+      approved for fire service (the purveyor's domestic list is not
+      enough), and its underground control valves are the type, location and
+      supervision the fire code and fire department require.
     trace_to: [drawings.civil, drawings.fire_protection, spec.part3]
     severity: high
     owner: gc
@@ -93,14 +92,13 @@ review_checks:
     owner: subcontractor
 
   - id: wa.meter-backflow
-    kind: coordination
+    kind: conformance
     check: >
-      Meter and backflow locations (vault, building or above-grade
-      enclosure) agree between civil and plumbing, with freeze protection,
-      test access, and somewhere for a reduced pressure assembly's relief
-      discharge to go; a reduced pressure assembly in a pit without a drain
-      is rejected.
-    trace_to: [drawings.civil, drawings.plumbing]
+      Meter and backflow vaults or enclosures have freeze protection, test
+      access, and a drain or daylight outlet sized for a reduced pressure
+      assembly's relief discharge; a reduced pressure assembly in a pit
+      without a drain is rejected.
+    trace_to: [drawings.civil, drawings.details, report.utility_requirements]
     severity: medium
     owner: design_team
 
@@ -120,19 +118,25 @@ failure_modes:
   - id: wa.fm.stale-flow-test
     what_happens: Sprinklers designed on an old or remote flow test, and the actual supply is lower
     consequence: Redesign, larger pipe or a fire pump found late in the job
-    caught_by: [wa.flow-test]
+    caught_by: [wa.flow-test, if.21-fire-service-underground]
     source: industry_practice
 
   - id: wa.fm.unflushed-service
     what_happens: Fire service connected to the riser without the flush
     consequence: Debris in the sprinkler system; obstructed heads and rework
-    caught_by: [wa.fire-service]
+    caught_by: [if.21-fire-service-underground]
     source: industry_practice
 
   - id: wa.fm.separation
     what_happens: Water line laid too close to, or under, a sewer without the special construction the rules allow
     consequence: The health authority or purveyor rejects the line and the crossing is rebuilt
     caught_by: [if.33-water-sewer-separation]
+    source: industry_practice
+
+  - id: wa.fm.wrong-materials
+    what_happens: Fire service built with pipe or valves from the domestic list that are not approved for fire service, or with unsupervised control valves
+    consequence: Rejected at the fire inspection; valves or pipe replaced and supervision added late
+    caught_by: [wa.fire-service]
     source: industry_practice
 
   - id: wa.fm.rp-in-pit
@@ -172,7 +176,7 @@ regulatory_hooks:
       the fire department require, and how recent must the flow test used
       for sprinkler design be?
     applies_when: New buildings, hydrants or fire service mains
-    source_families: [fire_code]
+    source_families: [fire_code, public_works]
     severity: high
 
   - id: wa.rh.separation
@@ -183,7 +187,7 @@ regulatory_hooks:
       plumbing code require, and what construction is allowed where it
       cannot be met?
     applies_when: Water lines near or crossing sewers
-    source_families: [plumbing_code, environmental]
+    source_families: [public_health, plumbing_code]
     severity: high
 
   - id: wa.rh.disinfection
@@ -193,7 +197,7 @@ regulatory_hooks:
       water mains and services here, by which method and sampling, and who
       takes the samples?
     applies_when: New or extended potable water lines
-    source_families: [environmental, plumbing_code]
+    source_families: [public_health, public_works]
     severity: medium
 
   - id: wa.rh.service-backflow
@@ -204,7 +208,7 @@ regulatory_hooks:
       this occupancy (assembly type, location, enclosure, testing and
       registration)?
     applies_when: New domestic or fire services
-    source_families: [plumbing_code, fire_code]
+    source_families: [plumbing_code, public_works, fire_code]
     severity: high
 
 extract_fields:

@@ -62,7 +62,7 @@ failure_modes:
   - id: 12hc.fm.equipment-late
     what_happens: Medication dispensing cabinets or monitored refrigerators selected after the casework was built
     consequence: Openings recut and power or data added at turnover, with the unit's activation delayed
-    caught_by: [12hc.equipment-integration, 12hc.rc.equipment-list]
+    caught_by: [12hc.equipment-integration, 12hc.rc.equipment-list, if.11-medical-equipment-casework]
     source: field_experience
 
   - id: 12hc.fm.rail-backing-partial

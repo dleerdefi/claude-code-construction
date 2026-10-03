@@ -192,6 +192,21 @@ edges:
     gate: {milestone: procurement_release}
     severity: high
 
+  - id: if.11-bsc-exhaust
+    a: ["11 53 53"]
+    a_trade: Biological safety cabinets
+    b: ["23 31 00", "23 09 00"]
+    b_trade: Lab exhaust duct and controls
+    a_provides: Cabinet class and type at each location, exhaust connection type (canopy or hard-ducted), required exhaust airflow and static pressure, alarm contacts and interlock needs
+    b_provides: Exhaust connection and flow control sized to the cabinet type, alarm and interlock wiring, and the exhaust running when the certifier tests the cabinet
+    responsibility:
+      - item: Canopy connections, exhaust airflow alarms and interlocks for ducted cabinets
+        typical: {furnish: "11 53 53", install: "23 31 00", connect: "23 09 00"}
+        confirm_in: [spec.part1, schedule.equipment]
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+    failure: A ducted cabinet without its exhaust alarm or interlock, or a canopy cabinet hard-ducted, fails field certification
+
   # ── Healthcare ────────────────────────────────────────────────
   - id: if.11-medical-equipment-shielding
     a: ["11 70 00"]

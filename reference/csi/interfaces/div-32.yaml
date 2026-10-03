@@ -48,15 +48,12 @@ edges:
     a_trade: Irrigation
     b: ["33 10 00"]
     b_trade: Water utilities
-    a_provides: Peak irrigation demand and the pressure needed at the point of connection; backflow assembly location
+    a_provides: Peak irrigation demand and the pressure needed at the point of connection
     b_provides: Tap, meter or submeter and service size for irrigation, with static pressure and available flow
     responsibility:
       - item: Irrigation tap, meter and connection fees
         typical: {furnish: "Owner or 33 10 00", install: "33 10 00 or the water purveyor"}
         confirm_in: [spec.part1, report.utility_requirements]
-      - item: Irrigation backflow assembly
-        typical: {furnish: "32 84 00 or Division 22", install: "32 84 00 or Division 22"}
-        confirm_in: [spec.part2, drawings.plumbing]
     gate:
       milestone: procurement_release
       note: Confirm pressure and flow before the irrigation design or equipment is released

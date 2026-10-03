@@ -217,7 +217,7 @@ failure_modes:
   - id: ef.fm.subgrade-degraded
     what_happens: Subgrade accepted, then left exposed to rain, frost or construction traffic before the slab or base
     consequence: Pumping subgrade found the day of the pour; undercut and replacement at the last minute
-    caught_by: [ef.subgrade-acceptance, if.31-subgrade-paving]
+    caught_by: [ef.subgrade-acceptance, if.31-subgrade-paving, if.03-subgrade]
     source: industry_practice
 
   - id: ef.fm.clay-in-pad
@@ -304,7 +304,7 @@ regulatory_hooks:
       authorization here (to storm sewer, sanitary sewer or surface water),
       and what treatment, sampling and flow limits come with it?
     applies_when: Excavation or trench dewatering
-    source_families: [environmental]
+    source_families: [environmental, public_works]
     severity: medium
 
 extract_fields:

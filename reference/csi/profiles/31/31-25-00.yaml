@@ -166,5 +166,5 @@ regulatory_hooks:
       require for the SWPPP, inspection frequency, corrective action timing,
       stabilization deadlines and permit termination?
     applies_when: Any land disturbance the permit program covers
-    source_families: [environmental]
+    source_families: [environmental, public_works]
     severity: high

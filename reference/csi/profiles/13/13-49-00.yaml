@@ -141,7 +141,7 @@ failure_modes:
   - id: 13rp.fm.frame-gap
     what_happens: Unlined frames, or lined frames with no overlap to the wall lead, at shielded doors and view windows
     consequence: Leakage at jambs and heads found at survey; frames replaced
-    caught_by: [13rp.doors-frames-glazing]
+    caught_by: [13rp.doors-frames-glazing, if.08-radiation-shielding]
     source: industry_practice
 
   - id: 13rp.fm.rf-penetration

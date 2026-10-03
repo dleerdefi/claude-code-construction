@@ -67,7 +67,7 @@ failure_modes:
   - id: 10ss.fm.flat-slab
     what_happens: Slab poured flat with no rail recess for a mobile system selected later
     consequence: Raised deck and ramps that break the accessible route, or slab saw-cut for rails
-    caught_by: [10ss.rail-recess]
+    caught_by: [10ss.rail-recess, if.03-floor-recesses]
     source: field_experience
 
   - id: 10ss.fm.floor-overload

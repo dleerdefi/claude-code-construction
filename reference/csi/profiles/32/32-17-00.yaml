@@ -137,7 +137,7 @@ regulatory_hooks:
       standard for the public way, require detectable warnings, and what
       size, dome geometry, color contrast and placement do they require?
     applies_when: Curb ramps, blended transitions or vehicular crossings on an accessible route
-    source_families: [accessibility]
+    source_families: [accessibility, public_works]
     severity: high
 
 extract_fields:

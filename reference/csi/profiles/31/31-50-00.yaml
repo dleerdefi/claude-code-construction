@@ -212,7 +212,7 @@ regulatory_hooks:
       nails beneath the public way (permit, design review, removal or
       de-tensioning afterward)?
     applies_when: Excavation support next to a street, alley or sidewalk
-    source_families: [building_code]
+    source_families: [building_code, public_works]
     severity: high
 
 extract_fields:
