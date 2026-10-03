@@ -310,6 +310,7 @@ Domain reference files are in `${CLAUDE_PLUGIN_ROOT}/reference/`. Read only what
 - `ada_requirements.yaml` — ADA accessibility requirements
 - `ibc_egress_tables.yaml` — IBC egress width, travel distance, occupancy tables
 - `common-issue-types.md` — issue patterns for skills to watch for (cross-document conflicts, missing info, code compliance, constructability)
+- `csi/` — per-section PE knowledge (checks, failure modes, interfaces, regulatory hooks, milestones). Don't read the files directly; use `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/csi/csi_knowledge.py"` with `resolve --section "<number>" --project . --format md` (one section; add `--only checks,hooks` for a slice), `reflexes --project . --format md` (always-on red flags), or `milestone --id <id> --project . --format md` (what must be verified before a cover such as `wall_close_in`). Schema: `csi/SCHEMA.md`
 - PE review reference files live inside the `pe-review` skill directory (see PE Review section below)
 
 ---
@@ -387,7 +388,7 @@ When responding about construction documents:
 - **Source traceability:** Every claim must cite its specific source — `[Sheet A2.01, Room 204]` or `[Spec Section 07 92 00, Para 3.3.A]` or `[Detail 5/A8.03]`. "Per the drawings" or "per the specs" is never acceptable.
 - **Confidence classification:** Grade every response element as: **CONFIRMED** (consistent across all docs), **PROBABLE** (found in primary source, not all cross-refs checked), **CONFLICTING** (documents disagree — present both with precedence analysis), or **NOT FOUND** (expected information absent — state what was expected and where).
 - **Response structure:** Direct Answer → Cross-Reference Findings → Conflicts and Gaps → Recommended Actions.
-- **RFI drafting:** When conflicts/gaps are found, use the template in the pe-review skill's `references/rfi_template.md`.
+- **RFI drafting:** When conflicts/gaps are found, draft with the `rfi-drafter` skill (format in its `references/rfi-format.md`).
 
 ---
 
