@@ -1,0 +1,126 @@
+schema_version: 1
+kind: section
+id: "13 21 13"
+title: Clean Rooms
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Clean rooms and their wall, ceiling and filter systems: modular panels,
+  sealed ceiling grid with filters or fan-filter units, sealed lights,
+  pass-throughs and airlocks. A room is accepted by certification to a
+  cleanliness class at a stated occupancy state, which depends on sealed
+  penetrations and joints, a pressure cascade the doors and transfers can
+  hold, and an air system balanced to the design. Pharmacy compounding
+  suites carry the state pharmacy board's rules on top of the cleanroom
+  standards.
+
+submittals:
+  - id: 13cr.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Room classification and pressure relationship for each room, with doors, pass-throughs and transfer openings
+      - Coordinated ceiling layout with filters or fan-filter units, sealed lights, sprinklers, returns and detectors
+      - Sealing details at panel joints, penetrations, light fixtures and door frames
+  - id: 13cr.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Certification results by room, at the occupancy state and to the standard the spec names
+
+review_checks:
+  - id: 13cr.certification
+    kind: completeness
+    check: >
+      Each room's cleanliness class, the occupancy state it is certified in,
+      its pressure differential, the certifier and the test standard are
+      stated, and certification is scheduled after balancing and final
+      cleaning and before the owner needs the room.
+    trace_to: [spec.part1, spec.part3, drawings.mechanical]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+  - id: 13cr.ceiling-layout
+    kind: coordination
+    check: >
+      Filters or fan-filter units, sealed lights, sprinklers, returns and
+      detectors share one coordinated ceiling layout; fan-filter units have
+      power and controls, and the grid hangs from structure with the bracing
+      the seismic research requires.
+    trace_to: [drawings.rcp, drawings.mechanical, drawings.electrical, drawings.fire_protection]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 13cr.sealing-surfaces
+    kind: conformance
+    check: >
+      Panel joints, penetrations, light fixtures, sprinkler escutcheons and
+      door frames are sealed with cleanroom-compatible products, and surfaces
+      are non-shedding and resist the owner's cleaning and disinfecting agents.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 13cr.pressure-cascade
+    kind: coordination
+    check: >
+      Door undercuts, gaskets, pass-throughs and transfer openings fit the
+      pressure cascade, airlock doors are interlocked where the design
+      requires, and pressure monitors and alarms are located.
+    trace_to: [drawings.mechanical, schedule.door, schedule.door_hardware]
+    severity: high
+    owner: design_team
+
+  - id: 13cr.compounding-rules
+    kind: conformance
+    check: >
+      Where the rooms are for sterile or hazardous drug compounding, the
+      layout, ante-room, pressure, sink location, ceiling type and surfaces
+      follow the compounding standards the state pharmacy board enforces.
+    trace_to: [drawings.plans, spec.part2]
+    severity: high
+    owner: design_team
+
+failure_modes:
+  - id: 13cr.fm.certification-fails
+    what_happens: Certification fails on leaks at unsealed penetrations, light fixtures or grid joints
+    consequence: Rework after finishes and repeated certification before the owner can use the room
+    caught_by: [13cr.sealing-surfaces, 13cr.certification]
+    source: industry_practice
+
+  - id: 13cr.fm.cascade-broken
+    what_happens: Standard undercut doors or ungasketed frames installed between rooms of different classes
+    consequence: The pressure cascade can't be held; doors and frames replaced and the system rebalanced
+    caught_by: [13cr.pressure-cascade, if.13-cleanroom-air]
+    source: industry_practice
+
+  - id: 13cr.fm.pharmacy-rules
+    what_happens: A compounding suite built to a general cleanroom spec without the pharmacy standard's room requirements
+    consequence: The board of pharmacy inspection fails; rooms reconfigured before the pharmacy can open
+    caught_by: [13cr.compounding-rules]
+    source: industry_practice
+
+standards:
+  - id: 13cr.std.iso-14644-1
+    name: ISO 14644-1
+    title: Cleanrooms and associated controlled environments — Part 1, Classification of air cleanliness by particle concentration
+    verify: Classification and test basis of the certification
+  - id: 13cr.std.iso-14644-4
+    name: ISO 14644-4
+    title: Cleanrooms and associated controlled environments — Part 4, Design, construction and start-up
+    verify: Construction and start-up requirements the spec invokes
+
+regulatory_hooks:
+  - id: 13cr.rh.compounding
+    topic: pharmacy-compounding-rooms
+    question: >
+      Which compounding standards does the state board of pharmacy enforce for
+      this suite (sterile and hazardous drug compounding), and what do they
+      require of room classification, pressure, ante-rooms, ceilings, surfaces
+      and certification?
+    applies_when: Pharmacy compounding rooms
+    source_families: [pharmacy]
+    severity: high

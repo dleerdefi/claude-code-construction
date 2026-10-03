@@ -1,0 +1,239 @@
+schema_version: 1
+kind: section
+id: "13 11 00"
+title: Swimming Pools
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # pool shell and pool mechanical systems are often design-build by the pool contractor
+
+scope_summary: >
+  Public and semi-public pools: the shell, gutters and recirculation, pool
+  mechanical (filters, pumps, chemical feed, heaters) and deck equipment.
+  The pool is usually permitted by a health or pool authority as well as the
+  building department, and its plans often must be approved before the shell
+  is built. Drains have to meet federal and code entrapment rules, the shell
+  and deck need an equipotential bonding grid inspected before the pour, the
+  shell must resist uplift when drained, and chemical storage has its own
+  separation and ventilation rules. In an indoor natatorium the chloride air
+  attacks hangers, fasteners and ceilings that would last indefinitely
+  anywhere else.
+
+submittals:
+  - id: 13sp.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Shell dimensions, depths, depth markings, steps, ladders and accessible entry, keyed to the approved pool plans
+      - Main drains, skimmers or gutters, inlets, lights and every embedded fitting with locations and sizes
+      - Equipment room layout with filters, pumps, chemical feed and storage, heaters and surge tank
+  - id: 13sp.sub.design-data
+    type: Design Data
+    must_show:
+      - Shell structural design with hydrostatic uplift and groundwater assumptions, where the shell is contractor-designed
+      - Hydraulic design with flow, turnover and suction outlet sizing
+  - id: 13sp.sub.certificates
+    type: Certificates
+    must_show:
+      - Certification of suction outlet fitting assemblies, and listings of pool equipment and chemicals
+      - Health or pool authority approval of the pool plans
+
+review_checks:
+  - id: 13sp.plan-approval
+    kind: completeness
+    check: >
+      The pool plans carry the approval of the authority that permits public
+      pools before the shell is built, and the submittal matches the approved
+      set; changes to depth, dimensions, equipment or turnover go back for
+      re-approval.
+    trace_to: [spec.part1, spec.division_01]
+    severity: critical
+    owner: gc
+    gate: foundation_pour
+
+  - id: 13sp.shell-design
+    kind: coordination
+    check: >
+      The shell design accounts for uplift with the pool empty at the
+      groundwater level in the geotechnical report (hydrostatic relief or
+      weight), joints and waterstops with the deck and building, and every
+      fitting cast into the shell.
+    trace_to: [report.geotechnical, drawings.structural, drawings.foundation]
+    severity: critical
+    owner: design_team
+    gate: foundation_pour
+
+  - id: 13sp.suction-outlets
+    kind: conformance
+    check: >
+      Suction outlets are certified fitting assemblies sized for the
+      submitted flow, arranged as the entrapment rules require (multiple
+      outlets or unblockable covers), with any secondary protection the rules
+      call for and the cover's certified service life recorded.
+    trace_to: [spec.part2, drawings.plumbing]
+    severity: critical
+    owner: subcontractor
+
+  - id: 13sp.bonding-grid
+    kind: coordination
+    check: >
+      The equipotential bonding grid (shell reinforcing, deck perimeter,
+      metal fittings, ladders and rails, pumps and lights) is detailed, its
+      installer named, and it is inspected before the shell and the deck are
+      poured.
+    trace_to: [drawings.electrical, drawings.details]
+    severity: critical
+    owner: gc
+    gate: foundation_pour
+
+  - id: 13sp.chemical-room
+    kind: coordination
+    check: >
+      Chemical storage keeps acids and chlorine compounds separated, with
+      exhaust independent of the natatorium and the general equipment room,
+      spill containment, an eyewash, and access from outside where the design
+      provides it; the pool equipment room is not open to natatorium air.
+    trace_to: [drawings.mechanical, drawings.plans, drawings.plumbing]
+    severity: high
+    owner: design_team
+
+  - id: 13sp.natatorium-materials
+    kind: conformance
+    check: >
+      Hangers, fasteners, ceiling suspension, duct supports, light fixtures and
+      door hardware in the natatorium air are of materials the design team
+      chose for the chloride atmosphere (some stainless grades crack under
+      stress there), and every section touching the room says so, not only
+      this one.
+    trace_to: [spec.part2, drawings.rcp, drawings.mechanical]
+    severity: high
+    owner: design_team
+
+  - id: 13sp.deck-drainage
+    kind: constructability
+    check: >
+      The deck slopes away from the pool to deck drains that are kept separate
+      from the gutter and recirculation system, and gutter, surge tank and
+      overflow elevations agree between the pool and plumbing drawings.
+    trace_to: [drawings.plumbing, drawings.details]
+    severity: medium
+    owner: gc
+    gate: slab_pour
+
+  - id: 13sp.accessible-entry
+    kind: conformance
+    check: >
+      The accessible means of entry the CDs and the accessibility research
+      require (lift, sloped entry, transfer system) is in the submittal, with
+      lift anchors and power set in the deck before it is poured.
+    trace_to: [drawings.plans, drawings.details, drawings.electrical]
+    severity: medium
+    owner: gc
+    gate: slab_pour
+
+reconciliations:
+  - id: 13sp.rc.equipment-power
+    between: [schedule.equipment, schedule.electrical_panel]
+    key: Pool equipment tag (pumps, heaters, chemical feeders, sanitizers, lifts)
+    fields: [voltage, phase, load, disconnect, drive or controls, ground-fault protection]
+    check: >
+      Each pool equipment item has a matching circuit, disconnect and any
+      ground-fault protection on the electrical drawings, with the same
+      electrical characteristics.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 13sp.fm.built-before-approval
+    what_happens: Shell built before the pool authority approved the plans
+    consequence: Approval comments (depth, gutters, markings, turnover) force rework of the shell and piping
+    caught_by: [13sp.plan-approval]
+    source: industry_practice
+
+  - id: 13sp.fm.uplift
+    what_happens: The pool is drained for maintenance with groundwater high and no uplift resistance or relief
+    consequence: Shell floats or cracks; a structural repair of the whole pool
+    caught_by: [13sp.shell-design]
+    source: industry_practice
+
+  - id: 13sp.fm.bonding-missed
+    what_happens: Bonding grid not installed or not inspected before the shell or deck pour
+    consequence: Inspection fails; deck removed or an alternative bonding method negotiated with the inspector
+    caught_by: [13sp.bonding-grid, if.13-pool-bonding]
+    source: field_experience
+
+  - id: 13sp.fm.entrapment
+    what_happens: Drain covers without current certification, or sized for less flow than the pumps deliver
+    consequence: Pool authority refuses to open the pool; covers and sumps replaced
+    caught_by: [13sp.suction-outlets]
+    source: industry_practice
+
+  - id: 13sp.fm.chloride-hangers
+    what_happens: Ceiling and duct hangers in the natatorium of a material vulnerable to chloride stress corrosion
+    consequence: Hidden hanger failure years later and a falling-ceiling hazard; the ceiling rebuilt
+    caught_by: [13sp.natatorium-materials, if.13-natatorium-hvac]
+    source: industry_practice
+
+  - id: 13sp.fm.chemical-air
+    what_happens: Chemical storage shares air with the equipment room or the natatorium
+    consequence: Corroded equipment and controls, and a chlorine release risk
+    caught_by: [13sp.chemical-room]
+    source: industry_practice
+
+standards:
+  - id: 13sp.std.nsf-50
+    name: NSF/ANSI 50
+    title: Equipment and Chemicals for Swimming Pools, Spas, Hot Tubs, and Other Recreational Water Facilities
+    verify: Listings of filters, pumps, chemical feeders and other pool equipment
+
+regulatory_hooks:
+  - id: 13sp.rh.plan-review
+    topic: public-pool-plan-review
+    question: >
+      Which agency permits public and semi-public pools here (health
+      department, building department under a pool code, or both), what must
+      it approve before construction, and what inspections precede filling and
+      opening?
+    applies_when: Any pool or spa serving the public, residents in common or members
+    source_families: [public_health, building_code]
+    severity: critical
+
+  - id: 13sp.rh.entrapment
+    topic: pool-suction-entrapment
+    question: >
+      What do federal law and the adopted pool code require for suction
+      outlets, drain covers and secondary entrapment protection on this pool?
+    applies_when: Every pool and spa with suction outlets
+    source_families: [building_code, plumbing_code]
+    severity: critical
+
+  - id: 13sp.rh.bonding
+    topic: pool-equipotential-bonding
+    question: >
+      What does the adopted electrical code require for equipotential bonding
+      of the shell, deck, fittings and equipment, and for ground-fault
+      protection and lighting near the pool?
+    applies_when: Every pool and spa
+    source_families: [electrical_code]
+    severity: high
+
+  - id: 13sp.rh.chemical-storage
+    topic: pool-chemical-storage
+    question: >
+      What do the adopted fire and mechanical codes require for pool chemical
+      storage rooms (separation of incompatible chemicals, ventilation,
+      quantity limits, signage)?
+    applies_when: Pools with on-site chemical storage
+    source_families: [fire_code, mechanical_code]
+    severity: high
+
+  - id: 13sp.rh.accessible-entry
+    topic: accessibility-pool-entry
+    question: >
+      How many accessible means of entry does the adopted accessibility
+      standard require for this pool, and which types qualify?
+    applies_when: Public pools, spas and wading pools
+    source_families: [accessibility]
+    severity: medium

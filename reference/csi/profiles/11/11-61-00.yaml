@@ -1,0 +1,197 @@
+schema_version: 1
+kind: section
+id: "11 61 00"
+title: Broadcast, Theater, and Stage Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+review_mode: package
+contractor_designed: sometimes   # rigging layout, attachments and hoist systems are often delegated to the rigging contractor
+
+scope_summary: >
+  Stage rigging (counterweight and motorized), hoists, curtains and tracks,
+  acoustical shells and their controls (11 61 33 rigging inherits from here).
+  Rigging hangs moving loads over people, so the review is about loads to
+  structure, how attachments are made, controls and emergency stops, and
+  inspection before first use. The usual misses are a rigging arrangement
+  that no longer matches the structural design loads, sprinkler mains and
+  ducts routed through batten travel, and attachments welded or clamped to
+  steel without the engineer of record's approval.
+
+submittals:
+  - id: 11st.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Rigging plan and section with line sets, battens, head and loft block locations, travel limits and clear envelopes
+      - Attachment details to the building structure at every support point
+  - id: 11st.sub.design-data
+    type: Design Data
+    must_show:
+      - Load at each attachment point with direction, and rated capacity of each line set and hoist, with the allowances the design uses
+  - id: 11st.sub.certificates
+    type: Certificates
+    must_show:
+      - Flame-resistance certificate for each curtain and drapery fabric as treated
+
+review_checks:
+  - id: 11st.rigging-loads
+    kind: conformance
+    submittal_types: [Design Data, Shop Drawings]
+    check: >
+      The rigging contractor's loads at each attachment (point loads, line set
+      and hoist capacities, dynamic allowances, direction) are within what the
+      structural drawings designed those members for; any difference goes to
+      the engineer of record before fabrication.
+    trace_to: [drawings.structural, spec.part2]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: 11st.attachment
+    kind: constructability
+    check: >
+      Attachments to structure (beam clamps, bolted or welded connections,
+      head and loft block beams, gridiron) are approved by the engineer of
+      record, installed before fireproofing or with a patch procedure, and
+      none rely on field drilling or welding of the structure that the
+      engineer has not accepted.
+    trace_to: [drawings.structural, spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: fireproofing_application
+
+  - id: 11st.fly-space-clear
+    kind: coordination
+    check: >
+      Batten travel paths, loft wells and curtain tracks have a defined clear
+      envelope on the drawings, and sprinkler mains, ductwork, conduit and
+      lighting positions stay outside it.
+    trace_to: [drawings.building_sections, drawings.fire_protection, drawings.mechanical, drawings.electrical]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: 11st.controls
+    kind: completeness
+    check: >
+      Motorized rigging has its controller, operator stations with sightlines
+      to the equipment, emergency stop circuit, travel limits and load
+      monitoring as the spec requires, with power and control pathways from
+      the stage to every hoist.
+    trace_to: [spec.part2, drawings.electrical]
+    severity: high
+    owner: subcontractor
+    gate: in_wall_rough_in
+
+  - id: 11st.proscenium-protection
+    kind: absence
+    check: >
+      Where the stage size or proscenium configuration triggers stage fire
+      protection (fire curtain or water curtain, stage smoke vents, sprinklers
+      over and under the stage), the system is on the drawings and its
+      release is tied to detection or the fire alarm system.
+    trace_to: [drawings.fire_protection, drawings.fire_alarm, drawings.building_sections]
+    severity: high
+    owner: design_team
+
+  - id: 11st.curtain-certificates
+    kind: completeness
+    submittal_types: [Certificates]
+    check: >
+      Stage curtains, drapery and scenic fabric carry flame-resistance
+      certificates for the actual fabric and treatment, to the test the fire
+      code names.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 11st.acceptance
+    kind: completeness
+    check: >
+      The rigging system is inspected and load-tested by a qualified
+      inspector before first use, operators are trained, and the inspection
+      record and operating limits are turned over to the owner.
+    trace_to: [spec.part3]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+failure_modes:
+  - id: 11st.fm.loads-mismatch
+    what_happens: Rigging arrangement or capacities change from what the structural design assumed
+    consequence: Structure reinforced after erection, or line sets derated
+    caught_by: [11st.rigging-loads]
+    source: industry_practice
+
+  - id: 11st.fm.mep-in-travel
+    what_happens: Sprinkler mains, ducts or conduit routed through batten travel or loft wells
+    consequence: Battens limited in travel, or rerouting inside a finished fly tower
+    caught_by: [11st.fly-space-clear, if.11-stage-fly-space]
+    source: field_experience
+
+  - id: 11st.fm.unapproved-attachment
+    what_happens: Rigging attachments field-welded or clamped to structure without the engineer's approval, or over fireproofed steel
+    consequence: Damaged fireproofing and unverified connections; engineering review and repair
+    caught_by: [11st.attachment]
+    source: industry_practice
+
+  - id: 11st.fm.untested
+    what_happens: Rigging used for events before inspection and load testing
+    consequence: An unverified overhead system over performers and an owner liability exposure
+    caught_by: [11st.acceptance]
+    source: industry_practice
+
+  - id: 11st.fm.fabric-uncertified
+    what_happens: Curtains delivered without flame-resistance certificates for the actual fabric
+    consequence: Fire marshal rejects the drapery at final inspection
+    caught_by: [11st.curtain-certificates]
+    source: industry_practice
+
+standards:
+  - id: 11st.std.esta-e1-4-1
+    name: ANSI E1.4-1
+    title: Entertainment Technology - Manual Counterweight Rigging Systems
+    verify: Counterweight rigging design and capacity claims
+  - id: 11st.std.esta-e1-6-1
+    name: ANSI E1.6-1
+    title: Entertainment Technology - Powered Hoist Systems
+    verify: Hoist, control and emergency stop claims
+  - id: 11st.std.esta-e1-47
+    name: ANSI E1.47
+    title: Entertainment Technology - Recommended Guidelines for Entertainment Rigging System Inspections
+    verify: Inspection method where the spec requires an acceptance or periodic inspection
+  - id: 11st.std.nfpa-701
+    name: NFPA 701
+    title: Standard Methods of Fire Tests for Flame Propagation of Textiles and Films
+    verify: Flame-resistance test cited on drapery certificates
+
+regulatory_hooks:
+  - id: 11st.rh.proscenium
+    topic: stage-proscenium-fire-protection
+    question: >
+      Do the stage size, height and proscenium configuration trigger the
+      adopted building and fire codes' stage requirements (proscenium wall
+      rating, fire curtain or water curtain, stage ventilation, sprinklers),
+      and how must they be activated?
+    applies_when: Stages and platforms with fly space or a proscenium opening
+    source_families: [building_code, fire_code]
+    severity: high
+
+  - id: 11st.rh.drapery
+    topic: stage-drapery-flame-resistance
+    question: >
+      Which flame-resistance test and certification does the adopted fire code
+      require for stage curtains, drapery and scenery, and must it be renewed
+      after cleaning or retreatment?
+    applies_when: Stage curtains, drapery and scenic materials
+    source_families: [fire_code]
+    severity: medium
+
+extract_fields:
+  - id: 11st.xf.attachment-loads
+    label: Load and direction at each attachment point
+    type: list
+    per: package
+    reconcile_against: [drawings.structural]

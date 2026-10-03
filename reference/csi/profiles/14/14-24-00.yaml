@@ -1,0 +1,100 @@
+schema_version: 1
+kind: section
+id: "14 24 00"
+title: Hydraulic Elevators
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Hydraulic elevators with in-ground, holeless or roped jacks (14 24 13
+  freight and 14 24 23 passenger inherit from here). An in-ground cylinder
+  needs a drilled hole, casing and liner before the pit slab is poured and
+  before overhead structure blocks the drill rig; the oil line from the pump
+  room runs under the slab or in a trench set at the pour; and oil in the
+  pit, the ground or the drain is an environmental question.
+
+review_checks:
+  - id: 14hy.jack-hole
+    kind: constructability
+    check: >
+      For in-ground cylinders, the drilled hole, casing and protective liner
+      are scheduled before the pit slab is poured and while the drill rig can
+      still reach the hoistway, with the ground conditions from the
+      geotechnical report (water, rock, contamination) and spoils handling
+      known.
+    trace_to: [report.geotechnical, schedule.master, drawings.foundation]
+    severity: high
+    owner: gc
+    gate: foundation_pour
+
+  - id: 14hy.cylinder-protection
+    kind: conformance
+    check: >
+      In-ground cylinders and buried oil lines have the corrosion protection,
+      liner and leak monitoring the elevator code and environmental rules
+      require.
+    trace_to: [spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 14hy.oil-line
+    kind: constructability
+    check: >
+      The oil line from the pump unit to the jack runs in a sleeve, trench or
+      overhead route the drawings show, set before the slab is poured, with
+      the pump room within the manufacturer's distance limit from the
+      hoistway.
+    trace_to: [drawings.plans, drawings.structural, drawings.details]
+    severity: medium
+    owner: gc
+    gate: slab_pour
+
+  - id: 14hy.oil-temperature
+    kind: coordination
+    check: >
+      Pump unit heat and the oil's temperature limits are covered by the
+      machine room cooling or ventilation, and an oil cooler or tank heater is
+      provided where the duty or room temperature requires one.
+    trace_to: [drawings.mechanical, spec.part2]
+    severity: medium
+    owner: design_team
+
+failure_modes:
+  - id: 14hy.fm.jack-hole-late
+    what_happens: Jack hole drilling left until after the pit slab or overhead framing is in place
+    consequence: Low-headroom drilling at a premium, or slab and framing opened for the rig
+    caught_by: [14hy.jack-hole]
+    source: field_experience
+
+  - id: 14hy.fm.unprotected-cylinder
+    what_happens: In-ground cylinder installed without the required liner or corrosion protection
+    consequence: Oil leak into the ground, environmental cleanup and cylinder replacement
+    caught_by: [14hy.cylinder-protection]
+    source: industry_practice
+
+  - id: 14hy.fm.oil-line-cut-in
+    what_happens: Oil line route not sleeved or trenched before the slab pour
+    consequence: Slab saw-cut and patched, or an exposed line through finished space
+    caught_by: [14hy.oil-line]
+    source: industry_practice
+
+  - id: 14hy.fm.oil-to-drain
+    what_happens: Pit sump discharges oil-contaminated water straight to the storm or sanitary system
+    consequence: Environmental violation and a separator retrofitted after occupancy
+    caught_by: [if.14-elevator-pit-drainage]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 14hy.rh.cylinder-protection
+    topic: hydraulic-elevator-cylinder-protection
+    question: >
+      What protection do the enforced elevator code and environmental rules
+      require for in-ground hydraulic cylinders and buried oil lines
+      (corrosion protection, liner, leak monitoring), and are oil-containing
+      sumps regulated?
+    applies_when: Hydraulic elevators with in-ground cylinders or buried oil lines
+    source_families: [elevator_code, environmental]
+    severity: high

@@ -1,0 +1,249 @@
+schema_version: 1
+kind: section
+id: "13 34 19"
+title: Metal Building Systems
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # the manufacturer designs frames, secondary framing, bracing and panels
+
+scope_summary: >
+  The metal building manufacturer designs the primary frames, secondary
+  framing, bracing and roof and wall panels to criteria in the contract
+  documents, and the engineer of record designs the foundations from the
+  manufacturer's reactions. The expensive misses are criteria left out of
+  the spec (collateral loads, deflection and drift limits for brittle
+  finishes), foundations and anchor bolts released before final reactions,
+  sprinklers, ducts and rooftop units hung beyond what the design carried,
+  bracing that lands in a bay with an overhead door, and an insulation and
+  vapor retarder system that misses the energy compliance or condenses.
+
+suppress:
+  - id: d13.agency-approvals
+    reason: Metal building systems are approved by the building department alone; no separate agency review
+  - id: d13.fm.agency-late
+    reason: Follows d13.agency-approvals
+  - id: d13.acceptance-sequence
+    reason: No specialty acceptance test; special inspection is covered by the fabricator and field inspection items here
+  - id: d13.fm.acceptance-unscheduled
+    reason: Follows d13.acceptance-sequence
+
+submittals:
+  - id: 13mb.sub.design-data
+    type: Design Data
+    must_show:
+      - Sealed calculations stating code and load standard editions, every load used (dead, collateral, live, snow, rain, wind, seismic, auxiliary) and where collateral and hung loads were applied
+      - Column and brace reactions at each anchor location by load case, including horizontal thrust
+      - Deflection and drift limits used for each element and finish condition
+  - id: 13mb.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Anchor bolt plan with bolt size, projection, layout and who designs embedment
+      - Frame elevations, bracing locations and types, and framed openings keyed to the door, window and louver schedules
+      - Roof and wall panel layout, trims, curbs and penetrations, and the insulation system at roof and walls
+  - id: 13mb.sub.certificates
+    type: Certificates
+    must_show:
+      - Manufacturer's design certification letter sealed by an engineer registered in the project's jurisdiction
+      - Fabricator approval or accreditation, or the shop inspection plan, as the code requires
+  - id: 13mb.sub.warranty
+    type: Warranty
+    must_show:
+      - Roof panel weathertightness warranty terms and the conditions it places on penetrations and curbs
+
+review_checks:
+  - id: 13mb.design-criteria
+    kind: completeness
+    check: >
+      The contract documents give the manufacturer every criterion it designs
+      to: code and load standard editions, risk category, wind, snow, rain and
+      seismic parameters, collateral and auxiliary loads with their locations
+      (sprinklers, ceilings, ducts, rooftop units, solar arrays, cranes, hung
+      equipment), and deflection and drift limits for the finishes attached
+      (masonry, plaster, glazing). Missing criteria go to the EOR before the
+      manufacturer designs.
+    trace_to: [spec.part1, spec.part2, drawings.structural]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 13mb.reactions-foundation
+    kind: coordination
+    reflex: true
+    check: >
+      The manufacturer's final reactions (by column and load case, with
+      horizontal thrust at frames and brace reactions) are checked by the
+      foundation EOR before footings, tie rods or hairpins and anchor bolts are
+      released. Foundations designed on preliminary or another manufacturer's
+      reactions are rechecked when the final design arrives.
+    trace_to: [drawings.foundation, drawings.structural]
+    severity: critical
+    owner: design_team
+    gate: foundation_pour
+
+  - id: 13mb.hung-loads
+    kind: coordination
+    check: >
+      Sprinkler mains, ductwork, unit heaters, lights, ceilings and rooftop
+      units stay within the collateral and auxiliary loads the manufacturer
+      designed for; their hanging points use the attachments the manufacturer
+      allows on purlins and frames; and rooftop units sit on framed openings
+      and supports the manufacturer designed, not on panels.
+    trace_to: [drawings.fire_protection, drawings.mechanical, drawings.electrical, drawings.roof_plan]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: 13mb.bracing-openings
+    kind: coordination
+    check: >
+      Rod or cable bracing, portal frames and wind columns do not fall in bays
+      with overhead doors, louvers, windows or future expansion walls, and the
+      framed openings match the door, window and louver schedules.
+    trace_to: [drawings.exterior_elevations, schedule.door, schedule.window]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 13mb.attachments-by-others
+    kind: coordination
+    check: >
+      Mezzanines, canopies, cranes, interior partitions braced to the frame,
+      and miscellaneous steel attached to the building are either in the
+      manufacturer's design or accepted by the manufacturer, with who designs
+      and furnishes each one assigned.
+    trace_to: [drawings.structural, spec.part1]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 13mb.envelope-assembly
+    kind: conformance
+    check: >
+      The roof and wall insulation system (faced blanket, liner system, rigid
+      board), thermal spacers at purlins and girts, sealed vapor retarder laps
+      and air barrier continuity at eaves, base and openings match the energy
+      compliance documentation and the details; humid occupancies get a
+      condensation review.
+    trace_to: [report.energy_compliance, drawings.wall_sections, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 13mb.roof-panel-system
+    kind: conformance
+    check: >
+      The standing seam roof's clip type allows the thermal movement, its
+      uplift test or listing covers the exact panel, clip and purlin spacing
+      submitted, and curbs and penetrations follow the manufacturer's details
+      so the weathertightness warranty holds.
+    trace_to: [spec.part2, drawings.roof_plan]
+    severity: high
+    owner: subcontractor
+
+reconciliations:
+  - id: 13mb.rc.anchor-bolts
+    between: [drawings.foundation, drawings.structural]
+    key: Column line and anchor location
+    fields: [bolt count, diameter, projection, embedment, base plate location, reactions assumed]
+    check: >
+      Once the manufacturer's anchor bolt plan and reactions are approved, the
+      foundation drawings that bolts are set from show the same bolt pattern,
+      projection and reactions. Bolts set from a preliminary plan are the
+      classic error.
+    severity: critical
+    owner: design_team
+    gate: foundation_pour
+
+failure_modes:
+  - id: 13mb.fm.preliminary-reactions
+    what_happens: Footings and anchor bolts built from preliminary reactions or another manufacturer's bolt plan
+    consequence: Bolts in the wrong pattern or undersized foundations; post-installed anchors, footing rework and erection delay
+    caught_by: [13mb.reactions-foundation, 13mb.rc.anchor-bolts, if.03-metal-building-anchorage]
+    source: industry_practice
+
+  - id: 13mb.fm.hung-loads-exceeded
+    what_happens: Sprinkler mains, unit heaters or rooftop units added or relocated beyond the collateral load, or hung from purlins without the manufacturer's acceptance
+    consequence: Purlin reinforcement and manufacturer redesign; inspection holds
+    caught_by: [13mb.hung-loads, if.13-metal-building-hung-loads]
+    source: field_experience
+
+  - id: 13mb.fm.brittle-finish-drift
+    what_happens: Masonry wainscot, plaster or glazing attached to frames designed to the flexible default drift and deflection limits because the spec gave none
+    consequence: Cracked masonry and finishes; stiffening the frame after erection
+    caught_by: [13mb.design-criteria]
+    source: field_experience
+
+  - id: 13mb.fm.bracing-in-door-bay
+    what_happens: Rod bracing lands in the bay with an overhead door or louver
+    consequence: Portal frame added late, or the opening moved after the walls are designed
+    caught_by: [13mb.bracing-openings]
+    source: industry_practice
+
+  - id: 13mb.fm.condensation
+    what_happens: Vapor retarder laps left unsealed, or no thermal spacer at the purlins
+    consequence: Condensation dripping inside, wet insulation, and an assembly that misses the energy compliance
+    caught_by: [13mb.envelope-assembly, if.metal-building-envelope]
+    source: industry_practice
+
+standards:
+  - id: 13mb.std.mbma
+    name: MBMA Metal Building Systems Manual
+    title: Metal Building Systems Manual
+    verify: Load combinations, serviceability guidance and common industry practice the manufacturer relies on
+  - id: 13mb.std.aisc-360
+    name: AISC 360
+    title: Specification for Structural Steel Buildings
+    verify: Design basis of the hot-rolled and built-up primary framing
+  - id: 13mb.std.aisi-s100
+    name: AISI S100
+    title: North American Specification for the Design of Cold-Formed Steel Structural Members
+    verify: Design basis of purlins, girts and panels
+  - id: 13mb.std.uplift
+    name: UL 580 / ASTM E1592
+    title: Tests for Uplift Resistance of Roof Assemblies; Structural Performance of Sheet Metal Roof and Siding Systems by Uniform Static Air Pressure Difference
+    verify: Uplift test or listing for the exact standing seam panel, clip and purlin spacing
+
+regulatory_hooks:
+  - id: 13mb.rh.design-criteria
+    topic: structural-design-criteria
+    question: >
+      What risk category, wind, snow, rain and seismic criteria, and which
+      load standard edition, does the adopted building code require for this
+      building, and does the manufacturer's design use them?
+    applies_when: Every metal building system
+    source_families: [building_code, building_code_seismic]
+    severity: high
+
+  - id: 13mb.rh.fabricator-inspection
+    topic: fabricator-special-inspection
+    question: >
+      Does the adopted code require special inspection of the metal building
+      manufacturer's fabrication, or accept an approved or accredited
+      fabricator instead, and what documentation proves it?
+    applies_when: Metal building systems on projects requiring special inspection
+    source_families: [building_code]
+    severity: high
+
+  - id: 13mb.rh.envelope-energy
+    topic: energy-code-envelope
+    question: >
+      Which energy code compliance path and metal building roof and wall
+      assembly requirements apply in this climate zone, and does the submitted
+      insulation system match them?
+    applies_when: Conditioned or semi-heated metal buildings
+    source_families: [energy]
+    severity: high
+
+extract_fields:
+  - id: 13mb.xf.loads
+    label: Collateral and auxiliary loads used, and where applied
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, drawings.fire_protection, drawings.mechanical]
+  - id: 13mb.xf.reactions
+    label: Reactions by column and load case
+    type: list
+    per: package
+    reconcile_against: [drawings.foundation]

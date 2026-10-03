@@ -1,0 +1,106 @@
+schema_version: 1
+kind: section
+id: "13 48 00"
+title: Sound, Vibration, and Seismic Control
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # isolators are selected by the manufacturer to the acoustician's criteria
+
+scope_summary: >
+  Isolated construction for sound and vibration: floating floors, isolated
+  ceilings and room-within-a-room walls, and their isolators. The isolation
+  works only if nothing rigid crosses it, and a single conduit, pipe, screw
+  or concrete splash can short-circuit a whole room. Isolators are selected
+  for the loads actually placed on them, so heavier equipment or partitions
+  added later bottom them out. Short circuits are invisible once finishes
+  are on, so the acoustician inspects before cover.
+
+submittals:
+  - id: 13sv.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Isolator layout with the load and deflection at each point, and the perimeter isolation detail
+      - Details at every crossing of the isolation (partition heads and bases, door frames, MEP, casework)
+      - Seismic restraints or snubbers and their clearances
+  - id: 13sv.sub.product-data
+    type: Product Data
+    must_show:
+      - Isolators with load ratings and static deflection, and resilient hangers and sleeves
+
+review_checks:
+  - id: 13sv.isolator-selection
+    kind: conformance
+    check: >
+      Isolators meet the acoustician's criteria and are selected for the loads
+      actually placed on them (floor dead load, partitions and equipment on the
+      floating floor), with the resulting deflection shown point by point.
+    trace_to: [report.acoustical, spec.part2, drawings.structural]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 13sv.floating-floor
+    kind: constructability
+    check: >
+      The floating floor's perimeter isolation board is continuous, the
+      cavity is clean and sealed before the pour, and housekeeping pads and
+      partitions placed on it were in the isolator loads.
+    trace_to: [drawings.details, report.acoustical]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 13sv.short-circuits
+    kind: constructability
+    check: >
+      Every crossing of the isolation (conduit, pipe, sprinkler, duct,
+      partition head and base, door frame, casework, handrail) is flexible or
+      resiliently detailed, and the acoustician inspects walls and ceilings
+      before they are closed.
+    trace_to: [drawings.details, report.acoustical, spec.part3]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 13sv.seismic-restraint
+    kind: coordination
+    check: >
+      Floating floors, isolated ceilings and room-within-a-room walls have the
+      seismic restraint the seismic research requires, using snubbers whose
+      clearances don't short-circuit the isolation.
+    trace_to: [drawings.structural, drawings.details]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 13sv.fm.short-circuit
+    what_happens: A rigid conduit, pipe, sprinkler drop or screw bridges the isolation
+    consequence: The room loses its isolation; finding the bridge means opening finishes
+    caught_by: [13sv.short-circuits, if.13-isolation-crossings]
+    source: field_experience
+
+  - id: 13sv.fm.debris-bridge
+    what_happens: Concrete or debris bridges the floating floor's perimeter joint or cavity
+    consequence: Isolation lost at the pour; the floating slab cut free or replaced
+    caught_by: [13sv.floating-floor]
+    source: field_experience
+
+  - id: 13sv.fm.isolator-overload
+    what_happens: Heavier equipment or partitions placed on isolators selected for the design loads
+    consequence: Isolators bottom out; equipment re-supported and isolators replaced
+    caught_by: [13sv.isolator-selection]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 13sv.rh.isolated-seismic
+    topic: seismic-nonstructural-anchorage
+    question: >
+      What seismic restraint must isolated floors, ceilings and wall
+      assemblies have at this site, and must its design be sealed and
+      submitted?
+    applies_when: Isolated construction in seismic design categories where nonstructural components need restraint
+    source_families: [building_code_seismic]
+    severity: medium

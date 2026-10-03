@@ -1,0 +1,142 @@
+schema_version: 1
+kind: section
+id: "11 66 00"
+title: Athletic Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+review_mode: package
+contractor_designed: sometimes   # superstructure framing for suspended equipment is often by the manufacturer
+
+scope_summary: >
+  Gymnasium equipment: ceiling-suspended and wall-mounted backstops, divider
+  curtains, volleyball and net systems, wall padding, scoreboards and
+  exercise equipment (11 66 13 through 11 66 53 inherit from here).
+  Overhead equipment puts concentrated loads on roof framing that is often a
+  delegated joist or truss design, so the loads must reach the structure
+  before it is designed. The rest is coordination: retract paths clear of
+  lights and sprinklers, floor sleeves set with the sports floor, and controls
+  for motorized equipment.
+
+submittals:
+  - id: 11at.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Plan and sections of each suspended unit in playing and stored positions, with the swing or retract path
+      - Superstructure framing and its connection to the building structure
+      - Reactions at each attachment, vertical and lateral
+      - Floor sleeve and anchor locations on the court layout
+
+review_checks:
+  - id: 11at.overhead-loads
+    kind: coordination
+    check: >
+      Reactions at each attachment of suspended backstops, divider curtains,
+      climbing ropes and scoreboards, in operating and stored positions, match
+      the loads on the structural drawings; where roof framing is a delegated
+      joist or truss design, those loads are on the drawings the framing
+      supplier designs to.
+    trace_to: [drawings.structural, spec.part2]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: 11at.superstructure
+    kind: coordination
+    check: >
+      Supplemental framing between the building structure and each unit
+      (manufacturer's superstructure or miscellaneous steel) is assigned and
+      detailed, and connects without welding to joists or members the
+      engineer of record has not approved.
+    trace_to: [drawings.structural, spec.part1, drawings.details]
+    severity: high
+    owner: gc
+    gate: steel_erection
+
+  - id: 11at.swing-clearance
+    kind: coordination
+    check: >
+      Fold and retract paths of backstops and curtains clear lights,
+      sprinklers, ducts, speakers and catwalks in every position.
+    trace_to: [drawings.rcp, drawings.building_sections, drawings.fire_protection]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: 11at.floor-sleeves
+    kind: constructability
+    check: >
+      Floor sleeves and anchor plates for volleyball, tennis and net systems
+      are located on the court layout and set with the slab or the sports
+      floor system, with covers flush to the finished floor.
+    trace_to: [drawings.plans, drawings.details]
+    severity: medium
+    owner: gc
+    gate: slab_pour
+
+  - id: 11at.motorized
+    kind: coordination
+    check: >
+      Motorized backstops, curtains and winches have power at each unit and
+      key switches or control stations where the operator can see the
+      equipment move; scoreboards have power, control and data pathways from
+      the scorer's table.
+    trace_to: [drawings.electrical, drawings.technology]
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
+failure_modes:
+  - id: 11at.fm.joist-loads
+    what_happens: Backstop and curtain loads never reached the joist or truss supplier
+    consequence: Installed joists reinforced, or a heavier superstructure spanning to girders
+    caught_by: [11at.overhead-loads]
+    source: field_experience
+
+  - id: 11at.fm.swing-path
+    what_happens: Backstop or curtain swing path hits lights, sprinklers or ducts
+    consequence: Equipment cannot fold or retract; relocations after ceilings and lighting are set
+    caught_by: [11at.swing-clearance]
+    source: field_experience
+
+  - id: 11at.fm.sleeves-missed
+    what_happens: Floor sleeves not set before the slab or sports floor
+    consequence: Sports floor cut and patched, at risk of losing its warranty
+    caught_by: [11at.floor-sleeves]
+    source: industry_practice
+
+  - id: 11at.fm.no-sightline
+    what_happens: Key switches placed where the operator cannot see the moving equipment
+    consequence: Unsafe operation; switches relocated after finishes
+    caught_by: [11at.motorized]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 11at.rh.safety-devices
+    topic: athletic-equipment-safety-devices
+    question: >
+      Does the jurisdiction or owner standard require safety devices on
+      suspended backstops (safety straps or fall arrest), padding on walls and
+      columns near play areas, or periodic inspection of gymnasium equipment?
+    applies_when: Ceiling-suspended or wall-mounted gymnasium equipment, especially in schools
+    source_families: [building_code, occupational_safety]
+    severity: medium
+
+  - id: 11at.rh.padding-finish
+    topic: interior-wall-finish-classification
+    question: >
+      What interior finish classification applies to the gymnasium, and does
+      wall and column padding (covering and foam) have the fire test results
+      to meet it?
+    applies_when: Wall and column padding
+    source_families: [building_code]
+    severity: medium
+
+extract_fields:
+  - id: 11at.xf.reactions
+    label: Reactions at each attachment, in operating and stored positions
+    type: list
+    per: package
+    reconcile_against: [drawings.structural]

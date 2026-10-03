@@ -1,0 +1,196 @@
+schema_version: 1
+kind: section
+id: "11 53 13"
+title: Laboratory Fume Hoods
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["23 38 16"]
+element_types: [fume_hood]
+
+scope_summary: >
+  Laboratory fume hoods of every type, with their sashes, liners, interior
+  services and monitors. A hood is half of a system: its containment depends
+  on the exhaust valve and fan sized from its airflow, on supply diffusers and
+  doors that do not blow across its face, and on controls split between the
+  hood vendor and the controls contractor. Base cabinets and work surfaces
+  are reviewed with the casework (12 35 53). Containment is proven only by
+  testing in place after the room is balanced.
+
+suppress:
+  - id: 11lab.bsc-exhaust
+    reason: Biological safety cabinets are reviewed under 11 53 00 or 11 53 53, not with fume hoods
+  - id: 11lab.fm.bsc-type-swap
+    reason: Biological safety cabinets are reviewed under 11 53 00 or 11 53 53, not with fume hoods
+
+submittals:
+  - id: 11fh.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Hood type, width, height and depth, sash configuration and sash stop, liner material, and interior service fixtures with their remote controls
+      - Exhaust airflow at the design sash opening and at minimum flow, static pressure and collar size and location
+      - Monitor, sash sensor, alarm and control wiring, and which party furnishes and wires each
+  - id: 11fh.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Factory containment test of the submitted model under the method and pass criteria the spec names
+      - As-installed test procedure and the conditions it requires before testing
+
+review_checks:
+  - id: 11fh.hood-types
+    kind: conformance
+    submittal_types: [Shop Drawings, Product Data]
+    check: >
+      Each hood's type (bypass, variable-volume, high-performance, perchloric
+      acid with washdown, radioisotope, distillation or floor-mounted), size,
+      sash configuration, liner and interior services match the hood schedule
+      and lab program. Perchloric acid hoods need washdown water, a drain and a
+      dedicated exhaust duct and fan with no other connections.
+    trace_to: [schedule.equipment, spec.part2, drawings.plumbing]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 11fh.design-airflow
+    kind: conformance
+    submittal_types: [Shop Drawings, Product Data]
+    check: >
+      The submittal states exhaust airflow at the design sash opening and at
+      minimum flow, the face velocity it assumes, and the static pressure at
+      the collar, and these are the values the mechanical design used to size
+      exhaust valves and fans rather than a catalog default.
+    trace_to: [spec.part2, schedule.mechanical_equipment]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 11fh.cross-drafts
+    kind: coordination
+    check: >
+      Supply diffusers, doors and main circulation paths sit far enough from
+      each hood face, under the spec, owner standard or laboratory ventilation
+      standard, that cross-drafts will not defeat containment. Diffuser
+      locations on the reflected ceiling plan are checked against the approved
+      hood locations, not the schematic ones.
+    trace_to: [drawings.rcp, drawings.mechanical, drawings.plans]
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: 11fh.controls
+    kind: coordination
+    check: >
+      Sash position or face velocity sensors, the airflow monitor and alarm,
+      emergency purge, and any occupancy setback or automatic sash closers are
+      each assigned to the hood vendor or the controls contractor, with the
+      signal list between the hood and the building automation system.
+    trace_to: [spec.part2, drawings.mechanical]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 11fh.containment-testing
+    kind: completeness
+    check: >
+      As-installed containment testing, by the method and pass criteria the
+      spec or owner names, is scheduled after testing and balancing is
+      complete and room pressurization is set, with who performs it, who
+      witnesses it and who pays for retests.
+    trace_to: [spec.part3, report.commissioning, schedule.master]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+reconciliations:
+  - id: 11fh.rc.exhaust
+    between: [schedule.equipment, schedule.mechanical_equipment, drawings.mechanical]
+    key: Fume hood tag and the exhaust valve and fan serving it
+    fields: [exhaust airflow at design sash, minimum exhaust airflow, constant or variable volume, collar size, static pressure, exhaust valve tag, exhaust fan or system, monitor and alarm]
+    check: >
+      Each hood's design and minimum exhaust airflow and control type match
+      the exhaust valve and fan that serve it, and the exhaust system's
+      capacity covers all hoods with the diversity the design assumed.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 11fh.fm.cross-draft
+    what_happens: Supply diffusers placed or moved near hood faces during ceiling coordination
+    consequence: Hoods fail containment testing at commissioning; diffusers and ductwork relocated after ceilings are finished
+    caught_by: [11fh.cross-drafts]
+    source: field_experience
+
+  - id: 11fh.fm.airflow-basis
+    what_happens: Hood airflow in the submittal differs from the basis of design used to size exhaust valves and fans
+    consequence: Valves out of range or fans short; hoods cannot reach their design face velocity
+    caught_by: [11fh.rc.exhaust, 11fh.design-airflow]
+    source: industry_practice
+
+  - id: 11fh.fm.tested-early
+    what_happens: Hoods tested before balancing and room pressurization are complete
+    consequence: Retesting, and failures blamed on the hood that were really room airflow
+    caught_by: [11fh.containment-testing]
+    source: industry_practice
+
+  - id: 11fh.fm.sensor-orphan
+    what_happens: Sash sensors and monitors assumed by both the hood vendor and the controls contractor, or by neither
+    consequence: Hoods without working monitors or variable-volume control at turnover
+    caught_by: [11fh.controls, if.11-fume-hood-exhaust-controls]
+    source: field_experience
+
+  - id: 11fh.fm.perchloric-manifolded
+    what_happens: Perchloric acid hood tied into a shared exhaust manifold, or installed without washdown
+    consequence: Reactive perchlorate deposits in common ductwork; the hood cannot be used for its purpose
+    caught_by: [11fh.hood-types]
+    source: industry_practice
+
+standards:
+  - id: 11fh.std.ashrae-110
+    name: ANSI/ASHRAE 110
+    title: Methods of Testing Performance of Laboratory Fume Hoods
+    verify: Test method (as manufactured, as installed, as used) and the pass criteria the spec sets
+
+  - id: 11fh.std.z9-5
+    name: ANSI/ASSP Z9.5
+    title: Laboratory Ventilation
+    verify: Hood performance, monitoring and testing requirements the spec or owner adopts
+    note: Earlier editions were published as ANSI/AIHA Z9.5
+
+  - id: 11fh.std.ul-1805
+    name: UL 1805
+    title: Laboratory Hoods and Cabinets
+    verify: Hood listing claimed
+
+  - id: 11fh.std.sefa-1
+    name: SEFA 1
+    title: Laboratory Fume Hoods (recent editions titled Laboratory Fume Hoods and Ventilated Enclosures)
+    verify: Construction and performance claims
+    note: Confirm the edition the spec cites
+
+  - id: 11fh.std.nfpa-45
+    name: NFPA 45
+    title: Standard on Fire Protection for Laboratories Using Chemicals
+    verify: Hood construction, exhaust and alarm requirements where the fire code adopts it
+
+regulatory_hooks:
+  - id: 11fh.rh.exhaust
+    topic: laboratory-fume-hood-exhaust
+    question: >
+      What do the adopted fire and mechanical codes, and the laboratory fire
+      protection standard they reference, require of fume hood exhaust
+      (continuous operation, airflow monitor and alarm, duct material, fire
+      and smoke dampers, manifolding, discharge location), and which edition
+      applies?
+    applies_when: Any laboratory fume hood
+    source_families: [fire_code, mechanical_code]
+    severity: high
+
+extract_fields:
+  - id: 11fh.xf.hood-data
+    label: Hood type, width, sash configuration, design and minimum exhaust airflow, collar size, static pressure
+    type: list
+    per: element
+    reconcile_against: [schedule.equipment, schedule.mechanical_equipment]

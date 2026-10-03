@@ -1,0 +1,154 @@
+schema_version: 1
+kind: interfaces
+id: div-13
+title: Interfaces involving Division 13
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with Divisions 03-12 (foundations and anchor bolts, slab recesses, envelope,
+# shielded doors and frames, equipment) belong to those divisions' files.
+
+edges:
+  # ── Metal building systems ────────────────────────────────────
+  - id: if.13-metal-building-hung-loads
+    a: ["13 34 19"]
+    a_trade: Metal building systems
+    b: ["21 13 00", "22 05 29", "23 05 29", "23 31 00", "23 74 00", "26 05 29"]
+    b_trade: Sprinklers, pipe and electrical hangers, ductwork and rooftop units
+    a_provides: Collateral and auxiliary loads designed for, allowable hanging points and attachment methods on purlins and frames, and framed openings and supports for rooftop units
+    b_provides: Weights and hanging locations of mains, ducts, unit heaters, lights and rooftop units, before the metal building design is final
+    gate:
+      milestone: procurement_release
+      note: Hung loads have to reach the manufacturer before its design is sealed
+    severity: high
+
+  # ── Radiation protection ──────────────────────────────────────
+  - id: if.13-shielding-penetrations
+    a: ["13 49 00"]
+    a_trade: Radiation and RF shielding
+    b: ["26 05 33", "27 05 00", "22 05 17", "23 31 00", "21 13 00"]
+    b_trade: Electrical boxes, communications pathways, pipe sleeves, ductwork and sprinklers
+    a_provides: Shielding requirement per barrier, lead backing, sleeve and baffle details at boxes, ducts and pipes, and waveguide and filter locations at MRI enclosures
+    b_provides: Box and penetration locations in shielded walls ahead of framing, and services routed to the waveguides and filters rather than through the shield
+    responsibility:
+      - item: Lead backing at boxes and penetrations in shielded walls
+        typical: {furnish: "13 49 00", install: "13 49 00 or the penetrating trade"}
+        confirm_in: [spec.part1, drawings.details]
+      - item: Waveguides and filters at MRI RF enclosures
+        typical: {furnish: "13 49 00", install: "13 49 00", connect: "the trade bringing each service"}
+        confirm_in: [spec.part1, drawings.equipment]
+    gate: {milestone: wall_close_in}
+    severity: critical
+
+  # ── Swimming pools ────────────────────────────────────────────
+  - id: if.13-pool-bonding
+    a: ["13 11 00"]
+    a_trade: Swimming pools
+    b: ["26 05 26"]
+    b_trade: Grounding and bonding
+    a_provides: Bonding grid layout and the bonded items (shell reinforcing, deck, fittings, ladders, rails, pumps, lights)
+    b_provides: Bonding conductors and connections, and their inspection before the shell and deck pours
+    responsibility:
+      - item: Equipotential bonding grid in the shell and deck
+        typical: {install: "13 11 00 or 26 05 26", connect: "26 05 26"}
+        confirm_in: [spec.part1, drawings.electrical]
+    gate: {milestone: foundation_pour}
+    severity: critical
+
+  - id: if.13-pool-plumbing
+    a: ["13 11 00"]
+    a_trade: Swimming pools
+    b: ["22 51 00", "22 11 00", "22 13 00"]
+    b_trade: Pool plumbing, water distribution and sanitary drainage
+    a_provides: Pool piping scope boundary, make-up water connection, and backwash and drain discharge points and flows
+    b_provides: Make-up water with backflow protection, and a receptor with air gap and capacity for backwash and pool drain-down, with the sewer authority's acceptance
+    responsibility:
+      - item: Pool recirculation piping (main drains, inlets, gutters, surge tank)
+        typical: {furnish: "13 11 00 or 22 51 00", install: "13 11 00 or 22 51 00"}
+        confirm_in: [spec.part1, drawings.plumbing]
+    gate: {milestone: underslab_rough_in}
+    severity: high
+    failure: Backwash discharges to a drain that can't take the flow, or make-up water lacks backflow protection; failed inspection and rework below the deck
+
+  - id: if.13-natatorium-hvac
+    a: ["13 11 00"]
+    a_trade: Swimming pools
+    b: ["23 84 00", "23 30 00", "23 05 29"]
+    b_trade: Dehumidification and air distribution
+    a_provides: Pool water and air design conditions, evaporation loads, chemical room location, and the corrosive-environment designation for the natatorium
+    b_provides: Dehumidification, airflow over the water and deck, exhaust of the chemical room independent of other systems, and duct and hanger materials suited to chloride air
+    gate: {milestone: procurement_release}
+    severity: high
+
+  # ── Controlled environment rooms ──────────────────────────────
+  - id: if.13-controlled-room-sprinklers
+    a: ["13 21 00"]
+    a_trade: Controlled environment rooms
+    b: ["21 13 00"]
+    b_trade: Sprinklers
+    a_provides: Room ceiling layout and height, interior temperature, and the panel sealing method for sprinkler penetrations
+    b_provides: Sprinkler protection inside the room (dry, preaction or antifreeze where it freezes), penetration locations, and sealed escutcheons in clean rooms
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+
+  - id: if.13-cold-storage-power
+    a: ["13 21 26"]
+    a_trade: Cold storage rooms
+    b: ["26 05 33", "26 05 83", "26 24 16"]
+    b_trade: Electrical boxes, wiring connections and panelboards
+    a_provides: Loads, voltages and locations for condensing units, evaporators, door and relief-port heaters, underfloor heat trace and its monitoring, and lights
+    b_provides: Circuits, disconnects and heat trace power and alarm, roughed in before the room is set
+    responsibility:
+      - item: Control wiring between condensing unit, evaporators and room controller
+        typical: {install: "13 21 26 or 26 05 83"}
+        confirm_in: [spec.part1, drawings.electrical]
+    gate: {milestone: in_wall_rough_in}
+    severity: high
+
+  - id: if.13-cold-storage-drains
+    a: ["13 21 26"]
+    a_trade: Cold storage rooms
+    b: ["22 13 00"]
+    b_trade: Sanitary drainage
+    a_provides: Evaporator drain locations, and heat trace and insulation on drain lines inside freezers
+    b_provides: Indirect waste receptors outside the room and drain routing from the panel penetration
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+
+  - id: if.13-cold-storage-refrigeration
+    a: ["13 21 26"]
+    a_trade: Cold storage rooms
+    b: ["23 23 00", "23 62 00"]
+    b_trade: Refrigerant piping and condensing units
+    a_provides: Evaporator and room controller locations, refrigeration loads, and panel penetrations for refrigerant lines
+    b_provides: Condensing unit location and support, refrigerant piping, charging, and start-up, where the refrigeration is not in the room vendor's scope
+    responsibility:
+      - item: Refrigeration system design, piping, charge and start-up
+        typical: {furnish: "13 21 26 or 23 62 00", install: "13 21 26 or 23 23 00"}
+        confirm_in: [spec.part1, drawings.mechanical]
+    gate: {milestone: procurement_release}
+    severity: high
+
+  - id: if.13-cleanroom-air
+    a: ["13 21 13"]
+    a_trade: Clean rooms
+    b: ["23 41 00", "23 30 00", "23 09 00"]
+    b_trade: Filtration, air distribution and controls
+    a_provides: Ceiling grid and filter or fan-filter unit positions, room envelope leakage, doors and transfer openings
+    b_provides: Air change rates, filtration, the pressure cascade, balancing, and pressure monitoring and alarms
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+
+  # ── Isolated construction ─────────────────────────────────────
+  - id: if.13-isolation-crossings
+    a: ["13 48 00"]
+    a_trade: Sound and vibration isolation
+    b: ["21 13 00", "22 05 48", "23 05 48", "26 05 48"]
+    b_trade: Sprinklers, and vibration isolation of plumbing, HVAC and electrical
+    a_provides: Isolation lines and the flexible or resilient connection each crossing needs
+    b_provides: Flexible connections, resilient hangers and sleeves at every crossing of isolated floors, walls and ceilings
+    gate: {milestone: above_ceiling_close_in}
+    severity: high

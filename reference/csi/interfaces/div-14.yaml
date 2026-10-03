@@ -1,0 +1,140 @@
+schema_version: 1
+kind: interfaces
+id: div-14
+title: Interfaces involving Division 14 conveying equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Pits, hoist beams, rail supports and shaft walls (03, 05, 07, 09) live in those divisions' files.
+
+edges:
+  # ── All conveying equipment ───────────────────────────────────
+  - id: if.14-conveying-power
+    a: ["14"]
+    a_trade: Conveying equipment (all Division 14)
+    b: ["26 05 19", "26 24 00", "26 28 16", "26 36 00"]
+    b_trade: Electrical feeders, distribution, disconnects and transfer switches
+    a_provides: Electrical data per unit (voltage, phase, full-load and starting current, heat release), required disconnect locations, and standby operation signals
+    b_provides: Feeders and mainline disconnects sized to that data, separate car lighting circuits, pit and machine room lighting and receptacles, and standby transfer with a pre-transfer signal
+    responsibility:
+      - item: Mainline and car lighting disconnects
+        typical: {furnish: "26 28 16", install: "Division 26"}
+        confirm_in: [drawings.single_line, spec.part2]
+      - item: Pre-transfer and standby power signal wiring to the controller
+        typical: {install: "Division 26", connect: "Division 14"}
+        confirm_in: [drawings.electrical, spec.part2]
+    gate:
+      milestone: energization
+      note: Installers need permanent power to adjust and test; temporary power rarely satisfies the controller
+    severity: high
+    failure: Units wait on permanent power or standby signals for adjustment and acceptance; turnover slips
+
+  # ── Elevators ─────────────────────────────────────────────────
+  - id: if.14-elevator-fire-alarm
+    reflex: true
+    a: ["14 20 00"]
+    a_trade: Elevators
+    b: ["28 46 00"]
+    b_trade: Fire detection and alarm
+    a_provides: Recall inputs the controller accepts (designated and alternate landing, firefighter's hat), status outputs, and Phase II switch locations
+    b_provides: Smoke detectors at each elevator lobby, the machine room or control space and the hoistway where required, with outputs mapped to designated and alternate recall and the hat
+    responsibility:
+      - item: Recall and status wiring between the fire alarm system and each controller
+        typical: {install: "28 46 00", connect: "28 46 00 and Division 14"}
+        confirm_in: [drawings.fire_alarm, spec.part2]
+    gate:
+      milestone: above_ceiling_close_in
+      inspect_before: [Recall functions tested with the fire alarm system before the elevator acceptance inspection]
+    severity: critical
+
+  - id: if.14-elevator-sprinkler-shunt-trip
+    a: ["14 20 00"]
+    a_trade: Elevators
+    b: ["21 13 00", "26 28 16", "28 46 00"]
+    b_trade: Sprinklers, shunt-trip disconnect and heat detection
+    a_provides: Hoistway, pit and machine room or control space locations, and the mainline disconnect location and rating
+    b_provides: Sprinklers where required, a heat detector beside each, a shunt-trip disconnect that opens before water flows, and monitoring of its control power
+    responsibility:
+      - item: Shunt-trip mainline disconnect
+        typical: {furnish: "26 28 16", install: "Division 26"}
+        confirm_in: [drawings.single_line, spec.part2]
+      - item: Heat detectors and shunt-trip control relay
+        typical: {furnish: "28 46 00", install: "28 46 00"}
+        confirm_in: [drawings.fire_alarm, spec.part2]
+    gate: {milestone: overhead_rough_in}
+    severity: critical
+
+  - id: if.14-elevator-pit-drainage
+    a: ["14 20 00"]
+    a_trade: Elevators
+    b: ["22 14 29", "22 13 00", "22 14 00"]
+    b_trade: Sump pumps and drainage
+    a_provides: Pit size and depth, sump location and cover the elevator code accepts, and oil discharge risk for hydraulic units
+    b_provides: Sump pump or drain, discharge to the system the code requires (indirect, through an oil separator where required), and pump power requirements
+    responsibility:
+      - item: Pit sump pump
+        typical: {furnish: "22 14 29", install: "22 14 29", connect: "Division 26"}
+        confirm_in: [drawings.plumbing, drawings.electrical]
+    gate: {milestone: foundation_pour, note: The sump pit and drain sleeve are cast with the pit}
+    severity: high
+
+  - id: if.14-elevator-hvac
+    a: ["14 20 00"]
+    a_trade: Elevators
+    b: ["23 81 00", "23 34 00", "23 33 00"]
+    b_trade: Machine room cooling, hoistway venting and pressurization
+    a_provides: Heat release of controllers and machines, allowable temperature and humidity range, and hoistway vent requirements
+    b_provides: Cooling or ventilation sized to that heat, hoistway vents and dampers where required, and hoistway pressurization where the smoke control design uses it
+    gate:
+      milestone: equipment_set
+      note: Controllers need conditioned space before they are installed and adjusted
+    severity: high
+
+  - id: if.14-elevator-communications
+    a: ["14 20 00"]
+    a_trade: Elevators
+    b: ["27 05 28", "27 30 00"]
+    b_trade: Communications pathways and voice service
+    a_provides: Two-way communication units in each car and at landings where required, and the line or monitored connection they need
+    b_provides: Telephone line or monitored connection to the machine room or controller, and pathways to landing and refuge-area stations
+    responsibility:
+      - item: Telephone line or monitoring service for elevator emergency communication
+        typical: {furnish: "owner"}
+        confirm_in: [spec.part1, spec.division_01]
+    gate: {milestone: substantial_completion}
+    severity: high
+
+  - id: if.14-elevator-security
+    a: ["14 20 00"]
+    a_trade: Elevators
+    b: ["28 10 00", "28 20 00"]
+    b_trade: Access control and video surveillance
+    a_provides: Car-mounted reader and camera provisions, spare traveling-cable conductors and controller inputs for secured floors
+    b_provides: Readers, cameras and their wiring to the controller and traveling cable, and the secured-floor schedule
+    responsibility:
+      - item: Card reader in the car and its wiring through the traveling cable
+        typical: {furnish: "28 10 00", install: "Division 14 or 28 10 00"}
+        confirm_in: [spec.part2, drawings.security]
+    gate:
+      milestone: procurement_release
+      note: Traveling cable conductors and controller inputs are set when the equipment is ordered
+    severity: medium
+    failure: No spare conductors in the traveling cable; readers and cameras added with a second cable or wireless workaround
+
+  # ── Escalators ────────────────────────────────────────────────
+  - id: if.14-escalator-openings
+    a: ["14 30 00"]
+    a_trade: Escalators and moving walks
+    b: ["21 13 00"]
+    b_trade: Fire-suppression sprinkler systems
+    a_provides: Floor opening outline, truss enclosure and the ceiling conditions around the wellway
+    b_provides: Closely spaced sprinklers and the draft curtain arrangement where the code uses that protection method
+    responsibility:
+      - item: Draft curtain around the floor opening
+        typical: {furnish: "Division 14 or the architectural trades", install: "Division 14 or the architectural trades"}
+        confirm_in: [spec.part1, drawings.details]
+    gate: {milestone: overhead_rough_in}
+    severity: high

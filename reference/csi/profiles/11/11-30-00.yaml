@@ -1,0 +1,147 @@
+schema_version: 1
+kind: section
+id: "11 30 00"
+title: Residential Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+review_mode: per_element
+element_types: [appliance_type]
+contractor_designed: never
+
+scope_summary: >
+  Residential appliances (11 30 13), ceiling fans and similar unit equipment,
+  usually repeated across many dwelling units. Every mismatch is multiplied by
+  the unit count: appliance sizes that do not fit the casework, dryer exhaust
+  runs longer than the dryer allows, range hoods without the make-up air the
+  code requires, and accessible units that receive the standard appliance
+  package.
+
+submittals:
+  - id: 11re.sub.product-data
+    type: Product Data
+    must_show:
+      - Appliance package per unit type, with the accessible and adaptable unit packages shown separately
+      - Dimensions, door swings, required clearances and utility data per model
+      - Dryer exhaust limits for the fittings used and range hood airflow
+
+review_checks:
+  - id: 11re.casework-fit
+    kind: coordination
+    check: >
+      Each appliance's width, depth, height, door swing and clearances fit the
+      casework opening and the room in every unit type, including refrigerator
+      doors against side walls and dishwashers and ranges aligned with
+      countertops.
+    trace_to: [drawings.interior_elevations, drawings.enlarged_plans, schedule.casework]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+  - id: 11re.dryer-exhaust
+    kind: constructability
+    check: >
+      The dryer exhaust route in each unit type, dryer to termination, is
+      within the length the dryer manufacturer and the code allow for its
+      fittings, or a listed booster fan is provided, and the duct can be
+      cleaned along its whole length.
+    trace_to: [drawings.mechanical, drawings.enlarged_plans]
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
+  - id: 11re.range-hood
+    kind: conformance
+    check: >
+      Range hood type (ducted or recirculating), airflow and duct route match
+      the mechanical design, and hoods above the code's make-up air threshold
+      have the make-up air it requires.
+    trace_to: [drawings.mechanical, spec.part2]
+    severity: medium
+    owner: design_team
+
+  - id: 11re.accessible-units
+    kind: conformance
+    check: >
+      Accessible and adaptable units receive the appliance models the
+      accessibility standard requires (control location, clear floor space,
+      reach), not the standard package; the unit-type mapping in the submittal
+      is checked unit by unit.
+    trace_to: [drawings.enlarged_plans, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+failure_modes:
+  - id: 11re.fm.casework-opening
+    what_happens: Appliance package changed or value-engineered after casework was released
+    consequence: Openings rebuilt or fillers added in every unit
+    caught_by: [11re.casework-fit, d11.substitution-cascade]
+    source: industry_practice
+
+  - id: 11re.fm.dryer-run
+    what_happens: Dryer exhaust routed to a distant exterior wall to suit the elevations
+    consequence: Runs exceed the allowed length; booster fans added, failed inspection, or a lint fire risk left in place
+    caught_by: [11re.dryer-exhaust, if.11-residential-appliance-exhaust]
+    source: field_experience
+
+  - id: 11re.fm.accessible-package
+    what_happens: Accessible units receive the standard appliance package
+    consequence: Appliances replaced after the accessibility inspection
+    caught_by: [11re.accessible-units]
+    source: industry_practice
+
+  - id: 11re.fm.hood-makeup-air
+    what_happens: Higher-airflow range hoods selected without make-up air
+    consequence: Failed mechanical inspection, or back-drafting of fuel-fired appliances
+    caught_by: [11re.range-hood]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 11re.rh.dryer-exhaust
+    topic: dryer-exhaust-length
+    question: >
+      What maximum length, fitting deductions, termination and booster-fan
+      rules does the adopted mechanical or residential code set for clothes
+      dryer exhaust?
+    applies_when: Clothes dryers in dwelling units or common laundries
+    source_families: [mechanical_code]
+    severity: high
+
+  - id: 11re.rh.hood-makeup-air
+    topic: residential-kitchen-exhaust-makeup-air
+    question: >
+      Above what exhaust rate does the adopted code require make-up air for
+      dwelling-unit kitchen exhaust, and how must it be interlocked?
+    applies_when: Range hoods in dwelling units
+    source_families: [mechanical_code]
+    severity: medium
+
+  - id: 11re.rh.accessible-appliances
+    topic: accessible-dwelling-unit-appliances
+    question: >
+      Which appliance features (control location, clear floor space, reach
+      range, refrigerator and freezer access) does the accessibility standard
+      that governs these dwelling units (accessible, adaptable or fair housing
+      units) require?
+    applies_when: Accessible, adaptable or covered multifamily dwelling units
+    source_families: [accessibility]
+    severity: high
+
+  - id: 11re.rh.electrification
+    topic: building-electrification-requirements
+    question: >
+      Does a state or local rule restrict gas appliances or require
+      electric-ready provisions for this building?
+    applies_when: Gas ranges, dryers or other fuel-fired appliances
+    source_families: [energy, building_code]
+    severity: medium
+
+extract_fields:
+  - id: 11re.xf.unit-mapping
+    label: Appliance model per unit type, with accessible units identified
+    type: list
+    per: package
+    reconcile_against: [drawings.enlarged_plans]

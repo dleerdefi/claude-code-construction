@@ -1,0 +1,159 @@
+schema_version: 1
+kind: section
+id: "11 53 00"
+title: Laboratory Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+review_mode: per_element
+element_types: [equipment_item]
+contractor_designed: never
+
+scope_summary: >
+  Laboratory equipment from benchtop units to built-in sterilizers, glassware
+  and cage washers, controlled-environment chambers, freezers, biological
+  safety cabinets and service fittings; fume hoods (11 53 13) inherit from
+  here. Much of it is owner-furnished or relocated from an existing lab, and
+  each item needs services beyond power and water: purified water, steam,
+  lab gases, vacuum, exhaust, cooling. The misses hide in the details: a
+  hard-ducted cabinet swapped for a canopy type, a floor-loading sterilizer
+  with no recess, hot or corrosive discharge into an ordinary drain, and
+  equipment heat nobody put in the cooling load.
+
+review_checks:
+  - id: 11lab.bsc-exhaust
+    kind: conformance
+    check: >
+      Each biological safety cabinet's class and type matches the lab program,
+      and its exhaust arrangement matches the mechanical design: canopy and
+      hard-ducted connections need different airflow, fan control and alarms,
+      so one cannot replace the other without redesign. Cabinets are
+      field-certified after installation and after any move.
+    trace_to: [schedule.equipment, drawings.mechanical, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 11lab.recesses-and-pits
+    kind: constructability
+    check: >
+      Floor-loading sterilizers, cart and cage washers, walk-in chambers and
+      floor-mounted hoods that need a recess, pit or depression with drainage
+      have it on the structural and plumbing drawings for the approved model.
+    trace_to: [drawings.structural, drawings.plumbing, drawings.equipment]
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+  - id: 11lab.discharge
+    kind: conformance
+    check: >
+      Hot discharge from sterilizers and washers is cooled or tempered before
+      it enters the drainage system, and corrosive or hazardous discharge goes
+      to the laboratory waste or neutralization system the design provides,
+      in piping rated for it.
+    trace_to: [drawings.plumbing, schedule.equipment]
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
+  - id: 11lab.heat-load
+    kind: coordination
+    check: >
+      Heat rejected by freezers, incubators, sterilizers and other approved
+      equipment in each room is within that room's cooling design; rooms
+      packed with freezers or equipment corridors are the usual miss.
+    trace_to: [drawings.mechanical, schedule.mechanical_equipment, schedule.equipment]
+    severity: medium
+    owner: design_team
+    gate: procurement_release
+
+  - id: 11lab.relocated-equipment
+    kind: completeness
+    check: >
+      Existing equipment to be relocated is surveyed for its actual utility
+      data, size and condition before rough-in, with who disconnects,
+      decontaminates, moves and reconnects each item.
+    trace_to: [spec.part1, drawings.equipment, schedule.equipment]
+    severity: medium
+    owner: owner
+    gate: in_wall_rough_in
+
+reconciliations:
+  - id: d11.rc.plumbing-mechanical
+    override: true
+    between: [schedule.equipment, drawings.lab_gas, drawings.plumbing, drawings.mechanical]
+    fields: [purified water grade, cold and hot water, lab gas types and purity, vacuum, compressed air, steam and condensate, cooling water, drain type (lab waste, sanitary, indirect), exhaust connection type (canopy, hard-ducted, none)]
+
+failure_modes:
+  - id: 11lab.fm.bsc-type-swap
+    what_happens: A hard-ducted biological safety cabinet replaced with a canopy-connected or recirculating type, or the reverse, in the equipment submittal
+    consequence: Exhaust and controls no longer match; the cabinet fails certification or the lab loses its pressure relationship
+    caught_by: [11lab.bsc-exhaust]
+    source: industry_practice
+
+  - id: 11lab.fm.no-recess
+    what_happens: Floor-loading sterilizer or cart washer approved after the slab was poured flat
+    consequence: Saw-cut and repour, or a ramp that defeats the floor-loading design
+    caught_by: [11lab.recesses-and-pits]
+    source: field_experience
+
+  - id: 11lab.fm.hot-discharge
+    what_happens: Sterilizer or washer discharge piped directly to plastic or sanitary drainage without cooling
+    consequence: Damaged drain lines and a code violation found after occupancy
+    caught_by: [11lab.discharge]
+    source: industry_practice
+
+  - id: 11lab.fm.equipment-heat
+    what_happens: Freezer room or equipment corridor cooled for occupants, not for the equipment in it
+    consequence: Room overheats, compressors fail and samples are lost
+    caught_by: [11lab.heat-load]
+    source: field_experience
+
+  - id: 11lab.fm.relocated-unknown
+    what_happens: Existing equipment moved into the new lab without a utility survey
+    consequence: Wrong voltage, plugs, water or exhaust connections at move-in
+    caught_by: [11lab.relocated-equipment]
+    source: industry_practice
+
+standards:
+  - id: 11lab.std.nsf-ansi-49
+    name: NSF/ANSI 49
+    title: "Biosafety Cabinetry: Design, Construction, Performance, and Field Certification"
+    verify: Cabinet certification and the field certification method after installation
+
+regulatory_hooks:
+  - id: 11lab.rh.hot-discharge
+    topic: high-temperature-drain-discharge
+    question: >
+      What temperature limit does the adopted plumbing code set for discharge
+      into the drainage system, and what cooling or tempering does it require
+      for sterilizers, washers and similar equipment?
+    applies_when: Sterilizers, glassware, cart and cage washers, and other equipment with hot discharge
+    source_families: [plumbing_code]
+    severity: medium
+
+  - id: 11lab.rh.lab-waste
+    topic: laboratory-waste-neutralization
+    question: >
+      Do the adopted plumbing code or the sewer authority require
+      neutralization, dilution or separate collection of laboratory waste, and
+      which equipment discharges must route to it?
+    applies_when: Laboratories with sinks, cup sinks or equipment discharging chemical waste
+    source_families: [plumbing_code, environmental]
+    severity: high
+
+extract_fields:
+  - id: 11lab.xf.exhaust-type
+    label: Exhaust connection type (canopy, hard-ducted, recirculating, none)
+    type: enum
+    per: element
+    reconcile_against: [drawings.mechanical]
+  - id: 11lab.xf.heat-rejection
+    label: Heat rejected to the room
+    type: number
+    unit: Btu/h
+    per: element
+    reconcile_against: [schedule.mechanical_equipment]

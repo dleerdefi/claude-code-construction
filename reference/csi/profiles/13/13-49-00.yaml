@@ -1,0 +1,181 @@
+schema_version: 1
+kind: section
+id: "13 49 00"
+title: Radiation Protection
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # x-ray shielding is designed by a physicist; MRI RF shielding is usually designed by the shielding vendor
+
+scope_summary: >
+  X-ray shielding (lead-lined board, lead sheet, lead-lined doors, frames and
+  view windows) and RF and magnetic shielding for MRI rooms. The barrier
+  requirements come from a qualified physicist's shielding design for the
+  actual equipment and room layout, wall by wall, floor and ceiling included,
+  and change when either changes. Shielding fails at its interruptions:
+  electrical boxes, duct and pipe penetrations, casework fasteners, joints,
+  door frames and glazing. Everything is covered by finishes, so inspection
+  before cover and the physicist's survey (or the RF test for MRI) decide
+  whether the room can be used. Lead-lined doors and frames are often
+  specified in Division 08, and the imaging equipment by the owner's vendor.
+
+review_mode: per_element
+element_types: [shielded_room]
+
+submittals:
+  - id: 13rp.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Room-by-room shielding layout keyed to the shielding design, with lead equivalence and height of each wall, floor and ceiling barrier
+      - Details at joints, corners, the floor and the deck, door frames, view windows, boxes, duct and pipe penetrations and casework fasteners
+      - For MRI rooms, the RF enclosure with every waveguide and filter location, the RF door and window, floor isolation and grounding
+  - id: 13rp.sub.product-data
+    type: Product Data
+    must_show:
+      - Lead sheet and lead-lined products with lead thickness and purity, lead glass equivalence, and lead-lined box and sleeve products
+  - id: 13rp.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Physicist's survey or RF attenuation test results before acceptance
+
+review_checks:
+  - id: 13rp.shielding-design
+    kind: conformance
+    check: >
+      Each shielded room's barriers (every wall, floor, ceiling, door and
+      window) are defined by a physicist's shielding design for the equipment
+      and layout actually being installed, and the submittal meets it barrier
+      by barrier, including height. A design prepared for different equipment,
+      or a room layout that has since changed, is sent back to the physicist.
+    trace_to: [report.radiation_shielding, drawings.plans, drawings.equipment]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: 13rp.interruptions
+    kind: constructability
+    check: >
+      Every interruption of a shielded barrier is backed per the shielding
+      design: lead-lined or lead-backed boxes, lead-lined sleeves or offset
+      baffles at ducts and pipes, laps or strips at joints and at the floor and
+      deck, and backing behind casework and equipment fasteners. The physicist
+      or the inspector the spec names sees it before board or ceilings cover
+      it.
+    trace_to: [drawings.details, drawings.electrical, drawings.mechanical, spec.part3]
+    severity: critical
+    owner: gc
+    gate: wall_close_in
+
+  - id: 13rp.doors-frames-glazing
+    kind: coordination
+    check: >
+      Lead-lined doors, frames and view windows meet each barrier's
+      equivalence, frames overlap the wall lead, hardware preparations in lined
+      doors are themselves shielded, and hinges and closers are sized for the
+      door weight. Where these are specified in Division 08, the two
+      submittals are reviewed together.
+    trace_to: [schedule.door, schedule.door_hardware, drawings.details]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 13rp.weight-and-rigging
+    kind: coordination
+    check: >
+      The weight of lead-lined walls and doors, and for MRI the magnet and any
+      magnetic shielding steel, is in the floor design, and the rigging route
+      for the magnet (removable wall, opening, floor capacity along the path)
+      is planned.
+    trace_to: [drawings.structural, drawings.plans]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 13rp.rf-enclosure
+    kind: coordination
+    check: >
+      For MRI, every service enters the RF enclosure through a waveguide or
+      filter the shield vendor provides, the shield floor is isolated from the
+      slab and grounded at one point, ferrous materials near the magnet stay
+      within the vendor's siting limits, and the vendor's RF test happens
+      before finishes cover the shield and again at completion.
+    trace_to: [drawings.equipment, drawings.mechanical, drawings.electrical, spec.part3]
+    severity: critical
+    owner: gc
+    gate: wall_close_in
+
+reconciliations:
+  - id: 13rp.rc.barriers
+    between: [report.radiation_shielding, schedule.partition_type, schedule.door, drawings.details]
+    key: Each barrier of each shielded room
+    fields: [lead equivalence, shielding height, partition type, door and frame lining, view window]
+    check: >
+      The shielding design's requirement for each wall, door and window
+      appears on the partition types, door schedule and details for that
+      room, at the same equivalence and height.
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 13rp.fm.unshielded-box
+    what_happens: Electrical boxes, recessed cabinets or duct openings cut through lead-lined walls without backing
+    consequence: The survey fails; walls opened at each leak and patched with lead
+    caught_by: [13rp.interruptions, if.13-shielding-penetrations]
+    source: field_experience
+
+  - id: 13rp.fm.height-short
+    what_happens: Lead carried to a standard height when the design required more, or floor and ceiling shielding omitted for occupied rooms above or below
+    consequence: Survey fails; added shielding through finished walls, floors or ceilings
+    caught_by: [13rp.rc.barriers, 13rp.shielding-design]
+    source: industry_practice
+
+  - id: 13rp.fm.equipment-changed
+    what_happens: Imaging equipment or room layout changed after the shielding design without the physicist updating it
+    consequence: Shielding inadequate, or excessive and costly; discovered at survey or in plan review
+    caught_by: [13rp.shielding-design]
+    source: industry_practice
+
+  - id: 13rp.fm.frame-gap
+    what_happens: Unlined frames, or lined frames with no overlap to the wall lead, at shielded doors and view windows
+    consequence: Leakage at jambs and heads found at survey; frames replaced
+    caught_by: [13rp.doors-frames-glazing, if.08-radiation-shielding]
+    source: industry_practice
+
+  - id: 13rp.fm.rf-penetration
+    what_happens: A trade penetrates the MRI RF shield directly instead of through a waveguide or filter
+    consequence: RF test fails or image artifacts appear; the shield is reopened and repaired by its vendor
+    caught_by: [13rp.rf-enclosure, if.13-shielding-penetrations]
+    source: industry_practice
+
+standards:
+  - id: 13rp.std.ncrp-147
+    name: NCRP Report No. 147
+    title: Structural Shielding Design for Medical X-Ray Imaging Facilities
+    verify: Design basis of the physicist's shielding report for diagnostic imaging rooms
+  - id: 13rp.std.ncrp-151
+    name: NCRP Report No. 151
+    title: Structural Shielding Design and Evaluation for Megavoltage X- and Gamma-Ray Radiotherapy Facilities
+    verify: Design basis for radiation therapy vaults
+  - id: 13rp.std.astm-b749
+    name: ASTM B749
+    title: Standard Specification for Lead and Lead Alloy Strip, Sheet, and Plate Products
+    verify: Lead sheet material claims
+  - id: 13rp.std.ieee-299
+    name: IEEE 299
+    title: Standard Method for Measuring the Effectiveness of Electromagnetic Shielding Enclosures
+    verify: RF shielding test method for MRI enclosures
+
+regulatory_hooks:
+  - id: 13rp.rh.radiation-program
+    topic: radiation-shielding-review
+    question: >
+      Does the state radiation control program require shielding plan review,
+      registration or approval before construction or before equipment use,
+      who may prepare the shielding design, and what survey is required before
+      patient use?
+    applies_when: Rooms for x-ray, CT, fluoroscopy, nuclear medicine or radiation therapy
+    source_families: [radiation_control]
+    severity: high

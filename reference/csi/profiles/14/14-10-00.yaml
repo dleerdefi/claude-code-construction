@@ -1,0 +1,62 @@
+schema_version: 1
+kind: section
+id: "14 10 00"
+title: Dumbwaiters
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+element_types: [dumbwaiter_unit]
+
+scope_summary: >
+  Manual, electric and hydraulic dumbwaiters (14 11 00 through 14 14 00
+  inherit from here). Small, but still governed by the elevator code and
+  inspected: a rated hoistway with labeled landing doors, a machine location
+  that someone can service, and landing sills that must line up with the
+  counters or floors they serve at every stop.
+
+review_checks:
+  - id: 14dw.landing-heights
+    kind: coordination
+    check: >
+      Each landing's sill height and door type (counter-height or floor
+      level) match the casework or room layout at that stop, and doors are
+      the labeled type the hoistway rating requires.
+    trace_to: [drawings.interior_elevations, drawings.enlarged_plans, schedule.casework]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+  - id: 14dw.hoistway
+    kind: conformance
+    check: >
+      Hoistway size, fire rating, pit and overhead match the approved unit,
+      and the hoistway carries no other systems.
+    trace_to: [drawings.enlarged_plans, drawings.life_safety, drawings.structural]
+    severity: medium
+    owner: design_team
+    gate: hoistway_turnover
+
+  - id: 14dw.machine-access
+    kind: constructability
+    check: >
+      The machine, above or below the hoistway, has a service access the
+      maintainer can reach without a lift or a ceiling demolition, with power
+      and a disconnect at it.
+    trace_to: [drawings.enlarged_plans, drawings.electrical, drawings.rcp]
+    severity: medium
+    owner: design_team
+
+failure_modes:
+  - id: 14dw.fm.sill-mismatch
+    what_happens: Dumbwaiter landing sills set to a standard height that does not match the counters at each stop
+    consequence: Casework rebuilt or the unit's landing doors changed
+    caught_by: [14dw.landing-heights]
+    source: industry_practice
+
+  - id: 14dw.fm.no-machine-access
+    what_happens: Machine located above a hard ceiling or in a space with no service access
+    consequence: Access panels and platforms added after finishes; service calls that cost more for the life of the unit
+    caught_by: [14dw.machine-access]
+    source: industry_practice
