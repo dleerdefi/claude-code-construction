@@ -72,7 +72,7 @@ State of the suite as of 2026-10-02. Each case has passed once through the harne
 
 - On Windows the harness needs the native Claude Code install (`claude.exe`); the Agent SDK refuses npm's `claude.cmd` shim. Having both installs makes `claude doctor` warn about it. Shell commands in a Windows run are confined by the harness's policy guard only, not by an OS sandbox (see the [harness README](../harness/README.md)).
 - `claude plugin eval` has no skip convention: without the Sanibel downloads, the `real` cases fail there instead of skipping. The scaffold change for the harness (`CONSTRUCTION_EVAL_HARNESS=1` early exit in `_fixtures/prepare-workspace.sh`) and `--sandbox auto` have not been exercised under `claude plugin eval` or on macOS/Linux.
-- The `real` cases cannot run until the Sanibel download links are published (placeholders in `docs/RUNNING_EVALS.md`). The set holds the architectural, civil, electrical and mechanical sheets only; structural, plumbing, fire protection, technology and landscape sheets are indexed on the cover sheet but not included, which limits `pe-review` to those four disciplines.
+- The `real` cases need the Sanibel downloads (links in `docs/RUNNING_EVALS.md`), about 100 MB. The set holds the architectural, civil, electrical and mechanical sheets only; structural, plumbing, fire protection, technology and landscape sheets are indexed on the cover sheet but not included, which limits `pe-review` to those four disciplines.
 
 **Skills with known defects the cases work around**
 

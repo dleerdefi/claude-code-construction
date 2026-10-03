@@ -153,8 +153,8 @@ The harness (`evals/harness/`) reads the plugin-eval case format, so these apply
 **Needs your decision:**
 
 1. **Missing disciplines.** Structural, plumbing, fire protection, technology and landscape sheets are in the cover index but not in the set (section 3). Deliberate, or are there more PDFs to add?
-2. **Download links** for the six PDFs (placeholders are in `docs/RUNNING_EVALS.md`).
-3. **Permission to share the set.** Sanibel was previously kept as an internal-only test project, and the sheets carry the architect's copyright notice. Publishing download links makes the set public, so confirm that is intended.
+2. ~~Download links~~ Published in `docs/RUNNING_EVALS.md` on 2026-10-02.
+3. ~~Permission to share the set~~ Confirmed on 2026-10-02: the documents are publicly available and users download them from the shared Drive folders.
 
 **Still to change:** code-researcher's worked example (`SKILL.md`, `references/schemas.yaml`, `references/gap_report_template.md`) describes a Baltimore, Maryland project. Moving it to Florida needs verified code citations, so it belongs with the code-researcher ground-truth work.
 

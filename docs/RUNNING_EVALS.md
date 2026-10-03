@@ -6,16 +6,21 @@ The evals check that the skills produce correct outputs, first on a small built-
 
 The real-document evals use the plans and specifications for **Sanibel Fire and Rescue Station 172** (Sanibel, Florida; 100% Construction Documents issued January 5, 2024). The PDFs are large, so they are downloaded separately:
 
-| Document | File | Contents | Size | Download |
-|----------|------|----------|------|----------|
-| Architectural Plans | `SFRD #172_BID SET - Architectural Set_2024.01.05.pdf` | 90 sheets | 58 MB | _link to be added_ |
-| Civil Plans | `SFRD #172_BID SET - Civil_2023.12.22.pdf` | 11 sheets | 12 MB | _link to be added_ |
-| Electrical Plans | `SFRD #172_BID SET - Electrical_2024.01.05.pdf` | 16 sheets | 11 MB | _link to be added_ |
-| Mechanical Plans | `SFRD #172_BID SET - Mechanical_2024.01.05.pdf` | 8 sheets | 3.3 MB | _link to be added_ |
-| Project Manual, Volume 1 | `2024-01-05 - SANIBEL FS - CD SPECS - VOL-1.pdf` | 798 pages, Divisions 01-14 | 6.5 MB | _link to be added_ |
-| Project Manual, Volume 2 | `2024-01-05 - SANIBEL FS - CD SPECS - VOL-2.pdf` | 694 pages | 6.8 MB | _link to be added_ |
+Download the two Google Drive folders:
 
-Place the downloaded files in these two folders, which already exist in the repo:
+- **Plans** (four PDFs): https://drive.google.com/drive/folders/1daHRgQ7AZW71MWdTbeO5TPXpVR47Ux9t
+- **Specifications** (two PDFs): https://drive.google.com/drive/folders/1rAUukoAtcYixLcrwOtbMtAKQ0Jx3RKHj
+
+| Document | File | Contents | Size |
+|----------|------|----------|------|
+| Architectural Plans | `SFRD #172_BID SET - Architectural Set_2024.01.05.pdf` | 90 sheets | 58 MB |
+| Civil Plans | `SFRD #172_BID SET - Civil_2023.12.22.pdf` | 11 sheets | 12 MB |
+| Electrical Plans | `SFRD #172_BID SET - Electrical_2024.01.05.pdf` | 16 sheets | 11 MB |
+| Mechanical Plans | `SFRD #172_BID SET - Mechanical_2024.01.05.pdf` | 8 sheets | 3.3 MB |
+| Project Manual, Volume 1 | `2024-01-05 - SANIBEL FS - CD SPECS - VOL-1.pdf` | 798 pages, Divisions 01-14 | 6.5 MB |
+| Project Manual, Volume 2 | `2024-01-05 - SANIBEL FS - CD SPECS - VOL-2.pdf` | 694 pages | 6.8 MB |
+
+Keep the file names as downloaded: the fixture generator finds the sets by name. Place the downloaded files in these two folders, which already exist in the repo:
 ```
 evals/test_docs/SANIBEL FIRE AND RESCUE STATION 172/
   01 - Drawings/          ← the four drawing PDFs
