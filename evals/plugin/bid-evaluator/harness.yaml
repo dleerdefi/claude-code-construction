@@ -1,0 +1,4 @@
+checks:
+  - name: planted-defects
+    script: checks/bid_evaluation.py
+    weight: 5

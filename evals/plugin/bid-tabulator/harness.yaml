@@ -1,0 +1,4 @@
+checks:
+  - name: extraction-accuracy
+    script: checks/bid_tabulation.py
+    weight: 5
