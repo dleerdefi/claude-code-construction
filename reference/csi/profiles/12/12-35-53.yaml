@@ -44,6 +44,7 @@ review_checks:
     trace_to: [drawings.lab_gas, drawings.plumbing, drawings.electrical, spec.part1]
     severity: high
     owner: gc
+    gate: in_wall_rough_in
 
   - id: lc.fume-hood-interface
     kind: coordination
@@ -55,6 +56,7 @@ review_checks:
     trace_to: [schedule.equipment, drawings.interior_elevations]
     severity: high
     owner: gc
+    gate: procurement_release
 
   - id: lc.ventilated-storage
     kind: coordination
@@ -66,6 +68,7 @@ review_checks:
     trace_to: [drawings.mechanical, spec.part2]
     severity: high
     owner: gc
+    gate: above_ceiling_close_in
 
   - id: lc.emergency-fixtures
     kind: coordination

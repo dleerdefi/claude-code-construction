@@ -310,7 +310,7 @@ Domain reference files are in `${CLAUDE_PLUGIN_ROOT}/reference/`. Read only what
 - `ada_requirements.yaml` — ADA accessibility requirements
 - `ibc_egress_tables.yaml` — IBC egress width, travel distance, occupancy tables
 - `common-issue-types.md` — issue patterns for skills to watch for (cross-document conflicts, missing info, code compliance, constructability)
-- `csi/` — per-section PE knowledge (checks, failure modes, interfaces, regulatory hooks). Don't read the files directly; compile one section with `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/csi/csi_knowledge.py" resolve --section "<number>" --project . --format md`. Schema: `csi/SCHEMA.md`
+- `csi/` — per-section PE knowledge (checks, failure modes, interfaces, regulatory hooks, milestones). Don't read the files directly; use `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/csi/csi_knowledge.py"` with `resolve --section "<number>" --project . --format md` (one section; add `--only checks,hooks` for a slice), `reflexes --project . --format md` (always-on red flags), or `milestone --id <id> --project . --format md` (what must be verified before a cover such as `wall_close_in`). Schema: `csi/SCHEMA.md`
 - PE review reference files live inside the `pe-review` skill directory (see PE Review section below)
 
 ---

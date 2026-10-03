@@ -2,7 +2,7 @@
 
 **Status:** Draft v1 (`schema_version: 1`)
 **Location:** `reference/csi/` (shared domain knowledge, read via `${CLAUDE_PLUGIN_ROOT}/reference/csi/`)
-**Resolver:** `scripts/csi/csi_knowledge.py` (`resolve` and `validate`)
+**Resolver:** `scripts/csi/csi_knowledge.py` (`resolve`, `reflexes`, `milestone`, `validate` — §11)
 
 The knowledge layer holds what an expert PE knows about each CSI section, independent of any project. Any skill (submittal review, RFI drafting, bid evaluation, subcontract writing, code research) asks the resolver for a section and gets one compiled context: what to check, where the requirement lives in the project documents, how it usually goes wrong, who it touches, and which regulatory questions must be answered for this facility type and jurisdiction.
 
@@ -25,16 +25,26 @@ The knowledge layer holds what an expert PE knows about each CSI section, indepe
 ```
 reference/csi/
 ├── SCHEMA.md                    ← this file
+├── milestones.yaml              ← what each construction milestone covers or locks (§6.1)
 ├── profiles/
 │   ├── _global.yaml             ← rules for every submittal (Division 01 practice)
+│   ├── 07/
+│   │   ├── _division.yaml       ← Division 07 baseline
+│   │   ├── 07-10-00.yaml        ← Dampproofing and Waterproofing
+│   │   ├── 07-27-00.yaml        ← Air Barriers
+│   │   ├── 07-50-00.yaml        ← Membrane Roofing
+│   │   ├── 07-81-00.yaml        ← Applied Fireproofing
+│   │   ├── 07-84-00.yaml        ← Firestopping
+│   │   └── 07-92-00.yaml        ← Joint Sealants
 │   └── 12/
-│       ├── _division.yaml       ← Division 12 baseline
+│       ├── _division.yaml       ← Division 12 baseline (seeded)
 │       ├── 12-30-00.yaml        ← Casework
 │       └── 12-35-53.yaml        ← Laboratory Casework
 ├── overlays/
 │   └── healthcare.yaml          ← facility-type requirements that cut across divisions
 └── interfaces/
-    └── div-12.yaml              ← coordination edges between sections
+    ├── div-07.yaml              ← coordination edges between sections
+    └── div-12.yaml
 ```
 
 File name = section id with hyphens (`12 35 53` → `12-35-53.yaml`; `12 35 53.13` → `12-35-53.13.yaml`). Division baselines are `profiles/<DD>/_division.yaml`. Overlay file name = facility type (`healthcare.hospital.yaml`). Interface files are grouped for authoring convenience only; the resolver loads all of them.
@@ -45,7 +55,7 @@ File name = section id with hyphens (`12 35 53` → `12-35-53.yaml`; `12 35 53.1
 
 ```yaml
 schema_version: 1
-kind: global | division | section | overlay | interfaces
+kind: global | division | section | overlay | interfaces | milestones
 id: "12 35 53"            # "global" | "12" | "12 35 53" | "healthcare" | "div-12"
 title: Laboratory Casework
 status: draft             # draft | pe_reviewed | field_validated
@@ -65,11 +75,13 @@ last_reviewed: null       # YYYY-MM-DD
 | `scope_summary` | text | most specific wins | What this section covers, in a PE's words |
 | `equivalents` | list of ids | not inherited | Other numbers the same scope is often specified under (e.g. casework in 06 41 00 vs 12 30 00). Taken from the queried section's own profile only, and surfaced so the skill checks which number the project uses |
 | `legacy_numbers` | list | not inherited | MasterFormat 1995 numbers that map to this profile (`"12300"`). The resolver accepts them as input |
-| `legacy_scope_file` | path | n/a | Division only. Bridge to `reference/pe_expertise/scope-*.md` until it is migrated |
+| `legacy_scope_file` | path | n/a | Division only. Bridge to the archived `reference/pe_expertise/scope-*.md` until the division is migrated |
 | `review_mode` | `per_element` \| `package` | most specific wins | Whether the review skill fans out one worker per element (elevation, item, tag) or reviews the package whole |
+| `contractor_designed` | `typical` \| `sometimes` \| `never` | most specific wins | Whether this scope is usually performance-specified and designed or selected by the contractor. Unset compiles as `unknown`. Drives `applies_if` (§4.5) |
 | `element_types` | list | union | The units of fan-out (`casework_elevation`, `equipment_item`, …) |
 | `submittals` | keyed list | by `id` | Submittal types expected and what each must show |
 | `review_checks` | keyed list | by `id` | Verification targets (see 4.1) |
+| `reconciliations` | keyed list | by `id` | Documents that must agree, field by field (see 4.4) |
 | `failure_modes` | keyed list | by `id` | How this scope goes wrong in the field |
 | `standards` | keyed list | by `id` | Industry standards to verify against — references, never text |
 | `regulatory_hooks` | keyed list | by `id` | Compliance questions bound to jurisdiction research (see 4.2) |
@@ -89,6 +101,8 @@ review_checks:
     trace_to: [drawings.details, drawings.interior_elevations, spec.part3]
     severity: critical           # critical | high | medium | low
     owner: gc                    # gc | subcontractor | design_team | owner
+    gate: wall_close_in          # optional: milestone by which it must be resolved (§6.1)
+    reflex: false                # optional: true = always on, even when unrelated to the question
 ```
 
 **`kind`** maps to the four review passes:
@@ -105,11 +119,21 @@ Compliance is not a check kind: it lives in `regulatory_hooks`, because its answ
 
 **`trace_to`** names where the requirement lives in the project documents. Use this vocabulary so the review skill (and AgentCM queries) can resolve it:
 
-`spec.part1`, `spec.part1_submittals`, `spec.part2`, `spec.part2_manufacturers`, `spec.part3`, `drawings.plans`, `drawings.interior_elevations`, `drawings.details`, `drawings.material_legend`, `drawings.plumbing`, `drawings.electrical`, `drawings.mechanical`, `drawings.lab_gas`, `drawings.structural`, `schedule.casework`, `schedule.casework_hardware`, `schedule.finish`, `schedule.equipment`, `schedule.plumbing_fixture`, `schedule.master`, `register.submittal_log`, `register.rfi_log`, `register.asi_bulletin_log`, `register.substitutions`, `drawings.revision_blocks`.
+| Group | Terms |
+|---|---|
+| Spec | `spec.part1`, `spec.part1_submittals`, `spec.part2`, `spec.part2_manufacturers`, `spec.part3` |
+| Drawings | `drawings.plans`, `drawings.interior_elevations`, `drawings.details`, `drawings.material_legend`, `drawings.wall_sections`, `drawings.exterior_elevations`, `drawings.roof_plan`, `drawings.rcp`, `drawings.life_safety`, `drawings.foundation`, `drawings.structural`, `drawings.civil`, `drawings.plumbing`, `drawings.mechanical`, `drawings.electrical`, `drawings.single_line`, `drawings.fire_alarm`, `drawings.lab_gas`, `drawings.revision_blocks` |
+| Schedules | `schedule.casework`, `schedule.casework_hardware`, `schedule.finish`, `schedule.partition_type`, `schedule.door`, `schedule.door_hardware`, `schedule.equipment`, `schedule.plumbing_fixture`, `schedule.mechanical_equipment`, `schedule.electrical_panel`, `schedule.lighting_fixture`, `schedule.master` |
+| Reports | `report.geotechnical`, `report.energy_compliance` |
+| Registers | `register.submittal_log`, `register.rfi_log`, `register.asi_bulletin_log`, `register.substitutions`, `register.special_inspections` |
 
 The validator warns on anything else; add new terms here first.
 
 **`owner`** says who resolves a finding. It is how the output separates "sub must fix" from "design team must answer" (an RFI candidate).
+
+**`gate`** names the milestone by which the finding has to be resolved: the last moment it is still cheap. It must be an id in `milestones.yaml`. `milestone --id <gate>` lists every check gated there (§11).
+
+**`reflex: true`** marks the red flags: checks a PE notices while looking at a drawing for an unrelated reason. They stay in the profile that owns them; `reflexes` compiles them into the always-on list (§11), so the list is a view, never a second copy. Use it sparingly: the list loses its value if it grows past what a reviewer can hold in mind.
 
 ### 4.2 `regulatory_hooks`
 
@@ -135,7 +159,7 @@ A hook is a compliance **question**, never an answer. The resolver binds each ho
 
 **Rule K2 — Hooks are never dropped.** Every applicable hook appears in the compiled output in one of these three states. This is how a health-department requirement that no drawing mentions still reaches the reviewer.
 
-`source_families` seeds code-researcher's Pass 2: `accessibility`, `building_code`, `building_code_seismic`, `fire_code`, `health_facility_licensing`, `fgi_guidelines`, `food_code`, `pharmacy`, `occupational_safety`, `environmental`, `energy`.
+`source_families` seeds code-researcher's Pass 2: `accessibility`, `building_code`, `building_code_seismic`, `fire_code`, `plumbing_code`, `mechanical_code`, `electrical_code`, `health_facility_licensing`, `fgi_guidelines`, `food_code`, `pharmacy`, `occupational_safety`, `environmental`, `energy`.
 
 ### 4.3 Other keyed lists
 
@@ -150,7 +174,7 @@ failure_modes:
   - id: cw.fm.in-wall-brackets-missed
     what_happens: In-wall brackets not identified or not sent to the framer before close-in
     consequence: Walls reopened, patch and paint, casework install slips
-    caught_by: [cw.in-wall-support]      # check ids that catch it
+    caught_by: [cw.in-wall-support]      # check, reconciliation or interface ids that catch it
     source: field_experience             # field_experience | industry_practice | project_incident
     incident: null                       # optional project/RFI reference
 
@@ -171,6 +195,38 @@ extract_fields:
 ```
 
 `failure_modes` is the most valuable field in the layer. It is what turns a checklist into expertise. Write them from real misses.
+
+### 4.4 `reconciliations`
+
+Documents that must agree, field by field. These are the checks Claude can compute rather than read: two schedules, a schedule and a plan, a roof plan and the plumbing drawings. Each one names the documents, the key that pairs their rows, and the fields that must match.
+
+```yaml
+reconciliations:
+  - id: rf.rc.drains
+    between: [drawings.roof_plan, drawings.plumbing]     # two or more trace_to terms
+    key: Drain or scupper location                       # what pairs a row in one with a row in the other
+    fields: [count, location, size, primary or overflow, discharge route]
+    check: >
+      Each primary and overflow drain on the roof plan appears on the plumbing
+      drawings at the same location and size, with overflow routed independently.
+    severity: high
+    owner: design_team
+    gate: roof_membrane           # optional
+    reflex: true                  # optional
+```
+
+A mismatch is a finding with both sources cited; which document governs is the design team's call (K1). Mechanical ↔ electrical equipment data (`schedule.mechanical_equipment` ↔ `schedule.electrical_panel`: voltage, phase, MCA, MOCP) is the canonical example for the MEP divisions.
+
+### 4.5 `applies_if`
+
+Any keyed item may carry a condition on the compiled section's facts. Items whose condition fails are dropped from the compiled context and listed under `not_applicable`.
+
+```yaml
+  - id: g.contractor-designed
+    applies_if: {contractor_designed: [typical, sometimes]}
+```
+
+Supported keys: `contractor_designed` (`typical`, `sometimes`, `never`, `unknown`) and `review_mode` (`per_element`, `package`). This keeps a global rule in one place while it fires only on the sections it concerns.
 
 ---
 
@@ -226,7 +282,22 @@ edges:
 - An endpoint matches the query if either is an ancestor of the other: an edge declared on 06 10 53 still reaches a project that specifies blocking in 06 10 00.
 - The resolver orients each edge from the queried side: `counterpart_sections`, `counterpart_trade`, `send_them` (what this scope provides), `need_from_them`.
 - `responsibility.typical` is a **prompt to confirm**, never an answer — furnish / install / connect splits are project-specific and are where coordination money is lost.
-- Gate milestones: `procurement_release`, `underslab_rough_in`, `slab_pour`, `in_wall_rough_in`, `wall_close_in`, `above_ceiling_close_in`, `equipment_set`, `final_connection`.
+- `gate.milestone` must be an id in `milestones.yaml`. `gate.inspect_before` (optional) lists inspections specific to this interface, on top of the milestone's own.
+- `reflex: true` on an edge puts it in the always-on list.
+
+### 6.1 Milestones (`milestones.yaml`)
+
+One ordered list of the moments that cover work or lock a decision. Each has `covers` (what becomes inaccessible or fixed) and `inspect_before` (what has to pass first). Checks, reconciliations and interface edges point at a milestone through `gate`; nothing is listed under a milestone by hand. This replaces narrated sequencing chains: `milestone --id wall_close_in` compiles the edges, checks, reconciliations and failure modes due before close-in, from wherever they live.
+
+```yaml
+milestones:
+  - id: wall_close_in
+    title: Second-side wall board
+    covers: [In-wall piping, conduit, low-voltage cabling and boxes, ...]
+    inspect_before: [In-wall rough-in inspections by the AHJ, ...]
+```
+
+The order is approximate and applies within one area of the building. Add a milestone only when an existing one cannot carry the gate.
 
 ---
 
@@ -240,7 +311,8 @@ edges:
 3. section ancestors, general → specific:   12 30 00 → 12 35 00 → 12 35 53 → 12 35 53.13
 4. overlays, by facility type (parent → child), filtered by `sections`
 5. interfaces whose endpoints match the lineage (and facility filter)
-6. project bindings (not merged): code-researcher findings, spec text location
+6. applies_if filtering against the compiled section facts
+7. project bindings (not merged): code-researcher findings, spec text location
 ```
 
 Missing ancestors are allowed. They are listed under `coverage.missing` so a gap in the knowledge base is visible, not silent.
@@ -257,7 +329,7 @@ Missing ancestors are allowed. They are listed under `coverage.missing` so a gap
 
 **M5 — Overlays only tighten.** Overlays add items and may `escalate` the severity of section items (upward only). They cannot override or suppress section items. A child overlay may override its parent overlay's items.
 
-**M6 — Scalars.** `scope_summary` and `review_mode`: the most specific section layer that defines them wins. `element_types`: union down the lineage. `equivalents` and `legacy_numbers` are not inherited — what is true of casework in general is not true of laboratory casework.
+**M6 — Scalars.** `scope_summary`, `review_mode` and `contractor_designed`: the most specific section layer that defines them wins. `element_types`: union down the lineage. `equivalents` and `legacy_numbers` are not inherited — what is true of casework in general is not true of laboratory casework.
 
 **M7 — Provenance.** Every compiled item carries `_from` (the layer that defined it), `_status`, and `_patched_by` when overridden. A patched item takes the lower of the two statuses. Provenance tells a PE which file to edit when an item is wrong.
 
@@ -275,9 +347,11 @@ confidence_floor: draft
 equivalents: [...]
 scope_summary: ...
 review_mode: per_element
+contractor_designed: unknown
 element_types: [...]
 submittals: [...]
 review_checks: [...]          # each with _from, _status, _chain
+reconciliations: [...]
 failure_modes: [...]
 standards: [...]
 regulatory_hooks: [...]       # each with binding: {status, findings | instruction}
@@ -285,11 +359,12 @@ extract_fields: [...]
 interfaces: [...]             # oriented to the queried section
 suppressed: [...]
 escalations: [...]
+not_applicable: [...]         # ids dropped by applies_if
 project: {spec_text: path or null, jurisdiction: summary or null}
 warnings: [...]
 ```
 
-`--format md` renders the same content compactly for a subagent prompt.
+`--format md` renders the same content compactly for a subagent prompt. `--only checks,hooks,interfaces` keeps just the slices a step needs (§11).
 
 ---
 
@@ -310,18 +385,22 @@ Record it as a `failure_mode` with `source: project_incident` and the RFI or iss
 
 ---
 
-## 9. Migrating `reference/pe_expertise/scope-*.md`
+## 9. Migrating the `reference/pe_expertise/` archive
 
-Each scope file maps onto a division baseline:
+The archive stays untouched as the A/B baseline (`docs/PE_EXPERTISE_REVIEW.md`). Each division is harvested into the layer:
 
-| Scope file section | Profile field |
+| Archive content | Destination |
 |---|---|
-| Cross-Reference Triggers | `trace_to` on checks; `equivalents` |
-| Absence Detection Checklist | `review_checks` with `kind: absence` |
-| Sequencing Context | interface `gate`s |
-| Coordination Overlaps | `interfaces` edges |
+| Spec-number listings in Cross-Reference Triggers | Dropped: the project's spec index is the list |
+| Drawing types in Cross-Reference Triggers | `trace_to` on checks |
+| Absence Detection Checklist | `review_checks` (`kind: absence`); numbers become `regulatory_hooks` |
+| Sequencing Context, POINT OF NO RETURN | `gate` on checks and edges, against `milestones.yaml` |
+| Coordination Overlaps, matrix rows, scope-gap tables | `interfaces` edges with `responsibility` |
+| "Critical rule" paragraphs | `failure_modes` linked by `caught_by` |
+| Red flags | checks with `reflex: true`, in the division that owns them |
+| Lead times, brand names | Dropped |
 
-Until a division is migrated, its `_division.yaml` points at the scope file through `legacy_scope_file`, and the resolver returns that path so skills can still load it.
+Until a division is migrated, its `_division.yaml` may point at the archived scope file through `legacy_scope_file`, and the resolver returns that path. Division 07 is migrated; Division 12 is seeded and still bridged.
 
 ---
 
@@ -331,6 +410,43 @@ Until a division is migrated, its `_division.yaml` points at the scope file thro
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/csi/csi_knowledge.py" validate
 ```
 
-Errors (non-zero exit): YAML parse, missing required fields, bad enums, file name ≠ id, duplicate ids in a file, M2 shadowing, override or suppress of an id that isn't inherited, suppress without a reason, overlay override or suppress of section items, malformed section numbers.
+Errors (non-zero exit): YAML parse, missing required fields, bad enums, file name ≠ id, duplicate ids in a file, M2 shadowing, override or suppress of an id that isn't inherited, suppress without a reason, overlay override or suppress of section items, malformed section numbers, unknown gate milestones, `reflex` or `gate` on lists other than checks and reconciliations, unsupported `applies_if` keys or values, reconciliations naming fewer than two documents.
 
-Warnings: unknown `trace_to` terms, unknown submittal types and source families, `caught_by` ids that don't resolve to a check in the compiled context, `escalate` targets that exist nowhere in the layer. The summary line also counts files still at `draft`; `--strict` turns warnings into a failing exit for CI.
+Warnings: unknown `trace_to` terms, unknown submittal types and source families, `caught_by` ids that don't resolve to a check, reconciliation or interface in the compiled context, `escalate` targets that exist nowhere in the layer.
+
+Lint (authoring rules, §12):
+- **Bare numbers.** A dimension, rating, duration, percentage, ratio or R-value in authored text (checks, questions, failure modes, edges, milestones). Section numbers and standard designations are ignored. Turn the number into a `regulatory_hook` question, or point at the project document that states it.
+- **Near-duplicates.** Two checks, reconciliations, failure modes or hooks whose wording is nearly the same. Keep one home.
+
+The summary line counts errors, warnings, lint and files still at `draft`. `--strict` fails on warnings and lint too; use it in CI.
+
+---
+
+## 11. Commands
+
+```bash
+PY="${CLAUDE_PLUGIN_ROOT}/bin/construction-python"; KB="${CLAUDE_PLUGIN_ROOT}/scripts/csi/csi_knowledge.py"
+
+"$PY" "$KB" resolve --section "07 84 00" --project . --format md              # one section, full context
+"$PY" "$KB" resolve --section "07 84 00" --project . --only checks,hooks       # just the slices a step needs
+"$PY" "$KB" reflexes --project . --format md                                   # always-on checks for this project
+"$PY" "$KB" milestone --format md                                              # the milestone list
+"$PY" "$KB" milestone --id wall_close_in --project . --format md               # everything due before close-in
+"$PY" "$KB" validate --strict
+```
+
+- `--only` slices: `checks`, `reconciliations`, `hooks`, `interfaces`, `failures`, `submittals`, `standards`, `extract`.
+- `reflexes` and `milestone` are cross-layer views. They list each item where it lives; overrides and suppressions only apply inside `resolve`.
+- With `--project`, both views keep only what the project specifies: profiles related to a section in `.construction/skills/spec_text/`, and interfaces whose two trades are both on the project. Without extracted spec text they show the whole layer and say so.
+- `--output <file>` writes a versioned file instead of printing.
+
+---
+
+## 12. Authoring rules
+
+1. **One home.** A fact lives in the most general file where it is always true, and nowhere else.
+2. **No bare numbers.** Thresholds, dimensions and durations are `regulatory_hook` questions or come from the project documents. Lead times never appear.
+3. **Questions, not answers.** A check says what to verify and where (`trace_to`); the project documents answer it.
+4. **Every failure mode is caught.** `caught_by` must resolve. A miss with no catching check is a hole to fill.
+5. **Status travels.** Nothing leaves `draft` without a named PE reviewer.
+6. **The value test.** Add a line only if an expert PE would do it and Claude would not do it unprompted.

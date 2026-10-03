@@ -54,6 +54,7 @@ review_checks:
     trace_to: [spec.part2_manufacturers, register.substitutions]
     severity: high
     owner: gc
+    gate: procurement_release
 
   - id: g.products-marked
     kind: completeness
@@ -94,6 +95,7 @@ review_checks:
     trace_to: [schedule.master]
     severity: medium
     owner: gc
+    gate: procurement_release
 
   - id: g.delegated-design
     kind: completeness
@@ -105,6 +107,21 @@ review_checks:
     severity: high
     owner: subcontractor
 
+  - id: g.contractor-designed
+    kind: completeness
+    applies_if: {contractor_designed: [typical, sometimes]}
+    check: >
+      This scope is often performance-specified and designed or selected by the
+      contractor. Confirm the spec's design criteria are complete enough to
+      design to; whether the AHJ treats the design as a deferred submittal and
+      when it must be filed relative to installation; and that the designer's
+      assumptions about support, attachment and adjacent work are confirmed by
+      the trades that provide them.
+    trace_to: [spec.part1, spec.part2]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
   - id: g.lead-time
     kind: constructability
     check: >
@@ -113,6 +130,7 @@ review_checks:
     trace_to: [schedule.master]
     severity: medium
     owner: gc
+    gate: procurement_release
 
 failure_modes:
   - id: g.fm.superseded-revision

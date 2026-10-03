@@ -2,16 +2,24 @@
 """Resolve and validate the CSI knowledge layer in reference/csi/.
 
 Compile one section's knowledge (cascade + overlays + interfaces + project bindings):
-    csi_knowledge.py resolve --section "12 35 53" [--facility healthcare.hospital]
-                             [--project <project_root>] [--format yaml|md] [--output <file>]
+    csi_knowledge.py resolve --section "07 84 00" [--facility healthcare.hospital]
+                             [--project <project_root>] [--only checks,hooks,interfaces]
+                             [--format yaml|md] [--output <file>]
 
-Check every profile, overlay and interface file against the schema and merge rules:
+Always-on checks across the whole layer (the red-flag list, compiled from where each lives):
+    csi_knowledge.py reflexes [--facility ...] [--project <root>] [--format yaml|md]
+
+What must be verified before a covering or committing milestone (omit --id to list them):
+    csi_knowledge.py milestone [--id wall_close_in] [--facility ...] [--project <root>] [--format yaml|md]
+
+Check every file against the schema, merge rules and authoring lint:
     csi_knowledge.py validate [--strict]
 
 Schema and merge rules: reference/csi/SCHEMA.md
 """
 
 import argparse
+import difflib
 import fnmatch
 import re
 import sys
@@ -26,7 +34,7 @@ SCHEMA_VERSION = 1
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_KB = PLUGIN_ROOT / "reference" / "csi"
 
-KINDS = {"global", "division", "section", "overlay", "interfaces"}
+KINDS = {"global", "division", "section", "overlay", "interfaces", "milestones"}
 STATUS_ORDER = ["draft", "pe_reviewed", "field_validated"]
 SEVERITIES = ["low", "medium", "high", "critical"]
 CHECK_KINDS = ["completeness", "conformance", "coordination", "constructability", "absence"]
@@ -35,6 +43,9 @@ REVIEW_MODES = {"per_element", "package"}
 FIELD_TYPES = {"number", "string", "boolean", "enum", "list"}
 FIELD_PER = {"element", "item", "package"}
 FM_SOURCES = {"field_experience", "industry_practice", "project_incident"}
+CONTRACTOR_DESIGNED = ["typical", "sometimes", "never"]
+APPLIES_IF = {"contractor_designed": set(CONTRACTOR_DESIGNED) | {"unknown"},
+              "review_mode": {"per_element", "package"}}
 SUBMITTAL_TYPES = {
     "Shop Drawings", "Product Data", "Samples", "Design Data", "Test Reports", "Certificates",
     "Delegated Design", "Manufacturer's Instructions", "Manufacturer's Field Reports",
@@ -44,33 +55,47 @@ SUBMITTAL_TYPES = {
 TRACE_TERMS = {
     "spec.part1", "spec.part1_submittals", "spec.part2", "spec.part2_manufacturers", "spec.part3",
     "drawings.plans", "drawings.interior_elevations", "drawings.details", "drawings.material_legend",
-    "drawings.plumbing", "drawings.electrical", "drawings.mechanical", "drawings.lab_gas",
-    "drawings.structural", "drawings.revision_blocks", "schedule.casework",
-    "schedule.casework_hardware", "schedule.finish", "schedule.equipment",
-    "schedule.plumbing_fixture", "schedule.master", "register.submittal_log", "register.rfi_log",
-    "register.asi_bulletin_log", "register.substitutions",
+    "drawings.wall_sections", "drawings.exterior_elevations", "drawings.roof_plan", "drawings.rcp",
+    "drawings.life_safety", "drawings.foundation", "drawings.structural", "drawings.civil",
+    "drawings.plumbing", "drawings.mechanical", "drawings.electrical", "drawings.single_line",
+    "drawings.fire_alarm", "drawings.lab_gas", "drawings.revision_blocks",
+    "schedule.casework", "schedule.casework_hardware", "schedule.finish", "schedule.partition_type",
+    "schedule.door", "schedule.door_hardware", "schedule.equipment", "schedule.plumbing_fixture",
+    "schedule.mechanical_equipment", "schedule.electrical_panel", "schedule.lighting_fixture",
+    "schedule.master", "report.geotechnical", "report.energy_compliance",
+    "register.submittal_log", "register.rfi_log", "register.asi_bulletin_log",
+    "register.substitutions", "register.special_inspections",
 }
 SOURCE_FAMILIES = {
     "accessibility", "building_code", "building_code_seismic", "fire_code",
     "health_facility_licensing", "fgi_guidelines", "food_code", "pharmacy",
-    "occupational_safety", "environmental", "energy",
+    "occupational_safety", "environmental", "energy", "plumbing_code", "mechanical_code",
+    "electrical_code",
 }
-GATE_MILESTONES = {
-    "procurement_release", "underslab_rough_in", "slab_pour", "in_wall_rough_in",
-    "wall_close_in", "above_ceiling_close_in", "equipment_set", "final_connection",
-}
-KEYED_LISTS = ["submittals", "review_checks", "failure_modes", "standards",
+KEYED_LISTS = ["submittals", "review_checks", "reconciliations", "failure_modes", "standards",
                "regulatory_hooks", "extract_fields"]
-OVERLAY_LISTS = ["review_checks", "failure_modes", "regulatory_hooks"]
+OVERLAY_LISTS = ["review_checks", "reconciliations", "failure_modes", "regulatory_hooks"]
+GATED_LISTS = ["review_checks", "reconciliations"]   # lists whose items may carry reflex / gate
 REQUIRED_ITEM_FIELDS = {
     "submittals": ["id", "type"],
     "review_checks": ["id", "kind", "check", "severity", "owner"],
+    "reconciliations": ["id", "between", "fields", "check", "severity", "owner"],
     "failure_modes": ["id", "what_happens", "consequence"],
     "standards": ["id", "name"],
     "regulatory_hooks": ["id", "topic", "question", "severity"],
     "extract_fields": ["id", "label", "type"],
 }
 CONTROL_KEYS = {"override", "merge", "sections"}
+
+SLICES = {
+    "checks": "review_checks", "reconciliations": "reconciliations", "hooks": "regulatory_hooks",
+    "interfaces": "interfaces", "failures": "failure_modes", "failure_modes": "failure_modes",
+    "submittals": "submittals", "standards": "standards", "extract": "extract_fields",
+    "extract_fields": "extract_fields", "review_checks": "review_checks",
+    "regulatory_hooks": "regulatory_hooks",
+}
+CONTENT_KEYS = ["submittals", "review_checks", "reconciliations", "failure_modes", "standards",
+                "regulatory_hooks", "extract_fields", "interfaces", "suppressed", "escalations"]
 
 SECTION_RE = re.compile(r"^(\d{2})[\s\-_.]?(\d{2})[\s\-_.]?(\d{2})(?:\.(\d{2}))?$")
 
@@ -173,6 +198,46 @@ def legacy_index(kb):
         for num in doc.get("legacy_numbers", []) or []:
             idx[str(num)] = doc.get("id")
     return idx
+
+
+def load_milestones(kb):
+    path = Path(kb) / "milestones.yaml"
+    if not path.exists():
+        return []
+    return load_yaml(path).get("milestones", []) or []
+
+
+def project_sections(project):
+    """Sections the project actually specifies, from spec-splitter's extracted text files."""
+    if project is None:
+        return None
+    spec_dir = project / ".construction" / "skills" / "spec_text"
+    if not spec_dir.is_dir():
+        return None
+    found = {normalize(p.stem.replace("_", " ")) for p in spec_dir.glob("*.txt")}
+    found.discard(None)
+    return found or None
+
+
+def layer_relevant(layer_id, sections):
+    """Is a profile layer (global / division / section) relevant to a set of project sections?"""
+    if sections is None or layer_id == "global":
+        return True
+    return any(related(layer_id, s) for s in sections)
+
+
+def edge_in_project(edge, sections):
+    """Both trades of an interface are specified on the project (by section or a related one)."""
+    def hit(side):
+        return any(x and layer_relevant(x, sections) for x in (normalize(v) for v in edge.get(side, []) or []))
+    return hit("a") and hit("b")
+
+
+def iter_files(kb, sub, pattern="*.yaml"):
+    folder = Path(kb) / sub
+    if not folder.is_dir():
+        return []
+    return sorted(folder.rglob(pattern) if sub == "profiles" else folder.glob(pattern))
 
 
 def resolve_section_id(kb, raw):
@@ -287,7 +352,7 @@ def resolve(kb, section, facilities=(), project=None):
     warnings = []
     compiled = {name: {} for name in KEYED_LISTS}
     suppressed, escalations = [], []
-    scalars = {"title": None, "scope_summary": None, "review_mode": None}
+    scalars = {"title": None, "scope_summary": None, "review_mode": None, "contractor_designed": None}
     unions = {"element_types": []}
     equivalents = []
     legacy_files, loaded, missing = [], [], []
@@ -398,18 +463,31 @@ def resolve(kb, section, facilities=(), project=None):
                 "responsibility": edge.get("responsibility", []),
                 "gate": edge.get("gate"),
                 "severity": edge.get("severity"),
+                "reflex": bool(edge.get("reflex")),
                 "failure": edge.get("failure"),
                 "_from": f"interfaces:{doc.get('id')}",
                 "_status": status,
             })
             floor = status_min(floor, status)
 
-    # Failure modes must be catchable by a check in this compiled context
+    # applies_if: drop items whose condition on the compiled section facts is not met
+    facts = {"contractor_designed": scalars["contractor_designed"] or "unknown",
+             "review_mode": scalars["review_mode"] or "package"}
+    not_applicable = []
+    for list_name in KEYED_LISTS:
+        for item_id, item in list(compiled[list_name].items()):
+            cond = item.pop("applies_if", None)
+            if cond and not all(facts.get(k) in (v if isinstance(v, list) else [v]) for k, v in cond.items()):
+                del compiled[list_name][item_id]
+                not_applicable.append(item_id)
+
+    # Failure modes must be catchable by a check, reconciliation or interface in this context
+    catchers = set(compiled["review_checks"]) | set(compiled["reconciliations"]) | {e["id"] for e in interfaces}
     for fm in compiled["failure_modes"].values():
         for cid in fm.get("caught_by", []) or []:
-            if cid not in compiled["review_checks"]:
-                warnings.append(f"Failure mode {fm['id']} is caught by '{cid}', "
-                                f"which is not a check for {sid} — add a check or fix caught_by")
+            if cid not in catchers:
+                warnings.append(f"Failure mode {fm['id']} is caught by '{cid}', which is not a check, "
+                                f"reconciliation or interface for {sid} — add one or fix caught_by")
 
     # 6. Project bindings (not merged)
     hooks = []
@@ -449,9 +527,11 @@ def resolve(kb, section, facilities=(), project=None):
         "equivalents": equivalents,
         "scope_summary": " ".join((scalars["scope_summary"] or "").split()) or None,
         "review_mode": scalars["review_mode"] or "package",
+        "contractor_designed": scalars["contractor_designed"] or "unknown",
         "element_types": unions["element_types"],
         "submittals": list(compiled["submittals"].values()),
         "review_checks": list(compiled["review_checks"].values()),
+        "reconciliations": list(compiled["reconciliations"].values()),
         "failure_modes": list(compiled["failure_modes"].values()),
         "standards": list(compiled["standards"].values()),
         "regulatory_hooks": hooks,
@@ -459,9 +539,27 @@ def resolve(kb, section, facilities=(), project=None):
         "interfaces": interfaces,
         "suppressed": suppressed,
         "escalations": escalations,
+        "not_applicable": not_applicable,
         "project": project_info,
         "warnings": warnings,
     }
+
+
+def slice_context(ctx, only):
+    """Keep only the requested content lists (JIT loading); metadata always stays."""
+    if not only:
+        return ctx
+    keep = set()
+    for name in only:
+        if name not in SLICES:
+            raise ResolveError(f"--only: unknown slice {name!r} (choose from {', '.join(sorted(SLICES))})")
+        keep.add(SLICES[name])
+    out = dict(ctx)
+    for key in CONTENT_KEYS:
+        if key not in keep:
+            out.pop(key, None)
+    out["sliced"] = sorted(keep)
+    return out
 
 
 # ── Markdown rendering ──────────────────────────────────────────
@@ -474,13 +572,72 @@ def _sev_key(item):
     return -SEVERITIES.index(item.get("severity", "low")) if item.get("severity") in SEVERITIES else 0
 
 
+def _check_line(c, home=None):
+    tags = []
+    if c.get("_escalated_by"):
+        tags.append("escalated")
+    if c.get("reflex"):
+        tags.append("reflex")
+    tag = f" ({', '.join(tags)})" if tags else ""
+    return f"- **[{c.get('severity')}{tag}] {c['id']}** — {_txt(c.get('check'))}  "
+
+
+def _check_meta(c, home):
+    bits = [f"Trace: {', '.join(c.get('trace_to', []))}", f"Owner: {c.get('owner')}"]
+    if c.get("submittal_types"):
+        bits.append(f"Types: {', '.join(c['submittal_types'])}")
+    if c.get("gate"):
+        bits.append(f"Gate: {c['gate']}")
+    bits.append(f"_{home}_")
+    return "  " + " · ".join(bits)
+
+
+def _recon_lines(r, home):
+    return [
+        f"- **[{r.get('severity')}{' (reflex)' if r.get('reflex') else ''}] {r['id']}** — {_txt(r.get('check'))}  ",
+        "  " + " · ".join(filter(None, [
+            f"Between: {' ↔ '.join(r.get('between', []))}",
+            f"Key: {_txt(r['key'])}" if r.get("key") else None,
+            f"Fields: {', '.join(r.get('fields', []))}",
+            f"Owner: {r.get('owner')}",
+            f"Gate: {r['gate']}" if r.get("gate") else None,
+            f"_{home}_"])),
+    ]
+
+
+def _edge_lines(e, oriented=True):
+    gate = e.get("gate") or {}
+    gate_txt = ""
+    if gate:
+        gate_txt = f" · Gate: {gate.get('milestone')}" + (f" — {_txt(gate['note'])}" if gate.get("note") else "")
+    if oriented:
+        head = (f"- **[{e.get('severity')}] {e['id']}** → {e['counterpart_trade']} "
+                f"({', '.join(e['counterpart_sections'])}){gate_txt}")
+        lines = [head, f"  - Send them: {_txt(e.get('send_them'))}",
+                 f"  - Need from them: {_txt(e.get('need_from_them'))}"]
+    else:
+        head = (f"- **[{e.get('severity')}] {e['id']}** — {e.get('a_trade')} ({', '.join(e.get('a', []))}) ↔ "
+                f"{e.get('b_trade')} ({', '.join(e.get('b', []))}){gate_txt}")
+        lines = [head, f"  - From {e.get('a_trade')}: {_txt(e.get('a_provides'))}",
+                 f"  - From {e.get('b_trade')}: {_txt(e.get('b_provides'))}"]
+    for item in gate.get("inspect_before", []) or []:
+        lines.append(f"  - Inspect before: {_txt(item)}")
+    for r in e.get("responsibility") or []:
+        split = " / ".join(f"{k} {v}" for k, v in (r.get("typical") or {}).items())
+        lines.append(f"  - Confirm who: {r.get('item')} — typical {split}")
+    if e.get("failure"):
+        lines.append(f"  - If missed: {_txt(e['failure'])}")
+    return lines
+
+
 def to_markdown(ctx):
     q, cov = ctx["query"], ctx["coverage"]
     loaded = {e["layer"] for e in cov["loaded"]}
     chain = " → ".join(n if n in loaded else f"[{n} missing]" for n in ctx["lineage"])
     out = [f"# Compiled knowledge — {q['section']} {q['title'] or ''}".rstrip(), ""]
     out.append(f"Facility types: {', '.join(q['facility_types']) or 'none'} · "
-               f"Confidence floor: **{ctx['confidence_floor']}** · Review mode: {ctx['review_mode']}")
+               f"Confidence floor: **{ctx['confidence_floor']}** · Review mode: {ctx['review_mode']} · "
+               f"Contractor-designed: {ctx['contractor_designed']}")
     out.append(f"Lineage: {chain}")
     ovs = [o["overlay"] for o in cov["overlays_loaded"]]
     if ovs or cov["overlays_missing"]:
@@ -490,86 +647,86 @@ def to_markdown(ctx):
         out.append(f"Also specified as: {', '.join(ctx['equivalents'])}")
     if cov["legacy_scope_files"]:
         out.append(f"Legacy scope file: {', '.join(cov['legacy_scope_files'])}")
+    if ctx.get("sliced"):
+        out.append(f"Slice: {', '.join(ctx['sliced'])}")
     out += ["", f"> {ctx['note']}", ""]
     if ctx["scope_summary"]:
         out += ["## Scope", ctx["scope_summary"], ""]
 
-    checks = ctx["review_checks"]
-    out.append(f"## Review checks ({len(checks)})")
-    for kind in CHECK_KINDS:
-        group = sorted([c for c in checks if c.get("kind") == kind], key=_sev_key)
-        if not group:
-            continue
-        out.append(f"### {kind}")
-        for c in group:
-            types = f" · Types: {', '.join(c['submittal_types'])}" if c.get("submittal_types") else ""
-            esc = " (escalated)" if c.get("_escalated_by") else ""
-            out.append(f"- **[{c.get('severity')}{esc}] {c['id']}** — {_txt(c.get('check'))}  ")
-            out.append(f"  Trace: {', '.join(c.get('trace_to', []))} · Owner: {c.get('owner')}{types} · _{c['_from']}_")
-    out.append("")
+    if "review_checks" in ctx:
+        checks = ctx["review_checks"]
+        out.append(f"## Review checks ({len(checks)})")
+        for kind in CHECK_KINDS:
+            group = sorted([c for c in checks if c.get("kind") == kind], key=_sev_key)
+            if not group:
+                continue
+            out.append(f"### {kind}")
+            for c in group:
+                out += [_check_line(c), _check_meta(c, c["_from"])]
+        out.append("")
 
-    hooks = sorted(ctx["regulatory_hooks"], key=_sev_key)
-    out.append(f"## Compliance — regulatory hooks ({len(hooks)})")
-    for h in hooks:
-        b = h["binding"]
-        out.append(f"- **[{h.get('severity')}] {h['id']}** (`{h.get('topic')}`) — {_txt(h.get('question'))}  ")
-        if b["status"] == "unbound":
-            out.append(f"  **Unbound** → {b['instruction']}")
-        else:
-            flag = " — **verify with AHJ**" if b.get("verify_with_ahj") else ""
-            cites = "; ".join(f"{f['code']} {f['section'] or ''}".strip() for f in b["findings"]) or "no findings recorded"
-            out.append(f"  **{b['status']}**{flag}: {cites} ({b['source']})")
-    out.append("")
+    if ctx.get("reconciliations"):
+        recs = sorted(ctx["reconciliations"], key=_sev_key)
+        out.append(f"## Reconciliations — documents that must agree ({len(recs)})")
+        for r in recs:
+            out += _recon_lines(r, r["_from"])
+        out.append("")
 
-    ifs = sorted(ctx["interfaces"], key=_sev_key)
-    out.append(f"## Coordination routing ({len(ifs)})")
-    for e in ifs:
-        gate = e.get("gate") or {}
-        gate_txt = f" · Gate: {gate.get('milestone')}" + (f" — {gate['note']}" if gate.get("note") else "") if gate else ""
-        out.append(f"- **[{e.get('severity')}] {e['id']}** → {e['counterpart_trade']} "
-                   f"({', '.join(e['counterpart_sections'])}){gate_txt}")
-        out.append(f"  - Send them: {_txt(e.get('send_them'))}")
-        out.append(f"  - Need from them: {_txt(e.get('need_from_them'))}")
-        for r in e.get("responsibility") or []:
-            split = " / ".join(f"{k} {v}" for k, v in (r.get("typical") or {}).items())
-            out.append(f"  - Confirm who: {r.get('item')} — typical {split}")
-        if e.get("failure"):
-            out.append(f"  - If missed: {_txt(e['failure'])}")
-    out.append("")
+    if "regulatory_hooks" in ctx:
+        hooks = sorted(ctx["regulatory_hooks"], key=_sev_key)
+        out.append(f"## Compliance — regulatory hooks ({len(hooks)})")
+        for h in hooks:
+            b = h["binding"]
+            out.append(f"- **[{h.get('severity')}] {h['id']}** (`{h.get('topic')}`) — {_txt(h.get('question'))}  ")
+            if b["status"] == "unbound":
+                out.append(f"  **Unbound** → {b['instruction']}")
+            else:
+                flag = " — **verify with AHJ**" if b.get("verify_with_ahj") else ""
+                cites = "; ".join(f"{f['code']} {f['section'] or ''}".strip() for f in b["findings"]) or "no findings recorded"
+                out.append(f"  **{b['status']}**{flag}: {cites} ({b['source']})")
+        out.append("")
 
-    out.append(f"## Failure modes to watch ({len(ctx['failure_modes'])})")
-    for fm in ctx["failure_modes"]:
-        caught = ", ".join(fm.get("caught_by", []) or []) or "no check"
-        out.append(f"- **{fm['id']}** — {_txt(fm.get('what_happens'))} → {_txt(fm.get('consequence'))} "
-                   f"(caught by {caught}; {fm.get('source', 'n/a')})")
-    out.append("")
+    if "interfaces" in ctx:
+        ifs = sorted(ctx["interfaces"], key=_sev_key)
+        out.append(f"## Coordination routing ({len(ifs)})")
+        for e in ifs:
+            out += _edge_lines(e)
+        out.append("")
 
-    if ctx["submittals"]:
+    if "failure_modes" in ctx:
+        out.append(f"## Failure modes to watch ({len(ctx['failure_modes'])})")
+        for fm in ctx["failure_modes"]:
+            caught = ", ".join(fm.get("caught_by", []) or []) or "no check"
+            out.append(f"- **{fm['id']}** — {_txt(fm.get('what_happens'))} → {_txt(fm.get('consequence'))} "
+                       f"(caught by {caught}; {fm.get('source', 'n/a')})")
+        out.append("")
+
+    if ctx.get("submittals"):
         out.append("## Expected submittal contents")
         for s in ctx["submittals"]:
             out.append(f"- **{s.get('type')}**")
             for line in s.get("must_show", []) or []:
                 out.append(f"  - {_txt(line)}")
         out.append("")
-    if ctx["extract_fields"]:
+    if ctx.get("extract_fields"):
         out.append("## Extract for reconciliation")
         for x in ctx["extract_fields"]:
             unit = f", {x['unit']}" if x.get("unit") else ""
             out.append(f"- {x['id']} — {x.get('label')} ({x.get('type')}{unit}, per {x.get('per', 'element')}) "
                        f"→ {', '.join(x.get('reconcile_against', []) or [])}")
         out.append("")
-    if ctx["standards"]:
+    if ctx.get("standards"):
         out.append("## Standards to verify against")
         for s in ctx["standards"]:
             note = f" — {_txt(s['note'])}" if s.get("note") else ""
             out.append(f"- {s.get('name')}: {_txt(s.get('title'))}{note}")
         out.append("")
-    if ctx["escalations"]:
+    if ctx.get("escalations"):
         out.append("## Escalations")
         for e in ctx["escalations"]:
             out.append(f"- {e['target']}: {e['from']} → {e['to']} by {e['by']} — {_txt(e.get('reason'))}")
         out.append("")
-    if ctx["suppressed"]:
+    if ctx.get("suppressed"):
         out.append("## Suppressed")
         for s in ctx["suppressed"]:
             out.append(f"- {s['id']} (from {s['defined_by']}) by {s['suppressed_by']} — {_txt(s['reason'])}")
@@ -588,7 +745,261 @@ def to_markdown(ctx):
     return "\n".join(out).rstrip() + "\n"
 
 
-# ── Validate ────────────────────────────────────────────────────
+# ── Cross-layer views: reflexes and milestones ──────────────────
+
+def _home_items(kb, facilities, sections):
+    """Yield (home, list_name, item, doc) for every keyed item at the file that defines it.
+
+    Views list items where they live; per-section overrides and suppressions apply only in resolve.
+    """
+    for path in iter_files(kb, "profiles"):
+        doc = load_yaml(path)
+        home = str(doc.get("id"))
+        if not layer_relevant(home, sections):
+            continue
+        for list_name in GATED_LISTS:
+            for item in doc.get(list_name, []) or []:
+                if not item.get("override"):
+                    yield home, list_name, item, doc
+    chain = facility_chain(facilities)
+    for path in iter_files(kb, "overlays"):
+        doc = load_yaml(path)
+        if str(doc.get("id")) not in chain:
+            continue
+        default = doc.get("sections", []) or []
+        for list_name in GATED_LISTS:
+            for item in doc.get(list_name, []) or []:
+                pats = item.get("sections", default)
+                if sections is not None and not any(
+                        fnmatch.fnmatchcase(node, pat) for pat in pats for s in sections for node in lineage(s)):
+                    continue
+                yield f"overlay:{doc.get('id')}", list_name, item, doc
+
+
+def _home_edges(kb, facilities, sections):
+    for path in iter_files(kb, "interfaces"):
+        doc = load_yaml(path)
+        for edge in doc.get("edges", []) or []:
+            if not facility_matches(edge.get("facility_types"), facilities):
+                continue
+            if sections is not None and not edge_in_project(edge, sections):
+                continue
+            yield f"interfaces:{doc.get('id')}", edge, doc
+
+
+def _view_scope(kb, facilities, project):
+    project = Path(project).resolve() if project else None
+    facilities = list(dict.fromkeys(list(facilities) + project_facilities(project)))
+    sections = project_sections(project)
+    notes = []
+    if project is not None and sections is None:
+        notes.append("No extracted spec text in the project (run /construction:spec-splitter); "
+                     "showing the whole layer")
+    return facilities, sections, notes
+
+
+def reflexes(kb, facilities=(), project=None):
+    facilities, sections, notes = _view_scope(kb, facilities, project)
+    groups = {}
+    for home, list_name, item, doc in _home_items(kb, facilities, sections):
+        if not item.get("reflex"):
+            continue
+        group = home if home.startswith("overlay:") or home == "global" else f"Division {home[:2]}"
+        entry = {k: v for k, v in item.items() if k not in ("sections",)}
+        entry.update({"_list": list_name, "_home": home, "_status": doc.get("status", "draft")})
+        groups.setdefault(group, []).append(entry)
+    for home, edge, doc in _home_edges(kb, facilities, sections):
+        if edge.get("reflex"):
+            entry = dict(edge)
+            entry.update({"_list": "interfaces", "_home": home, "_status": doc.get("status", "draft")})
+            groups.setdefault("Interfaces", []).append(entry)
+    order = sorted(groups, key=lambda g: (g != "global", g.startswith("overlay:"), g == "Interfaces", g))
+    return {"facility_types": facilities,
+            "sections_filter": sorted(sections) if sections else None,
+            "count": sum(len(v) for v in groups.values()),
+            "groups": {g: sorted(groups[g], key=_sev_key) for g in order},
+            "notes": notes}
+
+
+def milestone_view(kb, mid, facilities=(), project=None):
+    milestones = load_milestones(kb)
+    ids = [m.get("id") for m in milestones]
+    if mid not in ids:
+        raise ResolveError(f"Unknown milestone {mid!r} (choose from {', '.join(ids)})")
+    m = milestones[ids.index(mid)]
+    facilities, sections, notes = _view_scope(kb, facilities, project)
+    checks, recons, edges = [], [], []
+    for home, list_name, item, doc in _home_items(kb, facilities, sections):
+        if item.get("gate") == mid:
+            entry = {k: v for k, v in item.items() if k not in ("sections",)}
+            entry.update({"_home": home, "_status": doc.get("status", "draft")})
+            (checks if list_name == "review_checks" else recons).append(entry)
+    for home, edge, doc in _home_edges(kb, facilities, sections):
+        if (edge.get("gate") or {}).get("milestone") == mid:
+            entry = dict(edge)
+            entry.update({"_home": home, "_status": doc.get("status", "draft")})
+            edges.append(entry)
+    catch_ids = {c["id"] for c in checks} | {r["id"] for r in recons} | {e["id"] for e in edges}
+    failures = []
+    for path in iter_files(kb, "profiles") + iter_files(kb, "overlays"):
+        doc = load_yaml(path)
+        for fm in doc.get("failure_modes", []) or []:
+            if catch_ids & set(fm.get("caught_by", []) or []):
+                failures.append(dict(fm, _home=str(doc.get("id"))))
+    return {"milestone": {"id": mid, "title": m.get("title"), "position": f"{ids.index(mid) + 1} of {len(ids)}",
+                          "covers": m.get("covers", []), "inspect_before": m.get("inspect_before", [])},
+            "facility_types": facilities,
+            "sections_filter": sorted(sections) if sections else None,
+            "interfaces": sorted(edges, key=_sev_key),
+            "review_checks": sorted(checks, key=_sev_key),
+            "reconciliations": sorted(recons, key=_sev_key),
+            "failure_modes": failures,
+            "notes": notes}
+
+
+def reflexes_markdown(view):
+    out = [f"# Reflex checks — always on ({view['count']})", ""]
+    out.append("Notice these while looking at anything, even when they are unrelated to the question. "
+               "Each lives in the file shown; resolve that section for the full context.")
+    if view["sections_filter"]:
+        out.append(f"Filtered to project sections: {', '.join(view['sections_filter'])}")
+    out.append("")
+    for group, items in view["groups"].items():
+        out.append(f"## {group}")
+        for it in items:
+            if it["_list"] == "interfaces":
+                out += _edge_lines(it, oriented=False)
+            elif it["_list"] == "reconciliations":
+                out += _recon_lines(it, it["_home"])
+            else:
+                out += [_check_line(it), _check_meta(it, it["_home"])]
+        out.append("")
+    for n in view["notes"]:
+        out.append(f"- Note: {n}")
+    return "\n".join(out).rstrip() + "\n"
+
+
+def milestone_markdown(view):
+    m = view["milestone"]
+    title = m["title"][:1].lower() + m["title"][1:]
+    out = [f"# Before {title} (`{m['id']}`, {m['position']})", ""]
+    if view["sections_filter"]:
+        out.append(f"Filtered to project sections: {', '.join(view['sections_filter'])}")
+        out.append("")
+    if m["covers"]:
+        out.append("## What this covers or locks")
+        out += [f"- {_txt(c)}" for c in m["covers"]]
+        out.append("")
+    if m["inspect_before"]:
+        out.append("## Inspect or test first")
+        out += [f"- {_txt(c)}" for c in m["inspect_before"]]
+        out.append("")
+    if view["interfaces"]:
+        out.append(f"## Coordination to close ({len(view['interfaces'])})")
+        for e in view["interfaces"]:
+            out += _edge_lines(e, oriented=False)
+        out.append("")
+    if view["review_checks"]:
+        out.append(f"## Checks due by this milestone ({len(view['review_checks'])})")
+        for c in view["review_checks"]:
+            out += [_check_line(c), _check_meta(c, c["_home"])]
+        out.append("")
+    if view["reconciliations"]:
+        out.append(f"## Documents that must agree first ({len(view['reconciliations'])})")
+        for r in view["reconciliations"]:
+            out += _recon_lines(r, r["_home"])
+        out.append("")
+    if view["failure_modes"]:
+        out.append("## What goes wrong if missed")
+        for fm in view["failure_modes"]:
+            out.append(f"- **{fm['id']}** — {_txt(fm.get('what_happens'))} → {_txt(fm.get('consequence'))}")
+        out.append("")
+    for n in view["notes"]:
+        out.append(f"- Note: {n}")
+    return "\n".join(out).rstrip() + "\n"
+
+
+def milestones_markdown(kb):
+    out = ["# Milestones (approximate order within an area)", ""]
+    for i, m in enumerate(load_milestones(kb), 1):
+        out.append(f"{i}. `{m['id']}` — {m.get('title')}")
+    return "\n".join(out) + "\n"
+
+
+# ── Validate and lint ───────────────────────────────────────────
+
+SECTION_IN_TEXT = re.compile(r"\b\d{2} \d{2} \d{2}(?:\.\d{2})?\b")
+STANDARD_IN_TEXT = re.compile(
+    r"\b(?:ASTM|UL|NFPA|ANSI|ASHRAE|SEFA|AWI|BHMA|FM|ISEA|ICC|IBC|IFC|IECC|NEC|TIA|SPRI|AAMA|ACI|AISC|AWS|"
+    r"NEMA|SMACNA|TCNA|IES|CSA|ASCE|ASME)\b[\s/A-Z.\-]*\d+[\w.\-/()]*")
+BARE_NUMBER = re.compile(
+    r"\d+(?:[.,/]\d+)?\s*(?:[\"”″'’°%]|-?\s*(?:in|inch|inches|ft|feet|foot|mils?|psi|psf|plf|cfm|gpm|"
+    r"sf|sq\s*in|sq\s*ft|mm|cm|lbs?|kips?|amps?|volts?|kva|kw|hp|btuh?|degrees?|minutes?|mins?|hours?|"
+    r"hrs?|days?|weeks?|months?|years?|yrs?)\b)|\bR-?\d+(?:\.\d+)?\b|\bL/\d+\b|\b\d+:\d+\b",
+    re.I)
+STOPWORDS = {"the", "and", "for", "are", "with", "that", "this", "from", "each", "every", "where",
+             "into", "its", "their", "not", "any", "all", "has", "have", "per", "before", "after"}
+
+
+def _texts(doc):
+    """(where, text) for every authored sentence that the bare-number lint should see."""
+    if doc.get("scope_summary"):
+        yield "scope_summary", doc["scope_summary"]
+    for list_name in KEYED_LISTS:
+        if list_name == "standards":
+            continue
+        for item in doc.get(list_name, []) or []:
+            for field in ("check", "question", "applies_when", "what_happens", "consequence", "label"):
+                if item.get(field):
+                    yield f"{item.get('id')}.{field}", item[field]
+            for line in item.get("must_show", []) or []:
+                yield f"{item.get('id')}.must_show", line
+    for esc in doc.get("escalate", []) or []:
+        if esc.get("reason"):
+            yield f"escalate {esc.get('target')}", esc["reason"]
+    for edge in doc.get("edges", []) or []:
+        for field in ("a_provides", "b_provides", "failure"):
+            if edge.get(field):
+                yield f"{edge.get('id')}.{field}", edge[field]
+        gate = edge.get("gate") or {}
+        if gate.get("note"):
+            yield f"{edge.get('id')}.gate", gate["note"]
+        for line in gate.get("inspect_before", []) or []:
+            yield f"{edge.get('id')}.gate", line
+        for r in edge.get("responsibility", []) or []:
+            if r.get("item"):
+                yield f"{edge.get('id')}.responsibility", r["item"]
+    for m in doc.get("milestones", []) or []:
+        for line in [m.get("title", "")] + (m.get("covers", []) or []) + (m.get("inspect_before", []) or []):
+            yield f"{m.get('id')}", line
+
+
+def bare_numbers(text):
+    clean = STANDARD_IN_TEXT.sub("§", SECTION_IN_TEXT.sub("§", str(text)))
+    return [m.group(0).strip() for m in BARE_NUMBER.finditer(clean)]
+
+
+def _tokens(text):
+    return {w for w in re.findall(r"[a-z]{3,}", str(text).lower()) if w not in STOPWORDS}
+
+
+def near_duplicates(entries, threshold=0.75):
+    """entries: [(where, id, text)]. Pairs from different items whose wording is nearly the same."""
+    found = []
+    toks = [(w, i, t, _tokens(t), " ".join(str(t).lower().split())) for w, i, t in entries]
+    for x in range(len(toks)):
+        for y in range(x + 1, len(toks)):
+            wa, ia, _, ta, na = toks[x]
+            wb, ib, _, tb, nb = toks[y]
+            if ia == ib or not ta or not tb:
+                continue
+            if len(ta & tb) / len(ta | tb) < 0.45:
+                continue
+            ratio = difflib.SequenceMatcher(None, na, nb).ratio()
+            if ratio >= threshold:
+                found.append((wa, ia, wb, ib, ratio))
+    return found
+
 
 def _expected_id(kb, path):
     rel = path.relative_to(kb)
@@ -600,21 +1011,49 @@ def _expected_id(kb, path):
         return path.stem.replace("-", " "), "section"
     if rel.parts[0] == "overlays":
         return path.stem, "overlay"
+    if rel.parts[0] == "milestones.yaml":
+        return "milestones", "milestones"
     return path.stem, "interfaces"
 
 
 def validate(kb):
     kb = Path(kb)
-    errors, warnings = [], []
-    files = sorted(list((kb / "profiles").rglob("*.yaml")) + list((kb / "overlays").glob("*.yaml"))
-                   + list((kb / "interfaces").glob("*.yaml")))
+    errors, warnings, lint = [], [], []
+    files = iter_files(kb, "profiles") + iter_files(kb, "overlays") + iter_files(kb, "interfaces")
+    if (kb / "milestones.yaml").exists():
+        files.append(kb / "milestones.yaml")
     all_check_ids, escalate_targets, section_ids, overlay_ids, drafts = set(), [], [], [], 0
+    dup_entries = []
 
     def err(path, msg):
         errors.append(f"{path.relative_to(kb)}: {msg}")
 
     def warn(path, msg):
         warnings.append(f"{path.relative_to(kb)}: {msg}")
+
+    # Milestones first: everything else validates gates against them
+    milestone_ids = set()
+    mpath = kb / "milestones.yaml"
+    if mpath.exists():
+        try:
+            mdoc = load_yaml(mpath)
+            for m in mdoc.get("milestones", []) or []:
+                mid = m.get("id")
+                if not mid or not re.fullmatch(r"[a-z0-9]+(_[a-z0-9]+)*", str(mid)):
+                    err(mpath, f"milestone id must be a snake_case slug: {mid!r}")
+                    continue
+                if mid in milestone_ids:
+                    err(mpath, f"duplicate milestone {mid!r}")
+                milestone_ids.add(mid)
+                if not m.get("title"):
+                    err(mpath, f"milestone {mid}: missing title")
+                for field in ("covers", "inspect_before"):
+                    if not isinstance(m.get(field, []), list):
+                        err(mpath, f"milestone {mid}: {field} must be a list")
+        except yaml.YAMLError as e:
+            err(mpath, f"YAML parse error: {e}")
+    else:
+        warnings.append("milestones.yaml missing: gates cannot be validated")
 
     for path in files:
         try:
@@ -638,10 +1077,20 @@ def validate(kb):
             drafts += 1
         kind = doc.get("kind")
 
+        for where, text in _texts(doc):
+            hits = bare_numbers(text)
+            if hits:
+                lint.append(f"{path.relative_to(kb)}: {where}: bare number {', '.join(repr(h) for h in hits)} — "
+                            f"make it a regulatory_hook question or cite the project document instead")
+
         if kind == "section" and normalize(exp_id) != exp_id:
             err(path, f"file name is not a canonical section number: {exp_id!r}")
         if kind in ("global", "division", "section"):
             section_ids.append(str(doc.get("id")))
+            if doc.get("contractor_designed") and doc["contractor_designed"] not in CONTRACTOR_DESIGNED:
+                err(path, f"contractor_designed must be one of {CONTRACTOR_DESIGNED}")
+            if doc.get("legacy_scope_file") and kind != "division":
+                err(path, "legacy_scope_file belongs on a division baseline only")
         if kind == "overlay":
             overlay_ids.append(str(doc.get("id")))
             if doc.get("facility_type") != doc.get("id"):
@@ -685,19 +1134,47 @@ def validate(kb):
                     for field in REQUIRED_ITEM_FIELDS[list_name]:
                         if field not in item:
                             err(path, f"{list_name} {item_id}: missing {field}")
+                    text = item.get("check") or item.get("question") or item.get("what_happens")
+                    if text and list_name in ("review_checks", "reconciliations", "failure_modes",
+                                              "regulatory_hooks"):
+                        dup_entries.append((f"{path.relative_to(kb)} {list_name}", item_id, text))
                 if item.get("merge") not in (None, "patch", "replace"):
                     err(path, f"{list_name} {item_id}: merge must be patch or replace")
                 if "severity" in item and item["severity"] not in SEVERITIES:
                     err(path, f"{list_name} {item_id}: invalid severity {item['severity']!r}")
-                if list_name == "review_checks":
+                if ("reflex" in item or "gate" in item) and list_name not in GATED_LISTS:
+                    err(path, f"{list_name} {item_id}: reflex and gate belong on checks and reconciliations")
+                if "reflex" in item and not isinstance(item["reflex"], bool):
+                    err(path, f"{list_name} {item_id}: reflex must be true or false")
+                if item.get("gate") and milestone_ids and item["gate"] not in milestone_ids:
+                    err(path, f"{list_name} {item_id}: unknown gate milestone {item['gate']!r}")
+                for key, allowed in (item.get("applies_if") or {}).items():
+                    values = allowed if isinstance(allowed, list) else [allowed]
+                    if key not in APPLIES_IF:
+                        err(path, f"{list_name} {item_id}: applies_if key {key!r} not supported "
+                                  f"(use {', '.join(sorted(APPLIES_IF))})")
+                    elif not set(values) <= APPLIES_IF[key]:
+                        err(path, f"{list_name} {item_id}: applies_if {key} values must be from "
+                                  f"{sorted(APPLIES_IF[key])}")
+                if list_name in ("review_checks", "reconciliations"):
                     all_check_ids.add(item_id)
+                    if "owner" in item and item["owner"] not in OWNERS:
+                        err(path, f"{list_name} {item_id}: owner must be one of {sorted(OWNERS)}")
+                if list_name == "review_checks":
                     if "kind" in item and item["kind"] not in CHECK_KINDS:
                         err(path, f"check {item_id}: kind must be one of {CHECK_KINDS}")
-                    if "owner" in item and item["owner"] not in OWNERS:
-                        err(path, f"check {item_id}: owner must be one of {sorted(OWNERS)}")
                     for t in item.get("submittal_types", []) or []:
                         if t not in SUBMITTAL_TYPES:
                             warn(path, f"check {item_id}: unknown submittal type {t!r}")
+                if list_name == "reconciliations":
+                    between = item.get("between", []) or []
+                    if "between" in item and len(between) < 2:
+                        err(path, f"reconciliation {item_id}: between needs at least two documents")
+                    for t in between:
+                        if t not in TRACE_TERMS:
+                            warn(path, f"reconciliation {item_id}: unknown document term {t!r}")
+                    if "fields" in item and not item.get("fields"):
+                        err(path, f"reconciliation {item_id}: fields must list what has to agree")
                 for t in item.get("trace_to", []) or []:
                     if t not in TRACE_TERMS:
                         warn(path, f"{item_id}: unknown trace_to term {t!r} (add it to SCHEMA.md §4.1)")
@@ -736,9 +1213,13 @@ def validate(kb):
                             err(path, f"edge {eid}: bad section number {v!r} in {side}")
                 if edge.get("severity") and edge["severity"] not in SEVERITIES:
                     err(path, f"edge {eid}: invalid severity")
+                if "reflex" in edge and not isinstance(edge["reflex"], bool):
+                    err(path, f"edge {eid}: reflex must be true or false")
                 gate = edge.get("gate") or {}
-                if gate and gate.get("milestone") not in GATE_MILESTONES:
-                    warn(path, f"edge {eid}: unknown gate milestone {gate.get('milestone')!r}")
+                if gate and milestone_ids and gate.get("milestone") not in milestone_ids:
+                    err(path, f"edge {eid}: unknown gate milestone {gate.get('milestone')!r}")
+                if not isinstance(gate.get("inspect_before", []), list):
+                    err(path, f"edge {eid}: gate.inspect_before must be a list")
                 for r in edge.get("responsibility", []) or []:
                     extra = set((r.get("typical") or {})) - {"furnish", "install", "connect"}
                     if extra:
@@ -748,6 +1229,9 @@ def validate(kb):
         if target not in all_check_ids and not any(
                 target == h.get("id") for p in files for h in (load_yaml(p).get("regulatory_hooks") or [])):
             warn(path, f"escalate target {target!r} exists nowhere in the knowledge layer")
+
+    for wa, ia, wb, ib, ratio in near_duplicates(dup_entries):
+        lint.append(f"near-duplicate ({ratio:.0%}): {ia} [{wa}] and {ib} [{wb}] — keep one home")
 
     # Cascade check: every profile must resolve, alone and under every overlay
     facility_sets = [[]] + [[o] for o in overlay_ids] + ([overlay_ids] if len(overlay_ids) > 1 else [])
@@ -764,10 +1248,24 @@ def validate(kb):
                 if "caught by" in w:
                     warnings.append(f"resolve {sid} {facs}: {w}")
 
-    return errors, sorted(set(warnings)), drafts, len(files)
+    return errors, sorted(set(warnings)), sorted(set(lint)), drafts, len(files)
 
 
 # ── CLI ─────────────────────────────────────────────────────────
+
+def emit(text, output):
+    if output:
+        out = safe_output_path(output)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text, encoding="utf-8")
+        print(f"Wrote {out}")
+    else:
+        sys.stdout.write(text)
+
+
+def dump(data):
+    return yaml.safe_dump(data, sort_keys=False, allow_unicode=True, width=100)
+
 
 def main():
     for stream in (sys.stdout, sys.stderr):
@@ -778,40 +1276,59 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--kb", default=str(DEFAULT_KB), help="Knowledge layer root (default: reference/csi)")
     sub = parser.add_subparsers(dest="command", required=True)
+
+    def view_args(sp):
+        sp.add_argument("--facility", action="append", default=[],
+                        help="Facility type, repeatable (healthcare.hospital)")
+        sp.add_argument("--project", help="Project root: reads facility types, code-researcher findings, spec text")
+        sp.add_argument("--format", choices=["yaml", "md"], default="yaml")
+        sp.add_argument("--output", help="Write to this file (versioned, never overwrites) instead of stdout")
+
     r = sub.add_parser("resolve", help="Compile the knowledge for one section")
-    r.add_argument("--section", required=True, help='e.g. "12 35 53", 123553, or a legacy number like 12300')
-    r.add_argument("--facility", action="append", default=[], help="Facility type, repeatable (healthcare.hospital)")
-    r.add_argument("--project", help="Project root: reads project_context facility types, code-researcher findings, spec text")
-    r.add_argument("--format", choices=["yaml", "md"], default="yaml")
-    r.add_argument("--output", help="Write to this file (versioned, never overwrites) instead of stdout")
-    v = sub.add_parser("validate", help="Validate every file and merge rule")
-    v.add_argument("--strict", action="store_true", help="Treat warnings as errors")
+    r.add_argument("--section", required=True, help='e.g. "07 84 00", 078400, or a legacy number like 12300')
+    r.add_argument("--only", help=f"Comma list of slices to keep: {', '.join(sorted(set(SLICES)))}")
+    view_args(r)
+    x = sub.add_parser("reflexes", help="Always-on checks across the layer, grouped by where they live")
+    view_args(x)
+    m = sub.add_parser("milestone", help="What must be verified before a milestone (no --id lists them)")
+    m.add_argument("--id", help="Milestone id, e.g. wall_close_in")
+    view_args(m)
+    v = sub.add_parser("validate", help="Validate every file, merge rule and authoring lint")
+    v.add_argument("--strict", action="store_true", help="Treat warnings and lint as errors")
     args = parser.parse_args()
 
-    if args.command == "resolve":
-        try:
+    try:
+        if args.command == "resolve":
             ctx = resolve(args.kb, args.section, args.facility, args.project)
-        except ResolveError as e:
-            print(f"ERROR: {e}", file=sys.stderr)
-            return 2
-        text = to_markdown(ctx) if args.format == "md" else yaml.safe_dump(
-            ctx, sort_keys=False, allow_unicode=True, width=100)
-        if args.output:
-            out = safe_output_path(args.output)
-            out.parent.mkdir(parents=True, exist_ok=True)
-            out.write_text(text, encoding="utf-8")
-            print(f"Wrote {out}")
-        else:
-            sys.stdout.write(text)
-        return 0
+            ctx = slice_context(ctx, [s.strip() for s in args.only.split(",")] if args.only else None)
+            emit(to_markdown(ctx) if args.format == "md" else dump(ctx), args.output)
+            return 0
+        if args.command == "reflexes":
+            view = reflexes(args.kb, args.facility, args.project)
+            emit(reflexes_markdown(view) if args.format == "md" else dump(view), args.output)
+            return 0
+        if args.command == "milestone":
+            if not args.id:
+                emit(milestones_markdown(args.kb) if args.format == "md"
+                     else dump({"milestones": load_milestones(args.kb)}), args.output)
+                return 0
+            view = milestone_view(args.kb, args.id, args.facility, args.project)
+            emit(milestone_markdown(view) if args.format == "md" else dump(view), args.output)
+            return 0
+    except ResolveError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 2
 
-    errors, warnings, drafts, count = validate(args.kb)
+    errors, warnings, lint, drafts, count = validate(args.kb)
     for e in errors:
         print(f"ERROR   {e}")
     for w in warnings:
         print(f"WARNING {w}")
-    print(f"\n{count} files · {len(errors)} errors · {len(warnings)} warnings · {drafts} at draft status")
-    return 1 if errors or (args.strict and warnings) else 0
+    for item in lint:
+        print(f"LINT    {item}")
+    print(f"\n{count} files · {len(errors)} errors · {len(warnings)} warnings · {len(lint)} lint · "
+          f"{drafts} at draft status")
+    return 1 if errors or (args.strict and (warnings or lint)) else 0
 
 
 if __name__ == "__main__":

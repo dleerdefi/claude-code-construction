@@ -83,6 +83,7 @@ review_checks:
     trace_to: [drawings.interior_elevations, drawings.details, schedule.casework]
     severity: high
     owner: subcontractor
+    gate: procurement_release
 
   - id: cw.knee-clearance
     kind: conformance
@@ -138,6 +139,7 @@ review_checks:
     trace_to: [schedule.plumbing_fixture, schedule.equipment, drawings.plumbing, drawings.electrical]
     severity: high
     owner: gc
+    gate: procurement_release
 
   - id: cw.appliance-openings
     kind: constructability
@@ -159,6 +161,7 @@ review_checks:
     trace_to: [drawings.details, drawings.interior_elevations, spec.part3]
     severity: critical
     owner: gc
+    gate: wall_close_in
 
   - id: cw.electrical-in-casework
     kind: coordination
@@ -170,6 +173,7 @@ review_checks:
     trace_to: [drawings.electrical, drawings.interior_elevations]
     severity: high
     owner: gc
+    gate: in_wall_rough_in
 
   - id: cw.base-toe-kick
     kind: absence

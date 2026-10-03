@@ -1,0 +1,185 @@
+schema_version: 1
+kind: milestones
+id: milestones
+title: Construction milestones that cover work or lock decisions
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Approximate order within one area of the building. Interface edges and checks
+# name one of these as their gate: the last moment the item is cheap to resolve.
+# `csi_knowledge.py milestone --id <id>` compiles everything gated here.
+
+milestones:
+  - id: procurement_release
+    title: Fabrication or order release
+    covers:
+      - Product, options, dimensions and quantities become fixed; later changes are change orders and lead-time resets
+    inspect_before:
+      - Submittal approved and review comments resolved
+      - Field dimensions verified where the shop drawings depend on them
+      - Interfacing submittals reviewed together where one sizes the other
+
+  - id: excavation
+    title: Excavation near footings, utilities or groundwater
+    covers: []
+    inspect_before:
+      - Excavation support and underpinning designed and installed
+      - Dewatering operating where groundwater requires it
+      - Existing utilities located and protected
+
+  - id: foundation_pour
+    title: Footing and foundation wall placement
+    covers:
+      - Anchor bolts, embeds, sleeves and penetrations through foundations
+      - Grounding electrodes encased in footings
+      - Waterstops, and waterproofing pre-applied against shoring or lagging
+    inspect_before:
+      - Bearing surface accepted by the geotechnical engineer
+      - Reinforcing and embed placement inspected, including special inspection where required
+      - Anchor bolt and embed layout checked against steel and equipment shop drawings
+      - Pre-applied waterproofing inspected and repaired after reinforcing placement
+
+  - id: backfill
+    title: Backfill against foundation walls
+    covers:
+      - Below-grade waterproofing, protection and drainage composite
+      - Foundation drains and below-grade wall penetrations
+    inspect_before:
+      - Waterproofing, terminations and penetrations inspected
+      - Foundation drain installed, connected and inspected
+
+  - id: trench_backfill
+    title: Backfill over site utilities
+    covers:
+      - Underground piping, conduit and duct banks
+    inspect_before:
+      - Pressure, mandrel or continuity tests the specs require
+      - As-built location and invert survey
+
+  - id: underslab_rough_in
+    title: Underslab rough-in
+    covers:
+      - Locations of underslab waste, storm, conduit and floor drains become fixed
+    inspect_before:
+      - Underslab locations checked against current architectural layouts and approved equipment
+
+  - id: slab_pour
+    title: Slab placement, on grade or elevated
+    covers:
+      - Underslab and in-slab piping, conduit and drains
+      - Vapor retarder under slabs on grade
+      - Sleeves, embeds, recesses, depressions and housekeeping pad dowels
+    inspect_before:
+      - Underslab piping tests and rough-in inspection
+      - Vapor retarder laps, seals and penetrations
+      - Depressions and recesses for thick-set floors, drains and entry mats
+      - Sleeve and embed survey across every discipline
+      - Post-tension tendon layout on hand before any later coring or drilling
+
+  - id: fireproofing_application
+    title: Fireproofing application on structural steel
+    covers:
+      - Structure attachment points for hangers, clips and supports
+    inspect_before:
+      - Hangers, clips, deck welding and shear studs installed
+      - Steel surface condition accepted by the fireproofing manufacturer
+
+  - id: roof_membrane
+    title: Roof membrane installation
+    covers:
+      - Roof deck, insulation, cover board and drain bodies
+      - Penetration and curb locations become fixed
+    inspect_before:
+      - Primary and overflow drain bodies set at the finished-roof elevation
+      - Curbs, equipment supports and penetrations located and installed
+      - Deck condition accepted by the roofing manufacturer
+
+  - id: opening_install
+    title: Window, storefront and curtain wall installation
+    covers:
+      - Rough opening preparation, sill pans and the air barrier return into the opening
+    inspect_before:
+      - Sill pans and rough opening transitions installed
+      - Mock-up and its field testing approved where required
+
+  - id: envelope_close_in
+    title: Cladding installed over the air and water barrier
+    covers:
+      - Air and water barrier, flashings, continuous insulation and cladding attachments
+    inspect_before:
+      - Air barrier inspected at transitions and penetrations
+      - Flashings at openings, shelf angles and base of wall inspected
+      - Field testing the spec or code requires, with repairs complete
+
+  - id: overburden_placement
+    title: Overburden placed on horizontal waterproofing
+    covers:
+      - Plaza, split-slab, planter or vegetated-roof waterproofing
+    inspect_before:
+      - Flood or electronic leak test passed and documented
+
+  - id: in_wall_rough_in
+    title: In-wall rough-in
+    covers:
+      - Box, stub-out, rough-in and backing locations become fixed
+    inspect_before:
+      - Rough-in locations checked against casework, equipment and furniture layouts
+
+  - id: wall_close_in
+    title: Second-side wall board
+    covers:
+      - In-wall piping, conduit, low-voltage cabling and boxes
+      - Blocking, backing and in-wall supports
+      - Penetration firestopping, head-of-wall joints and cavity insulation
+    inspect_before:
+      - In-wall rough-in inspections by the AHJ
+      - Firestop inspection of penetrations and head-of-wall joints
+      - Blocking and backing checked against the master list
+
+  - id: above_ceiling_close_in
+    title: Ceiling closure
+    covers:
+      - Above-ceiling ductwork, piping, conduit, dampers and firestopping
+      - Fireproofing above the ceiling
+    inspect_before:
+      - Above-ceiling inspection by the AHJ
+      - Access confirmed to dampers, valves, terminal units and junction boxes
+      - Fireproofing and firestop inspection and testing complete
+
+  - id: floor_finish_install
+    title: Floor finish installation
+    covers:
+      - Slab surface, moisture condition and flatness
+    inspect_before:
+      - Slab moisture testing by the flooring manufacturer's method
+      - Flatness and depressions checked against the flooring requirements
+
+  - id: equipment_set
+    title: Equipment set in place
+    covers:
+      - Equipment locations become fixed relative to rough-ins
+    inspect_before:
+      - Rough-in locations checked against approved equipment submittals
+
+  - id: final_connection
+    title: Final connections and start-up
+    covers: []
+    inspect_before:
+      - Utility characteristics at each connection match the equipment nameplate
+
+  - id: site_paving
+    title: Paving
+    covers:
+      - Utilities, sleeves, light pole bases and irrigation under paved areas
+    inspect_before:
+      - Subgrade and base compaction tests
+
+  - id: substantial_completion
+    title: Substantial completion
+    covers:
+      - Warranty start dates
+    inspect_before:
+      - AHJ final inspections and life-safety system acceptance tests
+      - Commissioning functional tests the spec requires
