@@ -1,0 +1,4 @@
+checks:
+  - name: project-facts
+    script: checks/project_facts.py
+    weight: 4

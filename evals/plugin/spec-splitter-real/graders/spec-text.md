@@ -1,0 +1,6 @@
+---
+type: file_exists
+path: ".construction/skills/spec_text/manifest.json"
+weight: 2
+---
+Extracted text and its manifest are written where submittal-log-generator reads them.
