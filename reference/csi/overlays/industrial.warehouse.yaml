@@ -31,7 +31,7 @@ review_checks:
 
 reconciliations:
   - id: ind.rc.ceiling-obstructions
-    sections: ["05 2*", "21 1*", "23 3*", "23 5*", "26 5*"]
+    sections: ["05 2*", "21 1*", "23 3*", "23 5*", "23 82*", "26 5*"]
     between: [drawings.fire_protection, drawings.electrical, drawings.mechanical, drawings.structural]
     key: Sprinkler layout by roof bay
     fields: [sprinkler location and deflector elevation, light fixture and heater locations, duct and joist bridging locations]
@@ -45,7 +45,7 @@ reconciliations:
     gate: overhead_rough_in
 
   - id: ind.rc.rack-plan
-    sections: ["03 3*", "21 1*", "41 5*"]
+    sections: ["03 3*", "10 56*", "21 1*", "41 5*"]
     between: [drawings.storage_racks, drawings.structural, drawings.fire_protection, spec.part3]
     key: Rack row or storage aisle
     fields: [lift-truck type and aisle width, floor tolerance along the wheel paths, slab joints relative to rack base plates, in-rack sprinklers and flue spaces, rack anchorage]
@@ -67,14 +67,14 @@ failure_modes:
     source: field_experience
 
   - id: ind.fm.esfr-obstruction
-    sections: ["05 2*", "21 1*", "23 3*", "23 5*", "26 5*"]
+    sections: ["05 2*", "21 1*", "23 3*", "23 5*", "23 82*", "26 5*"]
     what_happens: Lights or heaters hung directly beside or below early-suppression sprinklers
     consequence: Failed sprinkler inspection; fixtures, heaters or heads relocated after installation
     caught_by: [ind.rc.ceiling-obstructions]
     source: field_experience
 
   - id: ind.fm.racks-on-joints
-    sections: ["03 3*", "21 1*", "41 5*"]
+    sections: ["03 3*", "10 56*", "21 1*", "41 5*"]
     what_happens: Rack layout arrives after the slab is placed, and base plates land on joints or narrow aisles fall outside the flat zones
     consequence: Joint damage and anchor failures under post loads, or trucks that cannot run at full height; racks moved or floors ground
     caught_by: [ind.rc.rack-plan]
@@ -95,7 +95,7 @@ regulatory_hooks:
 
   - id: ind.rh.rack-permits
     topic: storage-rack-permits-seismic
-    sections: ["03 3*", "41 5*"]
+    sections: ["03 3*", "10 56*", "41 5*"]
     question: >
       Do storage racks above the jurisdiction's height threshold need a
       building permit, seismic design and engineered anchorage, which rack

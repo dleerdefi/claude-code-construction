@@ -106,7 +106,7 @@ review_checks:
 
   - id: hc.ligature-resistant
     kind: conformance
-    sections: ["08 7*", "10 2*", "22 4*", "09 5*", "26 5*", "23 3*", "21 1*"]
+    sections: ["08 7*", "10 2*", "22 4*", "09 5*", "26 5*", "26 27*", "27 52*", "23 3*", "21 1*"]
     check: >
       In behavioral health and other at-risk patient rooms, every
       patient-accessible item (door hardware and hinges, plumbing fixtures and
@@ -116,6 +116,7 @@ review_checks:
     trace_to: [report.risk_assessment, schedule.door_hardware, schedule.plumbing_fixture]
     severity: critical
     owner: design_team
+    gate: procurement_release
 
   - id: hc.medgas-verification
     kind: completeness
@@ -215,7 +216,7 @@ reconciliations:
       new ventilation requirement.
     severity: high
     owner: design_team
-    gate: above_ceiling_close_in
+    gate: overhead_rough_in
 
   - id: hc.rc.ees-circuits
     sections: ["26"]
@@ -292,7 +293,7 @@ failure_modes:
     source: field_experience
 
   - id: hc.fm.standard-item-in-bh-room
-    sections: ["08 7*", "10 2*", "22 4*", "09 5*", "26 5*", "23 3*", "21 1*"]
+    sections: ["08 7*", "10 2*", "22 4*", "09 5*", "26 5*", "26 27*", "27 52*", "23 3*", "21 1*"]
     what_happens: A standard sprinkler head, grille, closer or accessory from the general project schedule installed in a behavioral health room
     consequence: Patient safety finding before occupancy; items replaced across the unit
     caught_by: [hc.ligature-resistant]
@@ -416,7 +417,7 @@ regulatory_hooks:
 
   - id: hc.rh.ligature-resistance
     topic: behavioral-health-ligature-resistance
-    sections: ["08 7*", "10 2*", "22 4*", "09 5*", "26 5*", "23 3*", "21 1*"]
+    sections: ["08 7*", "10 2*", "22 4*", "09 5*", "26 5*", "26 27*", "27 52*", "23 3*", "21 1*"]
     question: >
       What ligature-resistance requirements apply by room type and risk level
       in behavioral health and other at-risk patient areas, and does the agency

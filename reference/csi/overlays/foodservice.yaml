@@ -77,22 +77,6 @@ review_checks:
     owner: design_team
     gate: underslab_rough_in
 
-  - id: food.grease-duct-enclosure
-    kind: coordination
-    sections: ["07 84*", "09 2*", "08 31*"]
-    check: >
-      Where grease duct runs in a rated shaft, the shaft builder works from the
-      duct's cleanout locations and clearances: a rated access door aligned with
-      every cleanout, the clearance between duct and shaft the code requires,
-      no other services in the shaft, and listed firestopping where the duct
-      leaves the hood ceiling and the roof. Where a listed wrap or factory-built
-      enclosure replaces the shaft, its listing's clearances and access panels
-      are followed.
-    trace_to: [drawings.mechanical, drawings.life_safety, drawings.details]
-    severity: critical
-    owner: gc
-    gate: above_ceiling_close_in
-
   - id: food.building-pressure
     kind: coordination
     scope: package
@@ -121,20 +105,6 @@ review_checks:
     severity: high
     owner: design_team
 
-  - id: food.freezer-slab
-    kind: constructability
-    sections: ["03 3*", "13 21*"]
-    check: >
-      Before the slab is formed, each walk-in's floor type is settled
-      (insulated floor panels, or an insulated slab by the concrete trade), and
-      freezers on grade have under-floor heat or ventilation conduits placed
-      under the insulation with power, a control and monitoring, and a named
-      installer.
-    trace_to: [drawings.foodservice, drawings.structural, drawings.electrical]
-    severity: critical
-    owner: gc
-    gate: slab_pour
-
   - id: food.lighting
     kind: conformance
     sections: ["26 5*"]
@@ -154,9 +124,10 @@ review_checks:
       Every potable connection to kitchen equipment has the backflow device its
       hazard calls for: beverage dispensers and carbonators, ice machines,
       dishwashers, coffee, steam and combination ovens, chemical dispensers at
-      sinks and warewashers, and hose connections. Who furnishes each device
-      (equipment supplier or plumber) is explicit, and testable devices are
-      accessible.
+      sinks and warewashers, and hose connections. Testable devices are
+      reachable for the periodic tests the water purveyor requires, not behind
+      equipment set against the wall. Who furnishes each device is confirmed
+      on the foodservice plumbing interface.
     trace_to: [drawings.plumbing, schedule.foodservice_equipment, spec.part2]
     severity: high
     owner: gc
@@ -216,12 +187,6 @@ reconciliations:
     severity: high
     owner: design_team
 
-escalate:
-  - target: rf.roof-vapor-retarder
-    sections: ["07 5*"]
-    severity: high
-    reason: Dishwashing and cooking make kitchens humid spaces; without a roof vapor retarder, moisture condenses in the roof assembly over them in heating seasons
-
 failure_modes:
   - id: food.fm.change-after-approval
     sections: ["11 4*", "13 21*", "09", "22", "23 38*", "26 5*"]
@@ -252,10 +217,10 @@ failure_modes:
     source: field_experience
 
   - id: food.fm.grease-shaft-no-access
-    sections: ["07 84*", "09 2*", "08 31*"]
-    what_happens: Shaft or wrap built around the grease duct with no rated access door at the duct cleanouts
+    sections: ["09 21*", "09 29*", "08 31*"]
+    what_happens: Shaft built around the grease duct with no rated access door at the duct cleanouts, or closed before the duct's leakage test was witnessed
     consequence: Duct cannot be inspected or cleaned; enclosure cut open and access doors retrofitted before the final inspection
-    caught_by: [food.grease-duct-enclosure]
+    caught_by: [if.food-grease-duct-enclosure]
     source: field_experience
 
   - id: food.fm.building-negative
@@ -271,13 +236,6 @@ failure_modes:
     consequence: Health department requires washable tile at pre-opening; ceiling replaced around installed hoods and fixtures
     caught_by: [food.cleanable-finishes, food.rc.food-areas]
     source: field_experience
-
-  - id: food.fm.freezer-heave
-    sections: ["03 3*", "13 21*"]
-    what_happens: Freezer slab on grade poured with insulation but no heat or vent conduits beneath it
-    consequence: Ground freezes over time; slab heaves and cracks and doors bind; floor replaced with the kitchen in operation
-    caught_by: [food.freezer-slab]
-    source: industry_practice
 
   - id: food.fm.receptor-wrong-waste
     sections: ["22 1*", "22 4*"]
@@ -384,7 +342,7 @@ regulatory_hooks:
     severity: medium
 
   - id: food.rh.backflow
-    topic: foodservice-backflow-prevention
+    topic: cross-connection-backflow-protection
     sections: ["22 1*", "22 4*"]
     question: >
       Which backflow device do the adopted plumbing code and the water purveyor

@@ -75,7 +75,7 @@ review_checks:
 
   - id: pw.security-criteria
     kind: conformance
-    sections: ["08 1*", "08 3*", "08 4*", "08 5*", "08 8*", "32 3*", "34 71*"]
+    sections: ["08 1*", "08 3*", "08 4*", "08 5*", "08 8*", "32 3*", "34 71 13*"]
     check: >
       Where antiterrorism or physical security criteria apply, glazing,
       window and curtain wall frames and their anchorage, doors, and site
@@ -115,7 +115,7 @@ failure_modes:
     source: industry_practice
 
   - id: pw.fm.standard-glazing
-    sections: ["08 1*", "08 3*", "08 4*", "08 5*", "08 8*", "32 3*", "34 71*"]
+    sections: ["08 1*", "08 3*", "08 4*", "08 5*", "08 8*", "32 3*", "34 71 13*"]
     what_happens: Standard insulating glass, frames and anchorage submitted where blast-mitigation criteria apply
     consequence: Rejected at agency review, or installed non-compliant; glass, frames and anchors replaced
     caught_by: [pw.security-criteria]
@@ -148,7 +148,7 @@ regulatory_hooks:
 
   - id: pw.rh.security-criteria
     topic: federal-security-design-criteria
-    sections: ["08 1*", "08 3*", "08 4*", "08 5*", "08 8*", "32 3*", "34 71*"]
+    sections: ["08 1*", "08 3*", "08 4*", "08 5*", "08 8*", "32 3*", "34 71 13*"]
     question: >
       Do federal antiterrorism or physical security criteria apply to this
       facility (Department of Defense minimum antiterrorism standards,

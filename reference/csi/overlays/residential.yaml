@@ -140,11 +140,11 @@ review_checks:
     trace_to: [drawings.details, drawings.wall_sections, spec.part3]
     severity: critical
     owner: gc
-    gate: overburden_placement
+    gate: opening_install
 
   - id: mf.trash-chute
     kind: coordination
-    sections: ["08 1*", "14 9*", "21 1*"]
+    sections: ["08 1*", "14 91*", "21 1*"]
     check: >
       The trash or recycling chute is coordinated as a rated shaft system:
       intake doors listed for the shaft rating with self-closing and latching
@@ -241,7 +241,7 @@ failure_modes:
     source: industry_practice
 
   - id: mf.fm.chute-door-unlisted
-    sections: ["08 1*", "14 9*", "21 1*"]
+    sections: ["08 1*", "14 91*", "21 1*"]
     what_happens: Chute intake or discharge doors supplied without a listing for the shaft rating, or sprinklers left out of the chute
     consequence: Failed fire inspection of the shaft; doors replaced and sprinklers retrofitted in a finished shaft
     caught_by: [mf.trash-chute]
@@ -320,7 +320,7 @@ regulatory_hooks:
 
   - id: mf.rh.waste-chutes
     topic: waste-chute-requirements
-    sections: ["08 1*", "14 9*", "21 1*"]
+    sections: ["08 1*", "14 91*", "21 1*"]
     question: >
       What do the adopted building and fire codes, and the NFPA 82 edition
       they reference, require for waste and linen chutes: shaft rating, access
