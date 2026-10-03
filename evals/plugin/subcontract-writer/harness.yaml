@@ -1,0 +1,5 @@
+budget_usd: 10
+checks:
+  - name: subcontract-content
+    script: checks/subcontract.py
+    weight: 5
