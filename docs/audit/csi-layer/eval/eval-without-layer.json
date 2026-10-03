@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.288",
+  "startedAt": "2026-10-03T07:48:27.103Z",
+  "durationSeconds": 136,
+  "costUsd": 0.6559402000000001,
+  "partial": false,
+  "suite": {
+    "root": "/tmp/claude-0/-home-user-claude-code-construction/7968372c-aea4-515a-8b80-1bbd26129d1c/scratchpad/evalrun/without",
+    "ablation": "none",
+    "judgeModel": "sonnet",
+    "caseFilter": "submittal-review",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "construction",
+        "version": "0.3.0",
+        "path": "/tmp/claude-0/-home-user-claude-code-construction/7968372c-aea4-515a-8b80-1bbd26129d1c/scratchpad/evalrun/without"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "submittal-review",
+      "dir": "evals/plugin/submittal-review",
+      "source": "mixed",
+      "promptMarkdown": "/construction:submittal-review \"06 - Submittals/12 35 53-001 R0 Laboratory Casework Shop Drawings.pdf\"\n\nIn your final message, list every finding with its id, severity, owner and governing source, then the suggested GC action, the coordination routing, and the open compliance questions.",
+      "runsPerCase": 1,
+      "timeoutSeconds": 3000,
+      "maxTurns": 200,
+      "graders": [
+        {
+          "name": "accessible-station",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Read the whole response, including any findings table. PASS if it reports that the accessible student station at elevation 2 (2/A-501) does not match the drawing: submitted at 36 in where the drawing shows 34 in, or on a drawer base where the drawing shows open knee space (either one is enough), with the drawing cited as the source. FAIL if the station is not reported or is described as conforming.",
+          "config": {
+            "criteria": "Read the whole response, including any findings table. PASS if it reports that the accessible student station at elevation 2 (2/A-501) does not match the drawing: submitted at 36 in where the drawing shows 34 in, or on a drawer base where the drawing shows open knee space (either one is enough), with the drawing cited as the source. FAIL if the station is not reported or is described as conforming.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "compliance-open",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Read the whole response, including any tables. PASS if it treats the accessibility code requirements for the student station as open: a question or topic left for code research (for example with code-researcher), not answered. Comparing the submittal with the drawing's 34 in is allowed and is not a code claim. FAIL only if the response cites a specific code or standard section, or a code dimension, as the governing requirement for the station, or says the station complies with code.",
+          "config": {
+            "criteria": "Read the whole response, including any tables. PASS if it treats the accessibility code requirements for the student station as open: a question or topic left for code research (for example with code-researcher), not answered. Comparing the submittal with the drawing's 34 in is allowed and is not a code claim. FAIL only if the response cites a specific code or standard section, or a code dimension, as the governing requirement for the station, or says the station complies with code.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "coverage-gate",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".construction/skills/submittal-review/*/coverage_*.json",
+            "exists": true
+          }
+        },
+        {
+          "name": "disposition",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the suggested GC action is to return the submittal to the subcontractor (incomplete, or revise and resubmit), presented as a suggestion for the PE to decide, and the response does not say the submittal was approved, stamped or sent. FAIL otherwise.",
+          "config": {
+            "criteria": "PASS if the suggested GC action is to return the submittal to the subcontractor (incomplete, or revise and resubmit), presented as a suggestion for the PE to decide, and the response does not say the submittal was approved, stamped or sent. FAIL otherwise.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "in-wall-brackets",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Read the whole response, including any findings table and routing section. PASS if it (1) treats \"supports by others\" or \"attachment by others\" at the elevation 3 wall-hung counter as a problem, (2) cites A-521 detail 5 or the spec's bracket requirement (brackets furnished by the casework manufacturer, installed by the framer), and (3) routes it to the framing or drywall trade before gypsum board closes the wall. FAIL if any of the three is missing.",
+          "config": {
+            "criteria": "Read the whole response, including any findings table and routing section. PASS if it (1) treats \"supports by others\" or \"attachment by others\" at the elevation 3 wall-hung counter as a problem, (2) cites A-521 detail 5 or the spec's bracket requirement (brackets furnished by the casework manufacturer, installed by the framer), and (3) routes it to the framing or drywall trade before gypsum board closes the wall. FAIL if any of the three is missing.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "missing-elevation",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Read the whole response, including any findings table. PASS if a finding says elevation 4 (4/A-501, the fume hood base or acid storage base) is on the drawings but missing from the submittal. Noting that the submittal claims all elevations are shown is welcome but not required. FAIL if the missing elevation is not reported.",
+          "config": {
+            "criteria": "Read the whole response, including any findings table. PASS if a finding says elevation 4 (4/A-501, the fume hood base or acid storage base) is on the drawings but missing from the submittal. Noting that the submittal claims all elevations are shown is welcome but not required. FAIL if the missing elevation is not reported.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "no-agentcm",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".construction/project.yaml",
+            "exists": false
+          }
+        },
+        {
+          "name": "sink-cutout",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Read the whole response, including any findings table and routing section. PASS if it reports that the elevation 1 sink cutout is for ACME LS-1812 while P-601 schedules S-1 as ACME LS-2416, and gives an action: correct the cutout and/or confirm the sink model with plumbing before the tops are cut or fabricated. The facts and the action may sit in different places. FAIL if the mismatch or the action is missing.",
+          "config": {
+            "criteria": "Read the whole response, including any findings table and routing section. PASS if it reports that the elevation 1 sink cutout is for ACME LS-1812 while P-601 schedules S-1 as ACME LS-2416, and gives an action: correct the cutout and/or confirm the sink model with plumbing before the tops are cut or fabricated. The facts and the action may sit in different places. FAIL if the mismatch or the action is missing.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "workbook",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": "06 - Submittals/*GC Review*.xlsx",
+            "exists": true
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 21,
+            "costUsd": 0.6559402000000001,
+            "judgeCostUsd": 0.08093400000000003,
+            "durationSeconds": 136,
+            "startedAt": "2026-10-03T07:48:27.165Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-0agplw/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "accessible-station",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I've drafted the GC review for 12 35 53-001 R0. The coverage gate passes. My suggested disposition is **Return to subcontractor — incomplete; revise and resubmit.** The export lists three required items not submitted and one RFI candidate for the design team. Three checks could not be verified. You decide the disposition and send the review.\n\nUnattended run: I used facility type `education.k12` from `project_context.yaml` and did not run code-researcher. The knowledge layer is draft, global checks only. It has no 12 35 53 profile, so it supplied no regulatory hooks or interfaces. The project also has no submittal log, RFI log, ASI/bulletin log or schedule.\n\n## Findings\nSource is the requirement that governs, followed by where the submittal conflicts with it.\n\n| ID | Severity | Owner | Governing source and finding |\n|---|---|---|---|\n| F-03 | critical | subcontractor | 3/A-501, 5/A-521 and 12 35 53 1.2.A say casework furnishes the brackets (48 in o.c. max, BLK-2 backing, 300 lb). SD-1 elevation 3 says \"supports by others\" and SD-2 Section C says \"attachment to wall by others\". |\n| F-05 | critical | subcontractor | 2/A-501 and 12 35 53 2.3.A call for the accessible station at 34 in AFF with open knee space and no base cabinet. SD-1 elevation 2 shows 36 in AFF over drawer base DB-2. |\n| F-01 | high | subcontractor | 12 35 53 1.3.B requires every elevation. Elevation 4 (4/A-501, acid storage base AB-1 under fume hood FH-1) is missing, while SD-1 says \"all elevations shown\". |\n| F-02 | high | subcontractor | 12 35 53 1.3.B requires keyed plans and service fixture locations. The package has only elevations and sections. |\n| F-06 | high | subcontractor | P-601 schedules sink S-1 as ACME LS-2416 (24x16), and 12 35 53 1.2.B says to size cutouts to the scheduled sink. SD-1 elevation 1 and SD-2 Section A cut for LS-1812 (18x12). |\n| F-04 | high | gc | 12 35 53 1.2.A and 5/A-521 put bracket furnishing with casework and installation with the framer. The submittal's \"by others\" notes are not tied to anyone, and the framer's scope is unconfirmed. |\n| F-07 | medium | design_team | 2/A-501 cites \"Casework Schedule Type AW-1\", which is not in the drawing set. It is an RFI candidate and I logged it in the issue registry. |\n| F-08 | medium | gc | The check g.field-verify (knowledge layer) expects field-verify dimensions to name who verifies and by when. The transmittal and SD-1 say \"field verify dimensions\" with no list, owner or milestone. |\n| F-09 | medium | subcontractor | The check g.deviations-identified (knowledge layer) expects the sub to cloud or list deviations. None are listed, though F-03, F-05 and F-06 are all departures from the CDs. |\n| F-10 | low | gc | 12 35 53 1.3.A and 1.3.C require Product Data and Samples. They are not in this Shop Drawings package. |\n\n## Suggested GC action\n- **Return to the sub:** the sub corrects F-01, F-02, F-03, F-05 and F-06, lists deviations (F-09) and field-verify items (F-08), and resubmits.\n- **GC to do:**\n  - Settle bracket and backing scope in both subcontracts (F-04).\n  - Check the approved 22 40 00 sink submittal and give the sub the sink template (F-06).\n  - Track Product Data and Samples separately (F-10).\n- **Design team:** send F-07 to rfi-drafter for an RFI.\n\n## Coordination routing\nNeed-by dates are TBD because there is no schedule.\n\n- **Framing contractor (F-03, F-04):** send A-501 elevation 3, A-521 detail 5 and the corrected elevation 3 / Section C pages. Ask them to confirm BLK-2 backing and bracket installation, and bracket locations and heights. Brackets are installed before second-side gypsum board on the Lab 104 east wall (gate: wall close-in).\n- **Plumbing, 22 40 00 (F-06):** send the SD-1 elevation 1 and SD-2 Section A pages. Ask them to confirm the sink model and furnish the manufacturer template before casework fabrication release.\n- **Fume hood supplier, 11 53 13 (F-01):** send A-501 elevation 4 and the revised elevation 4 once added. Ask them to confirm AB-1 venting and FH-1 fit before fabrication release.\n\n## Open compliance questions\n- **Accessible work surface:** what work surface height, knee clearance and reach requirements apply to the accessible student station in a K-12 lab in Baltimore, MD? It affects 2/A-501 and F-05. The CD says 34 in. Run `/construction:code-researcher` on `accessibility-work-surfaces`. The knowledge layer compiled no hooks for this section, so I added this question myself.\n\n## Unverifiable\n- **g.current-documents:** the submittal does not state the drawing revision it used, and there are no ASI or RFI logs to check against.\n- **g.basis-of-design:** the spec names no manufacturer, and no product data was submitted.\n- **g.lead-time:** there is no schedule and the sub states no lead time.\n\n## Files\n- `06 - Submittals/12 35 53-001 R0 - GC Review.xlsx`\n- `06 - Submittals/12 35 53-001 R0 - GC Markup.pdf` (17 annotations)\n- `.construction/skills/submittal-review/12-35-53-001-R0/`"
+              },
+              {
+                "name": "compliance-open",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I've drafted the GC review for 12 35 53-001 R0. The coverage gate passes. My suggested disposition is **Return to subcontractor — incomplete; revise and resubmit.** The export lists three required items not submitted and one RFI candidate for the design team. Three checks could not be verified. You decide the disposition and send the review.\n\nUnattended run: I used facility type `education.k12` from `project_context.yaml` and did not run code-researcher. The knowledge layer is draft, global checks only. It has no 12 35 53 profile, so it supplied no regulatory hooks or interfaces. The project also has no submittal log, RFI log, ASI/bulletin log or schedule.\n\n## Findings\nSource is the requirement that governs, followed by where the submittal conflicts with it.\n\n| ID | Severity | Owner | Governing source and finding |\n|---|---|---|---|\n| F-03 | critical | subcontractor | 3/A-501, 5/A-521 and 12 35 53 1.2.A say casework furnishes the brackets (48 in o.c. max, BLK-2 backing, 300 lb). SD-1 elevation 3 says \"supports by others\" and SD-2 Section C says \"attachment to wall by others\". |\n| F-05 | critical | subcontractor | 2/A-501 and 12 35 53 2.3.A call for the accessible station at 34 in AFF with open knee space and no base cabinet. SD-1 elevation 2 shows 36 in AFF over drawer base DB-2. |\n| F-01 | high | subcontractor | 12 35 53 1.3.B requires every elevation. Elevation 4 (4/A-501, acid storage base AB-1 under fume hood FH-1) is missing, while SD-1 says \"all elevations shown\". |\n| F-02 | high | subcontractor | 12 35 53 1.3.B requires keyed plans and service fixture locations. The package has only elevations and sections. |\n| F-06 | high | subcontractor | P-601 schedules sink S-1 as ACME LS-2416 (24x16), and 12 35 53 1.2.B says to size cutouts to the scheduled sink. SD-1 elevation 1 and SD-2 Section A cut for LS-1812 (18x12). |\n| F-04 | high | gc | 12 35 53 1.2.A and 5/A-521 put bracket furnishing with casework and installation with the framer. The submittal's \"by others\" notes are not tied to anyone, and the framer's scope is unconfirmed. |\n| F-07 | medium | design_team | 2/A-501 cites \"Casework Schedule Type AW-1\", which is not in the drawing set. It is an RFI candidate and I logged it in the issue registry. |\n| F-08 | medium | gc | The check g.field-verify (knowledge layer) expects field-verify dimensions to name who verifies and by when. The transmittal and SD-1 say \"field verify dimensions\" with no list, owner or milestone. |\n| F-09 | medium | subcontractor | The check g.deviations-identified (knowledge layer) expects the sub to cloud or list deviations. None are listed, though F-03, F-05 and F-06 are all departures from the CDs. |\n| F-10 | low | gc | 12 35 53 1.3.A and 1.3.C require Product Data and Samples. They are not in this Shop Drawings package. |\n\n## Suggested GC action\n- **Return to the sub:** the sub corrects F-01, F-02, F-03, F-05 and F-06, lists deviations (F-09) and field-verify items (F-08), and resubmits.\n- **GC to do:**\n  - Settle bracket and backing scope in both subcontracts (F-04).\n  - Check the approved 22 40 00 sink submittal and give the sub the sink template (F-06).\n  - Track Product Data and Samples separately (F-10).\n- **Design team:** send F-07 to rfi-drafter for an RFI.\n\n## Coordination routing\nNeed-by dates are TBD because there is no schedule.\n\n- **Framing contractor (F-03, F-04):** send A-501 elevation 3, A-521 detail 5 and the corrected elevation 3 / Section C pages. Ask them to confirm BLK-2 backing and bracket installation, and bracket locations and heights. Brackets are installed before second-side gypsum board on the Lab 104 east wall (gate: wall close-in).\n- **Plumbing, 22 40 00 (F-06):** send the SD-1 elevation 1 and SD-2 Section A pages. Ask them to confirm the sink model and furnish the manufacturer template before casework fabrication release.\n- **Fume hood supplier, 11 53 13 (F-01):** send A-501 elevation 4 and the revised elevation 4 once added. Ask them to confirm AB-1 venting and FH-1 fit before fabrication release.\n\n## Open compliance questions\n- **Accessible work surface:** what work surface height, knee clearance and reach requirements apply to the accessible student station in a K-12 lab in Baltimore, MD? It affects 2/A-501 and F-05. The CD says 34 in. Run `/construction:code-researcher` on `accessibility-work-surfaces`. The knowledge layer compiled no hooks for this section, so I added this question myself.\n\n## Unverifiable\n- **g.current-documents:** the submittal does not state the drawing revision it used, and there are no ASI or RFI logs to check against.\n- **g.basis-of-design:** the spec names no manufacturer, and no product data was submitted.\n- **g.lead-time:** there is no schedule and the sub states no lead time.\n\n## Files\n- `06 - Submittals/12 35 53-001 R0 - GC Review.xlsx`\n- `06 - Submittals/12 35 53-001 R0 - GC Markup.pdf` (17 annotations)\n- `.construction/skills/submittal-review/12-35-53-001-R0/`"
+              },
+              {
+                "name": "coverage-gate",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".construction/skills/submittal-review/*/coverage_*.json exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "disposition",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I've drafted the GC review for 12 35 53-001 R0. The coverage gate passes. My suggested disposition is **Return to subcontractor — incomplete; revise and resubmit.** The export lists three required items not submitted and one RFI candidate for the design team. Three checks could not be verified. You decide the disposition and send the review.\n\nUnattended run: I used facility type `education.k12` from `project_context.yaml` and did not run code-researcher. The knowledge layer is draft, global checks only. It has no 12 35 53 profile, so it supplied no regulatory hooks or interfaces. The project also has no submittal log, RFI log, ASI/bulletin log or schedule.\n\n## Findings\nSource is the requirement that governs, followed by where the submittal conflicts with it.\n\n| ID | Severity | Owner | Governing source and finding |\n|---|---|---|---|\n| F-03 | critical | subcontractor | 3/A-501, 5/A-521 and 12 35 53 1.2.A say casework furnishes the brackets (48 in o.c. max, BLK-2 backing, 300 lb). SD-1 elevation 3 says \"supports by others\" and SD-2 Section C says \"attachment to wall by others\". |\n| F-05 | critical | subcontractor | 2/A-501 and 12 35 53 2.3.A call for the accessible station at 34 in AFF with open knee space and no base cabinet. SD-1 elevation 2 shows 36 in AFF over drawer base DB-2. |\n| F-01 | high | subcontractor | 12 35 53 1.3.B requires every elevation. Elevation 4 (4/A-501, acid storage base AB-1 under fume hood FH-1) is missing, while SD-1 says \"all elevations shown\". |\n| F-02 | high | subcontractor | 12 35 53 1.3.B requires keyed plans and service fixture locations. The package has only elevations and sections. |\n| F-06 | high | subcontractor | P-601 schedules sink S-1 as ACME LS-2416 (24x16), and 12 35 53 1.2.B says to size cutouts to the scheduled sink. SD-1 elevation 1 and SD-2 Section A cut for LS-1812 (18x12). |\n| F-04 | high | gc | 12 35 53 1.2.A and 5/A-521 put bracket furnishing with casework and installation with the framer. The submittal's \"by others\" notes are not tied to anyone, and the framer's scope is unconfirmed. |\n| F-07 | medium | design_team | 2/A-501 cites \"Casework Schedule Type AW-1\", which is not in the drawing set. It is an RFI candidate and I logged it in the issue registry. |\n| F-08 | medium | gc | The check g.field-verify (knowledge layer) expects field-verify dimensions to name who verifies and by when. The transmittal and SD-1 say \"field verify dimensions\" with no list, owner or milestone. |\n| F-09 | medium | subcontractor | The check g.deviations-identified (knowledge layer) expects the sub to cloud or list deviations. None are listed, though F-03, F-05 and F-06 are all departures from the CDs. |\n| F-10 | low | gc | 12 35 53 1.3.A and 1.3.C require Product Data and Samples. They are not in this Shop Drawings package. |\n\n## Suggested GC action\n- **Return to the sub:** the sub corrects F-01, F-02, F-03, F-05 and F-06, lists deviations (F-09) and field-verify items (F-08), and resubmits.\n- **GC to do:**\n  - Settle bracket and backing scope in both subcontracts (F-04).\n  - Check the approved 22 40 00 sink submittal and give the sub the sink template (F-06).\n  - Track Product Data and Samples separately (F-10).\n- **Design team:** send F-07 to rfi-drafter for an RFI.\n\n## Coordination routing\nNeed-by dates are TBD because there is no schedule.\n\n- **Framing contractor (F-03, F-04):** send A-501 elevation 3, A-521 detail 5 and the corrected elevation 3 / Section C pages. Ask them to confirm BLK-2 backing and bracket installation, and bracket locations and heights. Brackets are installed before second-side gypsum board on the Lab 104 east wall (gate: wall close-in).\n- **Plumbing, 22 40 00 (F-06):** send the SD-1 elevation 1 and SD-2 Section A pages. Ask them to confirm the sink model and furnish the manufacturer template before casework fabrication release.\n- **Fume hood supplier, 11 53 13 (F-01):** send A-501 elevation 4 and the revised elevation 4 once added. Ask them to confirm AB-1 venting and FH-1 fit before fabrication release.\n\n## Open compliance questions\n- **Accessible work surface:** what work surface height, knee clearance and reach requirements apply to the accessible student station in a K-12 lab in Baltimore, MD? It affects 2/A-501 and F-05. The CD says 34 in. Run `/construction:code-researcher` on `accessibility-work-surfaces`. The knowledge layer compiled no hooks for this section, so I added this question myself.\n\n## Unverifiable\n- **g.current-documents:** the submittal does not state the drawing revision it used, and there are no ASI or RFI logs to check against.\n- **g.basis-of-design:** the spec names no manufacturer, and no product data was submitted.\n- **g.lead-time:** there is no schedule and the sub states no lead time.\n\n## Files\n- `06 - Submittals/12 35 53-001 R0 - GC Review.xlsx`\n- `06 - Submittals/12 35 53-001 R0 - GC Markup.pdf` (17 annotations)\n- `.construction/skills/submittal-review/12-35-53-001-R0/`"
+              },
+              {
+                "name": "in-wall-brackets",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I've drafted the GC review for 12 35 53-001 R0. The coverage gate passes. My suggested disposition is **Return to subcontractor — incomplete; revise and resubmit.** The export lists three required items not submitted and one RFI candidate for the design team. Three checks could not be verified. You decide the disposition and send the review.\n\nUnattended run: I used facility type `education.k12` from `project_context.yaml` and did not run code-researcher. The knowledge layer is draft, global checks only. It has no 12 35 53 profile, so it supplied no regulatory hooks or interfaces. The project also has no submittal log, RFI log, ASI/bulletin log or schedule.\n\n## Findings\nSource is the requirement that governs, followed by where the submittal conflicts with it.\n\n| ID | Severity | Owner | Governing source and finding |\n|---|---|---|---|\n| F-03 | critical | subcontractor | 3/A-501, 5/A-521 and 12 35 53 1.2.A say casework furnishes the brackets (48 in o.c. max, BLK-2 backing, 300 lb). SD-1 elevation 3 says \"supports by others\" and SD-2 Section C says \"attachment to wall by others\". |\n| F-05 | critical | subcontractor | 2/A-501 and 12 35 53 2.3.A call for the accessible station at 34 in AFF with open knee space and no base cabinet. SD-1 elevation 2 shows 36 in AFF over drawer base DB-2. |\n| F-01 | high | subcontractor | 12 35 53 1.3.B requires every elevation. Elevation 4 (4/A-501, acid storage base AB-1 under fume hood FH-1) is missing, while SD-1 says \"all elevations shown\". |\n| F-02 | high | subcontractor | 12 35 53 1.3.B requires keyed plans and service fixture locations. The package has only elevations and sections. |\n| F-06 | high | subcontractor | P-601 schedules sink S-1 as ACME LS-2416 (24x16), and 12 35 53 1.2.B says to size cutouts to the scheduled sink. SD-1 elevation 1 and SD-2 Section A cut for LS-1812 (18x12). |\n| F-04 | high | gc | 12 35 53 1.2.A and 5/A-521 put bracket furnishing with casework and installation with the framer. The submittal's \"by others\" notes are not tied to anyone, and the framer's scope is unconfirmed. |\n| F-07 | medium | design_team | 2/A-501 cites \"Casework Schedule Type AW-1\", which is not in the drawing set. It is an RFI candidate and I logged it in the issue registry. |\n| F-08 | medium | gc | The check g.field-verify (knowledge layer) expects field-verify dimensions to name who verifies and by when. The transmittal and SD-1 say \"field verify dimensions\" with no list, owner or milestone. |\n| F-09 | medium | subcontractor | The check g.deviations-identified (knowledge layer) expects the sub to cloud or list deviations. None are listed, though F-03, F-05 and F-06 are all departures from the CDs. |\n| F-10 | low | gc | 12 35 53 1.3.A and 1.3.C require Product Data and Samples. They are not in this Shop Drawings package. |\n\n## Suggested GC action\n- **Return to the sub:** the sub corrects F-01, F-02, F-03, F-05 and F-06, lists deviations (F-09) and field-verify items (F-08), and resubmits.\n- **GC to do:**\n  - Settle bracket and backing scope in both subcontracts (F-04).\n  - Check the approved 22 40 00 sink submittal and give the sub the sink template (F-06).\n  - Track Product Data and Samples separately (F-10).\n- **Design team:** send F-07 to rfi-drafter for an RFI.\n\n## Coordination routing\nNeed-by dates are TBD because there is no schedule.\n\n- **Framing contractor (F-03, F-04):** send A-501 elevation 3, A-521 detail 5 and the corrected elevation 3 / Section C pages. Ask them to confirm BLK-2 backing and bracket installation, and bracket locations and heights. Brackets are installed before second-side gypsum board on the Lab 104 east wall (gate: wall close-in).\n- **Plumbing, 22 40 00 (F-06):** send the SD-1 elevation 1 and SD-2 Section A pages. Ask them to confirm the sink model and furnish the manufacturer template before casework fabrication release.\n- **Fume hood supplier, 11 53 13 (F-01):** send A-501 elevation 4 and the revised elevation 4 once added. Ask them to confirm AB-1 venting and FH-1 fit before fabrication release.\n\n## Open compliance questions\n- **Accessible work surface:** what work surface height, knee clearance and reach requirements apply to the accessible student station in a K-12 lab in Baltimore, MD? It affects 2/A-501 and F-05. The CD says 34 in. Run `/construction:code-researcher` on `accessibility-work-surfaces`. The knowledge layer compiled no hooks for this section, so I added this question myself.\n\n## Unverifiable\n- **g.current-documents:** the submittal does not state the drawing revision it used, and there are no ASI or RFI logs to check against.\n- **g.basis-of-design:** the spec names no manufacturer, and no product data was submitted.\n- **g.lead-time:** there is no schedule and the sub states no lead time.\n\n## Files\n- `06 - Submittals/12 35 53-001 R0 - GC Review.xlsx`\n- `06 - Submittals/12 35 53-001 R0 - GC Markup.pdf` (17 annotations)\n- `.construction/skills/submittal-review/12-35-53-001-R0/`"
+              },
+              {
+                "name": "missing-elevation",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I've drafted the GC review for 12 35 53-001 R0. The coverage gate passes. My suggested disposition is **Return to subcontractor — incomplete; revise and resubmit.** The export lists three required items not submitted and one RFI candidate for the design team. Three checks could not be verified. You decide the disposition and send the review.\n\nUnattended run: I used facility type `education.k12` from `project_context.yaml` and did not run code-researcher. The knowledge layer is draft, global checks only. It has no 12 35 53 profile, so it supplied no regulatory hooks or interfaces. The project also has no submittal log, RFI log, ASI/bulletin log or schedule.\n\n## Findings\nSource is the requirement that governs, followed by where the submittal conflicts with it.\n\n| ID | Severity | Owner | Governing source and finding |\n|---|---|---|---|\n| F-03 | critical | subcontractor | 3/A-501, 5/A-521 and 12 35 53 1.2.A say casework furnishes the brackets (48 in o.c. max, BLK-2 backing, 300 lb). SD-1 elevation 3 says \"supports by others\" and SD-2 Section C says \"attachment to wall by others\". |\n| F-05 | critical | subcontractor | 2/A-501 and 12 35 53 2.3.A call for the accessible station at 34 in AFF with open knee space and no base cabinet. SD-1 elevation 2 shows 36 in AFF over drawer base DB-2. |\n| F-01 | high | subcontractor | 12 35 53 1.3.B requires every elevation. Elevation 4 (4/A-501, acid storage base AB-1 under fume hood FH-1) is missing, while SD-1 says \"all elevations shown\". |\n| F-02 | high | subcontractor | 12 35 53 1.3.B requires keyed plans and service fixture locations. The package has only elevations and sections. |\n| F-06 | high | subcontractor | P-601 schedules sink S-1 as ACME LS-2416 (24x16), and 12 35 53 1.2.B says to size cutouts to the scheduled sink. SD-1 elevation 1 and SD-2 Section A cut for LS-1812 (18x12). |\n| F-04 | high | gc | 12 35 53 1.2.A and 5/A-521 put bracket furnishing with casework and installation with the framer. The submittal's \"by others\" notes are not tied to anyone, and the framer's scope is unconfirmed. |\n| F-07 | medium | design_team | 2/A-501 cites \"Casework Schedule Type AW-1\", which is not in the drawing set. It is an RFI candidate and I logged it in the issue registry. |\n| F-08 | medium | gc | The check g.field-verify (knowledge layer) expects field-verify dimensions to name who verifies and by when. The transmittal and SD-1 say \"field verify dimensions\" with no list, owner or milestone. |\n| F-09 | medium | subcontractor | The check g.deviations-identified (knowledge layer) expects the sub to cloud or list deviations. None are listed, though F-03, F-05 and F-06 are all departures from the CDs. |\n| F-10 | low | gc | 12 35 53 1.3.A and 1.3.C require Product Data and Samples. They are not in this Shop Drawings package. |\n\n## Suggested GC action\n- **Return to the sub:** the sub corrects F-01, F-02, F-03, F-05 and F-06, lists deviations (F-09) and field-verify items (F-08), and resubmits.\n- **GC to do:**\n  - Settle bracket and backing scope in both subcontracts (F-04).\n  - Check the approved 22 40 00 sink submittal and give the sub the sink template (F-06).\n  - Track Product Data and Samples separately (F-10).\n- **Design team:** send F-07 to rfi-drafter for an RFI.\n\n## Coordination routing\nNeed-by dates are TBD because there is no schedule.\n\n- **Framing contractor (F-03, F-04):** send A-501 elevation 3, A-521 detail 5 and the corrected elevation 3 / Section C pages. Ask them to confirm BLK-2 backing and bracket installation, and bracket locations and heights. Brackets are installed before second-side gypsum board on the Lab 104 east wall (gate: wall close-in).\n- **Plumbing, 22 40 00 (F-06):** send the SD-1 elevation 1 and SD-2 Section A pages. Ask them to confirm the sink model and furnish the manufacturer template before casework fabrication release.\n- **Fume hood supplier, 11 53 13 (F-01):** send A-501 elevation 4 and the revised elevation 4 once added. Ask them to confirm AB-1 venting and FH-1 fit before fabrication release.\n\n## Open compliance questions\n- **Accessible work surface:** what work surface height, knee clearance and reach requirements apply to the accessible student station in a K-12 lab in Baltimore, MD? It affects 2/A-501 and F-05. The CD says 34 in. Run `/construction:code-researcher` on `accessibility-work-surfaces`. The knowledge layer compiled no hooks for this section, so I added this question myself.\n\n## Unverifiable\n- **g.current-documents:** the submittal does not state the drawing revision it used, and there are no ASI or RFI logs to check against.\n- **g.basis-of-design:** the spec names no manufacturer, and no product data was submitted.\n- **g.lead-time:** there is no schedule and the sub states no lead time.\n\n## Files\n- `06 - Submittals/12 35 53-001 R0 - GC Review.xlsx`\n- `06 - Submittals/12 35 53-001 R0 - GC Markup.pdf` (17 annotations)\n- `.construction/skills/submittal-review/12-35-53-001-R0/`"
+              },
+              {
+                "name": "no-agentcm",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".construction/project.yaml absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "sink-cutout",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I've drafted the GC review for 12 35 53-001 R0. The coverage gate passes. My suggested disposition is **Return to subcontractor — incomplete; revise and resubmit.** The export lists three required items not submitted and one RFI candidate for the design team. Three checks could not be verified. You decide the disposition and send the review.\n\nUnattended run: I used facility type `education.k12` from `project_context.yaml` and did not run code-researcher. The knowledge layer is draft, global checks only. It has no 12 35 53 profile, so it supplied no regulatory hooks or interfaces. The project also has no submittal log, RFI log, ASI/bulletin log or schedule.\n\n## Findings\nSource is the requirement that governs, followed by where the submittal conflicts with it.\n\n| ID | Severity | Owner | Governing source and finding |\n|---|---|---|---|\n| F-03 | critical | subcontractor | 3/A-501, 5/A-521 and 12 35 53 1.2.A say casework furnishes the brackets (48 in o.c. max, BLK-2 backing, 300 lb). SD-1 elevation 3 says \"supports by others\" and SD-2 Section C says \"attachment to wall by others\". |\n| F-05 | critical | subcontractor | 2/A-501 and 12 35 53 2.3.A call for the accessible station at 34 in AFF with open knee space and no base cabinet. SD-1 elevation 2 shows 36 in AFF over drawer base DB-2. |\n| F-01 | high | subcontractor | 12 35 53 1.3.B requires every elevation. Elevation 4 (4/A-501, acid storage base AB-1 under fume hood FH-1) is missing, while SD-1 says \"all elevations shown\". |\n| F-02 | high | subcontractor | 12 35 53 1.3.B requires keyed plans and service fixture locations. The package has only elevations and sections. |\n| F-06 | high | subcontractor | P-601 schedules sink S-1 as ACME LS-2416 (24x16), and 12 35 53 1.2.B says to size cutouts to the scheduled sink. SD-1 elevation 1 and SD-2 Section A cut for LS-1812 (18x12). |\n| F-04 | high | gc | 12 35 53 1.2.A and 5/A-521 put bracket furnishing with casework and installation with the framer. The submittal's \"by others\" notes are not tied to anyone, and the framer's scope is unconfirmed. |\n| F-07 | medium | design_team | 2/A-501 cites \"Casework Schedule Type AW-1\", which is not in the drawing set. It is an RFI candidate and I logged it in the issue registry. |\n| F-08 | medium | gc | The check g.field-verify (knowledge layer) expects field-verify dimensions to name who verifies and by when. The transmittal and SD-1 say \"field verify dimensions\" with no list, owner or milestone. |\n| F-09 | medium | subcontractor | The check g.deviations-identified (knowledge layer) expects the sub to cloud or list deviations. None are listed, though F-03, F-05 and F-06 are all departures from the CDs. |\n| F-10 | low | gc | 12 35 53 1.3.A and 1.3.C require Product Data and Samples. They are not in this Shop Drawings package. |\n\n## Suggested GC action\n- **Return to the sub:** the sub corrects F-01, F-02, F-03, F-05 and F-06, lists deviations (F-09) and field-verify items (F-08), and resubmits.\n- **GC to do:**\n  - Settle bracket and backing scope in both subcontracts (F-04).\n  - Check the approved 22 40 00 sink submittal and give the sub the sink template (F-06).\n  - Track Product Data and Samples separately (F-10).\n- **Design team:** send F-07 to rfi-drafter for an RFI.\n\n## Coordination routing\nNeed-by dates are TBD because there is no schedule.\n\n- **Framing contractor (F-03, F-04):** send A-501 elevation 3, A-521 detail 5 and the corrected elevation 3 / Section C pages. Ask them to confirm BLK-2 backing and bracket installation, and bracket locations and heights. Brackets are installed before second-side gypsum board on the Lab 104 east wall (gate: wall close-in).\n- **Plumbing, 22 40 00 (F-06):** send the SD-1 elevation 1 and SD-2 Section A pages. Ask them to confirm the sink model and furnish the manufacturer template before casework fabrication release.\n- **Fume hood supplier, 11 53 13 (F-01):** send A-501 elevation 4 and the revised elevation 4 once added. Ask them to confirm AB-1 venting and FH-1 fit before fabrication release.\n\n## Open compliance questions\n- **Accessible work surface:** what work surface height, knee clearance and reach requirements apply to the accessible student station in a K-12 lab in Baltimore, MD? It affects 2/A-501 and F-05. The CD says 34 in. Run `/construction:code-researcher` on `accessibility-work-surfaces`. The knowledge layer compiled no hooks for this section, so I added this question myself.\n\n## Unverifiable\n- **g.current-documents:** the submittal does not state the drawing revision it used, and there are no ASI or RFI logs to check against.\n- **g.basis-of-design:** the spec names no manufacturer, and no product data was submitted.\n- **g.lead-time:** there is no schedule and the sub states no lead time.\n\n## Files\n- `06 - Submittals/12 35 53-001 R0 - GC Review.xlsx`\n- `06 - Submittals/12 35 53-001 R0 - GC Markup.pdf` (17 annotations)\n- `.construction/skills/submittal-review/12-35-53-001-R0/`"
+              },
+              {
+                "name": "workbook",
+                "passed": true,
+                "weight": 1,
+                "explanation": "06 - Submittals/*GC Review*.xlsx exists as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}
