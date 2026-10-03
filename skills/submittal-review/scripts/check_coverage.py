@@ -7,6 +7,11 @@ accounted for every prior finding on a resubmittal. Exits 1 if anything is missi
 
     check_coverage.py --review-dir .construction/skills/submittal-review/<review_id> [--json report.json]
 
+Before reviewing, write a worksheet of the rows a batch owes, then fill each row in:
+
+    check_coverage.py --review-dir <dir> --scaffold 01 --elements "1/A-501,2/A-501"
+    check_coverage.py --review-dir <dir> --scaffold 90 --package
+
 File formats: ../references/review-data.md
 """
 
@@ -23,6 +28,7 @@ OWNERS = {"subcontractor", "gc", "design_team", "owner"}
 KINDS = {"completeness", "conformance", "coordination", "constructability", "absence", "compliance"}
 GRADES = {"CONFLICTING", "NOT FOUND", "OPEN"}
 COVERAGE_STATUS = {"pass", "finding", "na", "unverifiable"}
+TODO = "todo"
 HOOK_RESULTS = {"open", "consistent", "finding"}
 PRIOR_STATUS = {"closed", "partially_closed", "open"}
 
@@ -123,7 +129,9 @@ def check(review_dir):
     for r in coverage:
         key = (r.get("element"), r.get("check"))
         status = r.get("status")
-        if status not in COVERAGE_STATUS:
+        if status == TODO:
+            gaps.append(f"Coverage {key}: row is still todo")
+        elif status not in COVERAGE_STATUS:
             gaps.append(f"Coverage {key}: status must be one of {sorted(COVERAGE_STATUS)}")
         if status in ("na", "unverifiable") and not r.get("note"):
             gaps.append(f"Coverage {key}: {status} needs a note")
@@ -234,6 +242,38 @@ def check(review_dir):
     return {"ok": not gaps, "gaps": gaps, "notes": notes, "stats": stats}
 
 
+def scaffold(review_dir, batch, elements, package):
+    """Write coverage_{batch}.json with one todo row per owed element x check.
+
+    Rows already present in another coverage file are skipped, so a re-run batch
+    only gets what is still owed. Never overwrites an existing file.
+    """
+    d = Path(review_dir)
+    out = d / f"coverage_{batch}.json"
+    if out.exists():
+        raise SystemExit(f"{out.name} already exists; fill it in or delete it first")
+    state = yaml.safe_load((d / "state.yaml").read_text(encoding="utf-8")) or {}
+    types = (state.get("submittal") or {}).get("types") or []
+    ctx = yaml.safe_load((d / "context.yaml").read_text(encoding="utf-8")) or {}
+    checks = [c for c in ctx.get("review_checks", []) if applies(c, types)]
+    done = {(r.get("element"), r.get("check")) for r in load_batches(d, "coverage")}
+    rows = []
+    if package:
+        owed = [(c["id"], c.get("check", "")) for c in checks if c.get("scope") != "element"]
+        owed += [(r["id"], r.get("check", "")) for r in ctx.get("reconciliations", [])]
+        for cid, text in owed:
+            if ("package", cid) not in done:
+                rows.append({"element": "package", "check": cid, "status": TODO, "note": "", "check_text": text})
+    for eid in elements:
+        for c in checks:
+            if c.get("scope") == "element" and (eid, c["id"]) not in done:
+                rows.append({"element": eid, "check": c["id"], "status": TODO, "note": "",
+                             "check_text": c.get("check", "")})
+    out.write_text(json.dumps(rows, indent=1, ensure_ascii=False), encoding="utf-8")
+    print(f"Wrote {out.name}: {len(rows)} todo rows. Set each status (pass, finding, na, unverifiable) "
+          f"and add finding, note or evidence; check_text is for reference only.")
+
+
 def main():
     for stream in (sys.stdout, sys.stderr):
         try:
@@ -243,7 +283,16 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--review-dir", required=True)
     ap.add_argument("--json", help="Also write the report as JSON")
+    ap.add_argument("--scaffold", metavar="NN", help="Write coverage_NN.json with the todo rows a batch owes")
+    ap.add_argument("--elements", default="", help="With --scaffold: comma-separated element ids")
+    ap.add_argument("--package", action="store_true", help="With --scaffold: package checks and reconciliations")
     args = ap.parse_args()
+    if args.scaffold:
+        elements = [e.strip() for e in args.elements.split(",") if e.strip()]
+        if not elements and not args.package:
+            ap.error("--scaffold needs --elements, --package or both")
+        scaffold(args.review_dir, args.scaffold, elements, args.package)
+        return 0
     report = check(args.review_dir)
     s = report["stats"]
     if s:

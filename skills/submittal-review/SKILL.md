@@ -130,6 +130,8 @@ Keep this pass light: identify pages from titles, tags and headers. Detailed rea
 
 Every element-scope check is answered for every submitted element: pass, finding, not applicable (with a reason), or unverifiable (with what is missing).
 
+Start each batch from a worksheet: `"$PY" "${CLAUDE_SKILL_DIR}/scripts/check_coverage.py" --review-dir "{dir}" --scaffold {NN} --elements "{ids}"` writes `coverage_{NN}.json` with one `todo` row per element × element-scope check. Fill in every row; the gate fails on any row left `todo`.
+
 - **Up to about eight elements:** review them yourself, one element at a time, releasing each element's pages before the next.
 - **More:** fan out. Batch about five to eight elements per worker and launch the workers in parallel with the Agent tool, using the prompt in `${CLAUDE_SKILL_DIR}/references/worker-prompt.md`; fill `{plugin_root}` with `${CLAUDE_PLUGIN_ROOT}` and `{skill_dir}` with `${CLAUDE_SKILL_DIR}`. Each worker writes `findings_{NN}.json`, `coverage_{NN}.json` and `values_{NN}.json` to the review directory and returns only a one-line summary. If a batch file is missing, re-run that worker. Never parse results from a worker's reply.
 
@@ -138,7 +140,7 @@ Reviewing an element means reading the CD references in its trace and the submit
 ### 7. Package checks, reconciliations and prior comments
 
 Yourself, in the main context:
-- every package-scope check (`element: "package"` in coverage)
+- every package-scope check and reconciliation (`--scaffold 90 --package` writes their worksheet)
 - every reconciliation in the context: compare the named documents field by field using the trace and `values_*.json`; a mismatch is a finding with both sources
 - **resubmittals:** every prior finding goes into `prior.json` as closed, open or partially closed, with evidence. An unaddressed prior comment is a finding of its own.
 
@@ -175,7 +177,7 @@ Deliverables go in the project's submittals folder (or the project root), never 
 Then:
 1. **Issues.** Each design-team-owned finding (an absence in the CDs, a conflict between documents, a question only the A/E can answer) goes to the issue registry with `issue_manager.py add --source-skill submittal-review`, so `rfi-drafter` can turn it into an RFI. Never draft or send the RFI from here.
 2. **Graph.** In AgentCM mode: `write_finding.py --type submittal_review` with counts and the output paths.
-3. **Tell the PE**, briefly: suggested disposition and why; the findings, each with its source and its action on the same line (never split a finding from its action); who has to coordinate what, by when; open compliance items, each named as needing code research with the topic to run `/construction:code-researcher` on; anything unverifiable; the confidence floor if it is draft. Then the file paths.
+3. **Tell the PE**, briefly: suggested disposition and why; the findings, each with its source and its action on the same line (never split a finding from its action); who has to coordinate what, by when; open compliance items, each written as the question the hook asks, the elements it affects, and the topic to run `/construction:code-researcher` on (a slug alone is not enough; the PE needs the question); anything unverifiable; the confidence floor if it is draft. Then the file paths.
 4. Set `status: complete` in `state.yaml`.
 
 ### Learning loop

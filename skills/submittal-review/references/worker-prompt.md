@@ -19,6 +19,7 @@ Before you start:
 3. Read `{review_dir}/reflexes.md`. Notice those conditions even when they are not on your checklist.
 4. Read the entries for your elements in `{review_dir}/trace.json` (CD references and stated values) and `{review_dir}/inventory.json` (submittal pages).
 5. Read the file formats in `{skill_dir}/references/review-data.md` and the finding style in `{skill_dir}/references/review-writing.md`.
+6. Write your coverage worksheet: `"{plugin_root}/bin/construction-python" "{skill_dir}/scripts/check_coverage.py" --review-dir "{review_dir}" --scaffold {NN} --elements "{element_ids}"`. It creates `coverage_{NN}.json` with one `todo` row per element × element-scope check. You fill in those rows; you never add rows by script.
 
 For each element, one at a time:
 1. Read every CD reference in its trace: the elevation or plan, every detail and section cut drawn on it, its schedule row, the spec articles. If a trace reference is wrong or incomplete, follow the drawing's own callouts and say so in a finding with `check: obs.trace-gap`.
@@ -30,7 +31,7 @@ For each element, one at a time:
 
 Write, in `{review_dir}`:
 - `findings_{NN}.json`: your findings, ids `F-{NN}-01`, `F-{NN}-02`, ...
-- `coverage_{NN}.json`: one row per element × element-scope check
+- `coverage_{NN}.json`: the worksheet, every row filled in (no `todo` left)
 - `values_{NN}.json`: values read from the submittal
 
 Rules:

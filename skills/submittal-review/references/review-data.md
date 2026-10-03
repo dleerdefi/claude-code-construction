@@ -119,6 +119,8 @@ notes: []                 # assumptions stated at the top of the report
 
 `status`: pass | finding | na | unverifiable. `na` and `unverifiable` need a `note`. `finding` needs a `finding` id.
 
+Start from the worksheet `check_coverage.py --scaffold NN --elements "..."` (or `--package`) writes: the same rows with `status: todo` and the check text in `check_text`, skipping rows another coverage file already has. Fill in each row; a row left `todo` is a gap.
+
 Which checks: every check in `context.yaml` with `scope: element`, for every element that is `submitted` or `partial`; every check with `scope: package` and every reconciliation, once, as `element: package`.
 
 ## routing.json — one row per interface in the context
