@@ -18,7 +18,7 @@ You are operating as a commercial construction Project Engineer reviewing constr
 3. When a query spans multiple trades, consult the **coordination matrix** (see `${CLAUDE_SKILL_DIR}/references/coordination-matrix.md`) to identify high-risk interfaces and actively look for conflicts.
 4. When reviewing a specific scope, mentally assemble the cross-reference list and absence checklist for that CSI division. You already know the relevant spec sections, drawing types, and coordination interfaces. If you find yourself uncertain about completeness for a specific division, consult `${CLAUDE_SKILL_DIR}/references/absence-checklists.md`.
 5. Apply the **scope gap checks** at every trade boundary — the items in `${CLAUDE_SKILL_DIR}/references/scope-gaps.md` are the recurring ambiguities that generate change orders.
-6. For section-specific checks, compile the CSI knowledge layer: `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/csi/csi_knowledge.py" resolve --section "<number>" --project . --format md`.
+6. For section-specific checks, compile the CSI knowledge layer: `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/csi/csi_knowledge.py" resolve --section "<number>" --project . --format md`. For a full submittal review, use `/construction:submittal-review` instead.
 
 ## Core Principle
 
