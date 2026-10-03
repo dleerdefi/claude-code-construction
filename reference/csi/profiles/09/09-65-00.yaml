@@ -1,0 +1,152 @@
+schema_version: 1
+kind: section
+id: "09 65 00"
+title: Resilient Flooring
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Resilient tile, plank, sheet and rubber flooring, base and stair
+  accessories (09 65 13, 09 65 16 and 09 65 19 inherit). Thin resilient
+  products telegraph everything under them and their adhesives carry the
+  tightest moisture and alkalinity limits on the job. Where floors must be
+  sealed (clinical, lab, food and wet rooms) seam-welded sheet with integral
+  flash cove is specified, and the cove, the welding and the edges at frames,
+  casework and fixtures are where installations go wrong.
+
+submittals:
+  - id: 09rf.sub.product-data
+    type: Product Data
+    must_show:
+      - Each product with its ASTM classification, wear layer and the adhesive the manufacturer requires for that product and substrate
+      - Base, stair treads, risers and nosings, and transition and edge accessories
+      - Weld rod, cove former and cap strip where flash cove is specified
+  - id: 09rf.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Seam layout and flash cove details at corners, frames, casework and penetrations
+
+review_checks:
+  - id: 09rf.sealed-floors
+    kind: conformance
+    check: >
+      Rooms that must be sealed or wet-cleaned (clinical, laboratory, food
+      preparation, wet rooms, rooms with floor drains) get seam-welded sheet
+      or another seamless system rather than tile or plank with open joints,
+      and penetrations and drains are sealed to the flooring.
+    trace_to: [schedule.finish, spec.part2, drawings.enlarged_plans]
+    severity: high
+    owner: design_team
+
+  - id: 09rf.flash-cove
+    kind: conformance
+    check: >
+      Where integral flash cove is specified, the cove former, cap strip, cove
+      height and the treatment at inside and outside corners, door frames,
+      casework toe kicks and wall-hung fixtures are detailed, and seams are heat
+      or chemically welded as the product requires.
+    trace_to: [drawings.details, schedule.finish, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: 09rf.adhesive-limits
+    kind: conformance
+    check: >
+      The adhesive is the one the flooring manufacturer specifies for that
+      product and substrate, and slab tests are compared with that adhesive's
+      limits, not a generic one's. A high-moisture adhesive used to avoid
+      mitigation is accepted in writing by the flooring manufacturer under its
+      warranty.
+    trace_to: [spec.part2, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 09rf.static-control
+    kind: coordination
+    check: >
+      Static-dissipative or conductive flooring has the resistance range the
+      spec requires, conductive adhesive and grounding strips laid out to the
+      manufacturer's pattern, the connection to building ground assigned to
+      the electrical trade, and resistance testing after installation.
+    trace_to: [spec.part2, spec.part3, drawings.electrical]
+    severity: medium
+    owner: gc
+    gate: floor_finish_install
+
+  - id: 09rf.base-stairs
+    kind: completeness
+    check: >
+      Base type and height are defined for every wall condition, including
+      outside corners and casework, and stair treads, risers and nosings match
+      the stair construction and nosing profile, with the contrasting marking
+      the code or owner requires.
+    trace_to: [schedule.finish, drawings.details, drawings.interior_elevations]
+    severity: low
+    owner: subcontractor
+
+failure_modes:
+  - id: 09rf.fm.open-seams
+    what_happens: Sheet flooring in clinical or wet rooms left with unwelded seams, or cove formed without former and cap
+    consequence: Water and contaminants under the flooring; infection-control finding and replacement
+    caught_by: [09rf.sealed-floors, 09rf.flash-cove]
+    source: industry_practice
+
+  - id: 09rf.fm.generic-adhesive
+    what_happens: Slab results compared with the limits of an adhesive other than the one installed
+    consequence: Bond failure and a warranty dispute over whose limit governed
+    caught_by: [09rf.adhesive-limits]
+    source: field_experience
+
+  - id: 09rf.fm.ungrounded-esd
+    what_happens: Static-control flooring installed with no connection to building ground
+    consequence: Floor fails its acceptance test; grounding added under finished flooring
+    caught_by: [09rf.static-control, if.09-static-control-grounding]
+    source: field_experience
+
+standards:
+  - id: 09rf.std.astm-f1700
+    name: ASTM F1700
+    title: Solid Vinyl Floor in Modular Format such as Tile(s) or Plank(s)
+    verify: Class, wear layer and dimensional claims for vinyl tile and plank
+  - id: 09rf.std.astm-f1066
+    name: ASTM F1066
+    title: Vinyl Composition Floor Tile
+    verify: Classification claimed for composition tile
+  - id: 09rf.std.astm-f1913
+    name: ASTM F1913
+    title: Vinyl Sheet Floor Covering Without Backing
+    verify: Classification claimed for homogeneous sheet
+  - id: 09rf.std.astm-f1861
+    name: ASTM F1861
+    title: Resilient Wall Base
+    verify: Base type, group and thickness claimed
+  - id: 09rf.std.astm-f150
+    name: ASTM F150
+    title: Electrical Resistance of Conductive and Static Dissipative Resilient Flooring
+    verify: Resistance testing of static-control floors
+
+regulatory_hooks:
+  - id: 09rf.rh.stair-marking
+    topic: stair-nosing-contrast-marking
+    question: >
+      Does the adopted code or accessibility standard require contrasting or
+      photoluminescent marking at stair nosings and landings (some states and
+      high-rise exit stair rules do), and does the submitted tread or nosing
+      provide it?
+    applies_when: Resilient or rubber stair treads and nosings
+    source_families: [accessibility, building_code]
+    severity: medium
+
+extract_fields:
+  - id: 09rf.xf.product
+    label: Product classification, wear layer and adhesive per resilient type
+    type: list
+    per: package
+    reconcile_against: [spec.part2, schedule.finish]
+  - id: 09rf.xf.base
+    label: Base type and height per wall condition
+    type: list
+    per: package
+    reconcile_against: [schedule.finish, drawings.details]

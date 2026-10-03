@@ -1,0 +1,22 @@
+schema_version: 1
+kind: section
+id: "09 22 16"
+title: Non-Structural Metal Framing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Framing is reviewed as part of the gypsum board assembly it carries:
+# the listed design, limiting heights, deflection head and backing are one review.
+same_as: "09 21 16"
+equivalents: ["09 21 16", "05 40 00"]   # tall or load-bearing interior framing is sometimes specified as cold-formed metal framing
+
+scope_summary: >
+  Non-structural studs, track, furring and ceiling framing for gypsum board
+  and plaster, reviewed with the partition types they build (09 21 16).
+  Framing is where a listed design's stud requirements, the real height to
+  structure, the deflection head and the backing are either right or
+  expensive to fix. Framing that carries structural load or exceeds the
+  non-structural tables belongs to cold-formed metal framing (05 40 00) or an
+  engineered design.

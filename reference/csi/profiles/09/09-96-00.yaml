@@ -1,0 +1,125 @@
+schema_version: 1
+kind: section
+id: "09 96 00"
+title: High-Performance Coatings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Multi-coat epoxy, urethane, zinc-rich and similar systems on steel,
+  concrete and masonry in severe exposures (wash-down and process areas,
+  pools, exterior steel, secondary containment). Unlike architectural
+  paint, performance is specified as a system with a surface preparation
+  grade, film thickness per coat and recoat windows, and it is verified by
+  measurement, so the submittal and the field inspection records are where
+  it is controlled.
+
+submittals:
+  - id: 09hp.sub.product-data
+    type: Product Data
+    must_show:
+      - Each system with surface preparation grade, profile, wet and dry film thickness per coat, recoat windows, pot life and cure
+      - All coats from one manufacturer, with that manufacturer's confirmation the system is compatible
+  - id: 09hp.sub.field-reports
+    type: Manufacturer's Field Reports
+    must_show:
+      - Surface preparation, ambient and dew-point readings, and film thickness by area and coat
+      - Holiday or adhesion test results where specified
+
+review_checks:
+  - id: 09hp.prep-grade
+    kind: conformance
+    check: >
+      Surface preparation for each substrate is stated as the standard grade
+      the spec requires (an SSPC/AMPP grade for steel, an ICRI surface profile
+      for concrete) with the profile the primer needs, and steel shop-primed
+      by others was prepared to that same grade.
+    trace_to: [spec.part2, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 09hp.film-thickness
+    kind: conformance
+    check: >
+      Wet and dry film thickness per coat and total, recoat windows and
+      intercoat preparation are stated, and dry film thickness is measured in
+      the field by the method and frequency the spec cites, with records by
+      area, including edges, welds and corners where film runs thin.
+    trace_to: [spec.part2, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 09hp.inspection-holds
+    kind: completeness
+    check: >
+      Inspection hold points (after surface preparation and after each coat)
+      by the coating inspector or manufacturer's representative are scheduled
+      before the next coat, and holiday testing for immersion or containment
+      service and adhesion testing where specified happen before the coating
+      goes into service.
+    trace_to: [spec.part3, register.special_inspections]
+    severity: high
+    owner: gc
+
+  - id: 09hp.application-environment
+    kind: constructability
+    check: >
+      Surface temperature, ambient temperature, humidity and the margin above
+      dew point are recorded at application and through cure, with heat or
+      dehumidification provided when the schedule puts the work in poor
+      conditions.
+    trace_to: [spec.part3, schedule.master]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 09hp.fm.thin-film
+    what_happens: Film below the specified thickness at edges, welds and corners, or recoat window exceeded without abrading
+    consequence: Early corrosion or intercoat delamination; areas blasted and recoated
+    caught_by: [09hp.film-thickness]
+    source: industry_practice
+
+  - id: 09hp.fm.holidays
+    what_happens: Lining or containment coating put into service without holiday testing
+    consequence: Pinhole corrosion or leakage at defects nobody found
+    caught_by: [09hp.inspection-holds]
+    source: industry_practice
+
+  - id: 09hp.fm.dew-point
+    what_happens: Coating applied to steel too close to dew point or in high humidity
+    consequence: Flash rust and adhesion loss under the coating
+    caught_by: [09hp.application-environment]
+    source: industry_practice
+
+  - id: 09hp.fm.prep-mismatch
+    what_happens: Shop primer applied over steel prepared to a lower grade than the system requires
+    consequence: System fails at the primer; field blasting of erected steel
+    caught_by: [09hp.prep-grade, 09pt.compatibility-with-others]
+    source: industry_practice
+
+standards:
+  - id: 09hp.std.astm-d4417
+    name: ASTM D4417
+    title: Field Measurement of Surface Profile of Blast Cleaned Steel
+    verify: Profile measurement method
+  - id: 09hp.std.astm-d7091
+    name: ASTM D7091
+    title: Nondestructive Measurement of Dry Film Thickness of Nonmagnetic Coatings Applied to Ferrous Metals and Nonmagnetic, Nonconductive Coatings Applied to Non-Ferrous Metals
+    verify: Gauge use for dry film thickness readings
+  - id: 09hp.std.holiday
+    name: ASTM D5162 / ASTM D4787
+    title: Discontinuity (holiday) testing of coatings on metallic substrates, and continuity verification of linings on concrete
+    verify: Holiday test method for immersion and containment service
+  - id: 09hp.std.astm-d4541
+    name: ASTM D4541
+    title: Pull-Off Strength of Coatings Using Portable Adhesion Testers
+    verify: Adhesion testing on steel where specified
+
+extract_fields:
+  - id: 09hp.xf.system
+    label: System per substrate (prep grade, coats, film thickness per coat)
+    type: list
+    per: package
+    reconcile_against: [spec.part2]

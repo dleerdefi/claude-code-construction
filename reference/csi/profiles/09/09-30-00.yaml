@@ -1,0 +1,303 @@
+schema_version: 1
+kind: section
+id: "09 30 00"
+title: Tiling
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Floor and wall tile, including thin-set, mortar-bed, waterproofing-membrane
+  and stone tiling (09 31 00 through 09 35 00 inherit). Every installation is
+  a method chosen for its substrate, exposure and tile, and most tile
+  failures are substrate failures: a wet area without a membrane tied into
+  the drain, movement joints left out, a slab not flat enough for
+  large-format tile, a depression too shallow for the assembly, or a mortar
+  not suited to the tile. Membranes, drains and slopes are covered within
+  days, so they are tested before tile goes down.
+
+submittals:
+  - id: 09ti.sub.product-data
+    type: Product Data
+    must_show:
+      - Each tile with its ANSI classification, and the setting mortar and grout for it by ANSI A118 type
+      - Waterproofing, crack-isolation and uncoupling membranes, with the standard each meets and the drains and penetrations they are rated to connect to
+      - Backer units and their fastening and joint treatment
+      - Installation method for each area, by TCNA Handbook method or the spec's equivalent
+  - id: 09ti.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Layout for patterned, large-format and sloped areas, with joint lines, cuts at walls, drains and thresholds
+      - Movement joint locations on floors and walls
+      - Slope to each drain and the membrane connection at the drain
+  - id: 09ti.sub.samples
+    type: Samples
+    must_show:
+      - Tile, grout and trim in the selected colors and range; mock-up where lippage or layout is critical
+
+review_checks:
+  - id: 09ti.method-per-area
+    kind: conformance
+    check: >
+      Each tiled area has an installation method suited to its substrate
+      (slab on ground, elevated or post-tensioned slab, wood or steel framing,
+      existing finishes), exposure (interior dry, wet, exterior, heavy
+      traffic, chemical, steam) and tile, and the submitted mortar, membranes
+      and backers are the components that method lists. A dry-area method
+      carried into showers or onto a framed floor is the usual miss.
+    trace_to: [schedule.finish, drawings.details, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 09ti.wet-area-waterproofing
+    kind: absence
+    reflex: true
+    check: >
+      Every wet area (showers, tub surrounds, wet rooms, commercial kitchens,
+      locker, toilet and pool areas with floor drains) has a waterproof
+      membrane under the tile, turned up walls and curbs, carried into the
+      drain's clamping ring or bonding flange, and flood tested before tile.
+      The section that furnishes and installs it (this one or Division 07) is
+      named.
+    trace_to: [drawings.enlarged_plans, drawings.details, schedule.finish, spec.part2]
+    severity: critical
+    owner: design_team
+    gate: floor_finish_install
+
+  - id: 09ti.drains-and-slopes
+    kind: coordination
+    check: >
+      Drains in tiled floors are set at the elevation that gives the specified
+      slope through the whole assembly; the slope is formed below the
+      membrane (sloped slab, mortar bed or pre-sloped system), not in the
+      setting bed; and each drain has a flange the membrane bonds or clamps
+      to.
+    trace_to: [drawings.plumbing, drawings.enlarged_plans, drawings.structural, drawings.details]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 09ti.depressions
+    kind: coordination
+    check: >
+      Slab depressions at mortar-bed tile, sloped wet rooms and curbless
+      showers are as deep as the whole assembly (membrane, slope or mortar
+      bed, setting bed, tile) so it finishes flush with the adjacent floor; a
+      recess sized for the tile alone is raised before the pour.
+    trace_to: [drawings.structural, drawings.enlarged_plans, drawings.details]
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+  - id: 09ti.movement-joints
+    kind: conformance
+    check: >
+      Movement joints follow the industry method the spec cites (TCNA EJ171):
+      at perimeters and changes of plane, at changes of substrate, over every
+      structural joint in the slab (carried through the tile, never bridged),
+      and in the field at the interval for the exposure, tighter where tile
+      sees sun or moisture. They are on the layout drawings, filled with
+      sealant rather than grout, and the trade that installs the sealant is
+      named.
+    trace_to: [drawings.details, drawings.structural, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 09ti.large-format-flatness
+    kind: constructability
+    check: >
+      For tile large enough that the tile standards treat it as large format,
+      the substrate meets the flatness those standards require or is
+      corrected with patch or self-leveling underlayment by a named trade;
+      the tile's actual warpage is compared with the allowable lippage; offset
+      patterns stay within what that warpage allows; and the mortar is a
+      large-and-heavy tile type.
+    trace_to: [spec.part3, schedule.finish, drawings.structural]
+    severity: high
+    owner: gc
+    gate: floor_finish_install
+
+  - id: 09ti.setting-materials
+    kind: conformance
+    check: >
+      Mortar and grout types match the tile (low-absorption porcelain and
+      glass need the mortars the tile manufacturer and the standards list for
+      them; moisture-sensitive stone needs a rapid-setting or epoxy system),
+      the substrate, and the exposure (epoxy or chemical-resistant grout in
+      commercial kitchens and chemical areas). Where a system warranty is
+      specified, every setting product comes from that one manufacturer.
+    trace_to: [spec.part2, schedule.finish]
+    severity: medium
+    owner: subcontractor
+
+  - id: 09ti.crack-isolation
+    kind: conformance
+    check: >
+      Crack-isolation or uncoupling membranes are used where the method or
+      spec calls for them (over slab control and construction joints, shrinkage
+      cracks, elevated and post-tensioned slabs, changes of substrate), with
+      the coverage each membrane's rating needs.
+    trace_to: [drawings.structural, spec.part2, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+reconciliations:
+  - id: 09ti.rc.drains
+    between: [drawings.plumbing, drawings.enlarged_plans, drawings.details]
+    key: Floor, area or linear drain in a tiled floor
+    fields: [location, drain type, clamping ring or bonding flange, rim elevation relative to finished tile, strainer size and pattern relative to the tile module]
+    check: >
+      Each drain on the plumbing drawings appears on the enlarged plans with
+      slopes drawn to it, every sloped tiled floor drains to a drain the
+      plumbing drawings show, and the drain type has the flange the membrane
+      needs.
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+failure_modes:
+  - id: 09ti.fm.membrane-not-at-drain
+    what_happens: Membrane stops short of the drain, or the drain has no clamping ring or bonding flange to connect to
+    consequence: Water travels under the tile to the floor below; tile and membrane removed to repair
+    caught_by: [09ti.wet-area-waterproofing, 09ti.rc.drains, if.09-tiled-floor-drains]
+    source: field_experience
+
+  - id: 09ti.fm.untested-membrane
+    what_happens: Tile set before the shower or wet-room membrane is flood tested
+    consequence: Leak found after tile and fixtures are in; demolition to reach it
+    caught_by: [09ti.wet-area-waterproofing]
+    source: industry_practice
+
+  - id: 09ti.fm.slope-in-setting-bed
+    what_happens: Drain set high or flat slab left flat, with the slope built in thin-set or the tile bed above the membrane
+    consequence: Ponding on tile and water held under it; efflorescence and odor
+    caught_by: [09ti.drains-and-slopes, 09ti.rc.drains]
+    source: field_experience
+
+  - id: 09ti.fm.shallow-depression
+    what_happens: Depression sized for tile thickness only, without membrane and mortar bed
+    consequence: Tile finishes proud of adjacent floors; transition ramps on accessible routes or a curb at a curbless shower
+    caught_by: [09ti.depressions, if.03-flooring-substrate]
+    source: industry_practice
+
+  - id: 09ti.fm.no-movement-joints
+    what_happens: Perimeter and field movement joints omitted or filled with grout
+    consequence: Tile tents and debonds, worst in sunlit areas and over slab joints
+    caught_by: [09ti.movement-joints]
+    source: industry_practice
+
+  - id: 09ti.fm.bridged-slab-joint
+    what_happens: Slab structural or construction joint covered continuously by tile and membrane
+    consequence: Crack telegraphs through the tile along the joint line
+    caught_by: [09ti.movement-joints, 09ti.crack-isolation]
+    source: industry_practice
+
+  - id: 09ti.fm.lippage
+    what_happens: Large-format tile set on an uncorrected substrate, or in an offset pattern its warpage does not allow
+    consequence: Lippage rejected by the owner; floor removed and reset
+    caught_by: [09ti.large-format-flatness]
+    source: field_experience
+
+  - id: 09ti.fm.wrong-mortar
+    what_happens: Unmodified or standard mortar under porcelain or large tile, or water-based mortar under moisture-sensitive stone
+    consequence: Hollow-sounding and debonded tile, or warped and stained stone
+    caught_by: [09ti.setting-materials]
+    source: industry_practice
+
+standards:
+  - id: 09ti.std.tcna-handbook
+    name: TCNA Handbook for Ceramic, Glass, and Stone Tile Installation
+    title: Installation methods by substrate and exposure, including detail EJ171 for movement joints
+    verify: Method cited for each area and movement joint layout; confirm the edition the spec cites
+  - id: 09ti.std.ansi-a108
+    name: ANSI A108 / A118 / A136.1
+    title: American National Specifications for the Installation of Ceramic Tile
+    verify: Installation requirements (A108.01 and A108.02 general requirements, lippage) and setting material classifications (A118)
+  - id: 09ti.std.ansi-a118-10
+    name: ANSI A118.10
+    title: Load-bearing, bonded, waterproof membranes for thin-set tile and dimension stone
+    verify: Waterproof membrane claims where the membrane is under tile in wet areas
+  - id: 09ti.std.ansi-a118-12
+    name: ANSI A118.12
+    title: Crack isolation membranes for thin-set tile and dimension stone
+    verify: Crack isolation rating claimed for the membrane
+  - id: 09ti.std.ansi-a118-mortars
+    name: ANSI A118.4 / ANSI A118.15
+    title: Modified and improved modified dry-set cement mortars
+    verify: Mortar type for porcelain, glass and large-format tile
+  - id: 09ti.std.ansi-a137-1
+    name: ANSI A137.1
+    title: American National Standard Specifications for Ceramic Tile
+    verify: Tile classification, absorption and warpage claims
+  - id: 09ti.std.ansi-a137-3
+    name: ANSI A137.3 / A108.19
+    title: Gauged porcelain tiles and tile panels or slabs, and their installation
+    verify: Thin porcelain panels and slabs, which have their own installation standard
+  - id: 09ti.std.ansi-a326-3
+    name: ANSI A326.3
+    title: American National Standard Test Method for Measuring Dynamic Coefficient of Friction of Hard Surface Flooring Materials
+    verify: Slip resistance values claimed for floor tile, and the wet or dry condition tested
+
+regulatory_hooks:
+  - id: 09ti.rh.wet-area-backer
+    topic: tile-backer-wet-areas
+    question: >
+      What does the adopted code accept as the backer for tile in showers,
+      tub surrounds and other wet areas (which gypsum, cement, fiber-cement or
+      glass-mat panels, and with what membrane), and does the submitted
+      backer and membrane meet it?
+    applies_when: Wall tile in showers, tub surrounds and wet rooms
+    source_families: [building_code]
+    severity: high
+
+  - id: 09ti.rh.shower-receptor
+    topic: site-built-shower-receptor
+    question: >
+      For showers built on site, what does the adopted plumbing code require
+      of the receptor (liner or membrane material and how far up the walls and
+      curb it runs, slope to the drain, drain connection) and of the water test
+      before tile, and who calls that inspection?
+    applies_when: Tiled showers without a prefabricated receptor
+    source_families: [plumbing_code]
+    severity: high
+
+  - id: 09ti.rh.slip-resistance
+    topic: walking-surface-slip-resistance
+    question: >
+      Is a measured dynamic coefficient of friction required for floor tile
+      in wet areas, entries, ramps and pool decks (by code, accessibility
+      standard or the owner), and are the submitted tile values wet-tested by
+      that method?
+    applies_when: Floor tile in wet areas, entries, ramps, kitchens and pool decks
+    source_families: [accessibility, building_code]
+    severity: medium
+
+  - id: 09ti.rh.accessible-showers
+    topic: accessible-shower-thresholds
+    question: >
+      For accessible and roll-in showers, what threshold height, floor slope
+      and floor surface does the adopted accessibility standard allow, and do
+      the depression, slope and drain layout deliver it?
+    applies_when: Accessible, transfer or roll-in showers
+    source_families: [accessibility]
+    severity: high
+
+extract_fields:
+  - id: 09ti.xf.methods
+    label: Installation method per tiled area
+    type: list
+    per: package
+    reconcile_against: [schedule.finish, drawings.details]
+  - id: 09ti.xf.membranes
+    label: Waterproofing and crack-isolation membranes, with where each is used
+    type: list
+    per: package
+    reconcile_against: [drawings.enlarged_plans, spec.part2]
+  - id: 09ti.xf.setting-materials
+    label: Mortar and grout type per tile
+    type: list
+    per: package
+    reconcile_against: [spec.part2]

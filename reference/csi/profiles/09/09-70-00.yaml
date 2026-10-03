@@ -1,0 +1,72 @@
+schema_version: 1
+kind: section
+id: "09 70 00"
+title: Wall Finishes
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Wall coverings, wall carpeting, flexible wood sheets, stone facing,
+  special wall surfacing such as FRP and sanitary panels, and interior
+  paneling (09 72 00 through 09 78 00 inherit). Unlike paint on gypsum
+  board, these products are interior finish the code classifies by fire
+  test, room by room, and the class a product carries depends on the test
+  method and on the substrate and adhesive it was tested with. Plastic and
+  textile products are where the class on the data sheet and the class the
+  corridor needs most often differ.
+
+review_checks:
+  - id: 09wf.fire-test-basis
+    kind: conformance
+    check: >
+      Each wall finish's test report shows the method and result the code
+      accepts for that material in every room it is scheduled for: textile
+      and expanded vinyl coverings may need a room-corner test rather than a
+      tunnel test, and FRP and other plastic panels often carry a lower class
+      than corridors and exits require. The test covers the substrate and
+      adhesive used on the job.
+    trace_to: [schedule.finish, spec.part2, drawings.life_safety]
+    severity: high
+    owner: subcontractor
+
+failure_modes:
+  - id: 09wf.fm.wrong-class
+    what_happens: FRP or textile covering installed in a corridor or exit on the strength of a test method or class the code does not accept there
+    consequence: Rejected at inspection; finish removed and replaced in place
+    caught_by: [09wf.fire-test-basis]
+    source: industry_practice
+
+standards:
+  - id: 09wf.std.astm-e84
+    name: ASTM E84
+    title: Surface Burning Characteristics of Building Materials
+    verify: Flame spread and smoke-developed indexes, and the substrate and mounting used in the test
+  - id: 09wf.std.nfpa-286
+    name: NFPA 286
+    title: Standard Methods of Fire Tests for Evaluating Contribution of Wall and Ceiling Interior Finish to Room Fire Growth
+    verify: Room-corner results where the code requires them instead of, or with, a flame spread class
+  - id: 09wf.std.nfpa-265
+    name: NFPA 265
+    title: Standard Methods of Fire Tests for Evaluating Room Fire Growth Contribution of Textile or Expanded Vinyl Wall Coverings on Full Height Panels and Walls
+    verify: Room-corner results for textile and expanded vinyl wall coverings
+
+regulatory_hooks:
+  - id: 09wf.rh.finish-classification
+    topic: interior-wall-finish-classification
+    question: >
+      For each room, corridor and exit enclosure of this occupancy, sprinklered
+      or not, which wall finish class does the adopted code require, and which
+      test method does it accept for textile and vinyl coverings, plastic and
+      FRP panels, wood paneling and foam-backed products?
+    applies_when: Wall finishes other than paint on gypsum board, plaster or masonry
+    source_families: [building_code, fire_code]
+    severity: high
+
+extract_fields:
+  - id: 09wf.xf.classification
+    label: Fire test method, class and tested substrate per wall finish designation
+    type: list
+    per: package
+    reconcile_against: [schedule.finish, drawings.life_safety]

@@ -1,0 +1,256 @@
+schema_version: 1
+kind: interfaces
+id: div-09
+title: Interfaces involving Division 09
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with Division 03, 05, 06, 07 and 08 live in those divisions' files.
+
+edges:
+  # ── Ceilings and the overhead trades ──────────────────────────
+  - id: if.09-ceiling-sprinklers
+    a: ["09 50 00", "09 21 16"]
+    a_trade: Suspended and gypsum board ceilings
+    b: ["21 13 00"]
+    b_trade: Fire-suppression sprinklers
+    a_provides: Coordinated ceiling layout (module, datum, heights, clouds, soffits and bulkheads) and the clearance the ceiling's seismic design needs around each head
+    b_provides: Head locations set to that layout, drop type and length, flexible drops or oversized escutcheons where the seismic design requires them, and heads finished only after grid or board is fixed
+    responsibility:
+      - item: Final head position and drop length to the finished ceiling
+        typical: {install: "21 13 00"}
+        confirm_in: [spec.part3, drawings.fire_protection]
+    gate:
+      milestone: overhead_rough_in
+      note: Branch lines and drops follow the coordinated RCP, not a grid assumed on the sprinkler shop drawings
+    severity: high
+
+  - id: if.09-ceiling-air-devices
+    a: ["09 50 00", "09 21 16"]
+    a_trade: Suspended and gypsum board ceilings
+    b: ["23 37 00", "23 33 00"]
+    b_trade: Air outlets and inlets; duct accessories
+    a_provides: Ceiling type, module and edge at each outlet (lay-in, tegular, concealed grid, gypsum), grid load limits, and which ceilings are rated membranes
+    b_provides: Outlet frame and border type and size matched to each ceiling type, independent support for heavy units, and ceiling radiation dampers at outlets in rated ceilings
+    gate:
+      milestone: procurement_release
+      note: Air devices are ordered by border type, which follows the ceiling type at each location
+    severity: medium
+
+  - id: if.09-ceiling-lighting
+    a: ["09 50 00", "09 21 16"]
+    a_trade: Suspended and gypsum board ceilings
+    b: ["26 51 00", "26 52 00"]
+    b_trade: Interior, emergency and exit lighting
+    a_provides: Ceiling type, grid profile, module and plenum depth at each fixture location, and which ceilings are rated membranes
+    b_provides: Fixture trim and mounting for each ceiling type (lay-in, flanged, trimless, surface), housing depth, weight and independent support, protection or listing for rated ceilings, and the wall-washer and grazing fixtures that set the gypsum finish level
+    gate:
+      milestone: procurement_release
+      note: Fixture trims are ordered to the ceiling type; trimless fixtures need frames set before taping
+    severity: medium
+
+  - id: if.09-ceiling-low-voltage
+    a: ["09 50 00", "09 21 16"]
+    a_trade: Suspended and gypsum board ceilings
+    b: ["27 41 16", "27 51 16", "27 21 33", "28 21 00", "28 46 00"]
+    b_trade: Audio-video, public address, wireless access points, cameras and fire alarm devices
+    a_provides: Ceiling layout and types, including clouds, soffits and open areas where devices cannot mount on tile
+    b_provides: Device locations on the RCP, mounting method (tile bridge, support from structure, back box in board), weight, and detector placement that still meets the alarm design once soffits, beams and clouds are known
+    gate: {milestone: overhead_rough_in}
+    severity: medium
+    failure: Devices placed on panels that cannot carry them, or detectors and speakers relocated after the ceiling is built because the layout changed under them
+
+  # Access doors in gypsum walls and ceilings: if.08-access-doors-mep (div-08).
+  - id: if.09-ceiling-service-access
+    a: ["09 50 00"]
+    a_trade: Suspended and specialty ceilings
+    b: ["21 13 00", "22 11 00", "22 13 00", "23 21 00", "23 33 00", "23 36 00", "23 82 00", "26 05 33"]
+    b_trade: Piping, duct accessories, terminal and fan-coil units, and boxes with concealed service points (valves, dampers, cleanouts, junction boxes)
+    a_provides: Ceiling type and layout at each service point, which panels are removable, and where fixed bulkheads, clouds or monolithic areas need access doors instead
+    b_provides: Service points placed over removable panels and clear of fixtures, ducts, mains and bulkheads, with the clearance each needs for its actuator, filter or coil to come out
+    gate:
+      milestone: above_ceiling_close_in
+      note: Check access on the coordinated RCP before the grid is filled, not at the damper inspection
+    severity: high
+
+  # ── Partitions and MEP ────────────────────────────────────────
+  - id: if.09-plenum-return-walls
+    a: ["09 21 16"]
+    a_trade: Gypsum board partitions to structure
+    b: ["23 31 00", "23 37 00", "23 33 00"]
+    b_trade: HVAC ductwork, air outlets and dampers
+    a_provides: Partitions running to structure across a ceiling return plenum (rated, acoustic, security), and framed openings where transfers pass through them
+    b_provides: Return-air transfer ducts or openings through those walls, with fire or smoke dampers in rated walls and lined or offset transfers in sound-rated walls
+    gate:
+      milestone: overhead_rough_in
+      note: Transfer openings are framed while the wall is boarded to structure, before ductwork arrives
+    severity: high
+    failure: Full-height walls cut off the return plenum; rooms are starved or noisy, and transfers are cut into rated or sound-rated walls after the fact
+
+  - id: if.09-boxes-in-sound-walls
+    a: ["09 21 16"]
+    a_trade: Gypsum board partitions
+    b: ["26 05 33", "26 27 26", "27 05 33", "28 46 00"]
+    b_trade: Electrical boxes and wiring devices, communications backboxes, fire alarm devices
+    a_provides: Which partition types are sound-rated or rated, and the box separation, pads and sealing their tested design or acoustic design requires
+    b_provides: Box locations on both faces of those walls, box type, and pads or sealing installed before the second face is boarded
+    gate: {milestone: wall_close_in}
+    severity: medium
+
+  - id: if.09-fixture-carriers
+    a: ["09 21 16", "09 22 16"]
+    a_trade: Partition framing at plumbing walls
+    b: ["22 42 00"]
+    b_trade: Commercial plumbing fixtures and carriers
+    a_provides: Chase walls framed to the depth the carriers need, with studs laid out clear of carrier uprights and floor anchors
+    b_provides: Carrier models, the chase depth they need, floor anchoring, and rough-in heights for wall-hung fixtures, set before close-in
+    gate: {milestone: in_wall_rough_in}
+    severity: high
+    failure: Chase framed too shallow for the carriers, or carriers set after board; plumbing walls rebuilt or fixtures hung on backing never designed for the load
+
+  # ── Tile, flooring and plumbing ───────────────────────────────
+  - id: if.09-tiled-floor-drains
+    a: ["09 30 00", "09 67 00"]
+    a_trade: Tile and fluid-applied flooring
+    b: ["22 13 19", "22 42 00"]
+    b_trade: Floor drains and shower fixtures
+    a_provides: Finished floor elevation at each drain, the slope method, the membrane and how it connects, and the tile module for strainer sizes
+    b_provides: Drain bodies with a clamping ring or bonding flange suited to the membrane, set at the elevation that gives the slope; adjustable strainers; linear drain sizes and outlets; shower valve rough-in depth for the wall assembly thickness
+    responsibility:
+      - item: Linear and area drains in tiled floors
+        typical: {furnish: "22 13 19 or 09 30 00", install: "22 13 19", connect: "22 13 19"}
+        confirm_in: [spec.part2, drawings.plumbing]
+      - item: Membrane connection to the drain flange or clamping ring
+        typical: {install: "09 30 00 or the waterproofing installer"}
+        confirm_in: [spec.part3, drawings.details]
+    gate:
+      milestone: slab_pour
+      note: Drain body elevation and flange type are fixed when the drain is cast in
+    severity: high
+
+  - id: if.09-tile-backer
+    a: ["09 30 00"]
+    a_trade: Tiling
+    b: ["09 21 16", "09 28 00"]
+    b_trade: Gypsum board assemblies and backing boards
+    a_provides: Installation method per tiled wall, which sets the backer type, fastening, flatness and any membrane over it
+    b_provides: Backer installed to that method's type, fastening and flatness, with joints treated as the method requires
+    responsibility:
+      - item: Cementitious, fiber-cement or glass-mat backer behind wall tile
+        typical: {furnish: "09 21 16 or 09 30 00", install: "09 21 16 or 09 30 00"}
+        confirm_in: [spec.part1, spec.part2, schedule.partition_type]
+    gate: {milestone: wall_close_in}
+    severity: high
+
+  - id: if.09-static-control-grounding
+    a: ["09 65 00", "09 67 00"]
+    a_trade: Static-control resilient and resinous flooring
+    b: ["26 05 26"]
+    b_trade: Grounding and bonding
+    a_provides: Grounding strip layout and connection points to the flooring manufacturer's pattern, and the resistance test after installation
+    b_provides: Grounding conductors to those connection points before the flooring goes down
+    gate: {milestone: floor_finish_install}
+    severity: medium
+
+  - id: if.09-athletic-floor-inserts
+    a: ["09 64 66", "09 65 66", "09 67 66"]
+    a_trade: Wood, resilient and fluid-applied athletic flooring
+    b: ["11 66 00"]
+    b_trade: Athletic equipment
+    a_provides: Floor system build-up and finished height at each insert, the cut and movement clearance a floating wood floor needs around sleeves, and the game-line layout the inserts must match
+    b_provides: Sleeve, floor plate and anchor locations on the court layout, their depth into the slab, and cover plates sized for the floor system and set flush to the finished floor
+    responsibility:
+      - item: Trimming sleeves and setting cover plates to the finished sports floor
+        typical: {install: "11 66 00 or the athletic flooring installer"}
+        confirm_in: [spec.part3, drawings.details]
+    gate:
+      milestone: slab_pour
+      note: Sleeves are cast in the slab; their height and covers are set again when the floor goes down
+    severity: medium
+    failure: Sleeves cast off the court layout or left at slab height, then cut through or capped below a finished sports floor; a floating wood floor fastened to the sleeves loses its movement and buckles
+
+  # ── Specialties, equipment and furnishings ────────────────────
+  - id: if.09-recessed-specialties
+    a: ["09 21 16", "09 22 16", "09 30 00"]
+    a_trade: Partition framing, gypsum board and wall tile
+    b: ["10 28 13", "10 44 13"]
+    b_trade: Toilet accessories and fire protection cabinets
+    a_provides: Stud depth, wall thickness and finish build-up (backer and tile) at each location, which walls are rated, and rough openings framed as the wall's listed design allows
+    b_provides: Recessed and semi-recessed models with rough-opening size and depth, trim and anchors sized for the finish thickness, mounting heights, and rated cabinets or accessories where the wall is rated
+    gate: {milestone: wall_close_in}
+    severity: high
+
+  - id: if.09-partition-plenum-barrier
+    a: ["09 21 16", "09 50 00"]
+    a_trade: Gypsum board assemblies and ceilings
+    b: ["10 22 00"]
+    b_trade: Operable, folding and demountable partitions
+    a_provides: Sound barrier from the partition track or head to the structure, built to the rating the acoustic design needs, and the ceiling closure and trim along the track
+    b_provides: Track and stack layout, head and seal details, the rating the barrier above has to match, and the support the track needs from structure
+    responsibility:
+      - item: Sound barrier above the partition track
+        typical: {furnish: "09 21 16", install: "09 21 16"}
+        confirm_in: [spec.part1, drawings.details]
+    gate:
+      milestone: above_ceiling_close_in
+      note: The barrier goes in after the track and before the ceiling closes along it
+    severity: high
+    failure: Barrier above the track carried by neither subcontract; sound flanks over a high-rated partition through the plenum
+
+  - id: if.09-hoistway-shaft-wall
+    a: ["09 21 16"]
+    a_trade: Gypsum shaft wall assemblies
+    b: ["14 20 00"]
+    b_trade: Elevators
+    a_provides: Hoistway shaft wall built to a listed design for the rating and the hoistway air pressure, with entrance openings framed to the frame size and the frame anchor detail the wall's listing allows, framing and liner penetrations treated at each rail bracket support, and protected boxes for hall fixtures
+    b_provides: Entrance frame sizes and anchor details for the shaft wall type, rail bracket levels and forces, hall call and lantern box locations, and the hoistway pressure the wall must resist
+    responsibility:
+      - item: Entrance frame anchorage and reinforcement at shaft wall openings
+        typical: {install: "14 20 00 or 09 21 16"}
+        confirm_in: [spec.part3, drawings.details]
+    gate:
+      milestone: hoistway_turnover
+      note: Openings, bracket supports and fixture boxes are fixed when the hoistway goes to the elevator installer
+    severity: high
+
+  - id: if.09-toilet-compartments
+    a: ["09 30 00", "09 21 16"]
+    a_trade: Tile and gypsum board at toilet rooms
+    b: ["10 21 13"]
+    b_trade: Toilet compartments
+    a_provides: Floor and wall finish and its thickness at compartment lines, backing for brackets and pilasters, and the ceiling layout around overhead-braced or ceiling-hung units
+    b_provides: Mounting style, pilaster and bracket layout, anchor type and embedment through tile, and the overhead support the units need
+    gate:
+      milestone: wall_close_in
+      note: Overhead support for ceiling-hung units is gated earlier, under the toilet compartment section
+    severity: medium
+    failure: Anchors drilled through tile without a layout, cracking it, or ceiling-hung units with no support coordinated with the ceiling
+
+  - id: if.09-finishes-equipment-casework
+    a: ["09 60 00", "09 30 00", "09 90 00"]
+    a_trade: Flooring, tile and painting
+    b: ["11 40 00", "11 53 00", "11 70 00", "12 30 00"]
+    b_trade: Foodservice, laboratory and healthcare equipment; casework
+    a_provides: Whether floor and wall finishes run under and behind each fixed item or stop at it, and the base and sealing at that edge
+    b_provides: Fixed or movable status, footprints, setting sequence relative to flooring, floor anchoring, and the sealing to wall and floor that cleanability or health rules require
+    responsibility:
+      - item: Finish under and behind fixed equipment and casework
+        typical: {install: "09 60 00, 09 30 00 or 09 90 00 before the item is set, or excluded by the finish schedule"}
+        confirm_in: [schedule.finish, drawings.details, spec.part3]
+    gate: {milestone: floor_finish_install}
+    severity: medium
+    failure: Equipment set on bare slab with no finish under it, or flooring run under items that must be sealed to the slab; edges rejected as uncleanable
+
+  - id: if.09-ceiling-pockets
+    a: ["09 50 00", "09 21 16"]
+    a_trade: Ceilings and soffits
+    b: ["12 24 00", "12 21 00", "11 52 13"]
+    b_trade: Window shades, blinds and recessed projection screens
+    a_provides: Ceiling pockets and soffits at windows and screens, framed and detailed with access to motors
+    b_provides: Pocket dimensions for the product chosen, mounting and backing, and power and control locations for motorized units
+    gate: {milestone: above_ceiling_close_in}
+    severity: medium
+    failure: Shades or screens ordered for a pocket that was never framed, or motorized units with no power, support or access in the ceiling

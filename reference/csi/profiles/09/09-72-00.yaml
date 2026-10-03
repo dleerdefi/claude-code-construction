@@ -1,0 +1,70 @@
+schema_version: 1
+kind: section
+id: "09 72 00"
+title: Wall Coverings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Vinyl, textile, natural-fiber and other wall coverings; fire
+  classification is reviewed under 09 70 00. The wall a covering goes on
+  decides whether it lasts: a vapor-impermeable vinyl on the inside of an
+  exterior wall in a humid climate, or on a cold-room wall, traps moisture
+  and grows mold behind it. Thin coverings show every flaw in the board
+  finish and primer below, and removal later depends on the primer used now.
+
+submittals:
+  - id: 09wc.sub.product-data
+    type: Product Data
+    must_show:
+      - Each covering with its vapor permeance, durability category, and fire test results with the substrate and adhesive tested
+      - Adhesive and primer the covering manufacturer requires
+  - id: 09wc.sub.samples
+    type: Samples
+    must_show:
+      - Each pattern and color from the production lot to be installed
+
+review_checks:
+  - id: 09wc.exterior-walls
+    kind: absence
+    check: >
+      Vapor-impermeable coverings (vinyl and similar) on the inside face of
+      exterior walls, or on walls of rooms held cold, are confirmed by the
+      design team against the wall's vapor control design for the climate; a
+      permeable or microperforated product is the usual answer where they
+      conflict.
+    trace_to: [drawings.wall_sections, schedule.finish, spec.part2]
+    severity: high
+    owner: design_team
+
+  - id: 09wc.substrate-prep
+    kind: constructability
+    check: >
+      Walls receiving coverings have the gypsum finish level and the primer
+      (often a primer-sealer that allows later removal) the covering
+      manufacturer requires, and mildew-resistant adhesive where specified.
+    trace_to: [spec.part3]
+    severity: low
+    owner: subcontractor
+
+failure_modes:
+  - id: 09wc.fm.mold-behind-vinyl
+    what_happens: Vinyl covering on the inside of exterior walls in a hot, humid climate, or on walls of cold rooms
+    consequence: Mold and adhesive failure behind the covering; remediation in an occupied building
+    caught_by: [09wc.exterior-walls]
+    source: field_experience
+
+standards:
+  - id: 09wc.std.astm-f793
+    name: ASTM F793/F793M
+    title: Classification of Wall Coverings and Ceiling Coverings by Use Characteristics
+    verify: Category claimed for durability and cleanability
+
+extract_fields:
+  - id: 09wc.xf.coverings
+    label: Covering type, durability category and permeance per designation
+    type: list
+    per: package
+    reconcile_against: [schedule.finish, spec.part2]

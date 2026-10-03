@@ -1,0 +1,198 @@
+schema_version: 1
+kind: section
+id: "09 24 00"
+title: Cement Plastering
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Portland cement plaster (stucco) on lath over framing or sheathing, and
+  direct-applied on masonry or concrete; mostly exterior. Stucco is a
+  drained cladding that cracks by design: what keeps the wall dry is the
+  water-resistive barrier and flashing behind it, the weep screed at the
+  base, and control joints that put the cracks where they can be sealed.
+  Lath, barriers and accessories disappear under the first coat, and curing
+  in hot, dry or windy weather decides how much it cracks.
+
+submittals:
+  - id: 09pl.sub.product-data
+    type: Product Data
+    must_show:
+      - Lath type and weight, and fasteners with spacing into the framing behind the sheathing
+      - Weep screeds, casing beads, control and expansion joints and corner aids, in a material suited to the exposure
+      - Water-resistive barrier layers, drainage mat or bond break, and flashings behind the plaster
+      - Base, brown and finish coat materials or proprietary system, with curing and coat-interval requirements
+  - id: 09pl.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Control and expansion joint layout on every elevation, with the panel sizes it creates
+      - Details at openings, base of wall, floor lines, penetrations and transitions to other claddings
+  - id: 09pl.sub.samples
+    type: Samples
+    must_show:
+      - Finish texture and color on a panel or field mock-up
+
+review_checks:
+  - id: 09pl.drainage-plane
+    kind: conformance
+    check: >
+      Behind lathed plaster the water-resistive barrier is the type and
+      number of layers, or the drainage mat, the spec and code require, lapped
+      shingle-fashion into head, sill and floor-line flashings, and lapped over
+      the weep screed flange at the base. Where the wall's air barrier is
+      fluid-applied or self-adhered, a separate bond-break or drainage layer
+      sits between it and the scratch coat; plaster bonded directly to the
+      barrier leaves no drainage path.
+    trace_to: [drawings.wall_sections, drawings.details, spec.part2]
+    severity: critical
+    owner: subcontractor
+    gate: envelope_close_in
+
+  - id: 09pl.joint-layout
+    kind: conformance
+    check: >
+      Control joints divide each elevation into panels within the size and
+      proportion limits of the lathing standard or the spec, at the corners of
+      openings, at changes of substrate or framing, at floor lines where frame
+      shrinkage or slab deflection occurs, and over every building expansion
+      joint; lath is cut behind control joints, not run continuous.
+    trace_to: [drawings.exterior_elevations, drawings.details, spec.part3]
+    severity: high
+    owner: design_team
+
+  - id: 09pl.substrate-attachment
+    kind: conformance
+    check: >
+      Lath and its attachment suit the support: fasteners into framing rather
+      than sheathing alone, laps and furring as the standard requires.
+      Direct application to masonry or concrete is used only where the surface
+      has the bond and suction plaster needs, free of sealers, form release,
+      curing compound or paint; otherwise lath or a bonding agent is required.
+    trace_to: [spec.part2, spec.part3, drawings.details]
+    severity: medium
+    owner: subcontractor
+
+  - id: 09pl.openings-penetrations
+    kind: constructability
+    check: >
+      At every window, door, louver and penetration the sequence is drawn:
+      flashing integrated with the barrier, casing bead held off the frame,
+      and a designed sealant joint with backer between plaster and frame, not
+      plaster buttered against it.
+    trace_to: [drawings.details, spec.part3]
+    severity: high
+    owner: gc
+    gate: opening_install
+
+  - id: 09pl.curing
+    kind: constructability
+    check: >
+      Moist curing, the interval between coats and protection from sun, wind
+      and freezing follow the plaster system's requirements, and the schedule
+      puts plastering in a season, or under enclosure, where they can be met.
+    trace_to: [spec.part3, schedule.master]
+    severity: medium
+    owner: gc
+
+  - id: 09pl.inspection-before-coat
+    kind: completeness
+    check: >
+      Barrier, flashings, lath and accessories are inspected area by area
+      before the scratch coat covers them, including the AHJ's lath inspection
+      where it applies.
+    trace_to: [spec.part3, register.special_inspections]
+    severity: high
+    owner: gc
+    gate: envelope_close_in
+
+failure_modes:
+  - id: 09pl.fm.bonded-to-barrier
+    what_happens: Scratch coat applied directly over a fluid-applied or self-adhered barrier with no bond break or drainage layer
+    consequence: Water trapped behind intact-looking stucco; sheathing and framing decay found years later
+    caught_by: [09pl.drainage-plane]
+    source: field_experience
+
+  - id: 09pl.fm.reverse-lap-weep
+    what_happens: Barrier tucked behind the weep screed flange, or no weep screed at the base of wall
+    consequence: Drainage discharges into the wall base; rot at sill plates and sheathing
+    caught_by: [09pl.drainage-plane]
+    source: field_experience
+
+  - id: 09pl.fm.random-cracking
+    what_happens: Control joints omitted or spaced too far apart, or lath run continuous behind them
+    consequence: Random cracks that admit water and cannot be sealed invisibly
+    caught_by: [09pl.joint-layout]
+    source: industry_practice
+
+  - id: 09pl.fm.butt-joint-at-frame
+    what_happens: Plaster finished tight against window and door frames with no casing bead or sealant joint
+    consequence: Cracks and leaks at every opening perimeter
+    caught_by: [09pl.openings-penetrations]
+    source: field_experience
+
+  - id: 09pl.fm.hot-weather
+    what_happens: Coats applied in hot, dry or windy weather without moist curing
+    consequence: Shrinkage cracking and delamination of the finish coat
+    caught_by: [09pl.curing]
+    source: industry_practice
+
+  - id: 09pl.fm.covered-uninspected
+    what_happens: Lath and flashing covered before the barrier and lath inspection
+    consequence: Failed inspection; plaster removed to show what is behind it
+    caught_by: [09pl.inspection-before-coat]
+    source: industry_practice
+
+standards:
+  - id: 09pl.std.astm-c926
+    name: ASTM C926
+    title: Application of Portland Cement-Based Plaster
+    verify: Coat thicknesses, intervals, curing and control joint requirements the spec references
+  - id: 09pl.std.astm-c1063
+    name: ASTM C1063
+    title: Installation of Lathing and Furring to Receive Interior and Exterior Portland Cement-Based Plaster
+    verify: Lath attachment, laps, control joint panel limits and accessories
+  - id: 09pl.std.astm-c1861
+    name: ASTM C1861
+    title: Lathing and Furring Accessories, and Fasteners, for Interior and Exterior Portland Cement-Based Plaster
+    verify: Weep screed, casing bead and control joint products
+  - id: 09pl.std.astm-c847
+    name: ASTM C847
+    title: Metal Lath
+    verify: Lath type and weight claimed
+
+regulatory_hooks:
+  - id: 09pl.rh.wrb-weep-screed
+    topic: exterior-plaster-wrb-weep-screed
+    question: >
+      What does the adopted building code require behind exterior cement
+      plaster over framing or sheathing (barrier type and number of layers, or
+      a drainage space), and where must the weep screed sit relative to
+      finished grade and to paved surfaces?
+    applies_when: Exterior lathed cement plaster
+    source_families: [building_code]
+    severity: high
+
+  - id: 09pl.rh.lath-inspection
+    topic: lath-gypsum-board-inspection
+    question: >
+      Does the AHJ hold a lath inspection before cement plaster is applied,
+      and does it cover the barrier and flashings as well as the lath?
+    applies_when: Lathed cement plaster
+    source_families: [building_code]
+    severity: medium
+
+extract_fields:
+  - id: 09pl.xf.barrier
+    label: Water-resistive barrier layers, drainage or bond-break layer behind the plaster
+    type: string
+    per: package
+    reconcile_against: [drawings.wall_sections, spec.part2]
+  - id: 09pl.xf.joint-layout
+    label: Control and expansion joint locations per elevation
+    type: list
+    per: package
+    reconcile_against: [drawings.exterior_elevations]

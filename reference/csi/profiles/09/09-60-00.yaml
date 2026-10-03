@@ -1,0 +1,251 @@
+schema_version: 1
+kind: section
+id: "09 60 00"
+title: Flooring
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["09 05 61"]   # slab testing, mitigation and leveling are sometimes specified as Common Work Results for Flooring Preparation
+
+contractor_designed: never
+
+scope_summary: >
+  All flooring other than tile (09 30 00): resilient, fluid-applied, wood,
+  carpet, terrazzo, specialty and access flooring inherit from here.
+  Flooring fails from the slab up: moisture and alkalinity the adhesive
+  cannot take, curing compounds or sealers it cannot bond to, flatness the
+  product cannot hide, and thickness changes the slab does not absorb. Slab
+  testing follows the flooring manufacturer's method and limits, and its
+  result is what keeps or voids the warranty, so a slab that will not dry in
+  time has to be decided at procurement, not at installation.
+
+submittals:
+  - id: 09fl.sub.product-data
+    type: Product Data
+    must_show:
+      - Each flooring product with its adhesive, underlayment and the manufacturer's substrate limits (moisture by named test method, alkalinity, flatness, temperature)
+      - Transition strips, reducers, edge and stair profiles at each change of material
+      - Moisture mitigation, primer and leveling products proposed, with the flooring manufacturer's written acceptance under its warranty
+  - id: 09fl.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Slab moisture and alkalinity results by area, with test method, number and location of tests, building conditions during the test, and the limits compared against
+  - id: 09fl.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Seam layout for sheet goods and broadloom, pattern direction, and the layout of patterned or multi-color installations
+  - id: 09fl.sub.samples
+    type: Samples
+    must_show:
+      - Each product in the selected color and pattern, from the production lot where variation matters
+
+review_checks:
+  - id: 09fl.moisture-testing
+    kind: completeness
+    check: >
+      Slab moisture is tested by the method and against the limits the
+      flooring and adhesive manufacturers publish (in-situ relative humidity,
+      vapor emission, or both), with the number and placement of tests and the
+      building conditions that method requires, and alkalinity is tested
+      where the adhesive has a limit. Results are reported per area before
+      installation, and early enough to decide on mitigation.
+    trace_to: [spec.part3, spec.part1]
+    severity: high
+    owner: gc
+    gate: floor_finish_install
+
+  - id: 09fl.mitigation-decision
+    kind: coordination
+    check: >
+      Where slabs are unlikely to dry in time (slabs on ground without a vapor
+      retarder directly below, lightweight or high-water mixes, slabs placed
+      late, slabs wetted during construction), the remedy (moisture
+      mitigation system, moisture-tolerant adhesive, or a different floor) is
+      decided and priced before flooring is ordered, with the flooring
+      manufacturer's acceptance of it under the warranty.
+    trace_to: [spec.part2, drawings.structural, schedule.master]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 09fl.slab-treatments
+    kind: coordination
+    check: >
+      Curing compounds, sealers, hardeners, densifiers and bond breakers on
+      slabs that will receive adhered flooring are ones the flooring adhesive
+      manufacturer accepts, or are removed by a stated method and trade before
+      installation, and the concrete submittal agrees.
+    trace_to: [spec.part2, spec.part3]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 09fl.flatness-match
+    kind: conformance
+    check: >
+      The flooring manufacturer's substrate flatness requirement in the product
+      data is compared with the slab tolerance specified for that area; where
+      the product is stricter (thin resilient, wood, sheet goods, access-floor
+      bases), the grinding, patching or leveling scope and the trade that
+      performs it are assigned before award.
+    trace_to: [spec.part3, schedule.finish]
+    severity: medium
+    owner: design_team
+    gate: procurement_release
+
+  - id: 09fl.embedded-items
+    kind: coordination
+    check: >
+      Floor boxes, poke-throughs, access hatches, expansion joint covers,
+      floor drains and entrance mat frames set in the slab match the finished
+      floor height and the flooring type at each location (carpet, resilient
+      and tile trims differ), so they are set at the pour for the flooring
+      that will actually be installed.
+    trace_to: [drawings.electrical, drawings.plans, drawings.details, schedule.finish]
+    severity: medium
+    owner: gc
+    gate: slab_pour
+
+  - id: 09fl.seams-layout
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Seams in sheet goods and broadloom stay out of doorways, traffic lanes
+      and cove corners where the layout allows, pattern direction and
+      installation method (monolithic, quarter-turn, ashlar) match the design,
+      and patterned floors are laid out from the drawings' datum.
+    trace_to: [drawings.plans, schedule.finish]
+    severity: low
+    owner: subcontractor
+
+reconciliations:
+  - id: 09fl.rc.transitions
+    reflex: true
+    between: [schedule.finish, drawings.plans, drawings.structural, drawings.details, schedule.door]
+    key: Each change of floor finish (room to room, at doors, within rooms)
+    fields: [finish on each side and its total thickness with setting bed or underlayment, slab depression or recess, transition profile, threshold and door undercut]
+    check: >
+      At every change of floor finish, the difference in thickness is taken up
+      by a slab depression, an underlayment or a detailed transition profile,
+      and thresholds and door undercuts are set to the finished floors. Changes
+      of level on accessible routes stay within what the adopted standard
+      allows.
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+failure_modes:
+  - id: 09fl.fm.wet-slab
+    what_happens: Flooring installed over a slab never tested, or tested by a method or limit the flooring manufacturer does not accept
+    consequence: Adhesive failure, bubbling, odor and mold under the floor; warranty denied
+    caught_by: [09fl.moisture-testing]
+    source: industry_practice
+
+  - id: 09fl.fm.late-mitigation
+    what_happens: Slab fails its moisture test weeks before turnover with no mitigation decided or priced
+    consequence: Schedule loss, or flooring installed outside its warranty under pressure
+    caught_by: [09fl.mitigation-decision, if.03-flooring-substrate]
+    source: field_experience
+
+  - id: 09fl.fm.curing-compound
+    what_happens: Curing compound or sealer left on the slab under adhered flooring
+    consequence: Bond failure across whole areas; flooring removed and slab abraded
+    caught_by: [09fl.slab-treatments, if.03-flooring-substrate]
+    source: industry_practice
+
+  - id: 09fl.fm.transition-lip
+    what_happens: Thicker flooring meets thinner flooring with no depression, underlayment or transition detail
+    consequence: Trip edges and non-compliant changes of level; field-built ramps and reducers
+    caught_by: [09fl.rc.transitions]
+    source: industry_practice
+
+  - id: 09fl.fm.telegraphing
+    what_happens: Slab meets the concrete tolerance but not the flooring's flatness requirement
+    consequence: Ridges and joints telegraph through thin flooring; leveling added as a change order
+    caught_by: [09fl.flatness-match]
+    source: field_experience
+
+  - id: 09fl.fm.floor-box-height
+    what_happens: Floor boxes and covers set for one flooring type and another installed
+    consequence: Humps or recesses at every box; boxes or covers replaced after flooring
+    caught_by: [09fl.embedded-items]
+    source: field_experience
+
+standards:
+  - id: 09fl.std.astm-f2170
+    name: ASTM F2170
+    title: Determining Relative Humidity in Concrete Floor Slabs Using in situ Probes
+    verify: Probe depth, equilibration, building conditions and test count reported
+  - id: 09fl.std.astm-f1869
+    name: ASTM F1869
+    title: Measuring Moisture Vapor Emission Rate of Concrete Subfloor Using Anhydrous Calcium Chloride
+    verify: Used only where the flooring manufacturer still accepts it; conditions and test count
+  - id: 09fl.std.astm-f710
+    name: ASTM F710
+    title: Preparing Concrete Floors to Receive Resilient Flooring
+    verify: Surface preparation, alkalinity testing and patching practice
+  - id: 09fl.std.astm-f3010
+    name: ASTM F3010
+    title: Two-Component Resin Based Membrane-Forming Moisture Mitigation Systems for Use Under Resilient Floor Coverings
+    verify: Mitigation system claims when one is proposed
+  - id: 09fl.std.aci-302-2
+    name: ACI PRC-302.2 (formerly ACI 302.2R)
+    title: Guide for Concrete Slabs that Receive Moisture-Sensitive Flooring Materials
+    verify: Vapor retarder location and slab drying assumptions behind the moisture schedule
+  - id: 09fl.std.astm-e648
+    name: ASTM E648
+    title: Critical Radiant Flux of Floor-Covering Systems Using a Radiant Heat Energy Source
+    verify: Floor finish class claimed where the code requires one
+
+regulatory_hooks:
+  - id: 09fl.rh.radiant-flux
+    topic: floor-finish-critical-radiant-flux
+    question: >
+      Does the adopted code require a floor finish classification (critical
+      radiant flux) for textile and resilient floor coverings in exits,
+      corridors or rooms of this occupancy, and do the submitted products carry
+      it?
+    applies_when: Carpet and resilient flooring in exits and corridors
+    source_families: [building_code, fire_code]
+    severity: medium
+
+  - id: 09fl.rh.accessible-surfaces
+    topic: accessible-route-floor-surfaces
+    question: >
+      What does the adopted accessibility standard allow for changes in level
+      at flooring transitions and thresholds, carpet pile height, backing and
+      edge attachment, and openings in floor surfaces along accessible
+      routes?
+    applies_when: Floor finishes on accessible routes
+    source_families: [accessibility]
+    severity: high
+
+  - id: 09fl.rh.slip-resistance
+    topic: walking-surface-slip-resistance
+    question: >
+      Where flooring other than tile is used in entries, wet areas, ramps and
+      kitchens, does the code, accessibility standard or owner require a
+      measured slip resistance, and do the submitted products report it by
+      that method?
+    applies_when: Resilient, fluid-applied and specialty flooring in wet or sloped locations
+    source_families: [accessibility, building_code]
+    severity: medium
+
+extract_fields:
+  - id: 09fl.xf.substrate-limits
+    label: Manufacturer's moisture limit and test method, alkalinity limit and flatness requirement per product
+    type: list
+    per: package
+    reconcile_against: [spec.part3]
+  - id: 09fl.xf.thickness
+    label: Total installed thickness per flooring type, with underlayment and setting bed
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, drawings.details]
+  - id: 09fl.xf.adhesive
+    label: Adhesive and primer per product
+    type: list
+    per: package
+    reconcile_against: [spec.part2]

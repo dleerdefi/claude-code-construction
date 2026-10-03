@@ -1,0 +1,153 @@
+schema_version: 1
+kind: section
+id: "09 90 00"
+title: Painting and Coating
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Painting, staining, high-performance and special coatings (09 91 00,
+  09 93 00, 09 96 00 and 09 97 00 inherit). A paint system is a primer and
+  finish coats chosen for one substrate and exposure. The misses are primers
+  that do not suit what is already on the surface (shop primers,
+  galvanizing, factory finishes, fireproofing), surfaces nobody was assigned
+  (exposed structure, ductwork, piping and equipment, items primed by
+  others), substrates still too wet or alkaline to coat, and colors and
+  sheens that do not match the finish schedule room by room.
+
+submittals:
+  - id: 09pt.sub.product-data
+    type: Product Data
+    must_show:
+      - Each system by substrate and exposure, listing primer, intermediate and finish coats with film thickness per coat
+      - The reference system each matches (MPI or the spec's equivalent) and the product's approved-list status where the spec requires it
+  - id: 09pt.sub.samples
+    type: Samples
+    must_show:
+      - Draw-downs or field samples for every scheduled color in its specified sheen
+
+review_checks:
+  - id: 09pt.system-per-substrate
+    kind: conformance
+    check: >
+      Every substrate and exposure on the project (gypsum board, CMU,
+      concrete, plaster, ferrous and galvanized steel, aluminum, wood, existing
+      coatings; interior, exterior, wet areas, high traffic) has a system
+      whose primer is made for that substrate (block filler on CMU, an
+      alkali-resistant primer on new concrete and plaster, a primer that bonds
+      to zinc on galvanizing), and the product data cover each coat.
+    trace_to: [spec.part2, spec.part3, schedule.finish]
+    severity: high
+    owner: subcontractor
+
+  - id: 09pt.compatibility-with-others
+    kind: coordination
+    check: >
+      Field coats are compatible with coatings applied by others: shop primers
+      on structural steel, miscellaneous metals, hollow metal doors and frames
+      and equipment; galvanizing and its passivation; factory finishes; and
+      the topcoat over intumescent fireproofing, which only a coating its
+      listing allows may cover. Compatibility is confirmed from the shop
+      primer's data, not assumed.
+    trace_to: [spec.part2, spec.part3]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 09pt.scope-assigned
+    kind: absence
+    check: >
+      Painting of exposed structure, deck and joists, exposed ductwork,
+      piping, conduit and equipment, pipe and duct identification, items
+      primed by others (doors, frames, railings, misc. metals), and surfaces
+      behind casework and equipment is assigned by the finish schedule, the
+      painting section or the MEP sections, with nothing left to "by others".
+    trace_to: [spec.part1, schedule.finish, spec.part3]
+    severity: medium
+    owner: gc
+
+  - id: 09pt.color-samples
+    kind: completeness
+    submittal_types: [Samples]
+    check: >
+      Samples cover every scheduled paint designation in its specified sheen,
+      including accent walls on interior elevations, door and frame colors,
+      ceilings, and exposed structure in open ceilings, not only the room
+      walls.
+    trace_to: [schedule.finish, drawings.interior_elevations, drawings.rcp]
+    severity: medium
+    owner: subcontractor
+
+  - id: 09pt.substrate-readiness
+    kind: constructability
+    check: >
+      Substrates meet the coating manufacturer's moisture and alkalinity
+      limits (new concrete, masonry and plaster, wood moisture content)
+      and the temperature and dew-point conditions at application, measured
+      before coating rather than assumed from the schedule.
+    trace_to: [spec.part3]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 09pt.fm.incompatible-primer
+    what_happens: Shop primer, galvanizing or factory finish topcoated with a field coat it does not accept
+    consequence: Peeling and lifting; stripping and recoating in place
+    caught_by: [09pt.compatibility-with-others]
+    source: industry_practice
+
+  - id: 09pt.fm.exposed-scope-gap
+    what_happens: Painting of exposed structure, ductwork and piping in open ceilings carried by no one
+    consequence: Change order and lift work over finished floors late in the job
+    caught_by: [09pt.scope-assigned]
+    source: field_experience
+
+  - id: 09pt.fm.green-masonry
+    what_happens: Paint applied to new concrete, masonry or plaster before it dried, or without an alkali-resistant primer
+    consequence: Efflorescence, saponification and peeling
+    caught_by: [09pt.substrate-readiness, 09pt.system-per-substrate]
+    source: industry_practice
+
+  - id: 09pt.fm.accent-missed
+    what_happens: Accent colors shown only on interior elevations missed by the painter's take-off
+    consequence: Rooms repainted after punch
+    caught_by: [09pt.color-samples, d09.rc.room-finishes]
+    source: field_experience
+
+standards:
+  - id: 09pt.std.mpi
+    name: MPI Architectural Painting Specification Manual / MPI Approved Products List
+    title: Master Painters Institute reference systems and approved products
+    verify: System numbers and approved-list status the spec requires
+  - id: 09pt.std.astm-d4263
+    name: ASTM D4263
+    title: Indicating Moisture in Concrete by the Plastic Sheet Method
+    verify: Moisture check before coating concrete where the spec uses it
+
+regulatory_hooks:
+  - id: 09pt.rh.lead-paint
+    topic: lead-renovation-work-practices
+    question: >
+      Does surface preparation of existing painted surfaces on this project
+      disturb paint that may contain lead, and if so which lead-safe work
+      practice, certification and clearance rules apply to the painting
+      contractor?
+    applies_when: Renovation work that sands, scrapes or removes existing paint
+    source_families: [environmental, occupational_safety]
+    severity: high
+
+extract_fields:
+  - id: 09pt.xf.systems
+    label: Paint system per substrate and exposure (primer and finish coats)
+    type: list
+    per: package
+    reconcile_against: [spec.part2, schedule.finish]
+  - id: 09pt.xf.colors
+    label: Color and sheen per designation
+    type: list
+    per: package
+    reconcile_against: [schedule.finish]

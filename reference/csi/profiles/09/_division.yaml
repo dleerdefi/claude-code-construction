@@ -1,0 +1,126 @@
+schema_version: 1
+kind: division
+id: "09"
+title: Finishes
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Partitions, plaster, tile, ceilings, flooring, wall finishes and coatings.
+  Finishes come last and inherit every earlier miss: partitions and ceilings
+  are where MEP coordination becomes visible, floors are where slab moisture,
+  flatness and depressions surface, and finishes are what the owner judges.
+  Selections are fixed room by room through the finish schedule and samples;
+  performance (ratings, moisture limits, fire classification, slip
+  resistance) lives in the spec and the code. Most finish products need an
+  enclosed, conditioned building, which the schedule does not always give
+  them.
+
+review_checks:
+  - id: d09.designation-coverage
+    kind: completeness
+    check: >
+      Every finish designation used on the finish plans, interior elevations,
+      RCP and finish schedule (the legend codes for each floor, base, wall,
+      ceiling and paint finish) maps to a submitted product, color and
+      pattern, and every submitted product maps back to a designation. List
+      codes used on drawings but missing from the schedule, schedule codes
+      with no spec section, and submitted items nobody scheduled.
+    trace_to: [schedule.finish, drawings.material_legend, drawings.plans, drawings.interior_elevations, drawings.rcp]
+    severity: high
+    owner: subcontractor
+
+  - id: d09.unscheduled-spaces
+    kind: absence
+    check: >
+      Spaces the finish schedule skips or marks "unfinished" (mechanical,
+      electrical and telecom rooms, shafts, stairs, elevator machine rooms,
+      janitor closets, storage, exterior soffits) still have a defined floor,
+      base, wall and ceiling treatment, such as sealed or coated concrete and
+      painted walls and structure, where the use needs one. Dust-free floors in
+      electrical and telecom rooms and cleanable surfaces in wet rooms are the
+      usual omissions.
+    trace_to: [schedule.finish, drawings.plans, spec.part3]
+    severity: medium
+    owner: design_team
+
+  - id: d09.acceptance-standard
+    kind: completeness
+    check: >
+      Where acceptance is a matter of appearance (lippage, gypsum finish under
+      grazing light, paint uniformity, seam visibility, color variation between
+      production lots), an approved mock-up or sample sets the standard before
+      production work starts, with the viewing conditions (lighting, distance)
+      it will be judged under, and the mock-up stays in place or is recorded
+      until the work is accepted.
+    trace_to: [spec.part1, spec.part3]
+    severity: medium
+    owner: gc
+
+  - id: d09.building-conditions
+    kind: constructability
+    check: >
+      The temperature, humidity, acclimation and enclosure each finish product
+      requires before and after installation (joint compound, acoustical
+      panels, wood, resilient flooring and adhesives, paints, wall coverings)
+      are compared with the schedule dates for dry-in, permanent HVAC start-up
+      and wet-work completion. Where finishes start before permanent HVAC, the
+      temporary conditioning that holds those limits is planned and assigned.
+    trace_to: [spec.part1, spec.part3, schedule.master]
+    severity: high
+    owner: gc
+    gate: interior_finish_start
+
+reconciliations:
+  - id: d09.rc.room-finishes
+    between: [schedule.finish, drawings.plans, drawings.rcp, drawings.interior_elevations]
+    key: Room number
+    fields: [room name, floor and base designation, wall designation for each wall and accent wall, ceiling type, ceiling height]
+    check: >
+      Room by room, the finish schedule, finish plans, RCP and interior
+      elevations name the same room and agree on floor, base, each wall,
+      ceiling type and ceiling height. Rooms added, split or renumbered by a
+      revision and rooms that appear in one document only are listed.
+    severity: medium
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: d09.fm.room-renumbered
+    what_happens: Finish schedule keyed to room numbers that a later revision changed; finishes ordered and installed to the old numbers
+    consequence: Wrong flooring or wall finish in finished rooms; replacement at the end of the job
+    caught_by: [d09.rc.room-finishes]
+    source: industry_practice
+
+  - id: d09.fm.unconditioned-install
+    what_happens: Finishes installed before permanent or temporary HVAC holds the manufacturers' temperature and humidity limits
+    consequence: Sagging ceiling panels, joint cracking, adhesive failure, cupped wood; warranty claims denied
+    caught_by: [d09.building-conditions]
+    source: industry_practice
+
+  - id: d09.fm.no-acceptance-standard
+    what_happens: Appearance disputes (lippage, wall flatness under raking light, color shift between lots) with no approved mock-up to judge against
+    consequence: Rework argued after installation; the owner's standard becomes whatever the punch list says
+    caught_by: [d09.acceptance-standard]
+    source: field_experience
+
+  - id: d09.fm.unscheduled-room
+    what_happens: Electrical, telecom and mechanical rooms left with bare concrete and unpainted walls because the finish schedule skipped them
+    consequence: Concrete dust in electrical and IT equipment; sealing and painting added around installed equipment
+    caught_by: [d09.unscheduled-spaces]
+    source: field_experience
+
+regulatory_hooks:
+  - id: d09.rh.voc-emissions
+    topic: architectural-coatings-adhesives-voc
+    question: >
+      Which VOC content limits (regional air quality rules) and emissions
+      testing (a green building code or certification the project follows)
+      apply to the paints, coatings, flooring adhesives, sealers, ceiling
+      panels and other finish products submitted, and do the product data
+      show compliance for each?
+    applies_when: Interior paints, coatings, adhesives, flooring and ceiling products
+    source_families: [environmental]
+    severity: medium

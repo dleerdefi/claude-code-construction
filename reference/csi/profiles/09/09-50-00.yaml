@@ -1,0 +1,248 @@
+schema_version: 1
+kind: section
+id: "09 50 00"
+title: Ceilings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # seismic bracing and specialty ceiling supports are often delegated
+
+scope_summary: >
+  Acoustical, specialty, metal, wood, open-cell and suspended decorative
+  ceilings, clouds and baffles (09 51 00 through 09 58 00 inherit); gypsum
+  board ceilings are reviewed under 09 21 16. The ceiling is where every
+  overhead trade lands, and the RCP is the coordination document: a ceiling
+  submittal is only right if the plenum fits the ductwork, piping and
+  structure at the height shown, every light, diffuser, sprinkler, speaker,
+  detector and access point lands in the layout, and service points stay
+  reachable. Ceilings close the plenum, so coordination and above-ceiling
+  inspection come before the grid is filled.
+
+submittals:
+  - id: 09cl.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Reflected ceiling layout per room with the grid or panel datum, border sizes, heights and every device location
+      - Suspension and hanger layout to structure, with trapezes where ducts or trays block hanger points
+      - Seismic bracing, perimeter attachment and separation joints where seismic design applies
+      - Transitions, soffits, edge trims and details at walls, bulkheads, clouds and changes of height
+  - id: 09cl.sub.product-data
+    type: Product Data
+    must_show:
+      - Panels and suspension by type with their acoustic, fire and humidity ratings
+      - Components of any listed fire-resistive ceiling design, including hold-down clips and fixture protection
+
+review_checks:
+  - id: 09cl.plenum-fit
+    kind: coordination
+    check: >
+      At each ceiling height on the RCP, the space below the structure
+      (beams, joists, deck) holds the largest duct, pipe with its slope, cable
+      tray and light fixture housing plus the ceiling's own suspension, at
+      crossings and under beams, not only in open bays. Heights that work only
+      on the building sections are raised before ductwork is fabricated.
+    trace_to: [drawings.rcp, drawings.building_sections, drawings.mechanical, drawings.plumbing, drawings.structural]
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: 09cl.heights
+    kind: conformance
+    check: >
+      Ceiling and soffit heights on the submittal match the RCP and sections
+      room by room, and any height lowered to clear MEP is confirmed by the
+      design team against the code and program minimums and against window
+      heads, door frames, casework and equipment that must fit below it.
+    trace_to: [drawings.rcp, drawings.building_sections, drawings.interior_elevations, schedule.door]
+    severity: medium
+    owner: design_team
+
+  - id: 09cl.service-access
+    kind: constructability
+    check: >
+      Terminal units, dampers and their actuators, valves, cleanouts,
+      junction boxes and controllers above lay-in ceilings sit over removable
+      panels that light fixtures, ducts, sprinkler mains, trays or fixed
+      bulkheads do not block, and those above fixed or monolithic ceilings have
+      access doors shown on the RCP.
+    trace_to: [drawings.rcp, drawings.mechanical, drawings.plumbing, drawings.electrical]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 09cl.hung-from-structure
+    kind: constructability
+    check: >
+      Hangers attach to structure or to designed trapezes, never to ducts,
+      pipes, conduit or their supports, and not to deck where the deck or
+      fireproofing listing prohibits it; hanger points blocked by ductwork or
+      trays are resolved on the shop drawings rather than in the field.
+    trace_to: [drawings.structural, drawings.rcp, spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: overhead_rough_in
+
+  - id: 09cl.rated-ceilings
+    kind: conformance
+    check: >
+      Where the ceiling is the membrane of a listed floor-ceiling or
+      roof-ceiling design, panels, suspension, hold-down clips and the
+      protection of every opening in it (fixture enclosures or listed
+      fixtures, ceiling radiation dampers at air outlets, rated access doors)
+      follow that design and the area limits it places on openings.
+    trace_to: [drawings.life_safety, drawings.rcp, spec.part2]
+    severity: critical
+    owner: subcontractor
+
+  - id: 09cl.open-ceilings
+    kind: coordination
+    check: >
+      Clouds, baffles, open-cell grids, perforated and partial ceilings, and
+      ceilings with gaps at the walls are reviewed with the sprinkler and fire
+      alarm designers: sprinklers and detectors above, below or both are laid
+      out for the ceiling as submitted, not for the solid ceiling their
+      design assumed.
+    trace_to: [drawings.rcp, drawings.fire_protection, drawings.fire_alarm]
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: 09cl.seismic
+    kind: conformance
+    check: >
+      Where seismic design applies, the submittal shows the bracing method
+      and layout, perimeter attachment and closure, separation joints for large
+      areas and changes of height, and the clearance around sprinkler drops and
+      other penetrations, coordinated with the sprinkler trade's flexible drops
+      or oversized escutcheons.
+    trace_to: [drawings.structural, drawings.rcp, drawings.fire_protection, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+reconciliations:
+  - id: 09cl.rc.devices
+    between: [drawings.rcp, drawings.fire_protection, drawings.mechanical, drawings.electrical, drawings.fire_alarm, drawings.technology]
+    key: Ceiling device location
+    fields: [device type, position in the ceiling module (centered, quarter point, on grid), mounting for the ceiling type, support (grid or independent), access need]
+    check: >
+      Every light, diffuser, return, sprinkler, speaker, detector, strobe,
+      camera, wireless access point, projector and access panel on the MEP and
+      technology drawings appears on the RCP where the ceiling can take it,
+      clear of grid members and of other devices, and the RCP shows nothing
+      no discipline provides.
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 09cl.fm.drops-before-layout
+    what_happens: Sprinkler drops cut and installed before the ceiling layout was coordinated
+    consequence: Heads land on grid lines or off-center; drops cut and refit, or the owner accepts the pattern
+    caught_by: [09cl.rc.devices, if.09-ceiling-sprinklers]
+    source: field_experience
+
+  - id: 09cl.fm.plenum-too-shallow
+    what_happens: Ceiling height works in open bays but not under beams or at duct crossings
+    consequence: Local soffits or lowered ceilings; heights below code or program minimums, conflicts with window heads and casework
+    caught_by: [09cl.plenum-fit, 09cl.heights]
+    source: field_experience
+
+  - id: 09cl.fm.access-blocked
+    what_happens: Terminal unit, damper or valve located over a light fixture, duct or fixed bulkhead
+    consequence: No service access; damper inspection fails; ceiling and fixtures reworked
+    caught_by: [09cl.service-access, if.09-ceiling-service-access]
+    source: field_experience
+
+  - id: 09cl.fm.hung-from-mep
+    what_happens: Ceiling wires tied to ducts, pipes or conduit supports where hanger points were blocked
+    consequence: Sagging ceilings and a failed above-ceiling inspection
+    caught_by: [09cl.hung-from-structure]
+    source: field_experience
+
+  - id: 09cl.fm.open-ceiling-sprinklers
+    what_happens: Clouds or baffles installed under a sprinkler layout designed for a solid ceiling
+    consequence: Sprinkler redesign and added heads at the end of the job
+    caught_by: [09cl.open-ceilings]
+    source: industry_practice
+
+  - id: 09cl.fm.unprotected-openings
+    what_happens: Light fixtures or air outlets set in a rated ceiling membrane without the protection or ceiling radiation dampers its design requires
+    consequence: Floor-ceiling or roof-ceiling assembly fails inspection; fixtures and outlets replaced
+    caught_by: [09cl.rated-ceilings, if.09-ceiling-air-devices, if.09-ceiling-lighting]
+    source: industry_practice
+
+  - id: 09cl.fm.heads-hard-piped
+    what_happens: Braced ceiling installed around sprinkler heads on rigid drops with no clearance
+    consequence: Heads and tiles damaged in an earthquake; rejected at inspection where the clearance is required
+    caught_by: [09cl.seismic, if.09-ceiling-sprinklers]
+    source: industry_practice
+
+standards:
+  - id: 09cl.std.listings
+    name: Fire resistance directory listings
+    title: Listed floor-ceiling and roof-ceiling designs (e.g. UL Fire Resistance Directory)
+    verify: Ceiling components and opening protection required by each cited design
+  - id: 09cl.std.astm-e84
+    name: ASTM E84
+    title: Surface Burning Characteristics of Building Materials
+    verify: Flame spread and smoke-developed class claimed for panels, wood, fabric and plastic ceiling products
+
+regulatory_hooks:
+  - id: 09cl.rh.seismic
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Does the seismic design category require suspended ceilings to be
+      designed and braced under the adopted code and the ceiling installation
+      standard it references, and what does it require at the perimeter, at
+      separation joints and around sprinkler heads?
+    applies_when: Suspended ceilings in projects with seismic design requirements
+    source_families: [building_code_seismic]
+    severity: high
+
+  - id: 09cl.rh.open-ceilings
+    topic: sprinkler-obstruction-open-ceilings
+    question: >
+      Where ceilings are clouds, baffles, open-cell or perforated, or leave
+      gaps to the walls, does the adopted sprinkler standard require
+      sprinklers above, below or both, and how does it treat the ceiling as an
+      obstruction?
+    applies_when: Clouds, baffles, open-cell or perforated ceilings in sprinklered buildings
+    source_families: [fire_code, building_code]
+    severity: high
+
+  - id: 09cl.rh.ceiling-finish-class
+    topic: interior-wall-finish-classification
+    question: >
+      Which ceiling finish class does the adopted code require in each room,
+      corridor and exit of this occupancy, and do wood, metal, fabric-wrapped,
+      plastic and acoustical ceiling products (including clouds and baffles)
+      carry results by the test method it accepts?
+    applies_when: Any ceiling other than gypsum board or plaster
+    source_families: [building_code, fire_code]
+    severity: medium
+
+  - id: 09cl.rh.ceiling-height
+    topic: minimum-ceiling-height-headroom
+    question: >
+      What minimum ceiling height and headroom does the adopted code (and any
+      licensing or program rule) require for these rooms and along the means
+      of egress, and does the coordinated RCP still provide it under soffits,
+      bulkheads and projections?
+    applies_when: Ceilings lowered or soffited for MEP, and egress paths
+    source_families: [building_code]
+    severity: medium
+
+extract_fields:
+  - id: 09cl.xf.ceiling-types
+    label: Ceiling type, panel, suspension and edge per room
+    type: list
+    per: package
+    reconcile_against: [drawings.rcp, schedule.finish]
+  - id: 09cl.xf.heights
+    label: Ceiling and soffit heights per room
+    type: list
+    per: package
+    reconcile_against: [drawings.rcp, drawings.building_sections]

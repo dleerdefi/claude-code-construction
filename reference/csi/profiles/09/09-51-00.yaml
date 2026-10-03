@@ -1,0 +1,128 @@
+schema_version: 1
+kind: section
+id: "09 51 00"
+title: Acoustical Ceilings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["09 53 00"]   # suspension is sometimes specified separately as Acoustical Ceiling Suspension Assemblies
+
+scope_summary: >
+  Suspended acoustical panel and tile ceilings on exposed or concealed grid
+  (09 51 13 and 09 51 23 inherit; suspension may sit in 09 53 00). On top of
+  the ceiling coordination in 09 50 00, the submittal has to show a grid that
+  starts from the RCP's datum, panels with the absorption and attenuation the
+  rooms need, a suspension rated for what hangs on it, and panels suited to
+  humid, pressurized or wash-down rooms. Panels go in last, after the
+  above-ceiling work is done and inspected.
+
+review_checks:
+  - id: 09ac.grid-layout
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      The grid starts from the RCP's datum (centered both ways, or the start
+      line drawn), avoids border panels narrower than the layout intends,
+      aligns across adjacent rooms and corridors where the design shows it,
+      and keeps devices centered in panels or at the module positions the RCP
+      shows.
+    trace_to: [drawings.rcp]
+    severity: medium
+    owner: subcontractor
+
+  - id: 09ac.acoustic-ratings
+    kind: conformance
+    submittal_types: [Product Data]
+    check: >
+      Panels meet the absorption and ceiling attenuation ratings scheduled by
+      room type; where partitions stop at the ceiling between rooms needing
+      speech privacy, the panel's attenuation rating and any plenum barrier
+      are the ones the acoustic design assumed.
+    trace_to: [schedule.finish, report.acoustical, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 09ac.grid-load
+    kind: conformance
+    check: >
+      The suspension's duty classification covers what the grid carries
+      (fixtures, air devices, speakers, signage), and items it cannot carry,
+      or that the code or seismic design requires to be independently
+      supported, hang from structure on their own wires with that support
+      assigned to a trade.
+    trace_to: [spec.part2, drawings.rcp, schedule.lighting_fixture]
+    severity: medium
+    owner: subcontractor
+
+  - id: 09ac.special-exposures
+    kind: conformance
+    check: >
+      Panels and grid suit the room: humidity-resistant panels and
+      corrosion-resistant grid in pools, kitchens, entries and spaces without
+      continuous conditioning; hold-down clips in pressurized rooms and where a
+      rated design requires them; washable or non-perforated faces in clean,
+      clinical and wash-down areas.
+    trace_to: [schedule.finish, spec.part2, drawings.mechanical]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 09ac.fm.panels-sag
+    what_happens: Panels installed before HVAC holds humidity, or standard panels used in humid spaces
+    consequence: Sagging and stained panels replaced across whole floors
+    caught_by: [09ac.special-exposures, d09.building-conditions]
+    source: industry_practice
+
+  - id: 09ac.fm.border-slivers
+    what_happens: Grid started from one wall instead of the RCP datum
+    consequence: Thin border panels on one side and devices off-center; ceiling re-laid
+    caught_by: [09ac.grid-layout]
+    source: field_experience
+
+  - id: 09ac.fm.grid-overloaded
+    what_happens: Fixtures, air devices or AV equipment laid on grid beyond its duty or where independent support is required
+    consequence: Sagging grid and an above-ceiling inspection failure; support wires added through finished ceilings
+    caught_by: [09ac.grid-load]
+    source: field_experience
+
+  - id: 09ac.fm.privacy-loss
+    what_happens: Low-attenuation panels over partitions that stop at the ceiling between offices or exam rooms
+    consequence: Speech carries room to room; panels replaced or walls extended after occupancy
+    caught_by: [09ac.acoustic-ratings]
+    source: field_experience
+
+standards:
+  - id: 09ac.std.astm-c635
+    name: ASTM C635/C635M
+    title: Manufacture, Performance, and Testing of Metal Suspension Systems for Acoustical Tile and Lay-in Panel Ceilings
+    verify: Duty classification of the suspension
+  - id: 09ac.std.astm-c636
+    name: ASTM C636/C636M
+    title: Installation of Metal Ceiling Suspension Systems for Acoustical Tile and Lay-In Panels
+    verify: Hanger spacing, attachment and splay limits
+  - id: 09ac.std.astm-e580
+    name: ASTM E580/E580M
+    title: Installation of Ceiling Suspension Systems for Acoustical Tile and Lay-in Panels in Areas Subject to Earthquake Ground Motions
+    verify: Seismic installation requirements where the code invokes them
+  - id: 09ac.std.astm-e1264
+    name: ASTM E1264
+    title: Classification for Acoustical Ceiling Products
+    verify: Type, pattern and acoustic classification claimed
+  - id: 09ac.std.acoustics
+    name: ASTM C423 / ASTM E1414/E1414M
+    title: Sound absorption by the reverberation room method; airborne sound attenuation between rooms sharing a common ceiling plenum
+    verify: Test basis of absorption and ceiling attenuation ratings
+
+extract_fields:
+  - id: 09ac.xf.panel
+    label: Panel type, size, edge, and absorption and attenuation ratings
+    type: list
+    per: package
+    reconcile_against: [schedule.finish, spec.part2]
+  - id: 09ac.xf.suspension
+    label: Suspension duty classification and finish
+    type: string
+    per: package
+    reconcile_against: [spec.part2]

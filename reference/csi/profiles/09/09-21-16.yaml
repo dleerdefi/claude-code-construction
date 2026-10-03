@@ -1,0 +1,422 @@
+schema_version: 1
+kind: section
+id: "09 21 16"
+title: Gypsum Board Assemblies
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["09 22 16", "09 29 00"]
+
+review_mode: per_element
+element_types: [partition_type]
+contractor_designed: sometimes   # framing heights, deflection heads and ceiling framing are often left to the framer
+
+scope_summary: >
+  Partitions, furring, shaft walls and gypsum board ceilings, with their
+  framing (09 22 16 and 09 29 00 are reviewed as this assembly). The
+  partition type is the unit of review: each type tagged on the plans is a
+  listed fire design or tested sound assembly whose stud depth, thickness and
+  spacing, board type and layers, fasteners, insulation and head condition
+  have to match as built. What makes a partition fail is decided before
+  close-in: height to structure, the deflection head, framing sized for the
+  real height, boxes and sealing in sound-rated walls, recessed items in rated
+  walls, and boards suited to wet and abuse exposure.
+
+submittals:
+  - id: 09gb.sub.product-data
+    type: Product Data
+    must_show:
+      - Studs and track by type with depth, thickness and flange, and the limiting-height tables used, at the project's deflection criterion and lateral load
+      - Each board type with its classification (fire-rated core, moisture- and mold-resistant, abuse- or impact-resistant, glass-mat, shaft liner, backer)
+      - Deflection track, slip clips and head-of-wall components with the movement they allow
+      - Acoustical sealant, putty pads, resilient channel or clips where used, traced to the tested assembly they belong to
+  - id: 09gb.sub.design-data
+    type: Design Data
+    must_show:
+      - For every partition type, the listed fire design and tested sound assembly it follows, with each submitted component identified in that design
+      - Framing for heights beyond the manufacturer's tables, heavy wall-mounted loads and unbraced openings, engineered where the spec requires
+  - id: 09gb.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Head-of-wall details for each partition type at each deck condition (flutes parallel and perpendicular, beams, joists)
+      - Bulkheads, soffits, gypsum ceilings and tall walls with spans, bracing to structure and the connection to the deck
+      - Control joint layout on walls and ceilings
+
+review_checks:
+  - id: 09gb.listed-design-match
+    kind: conformance
+    reflex: true
+    check: >
+      Each fire-rated or sound-rated partition type is built exactly as its
+      listed design or tested assembly: stud depth, thickness and spacing;
+      board type, layers and orientation; fastener type and spacing; joint
+      treatment; insulation; resilient channel or clips. A substituted
+      component (another manufacturer's proprietary board, a lighter or
+      "equivalent" stud, different insulation) is acceptable only where that
+      design, or the component's own listing, covers it. Ratings against the
+      life safety plans are reconciled under firestopping (07 84 00); this
+      check is the build-up of each type.
+    trace_to: [schedule.partition_type, drawings.details, spec.part2]
+    severity: critical
+    owner: subcontractor
+
+  - id: 09gb.head-defined
+    kind: absence
+    check: >
+      For each partition type the head is defined (to structure, to ceiling,
+      or above ceiling by a stated amount), and walls that must stop sound,
+      smoke, security or plenum air, not only fire, are typed to structure. A
+      head detail exists for every deck condition those walls meet: flutes
+      parallel and perpendicular, beams, joists, and ducts or trays crossing
+      the head.
+    trace_to: [schedule.partition_type, drawings.details, drawings.building_sections, drawings.rcp]
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: 09gb.deflection-head
+    kind: conformance
+    check: >
+      Where the structure above deflects, the head uses deflection track or
+      slip connections whose movement covers the structural design deflection,
+      the board stops short of the deck by the joint the detail shows, and
+      nothing locks the wall to the deck: board fastened into the track
+      flange, ceiling hangers or MEP supports tied to the wall top. Non-rated
+      heads need this as much as rated ones; rated joint systems are reviewed
+      under 07 84 00.
+    trace_to: [drawings.details, drawings.structural, schedule.partition_type]
+    severity: high
+    owner: subcontractor
+
+  - id: 09gb.framing-heights
+    kind: conformance
+    check: >
+      Stud depth, thickness and spacing for each type fall within the
+      manufacturer's limiting-height table for the specified deflection
+      criterion and lateral load, for the finish the wall carries (tile, stone
+      and plaster need a stiffer criterion than paint), measured to the real
+      support: to the deck when the wall runs above the ceiling. Heights beyond
+      the tables, jambs and heads of large or heavy openings, and walls
+      carrying heavy wall-mounted items are engineered, with bracing to
+      structure shown.
+    trace_to: [schedule.partition_type, drawings.building_sections, drawings.wall_sections, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 09gb.exposure-boards
+    kind: absence
+    check: >
+      Board types match exposure: a backer the tile method accepts behind tile
+      in showers and wet areas, moisture- and mold-resistant board in
+      high-humidity rooms and at sinks, abuse- or impact-resistant board where
+      carts, beds or traffic hit walls (corridors, gyms, loading and service
+      areas), and glass-mat or exterior-rated board where it will be exposed
+      to weather before dry-in. Rooms with these exposures but a standard board
+      type in the partition schedule are raised before framing.
+    trace_to: [schedule.partition_type, schedule.finish, drawings.enlarged_plans, spec.part2]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 09gb.finish-level
+    kind: conformance
+    scope: package
+    check: >
+      The gypsum finish level is set per surface by the industry finish-level
+      standard the spec cites, and the higher level is carried where surfaces
+      get critical light (wall-washers and grazing fixtures on the lighting
+      plans, long corridors, walls beside large glazing), gloss or semi-gloss
+      paint, or thin wall coverings. A level chosen for normal light on a
+      critically lit wall is raised before taping, not at punch.
+    trace_to: [spec.part3, schedule.finish, drawings.rcp, schedule.lighting_fixture]
+    severity: medium
+    owner: design_team
+
+  - id: 09gb.sound-rated-walls
+    kind: constructability
+    check: >
+      In sound-rated partitions the details that make the tested rating hold
+      in the field are shown and assigned: acoustical sealant at the perimeter
+      and every penetration on both faces; outlet boxes on opposite faces in
+      different stud bays at the separation the acoustic design requires, or
+      backed with putty pads; no back-to-back recessed cabinets or panels;
+      resilient channel or clips not short-circuited by fasteners; and ducts
+      and transfer openings through the wall lined or offset as the acoustic
+      design requires.
+    trace_to: [schedule.partition_type, report.acoustical, drawings.electrical, spec.part3]
+    severity: high
+    owner: gc
+    gate: wall_close_in
+
+  - id: 09gb.control-joints
+    kind: conformance
+    scope: package
+    check: >
+      Control joints in walls and gypsum ceilings are located on the drawings
+      or shop drawings: at the spacing the spec or board manufacturer limits,
+      at changes of framing or substrate, from the corners of door and window
+      openings, at long ceiling runs and wings, and at every building
+      expansion joint, which partitions and ceilings must not bridge. Rated
+      types show the joint detail their listing allows.
+    trace_to: [drawings.interior_elevations, drawings.rcp, drawings.details, drawings.structural]
+    severity: medium
+    owner: design_team
+
+  - id: 09gb.shaft-walls
+    kind: conformance
+    scope: package
+    check: >
+      Shaft wall assemblies built from one side follow a listed design for
+      the rating, the height between supports and the air pressure in the
+      shaft (elevator hoistways see pressure from car movement), with openings
+      for hoistway doors, call stations, access doors, ducts and dampers framed
+      and protected as the listing allows, and they are built before ducts,
+      risers or rails fill the shaft.
+    trace_to: [schedule.partition_type, drawings.life_safety, drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: overhead_rough_in
+
+  - id: 09gb.recessed-in-rated
+    kind: coordination
+    scope: package
+    check: >
+      Items recessed into rated walls (fire extinguisher cabinets, recessed
+      toilet accessories, medicine cabinets, panelboards, access doors, dryer
+      and valve boxes) are rated products or are backed by construction that
+      keeps the wall's rating, fit the stud depth, and have their rough
+      openings framed as the listed design allows.
+    trace_to: [schedule.partition_type, drawings.life_safety, drawings.plans, schedule.toilet_accessories]
+    severity: high
+    owner: gc
+    gate: wall_close_in
+
+  - id: 09gb.access-doors
+    kind: absence
+    scope: package
+    check: >
+      Every concealed item behind gypsum walls and above gypsum ceilings that
+      needs service or inspection (valves, fire and smoke dampers, terminal
+      units, cleanouts, trap primers, junction boxes, controllers) has an
+      access door on the RCP or elevations, sized for the work, rated where the
+      wall or ceiling is rated, and framed before board. Doors cut in after
+      close-in are a finding, not a fix.
+    trace_to: [drawings.rcp, drawings.mechanical, drawings.plumbing, drawings.electrical]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+reconciliations:
+  - id: 09gb.rc.type-tags
+    between: [drawings.plans, drawings.enlarged_plans, schedule.partition_type]
+    key: Partition type tag
+    fields: [tag defined in the schedule, stud depth and spacing, board type and layers per face, head condition, sound rating, insulation]
+    check: >
+      Every partition tag on plans and enlarged plans is defined in the
+      partition schedule and every scheduled type is used; untagged walls are
+      listed. The submittal carries each type with the scheduled build-up.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 09gb.rc.acoustic-separations
+    between: [report.acoustical, schedule.partition_type, drawings.plans, drawings.rcp]
+    key: Wall between two rooms with a sound criterion
+    fields: [required sound rating, partition type and its tested rating, head condition, ceiling attenuation where the wall stops at the ceiling, doors and openings in the wall]
+    check: >
+      Each room adjacency with a sound criterion in the acoustic report or
+      spec is separated by a partition type whose tested rating meets it, that
+      runs to structure or stops at a ceiling the acoustic design accepted, and
+      whose doors, transfer openings and ducts are accounted for.
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 09gb.fm.design-drift
+    what_happens: Rated partition built with a substituted board, an "equivalent" stud or different insulation not covered by its listed design
+    consequence: Wall fails inspection or quietly loses its rating; rebuilt after finishes
+    caught_by: [09gb.listed-design-match]
+    source: industry_practice
+
+  - id: 09gb.fm.stud-sized-to-ceiling
+    what_happens: Stud size picked from the ceiling height on a wall that continues to the deck
+    consequence: Wall exceeds its limiting height; it flexes, cracks tile and joints, and gets reinforced after board is up
+    caught_by: [09gb.framing-heights]
+    source: field_experience
+
+  - id: 09gb.fm.head-locked
+    what_happens: Board screwed into the deflection track flange, or ceiling hangers and MEP supports fastened to the wall head
+    consequence: Floor deflection crushes or cracks the wall; rated head joints fail inspection
+    caught_by: [09gb.deflection-head, if.head-of-wall-joints]
+    source: field_experience
+
+  - id: 09gb.fm.stopped-at-ceiling
+    what_happens: Acoustic, security or plenum-separating wall stopped at the ceiling because only fire ratings were checked for height
+    consequence: Sound flanks over the wall and privacy complaints follow occupancy; walls extended through finished MEP
+    caught_by: [09gb.head-defined, 09gb.rc.acoustic-separations]
+    source: field_experience
+
+  - id: 09gb.fm.back-to-back-boxes
+    what_happens: Outlet boxes back to back in one stud bay, or perimeter left unsealed, in a sound-rated wall
+    consequence: Field sound isolation far below the design; walls opened in occupied rooms to fix it
+    caught_by: [09gb.sound-rated-walls, if.09-boxes-in-sound-walls]
+    source: field_experience
+
+  - id: 09gb.fm.standard-board-wet
+    what_happens: Standard paper-faced board installed in showers, janitor closets, behind tile in wet areas, or left exposed to weather before dry-in
+    consequence: Mold and tile failure; walls replaced after occupancy
+    caught_by: [09gb.exposure-boards, if.09-tile-backer]
+    source: industry_practice
+
+  - id: 09gb.fm.finish-level-under-light
+    what_happens: Walls under wall-washers or grazing daylight finished to the level chosen for normal light
+    consequence: Every joint and fastener shows; skim-coating and repainting at the end of the job
+    caught_by: [09gb.finish-level]
+    source: field_experience
+
+  - id: 09gb.fm.recessed-in-rated
+    what_happens: Non-rated recessed cabinet or accessory set into a rated corridor or shaft wall
+    consequence: Inspection failure; cabinets replaced or the wall rebuilt around them
+    caught_by: [09gb.recessed-in-rated, if.09-recessed-specialties]
+    source: field_experience
+
+  - id: 09gb.fm.no-access-hard-ceiling
+    what_happens: Dampers, valves or terminal units above a gypsum ceiling with no access door
+    consequence: Ceiling cut at damper inspection or first service; patching in finished rooms
+    caught_by: [09gb.access-doors, if.08-access-doors-mep]
+    source: field_experience
+
+  - id: 09gb.fm.shaft-late
+    what_happens: Shaft wall left until ducts, risers or rails occupy the shaft
+    consequence: Liner panels cannot be set from the one accessible side; listed design abandoned for field fixes
+    caught_by: [09gb.shaft-walls]
+    source: industry_practice
+
+  - id: 09gb.fm.hoistway-openings
+    what_happens: Hoistway shaft wall closed with entrance openings framed off size, no tested frame anchor detail, or no support at rail bracket levels
+    consequence: Hoistway walls opened after turnover; elevator installation and inspection slip
+    caught_by: [09gb.shaft-walls, if.09-hoistway-shaft-wall]
+    source: industry_practice
+
+  - id: 09gb.fm.expansion-joint-bridged
+    what_happens: Partitions or gypsum ceilings built continuous across a building expansion joint
+    consequence: Recurring cracks along the joint line that no repair holds
+    caught_by: [09gb.control-joints]
+    source: industry_practice
+
+  - id: 09gb.fm.backing-missed
+    what_happens: Backing for a wall-mounted item missing when the second face is boarded
+    consequence: Finished wall opened, patched and repainted; item installed late
+    caught_by: [if.06-backing-metal-stud]
+    source: industry_practice
+
+standards:
+  - id: 09gb.std.astm-c645
+    name: ASTM C645
+    title: Nonstructural Steel Framing Members
+    verify: Stud and track thickness, coating and section properties claimed, including any "equivalent" studs
+  - id: 09gb.std.astm-c754
+    name: ASTM C754
+    title: Installation of Steel Framing Members to Receive Screw-Attached Gypsum Panel Products
+    verify: Framing installation, spacing and bracing requirements the spec references
+  - id: 09gb.std.astm-c840
+    name: ASTM C840
+    title: Application and Finishing of Gypsum Board
+    verify: Fastening, joint treatment and control joint practice
+  - id: 09gb.std.astm-c1396
+    name: ASTM C1396/C1396M
+    title: Gypsum Board
+    verify: Board type and core claims on product data
+  - id: 09gb.std.astm-c1629
+    name: ASTM C1629/C1629M
+    title: Abuse-Resistant Nondecorated Interior Gypsum Panel Products and Fiber-Reinforced Cement Panels
+    verify: Abuse and impact classification levels where specified
+  - id: 09gb.std.astm-c1658
+    name: ASTM C1658/C1658M
+    title: Glass Mat Gypsum Panels
+    verify: Glass-mat panels used in humid or exposed locations
+  - id: 09gb.std.astm-d3273
+    name: ASTM D3273
+    title: Resistance to Growth of Mold on the Surface of Interior Coatings in an Environmental Chamber
+    verify: Mold-resistance claims for moisture- and mold-resistant boards
+  - id: 09gb.std.ga-214
+    name: GA-214
+    title: Gypsum Association levels of gypsum board finish
+    verify: Finish level per surface; confirm the edition the spec cites
+  - id: 09gb.std.ga-600
+    name: GA-600
+    title: Gypsum Association fire-resistance design manual (GA File Numbers)
+    verify: Generic rated designs cited by GA File Number instead of a testing agency listing; confirm the edition
+  - id: 09gb.std.sound
+    name: ASTM E90 / ASTM E413 / ASTM E336
+    title: Laboratory transmission loss, sound insulation rating, and field measurement of airborne sound attenuation between rooms
+    verify: Lab test reports behind each sound rating, and the field test method where the spec requires field testing
+  - id: 09gb.std.astm-c919
+    name: ASTM C919
+    title: Use of Sealants in Acoustical Applications
+    verify: Acoustical sealant practice at perimeters and penetrations
+
+regulatory_hooks:
+  - id: 09gb.rh.rated-wall-continuity
+    topic: rated-wall-continuity
+    question: >
+      For each kind of rated wall on this project (fire wall, fire barrier,
+      shaft enclosure, fire partition, smoke barrier, smoke partition), must
+      it run to the floor or roof deck above under the adopted code, or may it
+      stop at a rated ceiling membrane, and what has to continue above the
+      ceiling or through concealed spaces?
+    applies_when: Rated or smoke-resistant walls on the life safety plans
+    source_families: [building_code]
+    severity: high
+
+  - id: 09gb.rh.partition-deflection
+    topic: interior-partition-deflection-criteria
+    question: >
+      What lateral load and deflection limit does the adopted code set for
+      interior partitions, does the spec tighten it for brittle finishes
+      (tile, stone, plaster), and are the submitted limiting heights based on
+      those values?
+    applies_when: Non-structural interior framing
+    source_families: [building_code]
+    severity: medium
+
+  - id: 09gb.rh.board-inspection
+    topic: lath-gypsum-board-inspection
+    question: >
+      Does the AHJ require an inspection of gypsum board fastening (in rated
+      or shear assemblies) or of lath before taping or plastering covers it,
+      and who calls it?
+    applies_when: Rated gypsum assemblies, gypsum shear walls, or lath for plaster
+    source_families: [building_code]
+    severity: medium
+
+extract_fields:
+  - id: 09gb.xf.listed-design
+    label: Listed fire design and tested sound assembly per partition type
+    type: list
+    per: element
+    reconcile_against: [schedule.partition_type]
+  - id: 09gb.xf.framing
+    label: Stud depth, thickness and spacing per partition type
+    type: string
+    per: element
+    reconcile_against: [schedule.partition_type]
+  - id: 09gb.xf.board
+    label: Board type and layers on each face
+    type: string
+    per: element
+    reconcile_against: [schedule.partition_type]
+  - id: 09gb.xf.limiting-height
+    label: Limiting height used, with its deflection criterion and lateral load
+    type: string
+    per: element
+    reconcile_against: [drawings.building_sections, schedule.partition_type]
+  - id: 09gb.xf.head
+    label: Head condition and deflection track movement
+    type: string
+    per: element
+    reconcile_against: [drawings.details, drawings.structural]

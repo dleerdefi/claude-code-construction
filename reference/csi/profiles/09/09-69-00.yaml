@@ -1,0 +1,155 @@
+schema_version: 1
+kind: section
+id: "09 69 00"
+title: Access Flooring
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # pedestal anchorage and bracing are often delegated to the manufacturer
+
+scope_summary: >
+  Raised access floors for underfloor air distribution, control rooms,
+  classrooms and IT rooms (data center specifics come from that overlay).
+  The floor is a structural system on pedestals: its ratings have to match
+  the loads that sit and roll on it, its anchorage the seismic demand, and
+  its height every door, ramp, stair, elevator landing and adjacent floor
+  around it. When the cavity is an air plenum it is part of the HVAC system
+  and has to be sealed and kept to the materials the codes allow.
+
+submittals:
+  - id: 09af.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Panel and pedestal layout with finished floor height, cutouts, perforated and grille panels, ramps, steps and edge closures
+      - Pedestal anchorage and bracing, with the design basis where seismic design applies
+  - id: 09af.sub.product-data
+    type: Product Data
+    must_show:
+      - Concentrated, uniform, rolling and impact load ratings, with derating for cutouts and perforated panels
+      - Panel finish and its attachment, and air leakage data for plenum floors
+
+review_checks:
+  - id: 09af.load-ratings
+    kind: conformance
+    check: >
+      Panel and pedestal ratings cover the heaviest item on the equipment
+      layout and the loads applied moving it into place (pallet jacks, lifts,
+      rolling carts), with cut and perforated panels derated as the
+      manufacturer states.
+    trace_to: [spec.part2, drawings.equipment, schedule.equipment]
+    severity: high
+    owner: subcontractor
+
+  - id: 09af.finished-heights
+    kind: coordination
+    check: >
+      Finished floor height reconciles with slab depressions, ramps and steps
+      at every edge, door thresholds and swings, elevator landings, adjacent
+      floor finishes and the ceiling height left above, including ramp
+      slopes and landings on accessible routes.
+    trace_to: [drawings.plans, drawings.building_sections, drawings.structural, drawings.details]
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+  - id: 09af.plenum-floor
+    kind: coordination
+    check: >
+      Where the cavity is an air plenum, perimeter and penetration sealing,
+      panel air leakage, diffuser and grommet locations, cavity barriers and
+      the materials and cabling in the cavity follow the mechanical design and
+      the plenum rules; the slab is sealed before the floor goes in.
+    trace_to: [drawings.mechanical, drawings.electrical, spec.part2, spec.part3]
+    severity: high
+    owner: gc
+    gate: floor_finish_install
+
+  - id: 09af.pedestal-anchorage
+    kind: conformance
+    check: >
+      Pedestal adhesive, anchors and bracing are designed for the seismic
+      demand where it applies, with the design sealed and reviewed when the
+      spec or code calls for it, and the anchorage suits the slab finish and
+      any sealer under it.
+    trace_to: [spec.part1, spec.part2, drawings.structural]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 09af.underfloor-sequence
+    kind: coordination
+    check: >
+      Underfloor power, data, piping, leak and smoke detection are routed
+      clear of pedestal lines and installed and inspected before panels close
+      the cavity, with panels left removable over every service point.
+    trace_to: [drawings.electrical, drawings.mechanical, drawings.fire_alarm, drawings.technology]
+    severity: medium
+    owner: gc
+    gate: floor_finish_install
+
+failure_modes:
+  - id: 09af.fm.rolling-load
+    what_happens: Heavy equipment rolled across panels rated only for its static load
+    consequence: Crushed panels and stringers; floor replaced along the path
+    caught_by: [09af.load-ratings]
+    source: field_experience
+
+  - id: 09af.fm.height-mismatch
+    what_happens: Raised floor height not reconciled with doors, elevator and adjacent finishes
+    consequence: Field-built ramps with non-compliant slopes, doors re-hung, thresholds rebuilt
+    caught_by: [09af.finished-heights]
+    source: field_experience
+
+  - id: 09af.fm.leaky-plenum
+    what_happens: Perimeter gaps, open cable cutouts or an unsealed slab in an underfloor air plenum
+    consequence: Plenum cannot hold pressure; comfort complaints and dust; sealing done under a finished floor
+    caught_by: [09af.plenum-floor]
+    source: field_experience
+
+  - id: 09af.fm.unbraced-pedestals
+    what_happens: Pedestals only glued down where seismic bracing was required
+    consequence: Inspection failure; bracing retrofitted under installed equipment
+    caught_by: [09af.pedestal-anchorage]
+    source: industry_practice
+
+standards:
+  - id: 09af.std.cisca
+    name: CISCA Recommended Test Procedures for Access Floors
+    title: Ceilings and Interior Systems Construction Association test procedures for access floor load ratings
+    verify: Basis of the concentrated, uniform, rolling and impact ratings claimed
+
+regulatory_hooks:
+  - id: 09af.rh.plenum
+    topic: underfloor-air-space-wiring
+    question: >
+      Where the raised floor cavity carries supply or return air, what do the
+      adopted mechanical, electrical and building codes require of the
+      materials, cabling and smoke detection in it, and of its separation from
+      other spaces?
+    applies_when: Underfloor air distribution or any access floor cavity used as a plenum
+    source_families: [mechanical_code, electrical_code, building_code]
+    severity: high
+
+  - id: 09af.rh.seismic
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Does the seismic design category require access floor pedestals to be
+      anchored and braced to a design, and for what equipment loads on the
+      floor?
+    applies_when: Access floors in projects with seismic design requirements
+    source_families: [building_code_seismic]
+    severity: high
+
+extract_fields:
+  - id: 09af.xf.ratings
+    label: Panel concentrated, uniform and rolling load ratings
+    type: list
+    per: package
+    reconcile_against: [schedule.equipment, spec.part2]
+  - id: 09af.xf.height
+    label: Finished floor height above slab
+    type: string
+    per: package
+    reconcile_against: [drawings.building_sections, drawings.details]
