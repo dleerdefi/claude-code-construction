@@ -557,8 +557,13 @@ def resolve(kb, section, facilities=(), project=None):
             })
             floor = status_min(floor, status)
 
-    for eid, (layer, _) in suppressed_edges.items():
-        raise ResolveError(f"{layer}: suppress of edge '{eid}', which does not reach this section")
+    if suppressed_edges:
+        defined = {e.get("id") for path in (kb / "interfaces").glob("*.yaml")
+                   for e in load_yaml(path).get("edges", []) or []}
+        for eid, (layer, _) in suppressed_edges.items():
+            if eid in defined:
+                raise ResolveError(f"{layer}: suppress of edge '{eid}', which does not reach this section")
+            warnings.append(f"{layer} suppresses edge '{eid}', which no interface file defines")
 
     # applies_if: drop items whose condition on the compiled section facts is not met
     facts = {"contractor_designed": scalars["contractor_designed"] or "unknown",
@@ -1439,7 +1444,7 @@ def validate(kb):
                 errors.append(f"resolve {sid} {facs or ''}: {e}".replace(" []", ""))
                 continue
             for w in ctx["warnings"]:
-                if "caught by" in w:
+                if "caught by" in w or "no interface file defines" in w:
                     warnings.append(f"resolve {sid} {facs}: {w}")
 
     return errors, sorted(set(warnings)), sorted(set(lint)), drafts, len(files)
