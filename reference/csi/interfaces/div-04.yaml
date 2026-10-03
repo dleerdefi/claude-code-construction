@@ -45,7 +45,7 @@ edges:
     failure: Lintels missing when the mason reaches the head, or sized from a schedule that missed added openings; walls left open or field-sized steel set
 
   - id: if.04-veneer-stud-backup
-    a: ["04 20 00", "04 40 00"]
+    a: ["04 20 00", "04 40 00", "04 05 19"]
     a_trade: Masonry and stone veneer
     b: ["05 40 00"]
     b_trade: Cold-formed metal framing (veneer backup)
@@ -59,10 +59,10 @@ edges:
   - id: if.04-wall-top-anchorage
     a: ["04 20 00"]
     a_trade: Unit masonry
-    b: ["05 12 00", "05 50 00", "07 84 00"]
-    b_trade: Structural steel, metal fabrications and firestopping
-    a_provides: Which walls are loadbearing, shear or non-loadbearing, where each stops under structure, and which are rated
-    b_provides: Top-of-wall anchors or clip angles that brace the wall and allow deflection, bearing plates and anchors for members bearing on masonry, and a listed joint system at the head of rated masonry walls
+    b: ["05 12 00", "05 21 00", "05 50 00", "07 84 00"]
+    b_trade: Structural steel, steel joists, metal fabrications and firestopping
+    a_provides: Which walls are loadbearing, shear or non-loadbearing, where each stops under structure, which are rated, and the bond beam and top-of-wall elevations that bearing plates are set to
+    b_provides: Top-of-wall anchors or clip angles that brace the wall and allow deflection, bearing plates and anchors for beams, joists and girders bearing on masonry at the seat elevations the framing needs, and a listed joint system at the head of rated masonry walls
     responsibility:
       - item: Top-of-wall lateral anchors at structure
         typical: {furnish: "04 05 00 or 05 50 00", install: "04 20 00 or 05 50 00"}

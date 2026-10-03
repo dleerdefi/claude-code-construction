@@ -21,6 +21,28 @@ scope_summary: >
   or the metal grade, not the structure.
 
 suppress:
+  - id: if.04-wall-top-anchorage
+    reason: Masonry wall-top anchorage to the frame; no stair or railing component
+  - id: if.05-cladding-anchorage
+    reason: Cladding support steel; no stair or railing component
+  - id: if.05-overhead-door-supports
+    reason: Door support steel; no stair or railing component
+  - id: if.05-elevator-supports
+    reason: Hoistway support steel; no stair or railing component
+  - id: if.05-escalator-supports
+    reason: Escalator wellway and truss supports; no stair or railing component
+  - id: if.05-equipment-support-steel
+    reason: MEP equipment dunnage; no stair or railing component
+  - id: if.05-suspended-equipment-supports
+    reason: Hung equipment supports; no stair or railing component
+  - id: if.04-shelf-angles
+    reason: Masonry shelf angles are misc-metals items, not stair or railing scope
+  - id: if.04-loose-lintels
+    reason: Loose lintels are misc-metals items, not stair or railing scope
+  - id: if.roof-equipment-curbs
+    reason: Roof equipment support; no stair or railing component
+  - id: if.casework-backing
+    reason: Casework support steel; no stair or railing component
   - id: 05mf.scope-coverage
     reason: Miscellaneous-item buyout check; railing scope gaps are covered by 05rl.site-railings
   - id: 05mf.fm.support-steel-orphan
@@ -175,7 +197,7 @@ standards:
     title: Standard Test Methods for Performance of Permanent Metal Railing Systems and Rails for Buildings
     verify: Load test data offered in place of, or alongside, calculations
   - id: 05rl.std.naamm-railing
-    name: NAAMM Pipe Railing Systems Manual
+    name: NAAMM AMP 521
     title: Pipe Railing Systems Manual (National Association of Architectural Metal Manufacturers)
     verify: Fabrication and anchorage practice the spec references
 

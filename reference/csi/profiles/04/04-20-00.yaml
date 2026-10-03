@@ -16,8 +16,9 @@ scope_summary: >
   so the two need different joints and cannot be locked together. A
   reinforced wall is only as good as the grout around its bars, which is
   inspected once, before it is placed. The fire rating of a block wall comes
-  from the unit's aggregate and equivalent thickness under the code's method,
-  not from whether the cells are grouted.
+  from the unit's aggregate type and equivalent thickness under the code's
+  method, in which grout or loose fill in the cells also counts: a hollow wall
+  can reach a rating, and a grouted one does not reach it automatically.
 
 submittals:
   - id: 04um.sub.product-data
@@ -116,7 +117,8 @@ review_checks:
       equivalent thickness, with any grout, fill or finish the rating counts
       on, achieves the rating by the method the design uses (a listed design
       or the code's calculation). Solid grouting is neither assumed required
-      nor assumed sufficient; the unit governs.
+      nor assumed sufficient: grouted or filled cells raise the equivalent
+      thickness, and the aggregate type still sets what each rating needs.
     trace_to: [drawings.life_safety, schedule.partition_type, spec.part2]
     severity: high
     owner: subcontractor
@@ -193,7 +195,7 @@ reconciliations:
       the joint.
     severity: high
     owner: design_team
-    gate: masonry_grout
+    gate: procurement_release
 
   - id: 04um.rc.rated-walls
     between: [drawings.life_safety, schedule.partition_type, spec.part2]
@@ -292,8 +294,8 @@ standards:
     title: Code Requirements for Determining Fire Resistance of Concrete and Masonry Construction Assemblies
     verify: Equivalent thickness and aggregate basis for calculated ratings, where the adopted code references it
   - id: 04um.std.wall-bracing
-    name: Standard Practice for Bracing Masonry Walls Under Construction
-    title: Council for Masonry Wall Bracing (Mason Contractors Association of America)
+    name: MCAA Standard Practice for Bracing Masonry Walls Under Construction
+    title: Standard Practice for Bracing Masonry Walls Under Construction (Council for Masonry Wall Bracing, Mason Contractors Association of America)
     verify: The mason's bracing plan and restricted zones
 
 regulatory_hooks:

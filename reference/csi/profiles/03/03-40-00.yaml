@@ -121,7 +121,7 @@ failure_modes:
   - id: 03pc.fm.missed-insert
     what_happens: An embed or opening for another trade left off a piece cast before that trade's submittal was approved
     consequence: Field drilling of a prestressed member, post-installed anchors that need the precaster engineer's acceptance, or a recast piece
-    caught_by: [03pc.cast-in-for-others]
+    caught_by: [03pc.cast-in-for-others, if.03-precast-mep-cast-in]
     source: industry_practice
 
   - id: 03pc.fm.bearing-out
@@ -139,7 +139,7 @@ failure_modes:
   - id: 03pc.fm.reactions-unchecked
     what_happens: Connection forces from the precaster's design never checked against the supporting steel or concrete
     consequence: Overstressed supporting members; retrofit after erection
-    caught_by: [03pc.design-criteria]
+    caught_by: [03pc.design-criteria, if.03-precast-frame-connections]
     source: industry_practice
 
   - id: 03pc.fm.tolerance-stack
@@ -153,6 +153,11 @@ standards:
     name: PCI Plant Certification
     title: Precast/Prestressed Concrete Institute plant certification program
     verify: Plant's current certification category against the product type the spec requires
+  - id: 03pc.std.pci-135
+    name: PCI 135
+    title: Specification for Tolerances of Precast Concrete
+    verify: Product, erection and interfacing tolerances on the erection drawings against the document the spec adopts
+    note: Issued in 2025 and supersedes the tolerances in PCI MNL-135 (Tolerance Manual for Precast and Prestressed Concrete Construction), which older specs cite
 
 regulatory_hooks:
   - id: 03pc.rh.erection-safety

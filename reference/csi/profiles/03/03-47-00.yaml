@@ -16,6 +16,8 @@ suppress:
     reason: Panels are cast on site; there is no plant to certify
   - id: 03pc.xf.plant-certification
     reason: Panels are cast on site; there is no plant to certify
+  - id: 03pc.std.pci-135
+    reason: Tilt-up specs normally take panel tolerances from the concrete tolerance specification and the tilt-up guide they adopt, not the precast tolerance standard
 
 scope_summary: >
   Tilt-up wall panels cast on the building slab or a casting bed and lifted
@@ -113,7 +115,7 @@ failure_modes:
   - id: 03tu.fm.missed-embed
     what_happens: Joist seats, canopy embeds or electrical boxes left out of a panel
     consequence: Post-installed anchors at concentrated loads, surface-mounted conduit, engineer review after the fact
-    caught_by: [03tu.rc.panel-embeds]
+    caught_by: [03tu.rc.panel-embeds, if.03-precast-frame-connections, if.03-precast-mep-cast-in]
     source: industry_practice
 
   - id: 03tu.fm.brace-anchor-conflict

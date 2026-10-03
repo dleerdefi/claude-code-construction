@@ -9,6 +9,16 @@ last_reviewed: null
 
 contractor_designed: typical   # delegated to the framing engineer under the EOR's criteria
 
+suppress:
+  - id: d05.galvanizing-fabrication
+    reason: Framing members are roll-formed from sheet coated before forming; they are never hot-dip galvanized after fabrication
+  - id: d05.fm.unvented-sections
+    reason: Framing members are roll-formed from sheet coated before forming; they are never hot-dip galvanized after fabrication
+  - id: d05.std.astm-a385
+    reason: Venting and detailing for after-fabrication galvanizing does not apply to cold-formed framing
+  - id: d05.std.astm-a123
+    reason: The framing coating is specified on the sheet steel, not as galvanizing of fabricated products
+
 scope_summary: >
   Load-bearing and exterior cold-formed steel framing: wind-bearing exterior
   studs, load-bearing walls, joists and trusses, parapets, soffits and framing

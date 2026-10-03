@@ -57,7 +57,7 @@ failure_modes:
   - id: 03spc.fm.strand-cut
     what_happens: An opening cored through a plank or tee in the field, cutting strands
     consequence: Lost capacity in the piece; engineered repair or replacement
-    caught_by: [03spc.openings-in-prestressed, d03.coring-scanning]
+    caught_by: [03spc.openings-in-prestressed, d03.coring-scanning, if.03-precast-mep-cast-in]
     source: industry_practice
 
   - id: 03spc.fm.camber-steps

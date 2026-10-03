@@ -9,6 +9,16 @@ last_reviewed: null
 
 contractor_designed: sometimes   # profile and gauge usually by the EOR; some specs delegate deck selection
 
+suppress:
+  - id: d05.galvanizing-fabrication
+    reason: Deck is formed from sheet coated before forming; it is never hot-dip galvanized after fabrication
+  - id: d05.fm.unvented-sections
+    reason: Deck is formed from sheet coated before forming; it is never hot-dip galvanized after fabrication
+  - id: d05.std.astm-a385
+    reason: Venting and detailing for after-fabrication galvanizing does not apply to deck
+  - id: d05.std.astm-a123
+    reason: The deck coating is specified on the sheet steel, not as galvanizing of fabricated products
+
 scope_summary: >
   Roof deck, non-composite and composite floor deck, its fastening, shear
   studs, pour stops and the framing at openings. Deck is part of the
