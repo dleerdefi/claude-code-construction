@@ -66,6 +66,13 @@ TRACE_TERMS = {
     "schedule.master", "report.geotechnical", "report.energy_compliance",
     "register.submittal_log", "register.rfi_log", "register.asi_bulletin_log",
     "register.substitutions", "register.special_inspections",
+    "drawings.demolition", "drawings.site", "drawings.landscape", "drawings.enlarged_plans",
+    "drawings.building_sections", "drawings.fire_protection", "drawings.riser_diagrams",
+    "drawings.technology", "drawings.security", "drawings.foodservice", "drawings.equipment",
+    "schedule.window", "schedule.signage", "schedule.toilet_accessories",
+    "schedule.foodservice_equipment", "schedule.structural", "schedule.lintel",
+    "report.hazmat_survey", "report.existing_conditions", "report.commissioning",
+    "report.acoustical", "report.stormwater", "report.utility_requirements", "spec.division_01",
 }
 SOURCE_FAMILIES = {
     "accessibility", "building_code", "building_code_seismic", "fire_code",
@@ -349,6 +356,13 @@ def resolve(kb, section, facilities=(), project=None):
     project = Path(project).resolve() if project else None
     sid = resolve_section_id(kb, section)
     chain = lineage(sid)
+    reviewed_as = None
+    own = profile_path(kb, sid)
+    if own.exists() and load_yaml(own).get("same_as"):
+        # An alias: the same scope specified under another number (06 41 00 → 12 30 00).
+        reviewed_as = normalize(load_yaml(own)["same_as"])
+        chain = [n for n in lineage(reviewed_as)] + [sid]
+    match_ids = [sid] + ([reviewed_as] if reviewed_as else [])
     facilities = list(dict.fromkeys(list(facilities) + project_facilities(project)))
     warnings = []
     compiled = {name: {} for name in KEYED_LISTS}
@@ -448,9 +462,9 @@ def resolve(kb, section, facilities=(), project=None):
                 continue
             a = [normalize(x) for x in edge.get("a", [])]
             b = [normalize(x) for x in edge.get("b", [])]
-            if any(x and related(x, sid) for x in a):
+            if any(x and related(x, m) for x in a for m in match_ids):
                 this, other = "a", "b"
-            elif any(x and related(x, sid) for x in b):
+            elif any(x and related(x, m) for x in b for m in match_ids):
                 this, other = "b", "a"
             else:
                 continue
@@ -527,7 +541,7 @@ def resolve(kb, section, facilities=(), project=None):
 
     return {
         "query": {"section": sid, "title": scalars["title"], "facility_types": facilities,
-                  "project": str(project) if project else None},
+                  "project": str(project) if project else None, "reviewed_as": reviewed_as},
         "note": ("Knowledge, not requirements: each check names where to look (trace_to). "
                  "The project documents govern; surface conflicts, never resolve them silently."),
         "lineage": chain,
@@ -671,6 +685,8 @@ def to_markdown(ctx):
                f"Confidence floor: **{ctx['confidence_floor']}** · Review mode: {ctx['review_mode']} · "
                f"Contractor-designed: {ctx['contractor_designed']}")
     out.append(f"Lineage: {chain}")
+    if q.get("reviewed_as"):
+        out.append(f"Reviewed as {q['reviewed_as']} (same scope, specified under {q['section']})")
     ovs = [o["overlay"] for o in cov["overlays_loaded"]]
     if ovs or cov["overlays_missing"]:
         out.append(f"Overlays: {', '.join(ovs) or 'none'}"
@@ -887,6 +903,19 @@ def milestone_view(kb, mid, facilities=(), project=None):
             "reconciliations": sorted(recons, key=_sev_key),
             "failure_modes": failures,
             "notes": notes}
+
+
+def topics(kb):
+    """Every regulatory hook topic in the layer, with the hooks that use it."""
+    out = {}
+    for path in iter_files(kb, "profiles") + iter_files(kb, "overlays"):
+        doc = load_yaml(path)
+        for h in doc.get("regulatory_hooks", []) or []:
+            if h.get("topic"):
+                out.setdefault(h["topic"], []).append(
+                    {"hook": h.get("id"), "file": str(path.relative_to(kb)),
+                     "families": h.get("source_families", [])})
+    return dict(sorted(out.items()))
 
 
 def reflexes_markdown(view):
@@ -1123,6 +1152,14 @@ def validate(kb):
                 err(path, f"contractor_designed must be one of {CONTRACTOR_DESIGNED}")
             if doc.get("legacy_scope_file") and kind != "division":
                 err(path, "legacy_scope_file belongs on a division baseline only")
+            if doc.get("same_as"):
+                target = normalize(doc["same_as"])
+                if kind != "section" or not target or len(target) == 2:
+                    err(path, "same_as belongs on a section profile and must name another section")
+                elif not profile_path(kb, target).exists():
+                    err(path, f"same_as target {target} has no profile")
+                elif load_yaml(profile_path(kb, target)).get("same_as"):
+                    err(path, f"same_as target {target} is itself an alias; point at the real profile")
         if kind == "overlay":
             overlay_ids.append(str(doc.get("id")))
             if doc.get("facility_type") != doc.get("id"):
@@ -1259,6 +1296,22 @@ def validate(kb):
                     if extra:
                         err(path, f"edge {eid}: responsibility keys must be furnish/install/connect, got {sorted(extra)}")
 
+    # Ids are global: an id lives in one file (overrides restate an inherited id on purpose)
+    homes = {}
+    for path in files:
+        doc = load_yaml(path)
+        entries = []
+        for list_name in KEYED_LISTS:
+            entries += [(list_name, it) for it in doc.get(list_name, []) or [] if not it.get("override")]
+        entries += [("edges", e) for e in doc.get("edges", []) or []]
+        for list_name, item in entries:
+            iid = item.get("id")
+            if not iid:
+                continue
+            if iid in homes and homes[iid] != path:
+                err(path, f"{list_name} id {iid!r} is already defined in {homes[iid].relative_to(kb)} — ids are global")
+            homes.setdefault(iid, path)
+
     for path, target in escalate_targets:
         if target not in all_check_ids and not any(
                 target == h.get("id") for p in files for h in (load_yaml(p).get("regulatory_hooks") or [])):
@@ -1329,8 +1382,12 @@ def main():
     m = sub.add_parser("milestone", help="What must be verified before a milestone (no --id lists them)")
     m.add_argument("--id", help="Milestone id, e.g. wall_close_in")
     view_args(m)
+    t = sub.add_parser("topics", help="List regulatory hook topics (reuse one before inventing a new slug)")
+    t.add_argument("--format", choices=["yaml", "md"], default="md")
     v = sub.add_parser("validate", help="Validate every file, merge rule and authoring lint")
     v.add_argument("--strict", action="store_true", help="Treat warnings and lint as errors")
+    v.add_argument("--focus", action="append", default=[],
+                   help="Only report messages containing this text (repeatable), e.g. profiles/03/ or div-03")
     args = parser.parse_args()
 
     try:
@@ -1343,6 +1400,17 @@ def main():
         if args.command == "reflexes":
             view = reflexes(args.kb, args.facility, args.project)
             emit(reflexes_markdown(view) if args.format == "md" else dump(view), args.output)
+            return 0
+        if args.command == "topics":
+            data = topics(args.kb)
+            if args.format == "yaml":
+                emit(dump(data), None)
+            else:
+                lines = [f"# Regulatory hook topics ({len(data)})", ""]
+                for topic, uses in data.items():
+                    fams = sorted({f for u in uses for f in u["families"]})
+                    lines.append(f"- `{topic}` — {', '.join(u['hook'] for u in uses)} ({', '.join(fams)})")
+                emit("\n".join(lines) + "\n", None)
             return 0
         if args.command == "milestone":
             if not args.id:
@@ -1357,6 +1425,11 @@ def main():
         return 2
 
     errors, warnings, lint, drafts, count = validate(args.kb)
+    if args.focus:
+        def keep(msg):
+            return any(f in msg for f in args.focus)
+        errors, warnings, lint = [e for e in errors if keep(e)], [w for w in warnings if keep(w)], \
+            [x for x in lint if keep(x)]
     for e in errors:
         print(f"ERROR   {e}")
     for w in warnings:

@@ -63,6 +63,20 @@ milestones:
     inspect_before:
       - Underslab locations checked against current architectural layouts and approved equipment
 
+  - id: masonry_grout
+    title: Grouting of reinforced masonry
+    covers:
+      - Vertical reinforcement, bond beams and embedded anchors in grouted cells
+    inspect_before:
+      - Masonry reinforcement and cleanouts inspected, including special inspection where required
+
+  - id: steel_erection
+    title: Structural steel erection
+    covers:
+      - Anchor bolt and embed positions become fixed to the frame
+    inspect_before:
+      - Anchor bolt and embed survey accepted against the steel shop drawings
+
   - id: slab_pour
     title: Slab placement, on grade or elevated
     covers:
@@ -70,6 +84,7 @@ milestones:
       - Vapor retarder under slabs on grade
       - Sleeves, embeds, recesses, depressions and housekeeping pad dowels
     inspect_before:
+      - Subgrade accepted (proof-roll or testing) where the geotechnical report requires it
       - Underslab piping tests and rough-in inspection
       - Vapor retarder laps, seals and penetrations
       - Depressions and recesses for thick-set floors, drains and entry mats
@@ -151,6 +166,14 @@ milestones:
     inspect_before:
       - Slab moisture testing by the flooring manufacturer's method
       - Flatness and depressions checked against the flooring requirements
+
+  - id: energization
+    title: Permanent power energization
+    covers:
+      - Distribution equipment becomes live; work on it is energized work from here on
+    inspect_before:
+      - Electrical inspection and utility release
+      - Acceptance testing of switchgear and distribution equipment the spec requires
 
   - id: equipment_set
     title: Equipment set in place

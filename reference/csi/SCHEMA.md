@@ -75,6 +75,7 @@ last_reviewed: null       # YYYY-MM-DD
 |---|---|---|---|
 | `scope_summary` | text | most specific wins | What this section covers, in a PE's words |
 | `equivalents` | list of ids | not inherited | Other numbers the same scope is often specified under (e.g. casework in 06 41 00 vs 12 30 00). Taken from the queried section's own profile only, and surfaced so the skill checks which number the project uses |
+| `same_as` | section id | n/a | Section only. The same scope specified under another number (`06 41 00` → `12 30 00`): `resolve` compiles the target's lineage, then this file's own items, and matches interfaces on both numbers |
 | `legacy_numbers` | list | not inherited | MasterFormat 1995 numbers that map to this profile (`"12300"`). The resolver accepts them as input |
 | `legacy_scope_file` | path | n/a | Division only. Bridge to the archived `reference/pe_expertise/scope-*.md` until the division is migrated |
 | `review_mode` | `per_element` \| `package` | most specific wins | Whether the review skill fans out one worker per element (elevation, item, tag) or reviews the package whole |
@@ -326,7 +327,7 @@ Missing ancestors are allowed. They are listed under `coverage.missing` so a gap
 
 ### 7.2 Rules
 
-**M1 — Identity.** Keyed lists merge by `id`. Ids are unique within a file. Ids are scoped per list, but prefix them with the scope and list (`cw.` checks, `cw.fm.` failure modes, `cw.rh.` hooks, `cw.std.` standards, `cw.xf.` extract fields; `g.`, `d12.`, `lc.`, `hc.` likewise) so they never collide by accident and stay readable in findings.
+**M1 — Identity.** Keyed lists merge by `id`. Ids are global: one id, one file (an `override` restates an inherited id on purpose), and edge ids are unique across interface files. Conventions for new divisions are in `AUTHORING.md` §4. Ids are scoped per list, but prefix them with the scope and list (`cw.` checks, `cw.fm.` failure modes, `cw.rh.` hooks, `cw.std.` standards, `cw.xf.` extract fields; `g.`, `d12.`, `lc.`, `hc.` likewise) so they never collide by accident and stay readable in findings.
 
 **M2 — No accidental shadowing.** If a more specific layer reuses an inherited id without `override: true`, validation fails. Reusing an id is always a deliberate act.
 
@@ -439,7 +440,9 @@ PY="${CLAUDE_PLUGIN_ROOT}/bin/construction-python"; KB="${CLAUDE_PLUGIN_ROOT}/sc
 "$PY" "$KB" reflexes --project . --format md                                   # always-on checks for this project
 "$PY" "$KB" milestone --format md                                              # the milestone list
 "$PY" "$KB" milestone --id wall_close_in --project . --format md               # everything due before close-in
+"$PY" "$KB" topics                                                             # hook topics in use: reuse before inventing
 "$PY" "$KB" validate --strict
+"$PY" "$KB" validate --strict --focus "profiles/08/" --focus "div-08"         # only messages about these files
 ```
 
 - `--only` slices: `checks`, `reconciliations`, `hooks`, `interfaces`, `failures`, `submittals`, `standards`, `extract`.
@@ -451,6 +454,8 @@ PY="${CLAUDE_PLUGIN_ROOT}/bin/construction-python"; KB="${CLAUDE_PLUGIN_ROOT}/sc
 ---
 
 ## 12. Authoring rules
+
+The full process for writing a division is in `AUTHORING.md`. In short:
 
 1. **One home.** A fact lives in the most general file where it is always true, and nowhere else.
 2. **No bare numbers.** Thresholds, dimensions and durations are `regulatory_hook` questions or come from the project documents. Lead times never appear.
