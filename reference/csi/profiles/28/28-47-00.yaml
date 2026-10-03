@@ -1,0 +1,80 @@
+schema_version: 1
+kind: section
+id: "28 47 00"
+title: Mass Notification
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical
+
+scope_summary: >
+  Mass notification for emergencies beyond fire: in-building voice, outdoor
+  speakers, visual displays and distributed messaging (28 47 11 through
+  28 47 21 inherit from here). What it must cover comes from a risk analysis
+  the owner, agency or code calls for, and when it shares speakers with the
+  fire alarm, message priority and listing decide how the two systems
+  behave together.
+
+review_checks:
+  - id: 28mn.risk-analysis
+    kind: absence
+    check: >
+      A risk analysis or owner requirement defines the scenarios, coverage
+      areas (indoor, outdoor, wide area), message types and who may
+      initiate, and the design follows it.
+    trace_to: [spec.part1, spec.part2]
+    severity: high
+    owner: design_team
+
+  - id: 28mn.priority
+    kind: conformance
+    check: >
+      Message priority between mass notification and fire evacuation is set
+      as the risk analysis decides, fire alarm notification behavior while
+      mass notification has priority is defined, and combined equipment is
+      listed for both uses.
+    trace_to: [drawings.fire_alarm, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 28mn.intelligibility
+    kind: conformance
+    check: >
+      Speaker coverage and taps achieve intelligibility in each acoustically
+      distinguishable space, with intelligibility testing where the code or
+      spec requires it.
+    trace_to: [drawings.fire_alarm, report.acoustical]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 28mn.fm.priority-undefined
+    what_happens: Mass notification added to fire alarm speakers with no defined priority or listing for combined use
+    consequence: Fire alarm acceptance withheld until priority and listing are resolved
+    caught_by: [28mn.priority]
+    source: industry_practice
+
+  - id: 28mn.fm.scope-undefined
+    what_happens: No risk analysis; the contractor designs to the minimum
+    consequence: Coverage the owner expected (outdoor areas, specific messages, remote initiation) missing at turnover
+    caught_by: [28mn.risk-analysis]
+    source: industry_practice
+
+standards:
+  - id: 28mn.std.ul-2572
+    name: UL 2572
+    title: Mass Notification Systems
+    verify: Listing of mass notification control and combined equipment
+
+regulatory_hooks:
+  - id: 28mn.rh.required
+    topic: mass-notification-required
+    question: >
+      Does the adopted code, the owning agency or the campus policy require a
+      mass notification or emergency communication system and a risk
+      analysis for this building?
+    applies_when: Campuses, government and military facilities, large assembly, and buildings where the owner specifies mass notification
+    source_families: [fire_code, building_code]
+    severity: medium

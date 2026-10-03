@@ -1,0 +1,77 @@
+schema_version: 1
+kind: section
+id: "28 05 00"
+title: Common Work Results for Electronic Safety and Security
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Power sources, surge protection, cybersecurity, servers and storage,
+  network equipment and systems integration for security systems (28 05 07
+  through 28 05 53 inherit from here). These are the parts that connect
+  security to everything else: the network it rides on, the power it needs
+  during an outage, and the interfaces to fire alarm, elevators and building
+  automation that nobody owns unless the documents say who does.
+
+review_checks:
+  - id: 28cw.integration-list
+    kind: coordination
+    check: >
+      Each interface between security and fire alarm, elevators, building
+      automation, intercom and the owner's network is listed with the side
+      that provides the hardware, the software licenses and the programming.
+    trace_to: [spec.part1, drawings.security]
+    severity: high
+    owner: gc
+
+  - id: 28cw.standby-power
+    kind: conformance
+    check: >
+      Power supplies, panels and network switches serving security devices
+      have the battery or UPS standby the spec or owner requires, and those
+      that must run on the generator are on standby circuits.
+    trace_to: [spec.part2, drawings.security, schedule.electrical_panel]
+    severity: medium
+    owner: subcontractor
+
+  - id: 28cw.cybersecurity
+    kind: conformance
+    check: >
+      Network-connected devices meet the owner's cybersecurity requirements
+      (default credentials changed, supported firmware, encryption, network
+      segmentation), and the owner's IT group accepts them before they go on
+      its network.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: owner
+
+  - id: 28cw.exterior-surge
+    kind: conformance
+    check: >
+      Low-voltage circuits that leave the building (exterior and pole
+      cameras, gate operators, emergency phones, outbuildings) have surge
+      protection at both ends as specified.
+    trace_to: [spec.part2, drawings.security, drawings.site]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 28cw.fm.unowned-interface
+    what_happens: Elevator, fire alarm or building automation interface assumed by both the security contractor and the other trade to be the other's
+    consequence: Interface missing at commissioning; licenses and programming bought late
+    caught_by: [28cw.integration-list]
+    source: industry_practice
+
+  - id: 28cw.fm.outage-dark
+    what_happens: Security switches and power supplies left on normal power with no UPS
+    consequence: Cameras and locks lose power in an outage, the moment the owner most needs them
+    caught_by: [28cw.standby-power]
+    source: industry_practice
+
+  - id: 28cw.fm.blocked-by-it
+    what_happens: Devices delivered with defaults and unsupported firmware; the owner's IT group refuses to connect them
+    consequence: Commissioning stalls until devices are reconfigured or replaced
+    caught_by: [28cw.cybersecurity]
+    source: industry_practice

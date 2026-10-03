@@ -1,0 +1,55 @@
+schema_version: 1
+kind: division
+id: "28"
+title: Electronic Safety and Security
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Fire detection and alarm, mass notification, access control, video
+  surveillance and intrusion detection. Fire alarm is life safety,
+  contractor-designed and permitted on its own, and touches more trades than
+  any other system; security is shaped by owner standards the contract
+  documents often only reference. Both depend on pathways, power and network
+  provided by others, and most of their value is in the integrations: what
+  each system tells the others to do.
+
+review_checks:
+  - id: d28.head-end-spaces
+    kind: absence
+    check: >
+      Head-end equipment (fire alarm control units, access control and video
+      servers and storage, intrusion panels) has a room or rack with power,
+      network, cooling and service clearance, and remote panels sit where
+      they can be serviced without entering secure or occupied spaces.
+    trace_to: [drawings.enlarged_plans, drawings.security, drawings.fire_alarm]
+    severity: medium
+    owner: design_team
+
+  - id: d28.owner-platform
+    kind: coordination
+    check: >
+      Where the owner already runs a platform the new system must join (a
+      security head-end and credential system, or a campus fire alarm
+      network and its proprietary supervising station), the platform,
+      licensing and cybersecurity rules are written into the contract
+      documents before product data is reviewed against the basis of design.
+    trace_to: [spec.part1, spec.part2_manufacturers]
+    severity: high
+    owner: owner
+    gate: procurement_release
+
+failure_modes:
+  - id: d28.fm.platform-mismatch
+    what_happens: Submittal approved on the spec's basis of design while the owner runs a different security or fire alarm network platform campus-wide
+    consequence: Replacement, or a second head-end the owner won't support
+    caught_by: [d28.owner-platform]
+    source: industry_practice
+
+  - id: d28.fm.no-server-room
+    what_happens: Video and access control servers have no conditioned room or rack space
+    consequence: Equipment in a closet without cooling; failures and relocation after turnover
+    caught_by: [d28.head-end-spaces]
+    source: industry_practice

@@ -1,0 +1,329 @@
+schema_version: 1
+kind: section
+id: "28 46 00"
+title: Fire Detection and Alarm
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Current MasterFormat number. Projects on older editions specify this scope as
+# 28 31 00, which current MasterFormat assigns to Intrusion Detection (28 30 00 profile).
+
+contractor_designed: typical
+
+scope_summary: >
+  Fire alarm and detection, usually performance-specified: the engineer shows
+  intent and the contractor's designer produces the permit drawings,
+  calculations and sequence of operations (28 46 11 through 28 46 24 inherit
+  from here). It is the most connected system in the building (sprinkler
+  supervision, elevator recall and shunt trip, air handler shutdown and smoke
+  control, dampers, door hold-opens and locked-door release, kitchen hood
+  suppression, generators and fire pumps) and most acceptance failures are
+  integration failures. Devices go in after finishes, but their wiring, the
+  interface modules and the other trades' contacts must be in place before
+  ceilings close.
+
+submittals:
+  - id: 28fa.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Device layout on plans that show ceiling features (beams, soffits, diffusers, luminaires) and ceiling heights
+      - Riser with every circuit, power extender and interface module
+      - Sequence of operations matrix, every input against every output
+      - Notification appliance settings (candela, speaker taps) and pathway class and survivability
+      - Control unit, annunciator and communicator locations
+  - id: 28fa.sub.calculations
+    type: Design Data
+    must_show:
+      - Secondary power calculations for the control unit and every power extender
+      - Voltage drop for every notification circuit, at the lowest voltage the listing allows
+      - Speaker circuit loading, and intelligibility analysis where required
+  - id: 28fa.sub.product-data
+    type: Product Data
+    must_show:
+      - Every device and module, listed and compatible with the submitted control unit
+  - id: 28fa.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Designer and installer qualifications the spec or AHJ requires, and the seal where one is required
+  - id: 28fa.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Pre-test results, the acceptance test record and the record of completion
+
+review_checks:
+  - id: 28fa.battery-calcs
+    kind: conformance
+    check: >
+      Secondary power calculations use the submitted devices' standby and
+      alarm currents for the durations the code requires, with the capacity
+      margin the spec states, for the control unit and every power extender.
+    trace_to: [spec.part2, drawings.fire_alarm]
+    severity: high
+    owner: subcontractor
+
+  - id: 28fa.voltage-drop
+    kind: conformance
+    check: >
+      Notification circuit voltage drop is calculated to the last appliance
+      at the lowest supply voltage the equipment listing allows (battery at
+      end of discharge), over the installed circuit lengths.
+    trace_to: [drawings.fire_alarm]
+    severity: high
+    owner: subcontractor
+
+  - id: 28fa.notification-coverage
+    kind: conformance
+    check: >
+      Audible and visible notification reaches every occupiable space,
+      including restrooms, sleeping rooms with the appliances required there,
+      and spaces whose noise or shape needs added appliances; strobes seen
+      together are synchronized as the code requires, and speaker taps and
+      candela settings are on the drawings.
+    trace_to: [drawings.fire_alarm, drawings.plans]
+    severity: high
+    owner: subcontractor
+
+  - id: 28fa.duct-detectors
+    kind: absence
+    check: >
+      Duct smoke detectors on the fire alarm drawings match every air
+      handler, damper and duct location the mechanical drawings and schedules
+      call for, and concealed detectors have remote test and indicator
+      stations.
+    trace_to: [drawings.mechanical, schedule.mechanical_equipment, drawings.fire_alarm]
+    severity: high
+    owner: gc
+
+  - id: 28fa.survivability
+    kind: conformance
+    check: >
+      Circuits that must survive attack by fire (voice evacuation risers in
+      partial-evacuation or relocation buildings, and others the code names)
+      use the pathway survivability level required: rated cable, a rated
+      shaft or enclosure, or a route the code accepts.
+    trace_to: [drawings.fire_alarm, drawings.life_safety]
+    severity: high
+    owner: subcontractor
+
+  - id: 28fa.annunciator
+    kind: conformance
+    check: >
+      Control unit and annunciator locations are the ones the fire department
+      accepts (responding entrance, fire command center), and annunciator
+      zoning matches what responders need to find an alarm.
+    trace_to: [drawings.fire_alarm, drawings.life_safety]
+    severity: medium
+    owner: design_team
+
+  - id: 28fa.existing-system
+    kind: absence
+    check: >
+      In alterations and additions, new devices are listed as compatible with
+      the existing control unit and fit its remaining capacity, or the
+      replacement scope is defined in the contract documents.
+    trace_to: [drawings.fire_alarm, drawings.demolition, report.existing_conditions]
+    severity: high
+    owner: design_team
+
+  - id: 28fa.monitoring-path
+    kind: completeness
+    check: >
+      The communicator, its communication paths and the supervising station
+      contract are arranged so monitoring is live for the acceptance test.
+    trace_to: [spec.part1, drawings.fire_alarm]
+    severity: high
+    owner: owner
+    gate: substantial_completion
+
+  - id: 28fa.acceptance
+    kind: completeness
+    check: >
+      Pre-test of every device and interface, the acceptance test with the
+      AHJ witness, the record of completion and record drawings are
+      scheduled after the systems it controls (elevators, smoke control,
+      dampers, suppression, access control) are ready to be tested together.
+    trace_to: [spec.part3, report.commissioning]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+reconciliations:
+  - id: 28fa.rc.sequence-matrix
+    reflex: true
+    between: [drawings.fire_alarm, drawings.mechanical, schedule.door_hardware, drawings.fire_protection, drawings.electrical]
+    key: Each input and each controlled output
+    fields: [initiating device or system, air handler shutdown or smoke control mode, damper action, door hold-open release and locked-door unlock, elevator recall floors and shunt trip, sprinkler and suppression supervision, generator and fire pump supervision]
+    check: >
+      Every output in the fire alarm sequence matrix has its counterpart on
+      the other trade's documents (air handlers and smoke control modes in
+      the mechanical sequences, dampers on the damper schedule, held-open and
+      access-controlled doors in the hardware sets, elevator recall floors,
+      sprinkler and suppression contacts), and every point those documents
+      expect the fire alarm to monitor or control is in the matrix.
+    severity: critical
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 28fa.rc.devices-vs-rcp
+    between: [drawings.fire_alarm, drawings.rcp, drawings.mechanical]
+    key: Room
+    fields: [detector locations against diffusers and returns, beam and soffit conditions, ceiling height and slope, appliance mounting]
+    check: >
+      Device locations on the fire alarm drawings work with the reflected
+      ceiling plans: detectors kept clear of supply diffusers and beam
+      pockets by the spacing rules, appliances not hidden by soffits or
+      bulkheads, and high, sloped or beamed ceilings treated as the standard
+      requires.
+    severity: medium
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+failure_modes:
+  - id: 28fa.fm.matrix-orphan
+    what_happens: The matrix lists outputs to air handlers, dampers or doors the other trades never wired for, or the mechanical sequence expects a fire alarm signal the matrix lacks
+    consequence: Acceptance test fails on integrations; retest with the AHJ and occupancy delayed
+    caught_by: [28fa.rc.sequence-matrix, if.23-fire-alarm-hvac, if.08-fire-alarm-doors, if.21-supervision]
+    source: industry_practice
+
+  - id: 28fa.fm.recall-floors
+    what_happens: Elevator lobby, machine room and hoistway detectors not programmed for the primary and alternate recall floors, or the shunt trip not monitored
+    consequence: Elevator inspection and fire alarm acceptance both fail
+    caught_by: [28fa.rc.sequence-matrix, if.14-elevator-fire-alarm]
+    source: industry_practice
+
+  - id: 28fa.fm.diffuser-detector
+    what_happens: Smoke detectors placed beside supply diffusers or in beam pockets
+    consequence: Detectors relocated at pre-test; ceilings patched
+    caught_by: [28fa.rc.devices-vs-rcp]
+    source: industry_practice
+
+  - id: 28fa.fm.battery-undersized
+    what_happens: Battery calculations from the design-stage device count; strobes and speakers added during plan review
+    consequence: Batteries or power extenders added late; panels relocated
+    caught_by: [28fa.battery-calcs]
+    source: industry_practice
+
+  - id: 28fa.fm.end-of-line-voltage
+    what_happens: Voltage drop calculated at nominal voltage instead of the battery's end-of-discharge voltage
+    consequence: Appliances at circuit ends fail the battery test; circuits split
+    caught_by: [28fa.voltage-drop]
+    source: industry_practice
+
+  - id: 28fa.fm.duct-detector-gap
+    what_happens: Duct detectors furnished with the air handlers, but nobody carries mounting, wiring or the remote test station
+    consequence: Unwired detectors at the acceptance test
+    caught_by: [28fa.duct-detectors, if.23-duct-smoke-detectors]
+    source: industry_practice
+
+  - id: 28fa.fm.monitoring-not-live
+    what_happens: Monitoring lines or cellular communicator not live when the AHJ arrives for the acceptance test
+    consequence: Test rescheduled; occupancy delayed
+    caught_by: [28fa.monitoring-path, if.27-fire-alarm-communicator]
+    source: industry_practice
+
+  - id: 28fa.fm.existing-incompatible
+    what_happens: New devices added to an existing control unit that isn't listed for them or has no capacity left
+    consequence: Control unit replacement discovered during installation
+    caught_by: [28fa.existing-system]
+    source: industry_practice
+
+standards:
+  - id: 28fa.std.nfpa-72
+    name: NFPA 72
+    title: National Fire Alarm and Signaling Code
+    verify: Edition the jurisdiction adopts; detection spacing, notification, secondary power, survivability and testing
+  - id: 28fa.std.ul-864
+    name: UL 864
+    title: Control Units and Accessories for Fire Alarm Systems
+    verify: Control unit listing and the compatibility of every device with it
+  - id: 28fa.std.ul-2196
+    name: UL 2196
+    title: Fire Test for Circuit Integrity of Fire-Resistive Power, Instrumentation, Control and Data Cables
+    verify: Fire-resistive cable claimed for survivability, installed as its listing requires
+
+regulatory_hooks:
+  - id: 28fa.rh.system-required
+    topic: fire-alarm-system-requirements
+    question: >
+      What fire alarm system does the adopted code require for this
+      occupancy (manual initiation, automatic detection, occupant
+      notification, emergency voice/alarm communication), and where may
+      detection be omitted because the building is sprinklered?
+    applies_when: Every building with a fire alarm or detection system
+    source_families: [fire_code, building_code]
+    severity: critical
+
+  - id: 28fa.rh.notification
+    topic: fire-alarm-notification-coverage
+    question: >
+      What audible, visible and voice notification do the adopted code and
+      accessibility standard require here (sleeping rooms, restrooms, public
+      and common use areas, voice intelligibility), and which spaces may be
+      exempt?
+    applies_when: Every fire alarm system with occupant notification
+    source_families: [fire_code, accessibility]
+    severity: high
+
+  - id: 28fa.rh.secondary-power
+    topic: fire-alarm-secondary-power
+    question: >
+      What standby and alarm durations on secondary power does the adopted
+      code require for the fire alarm and emergency communication system,
+      and is a capacity margin required?
+    applies_when: Every fire alarm system
+    source_families: [fire_code]
+    severity: high
+
+  - id: 28fa.rh.survivability
+    topic: fire-alarm-pathway-survivability
+    question: >
+      Which fire alarm and emergency communication pathways need
+      survivability here (high-rise, partial evacuation or relocation, areas
+      of refuge), and at what level?
+    applies_when: Emergency voice/alarm communication systems, and high-rise or partial-evacuation buildings
+    source_families: [fire_code, building_code]
+    severity: high
+
+  - id: 28fa.rh.duct-detectors
+    topic: duct-smoke-detector-requirements
+    question: >
+      Must the duct smoke detectors the mechanical code requires connect to
+      the building fire alarm system, and do they initiate a supervisory or
+      an alarm signal with what remote indication?
+    applies_when: Buildings with a fire alarm system and air handlers that require duct detection
+    source_families: [fire_code, mechanical_code]
+    severity: medium
+
+  - id: 28fa.rh.carbon-monoxide
+    topic: carbon-monoxide-detection
+    question: >
+      Does the adopted code require carbon monoxide detection in this
+      occupancy (fuel-burning appliances, enclosed parking, classrooms or
+      sleeping rooms), and must it report to the fire alarm system?
+    applies_when: Buildings with fuel-burning appliances, attached or enclosed parking, or occupancies the code names
+    source_families: [fire_code, building_code]
+    severity: medium
+
+  - id: 28fa.rh.acceptance
+    topic: fire-alarm-acceptance-testing
+    question: >
+      What acceptance testing, AHJ witnessing, documentation (record of
+      completion, record drawings) and supervising station connection does
+      the jurisdiction require before occupancy?
+    applies_when: Every new or altered fire alarm system
+    source_families: [fire_code]
+    severity: high
+
+extract_fields:
+  - id: 28fa.xf.secondary-power
+    label: Battery capacity and calculated margin, per control unit and power extender
+    type: list
+    per: package
+    reconcile_against: [spec.part2]
+  - id: 28fa.xf.matrix
+    label: Sequence matrix inputs and outputs
+    type: list
+    per: package
+    reconcile_against: [drawings.mechanical, schedule.door_hardware, drawings.fire_protection]

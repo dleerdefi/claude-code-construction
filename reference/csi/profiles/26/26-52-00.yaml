@@ -1,0 +1,120 @@
+schema_version: 1
+kind: section
+id: "26 52 00"
+title: Safety Lighting
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Emergency lighting and exit signs (26 52 13 inherits from here), powered by
+  integral batteries, a central inverter or the generator's emergency branch.
+  The questions are coverage of the whole means of egress to the public way,
+  the source and how it transfers, and testing. Drawings often stop
+  emergency lighting at the exterior door and forget the exit discharge,
+  stair landings and the rooms the code adds.
+
+submittals:
+  - id: 26el.sub.product-data
+    type: Product Data
+    must_show:
+      - Emergency units, exit signs and emergency drivers with their listing, rated duration and test features
+      - Central inverter capacity and runtime where used
+      - Emergency transfer devices for normally controlled luminaires
+
+review_checks:
+  - id: 26el.source
+    kind: conformance
+    check: >
+      Each emergency luminaire's source matches the design (integral
+      battery, inverter or generator emergency branch); battery units and
+      inverters are fed from the unswitched circuit serving the area, and
+      generator-fed luminaires are on emergency circuits.
+    trace_to: [drawings.electrical, schedule.lighting_fixture, drawings.single_line]
+    severity: high
+    owner: subcontractor
+
+  - id: 26el.exit-signs
+    kind: conformance
+    check: >
+      Exit sign types (faces, directional arrows, mounting, legend color the
+      jurisdiction requires, and photoluminescent or self-luminous signs only
+      where allowed) match the life safety plans and carry the required
+      listing.
+    trace_to: [drawings.life_safety, schedule.lighting_fixture]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26el.testing
+    kind: completeness
+    check: >
+      Initial functional and duration testing of battery units and
+      inverters, the self-test or remote-test features specified, and the
+      test record the AHJ accepts are planned before occupancy.
+    trace_to: [spec.part3]
+    severity: medium
+    owner: gc
+    gate: substantial_completion
+    scope: package
+
+reconciliations:
+  - id: 26el.rc.egress-paths
+    reflex: true
+    between: [drawings.life_safety, drawings.electrical]
+    key: Egress path segment (room, corridor, stair and landing, exit discharge)
+    fields: [emergency luminaires present, exit signs at exits and changes of direction, source]
+    check: >
+      Every segment of the means of egress on the life safety plans,
+      including stairs, landings and the exterior exit discharge to the
+      public way, has emergency lighting and the exit signs it needs on the
+      lighting plans; rooms the code or spec adds (electrical, generator,
+      fire command, fire pump) are covered, and no sign points toward a dead
+      end or a door that is not an exit.
+    severity: high
+    owner: design_team
+
+failure_modes:
+  - id: 26el.fm.discharge-dark
+    what_happens: Exterior exit discharge and the path to the public way left without emergency lighting
+    consequence: Fails final inspection; exterior luminaires and circuits added at the end of the job
+    caught_by: [26el.rc.egress-paths]
+    source: industry_practice
+
+  - id: 26el.fm.wrong-circuit
+    what_happens: Battery units wired to a switched circuit, or generator-fed luminaires connected to normal circuits
+    consequence: Batteries drain or test as failed; egress lighting lost on a power outage
+    caught_by: [26el.source]
+    source: industry_practice
+
+  - id: 26el.fm.sign-legend
+    what_happens: Exit signs ordered with the wrong legend color or without the listing the jurisdiction requires
+    consequence: Signs replaced before occupancy
+    caught_by: [26el.exit-signs]
+    source: industry_practice
+
+standards:
+  - id: 26el.std.ul-924
+    name: UL 924
+    title: Emergency Lighting and Power Equipment
+    verify: Listing of emergency units, exit signs, emergency drivers and transfer devices
+
+regulatory_hooks:
+  - id: 26el.rh.egress-illumination
+    topic: egress-illumination-and-exit-signs
+    question: >
+      What illumination level, uniformity and duration does the adopted
+      building or life safety code require on the means of egress under
+      emergency power, which spaces beyond egress paths need emergency
+      lighting, and what exit sign placement, legend color and illumination
+      rules apply here?
+    applies_when: Every building with a means of egress that requires illumination
+    source_families: [building_code, fire_code]
+    severity: high
+
+extract_fields:
+  - id: 26el.xf.source
+    label: Emergency source for the type (battery, inverter or generator)
+    type: string
+    per: element
+    reconcile_against: [drawings.electrical, schedule.lighting_fixture]

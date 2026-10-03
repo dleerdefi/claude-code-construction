@@ -1,0 +1,82 @@
+schema_version: 1
+kind: interfaces
+id: div-27
+title: Interfaces owned by Division 27
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with lower divisions (07, 09, 14, 23, 26) live in those divisions' files.
+
+edges:
+  # ── Service entrance ──────────────────────────────────────────
+  - id: if.27-incoming-services
+    a: ["27 05 43", "27 05 13"]
+    a_trade: Communications underground pathways and services
+    b: ["33 81 00", "33 82 00"]
+    b_trade: Communications utility structures and distribution
+    a_provides: Entrance conduits from the property line or carrier handhole to the entrance room, sized and counted per carrier, with pull lines, bends within limits and the entrance protection location
+    b_provides: Carrier service points, handholes and the demarcation location each carrier requires, and who builds the site duct
+    responsibility:
+      - item: Site duct and handholes for carrier services
+        typical: {furnish: "27 05 43, 33 82 00 or the carrier", install: "27 05 43, 33 82 00 or the carrier"}
+        confirm_in: [spec.part1, drawings.site, drawings.technology]
+    gate: {milestone: trench_backfill}
+    severity: high
+    failure: Entrance conduits missing or undersized for the carriers; site and building opened after paving to add them
+
+  # ── Electronic safety and security ────────────────────────────
+  - id: if.27-security-network
+    a: ["27 10 00", "27 20 00"]
+    a_trade: Structured cabling and data network
+    b: ["28 05 00", "28 10 00", "28 20 00"]
+    b_trade: Security systems
+    a_provides: Cabling to each device location, switch ports, power-over-Ethernet budget and network segments under the owner's network policy
+    b_provides: Device counts and locations, power class and bandwidth per device, and which devices need standby power
+    responsibility:
+      - item: Network switches serving security devices
+        typical: {furnish: "27 20 00, 28 05 00 or owner", install: "27 20 00 or 28 05 00"}
+        confirm_in: [spec.part1, drawings.technology, drawings.security]
+      - item: Horizontal cabling to security devices
+        typical: {furnish: "27 10 00 or 28 05 00", install: "27 10 00 or 28 05 00"}
+        confirm_in: [spec.part1, drawings.security]
+    gate: {milestone: procurement_release}
+    severity: high
+
+  - id: if.27-fire-alarm-communicator
+    a: ["27 05 28", "27 05 43", "27 10 00"]
+    a_trade: Communications services and cabling
+    b: ["28 46 00"]
+    b_trade: Fire detection and alarm
+    a_provides: Telephone lines, network connection or antenna pathway from the service entrance to the communicator
+    b_provides: Communicator type, number of communication paths required and its location
+    responsibility:
+      - item: Supervising station monitoring service and communication lines
+        typical: {furnish: "owner or 28 46 00"}
+        confirm_in: [spec.part1, drawings.fire_alarm]
+    gate:
+      milestone: substantial_completion
+      note: The path must be live for the AHJ acceptance test, which comes before substantial completion
+    severity: high
+
+  - id: if.27-paging-fire-alarm
+    a: ["27 50 00"]
+    a_trade: Paging, music and sound masking
+    b: ["28 46 00"]
+    b_trade: Fire detection and alarm
+    a_provides: A listed input that mutes or shuts down paging, music and sound masking
+    b_provides: Relay outputs and programming that operate that input on alarm
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+
+  - id: if.27-errcs-fire-alarm-monitoring
+    a: ["27 53 19"]
+    a_trade: In-building radio coverage
+    b: ["28 46 00"]
+    b_trade: Fire detection and alarm
+    a_provides: Supervisory outputs for amplifier, antenna, power and battery trouble at a point the fire alarm can reach
+    b_provides: Monitor modules, programming and annunciation for those signals
+    gate: {milestone: above_ceiling_close_in}
+    severity: high

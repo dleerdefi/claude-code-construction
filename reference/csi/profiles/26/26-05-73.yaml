@@ -1,0 +1,138 @@
+schema_version: 1
+kind: section
+id: "26 05 73"
+title: Power System Studies
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# The study is reviewed with the distribution equipment it rates, not with
+# raceway and conductors: compile 26 20 00's lineage, then the items below.
+same_as: "26 20 00"
+
+scope_summary: >
+  Short-circuit, protective device coordination and arc-flash studies. The
+  study has to be run on the equipment actually submitted, with the serving
+  utility's written fault data and real feeder lengths, and its results have
+  to be back before distribution equipment is released: interrupting and
+  withstand ratings, selective coordination and arc-flash labels all come
+  from it. A study delivered at the end documents problems instead of
+  preventing them.
+
+submittals:
+  - id: 26ps.sub.study
+    type: Design Data
+    must_show:
+      - The utility's written available fault current and X/R ratio, and the utility transformer it assumes
+      - Input data as submitted (equipment, conductor sizes and lengths, transformer impedances, motor and generator contributions)
+      - A table of each device's and assembly's rating against the calculated fault at its line terminals
+      - Time-current curves with recommended settings for every adjustable device
+      - Arc-flash incident energy by the method the spec cites, with label content
+      - Seal of the engineer who prepared it, where the spec or jurisdiction requires one
+
+review_checks:
+  - id: 26ps.inputs
+    kind: completeness
+    check: >
+      The study is built on the serving utility's written fault data (and
+      the largest transformer the utility could later install there, where
+      the spec asks for it), the submitted equipment, and installed or planned
+      feeder lengths, not on design-phase placeholders.
+    trace_to: [report.utility_requirements, drawings.single_line]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 26ps.operating-modes
+    kind: completeness
+    check: >
+      Every source and operating mode is modeled: utility, generator,
+      closed-transition or paralleled transfer, motor contribution, and
+      photovoltaic or storage inverters, with the worst case used for ratings
+      and the lowest fault used for coordination and arc-flash.
+    trace_to: [drawings.single_line]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26ps.shortfall-table
+    kind: conformance
+    check: >
+      The study's rating table flags every device or assembly below its
+      calculated fault, and each flag has a resolution (different device,
+      current-limiting protection, or a listed series combination) carried
+      into the equipment submittals.
+    trace_to: [drawings.single_line]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 26ps.selectivity
+    kind: conformance
+    check: >
+      Coordination curves show selectivity wherever the code or spec
+      requires it, and the device types, frames and trip units that achieve
+      it are fed back into the equipment submittals before release.
+    trace_to: [drawings.single_line, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 26ps.arc-flash
+    kind: completeness
+    check: >
+      Arc-flash results use the calculation method and edition the spec
+      cites, labels carry the content the code and the owner's electrical
+      safety program require, and any energy-reduction feature the results
+      depend on is in the equipment.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+    gate: energization
+
+  - id: 26ps.settings-applied
+    kind: completeness
+    check: >
+      Recommended trip settings are applied in the field and verified before
+      energization; equipment shipped at factory defaults does not match the
+      study or its labels.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: energization
+
+failure_modes:
+  - id: 26ps.fm.placeholder-inputs
+    what_happens: Study run on the design engineer's assumed utility fault and estimated feeder lengths, never updated with the utility's letter
+    consequence: Ratings and labels that don't reflect the installed system; equipment found underrated after energization
+    caught_by: [26ps.inputs]
+    source: industry_practice
+
+  - id: 26ps.fm.selectivity-unachievable
+    what_happens: Selective coordination for emergency or elevator circuits cannot be met with the breakers already submitted
+    consequence: Breaker frames, trip units or fuses changed after release; panel re-fabrication
+    caught_by: [26ps.selectivity, 26ds.study-before-release]
+    source: industry_practice
+
+  - id: 26ps.fm.defaults-left
+    what_happens: Breakers energized at factory default settings
+    consequence: Nuisance trips or lost coordination; arc-flash labels that don't match actual settings
+    caught_by: [26ps.settings-applied]
+    source: industry_practice
+
+standards:
+  - id: 26ps.std.ieee-1584
+    name: IEEE 1584
+    title: IEEE Guide for Performing Arc-Flash Hazard Calculations
+    verify: Calculation method and edition used for incident energy
+  - id: 26ps.std.nfpa-70e
+    name: NFPA 70E
+    title: Standard for Electrical Safety in the Workplace
+    verify: Label content and the owner's electrical safety program the labels serve
+
+extract_fields:
+  - id: 26ps.xf.shortfalls
+    label: Devices and assemblies rated below the calculated fault, with resolution
+    type: list
+    per: package
+    reconcile_against: [drawings.single_line]

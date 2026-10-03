@@ -1,0 +1,61 @@
+schema_version: 1
+kind: section
+id: "28 30 00"
+title: Security Detection, Alarm, and Monitoring
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Intrusion detection, security monitoring and control, tracking and audio
+  monitoring (28 31 00 through 28 37 00 inherit from here). Intrusion systems
+  are zoned around how the owner occupies and arms the building, and they
+  share door devices with access control. The misses are position switches
+  furnished twice or not at all, sensors placed where they false-alarm, and
+  monitoring that nobody contracted for.
+
+review_checks:
+  - id: 28id.shared-devices
+    kind: coordination
+    check: >
+      Door position switches, glass-break and motion sensors shared with
+      access control are furnished once and wired to the system that
+      monitors them, with the integration between the two defined.
+    trace_to: [drawings.security, schedule.door_hardware]
+    severity: medium
+    owner: gc
+
+  - id: 28id.zones
+    kind: conformance
+    check: >
+      Detection zones and arming areas follow the owner's operating areas
+      and schedules, with sensor types suited to each space (ceiling height,
+      air movement from diffusers, glazing type).
+    trace_to: [drawings.security, drawings.mechanical]
+    severity: medium
+    owner: subcontractor
+
+  - id: 28id.monitoring
+    kind: completeness
+    check: >
+      Central station monitoring, the communication path and any alarm
+      registration the jurisdiction requires are arranged by the party the
+      contract names before turnover.
+    trace_to: [spec.part1]
+    severity: medium
+    owner: owner
+    gate: substantial_completion
+
+failure_modes:
+  - id: 28id.fm.dps-twice
+    what_happens: Door position switches furnished by both the door hardware supplier and the security contractor, or by neither
+    consequence: Duplicate cost, or doors unmonitored at turnover
+    caught_by: [28id.shared-devices]
+    source: industry_practice
+
+  - id: 28id.fm.false-alarms
+    what_happens: Motion sensors aimed at supply diffusers, heaters or exterior glass
+    consequence: False alarms after turnover, charges where the jurisdiction levies them, sensors relocated
+    caught_by: [28id.zones]
+    source: industry_practice

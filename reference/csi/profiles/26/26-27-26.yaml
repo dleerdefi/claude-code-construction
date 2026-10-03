@@ -1,0 +1,145 @@
+schema_version: 1
+kind: section
+id: "26 27 26"
+title: Wiring Devices
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Receptacles, switches, dimmers, floor boxes and their plates. The product
+  data is easy; the decisions are on the drawings: which device goes where,
+  at what height, with what protection. The misses are protection the code
+  requires that the drawings don't show (GFCI, AFCI, tamper- and
+  weather-resistant), GFCI resets hidden behind equipment, heights that clash
+  with casework, backsplashes and accessible reach, controlled receptacles
+  the energy code needs, and floor boxes that had to be cast in.
+
+submittals:
+  - id: 26wd.sub.product-data
+    type: Product Data
+    must_show:
+      - Each device type with grade, configuration, color and plate material and finish
+      - GFCI, AFCI, tamper-resistant, weather-resistant, isolated-ground and hospital-grade devices marked where used
+      - Controlled-receptacle marking where the energy code requires it
+      - Floor boxes and poke-throughs with their fire rating and floor-finish compatibility
+
+review_checks:
+  - id: 26wd.device-ratings
+    kind: conformance
+    check: >
+      Device grade, configuration, color and plate finish match the spec and
+      finish selections, with tamper-resistant, weather-resistant,
+      hospital-grade and isolated-ground devices wherever the drawings, spec
+      or code call for them.
+    trace_to: [spec.part2, drawings.electrical, schedule.finish]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26wd.protection-locations
+    kind: absence
+    check: >
+      Every location where the adopted code requires GFCI or AFCI protection
+      is protected by a device or a breaker shown on the drawings or panel
+      schedules, and the method is chosen so the reset stays readily
+      accessible (not behind refrigerators, vending machines or inside sink
+      cabinets).
+    trace_to: [drawings.electrical, schedule.electrical_panel]
+    severity: high
+    owner: design_team
+
+  - id: 26wd.heights-vs-layouts
+    kind: coordination
+    check: >
+      Device heights and locations agree with casework elevations,
+      backsplashes, countertop appliances, furniture and equipment layouts,
+      and with accessible reach ranges where the device is for occupant use.
+    trace_to: [drawings.interior_elevations, drawings.electrical, schedule.casework]
+    severity: high
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: 26wd.controlled-receptacles
+    kind: conformance
+    check: >
+      Receptacles the energy compliance documents require to be
+      automatically controlled are marked as the code requires and wired to
+      their control zone.
+    trace_to: [report.energy_compliance, drawings.electrical]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26wd.floor-boxes
+    kind: constructability
+    check: >
+      Floor boxes and poke-throughs match the furniture and AV layouts, are
+      listed for the fire rating of the floor they penetrate and compatible
+      with its finish, and cast-in boxes and their raceway are set before
+      the pour.
+    trace_to: [drawings.electrical, drawings.technology, drawings.plans]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+failure_modes:
+  - id: 26wd.fm.protection-missed
+    what_happens: Code-required GFCI or AFCI protection not shown on the drawings or panel schedules, found at inspection
+    consequence: Breakers or devices replaced after trim-out; re-inspection
+    caught_by: [26wd.protection-locations]
+    source: industry_practice
+
+  - id: 26wd.fm.hidden-reset
+    what_happens: GFCI receptacle installed behind a refrigerator or vending machine, or inside a sink base cabinet
+    consequence: Reset not readily accessible; device relocated or protection moved to the breaker
+    caught_by: [26wd.protection-locations]
+    source: industry_practice
+
+  - id: 26wd.fm.backsplash-split
+    what_happens: Boxes set at plan heights before casework shop drawings; a box is split by the backsplash or hidden behind an upper cabinet
+    consequence: Boxes relocated after drywall; patch and paint
+    caught_by: [26wd.heights-vs-layouts, if.casework-electrical]
+    source: industry_practice
+
+  - id: 26wd.fm.not-tamper-resistant
+    what_happens: Standard receptacles installed in a space type where the code requires tamper-resistant devices
+    consequence: Devices replaced before final inspection
+    caught_by: [26wd.device-ratings]
+    source: industry_practice
+
+  - id: 26wd.fm.floor-box-missed
+    what_happens: Cast-in floor boxes for conference tables or open office missed at the slab pour
+    consequence: Coring and trenching after the slab, or poke-throughs that don't match the furniture
+    caught_by: [26wd.floor-boxes, if.26-av-floor-boxes]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 26wd.rh.receptacle-protection
+    topic: receptacle-protection-and-type-requirements
+    question: >
+      Which locations and occupancies require GFCI protection, AFCI
+      protection, tamper-resistant receptacles and weather-resistant
+      receptacles under the adopted electrical code and its local amendments?
+    applies_when: Every project with receptacles
+    source_families: [electrical_code]
+    severity: high
+
+  - id: 26wd.rh.reach-ranges
+    topic: accessibility-reach-ranges
+    question: >
+      Do switches, receptacles and other controls intended for occupant use
+      fall within the reach ranges of the adopted accessibility standard
+      (including over counters and obstructions), and which devices are
+      exempt?
+    applies_when: Devices and controls in spaces with accessible routes
+    source_families: [accessibility]
+    severity: medium
+
+extract_fields:
+  - id: 26wd.xf.devices
+    label: Device types with grade, protection and finish
+    type: list
+    per: package
+    reconcile_against: [spec.part2, drawings.electrical]

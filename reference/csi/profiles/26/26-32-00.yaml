@@ -1,0 +1,229 @@
+schema_version: 1
+kind: section
+id: "26 32 00"
+title: Packaged Generator Assemblies
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Engine generators with their enclosures, fuel systems, controls and
+  accessories (26 32 13 and the other generator types inherit from here).
+  What the generator must do comes from the load classification, which sets
+  transfer time, separation, fuel and testing. It also touches structure,
+  mechanical, fire protection and the site: weight on a slab or roof, exhaust
+  and cooling air, fuel tank rules, air permits and noise limits, and the
+  rigging path to set it. Permits outside the building permit are the late
+  surprise.
+
+submittals:
+  - id: 26gn.sub.product-data
+    type: Product Data
+    must_show:
+      - Standby or prime rating at the specified power factor, voltage and alternator data, including the subtransient reactance the study needs
+      - Enclosure sound rating, block heater, battery charger and controller features
+      - Fuel tank capacity, listing, leak detection and overfill protection
+      - Engine emissions certification the air permit relies on
+  - id: 26gn.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Dimensions, weight with fuel, anchorage, pad and conduit entry area
+      - Exhaust, combustion and cooling air paths and clearances
+      - Remote annunciator, emergency stop and status signals to other systems
+  - id: 26gn.sub.design-data
+    type: Design Data
+    must_show:
+      - Manufacturer's sizing run on the submitted unit with the motor starting and step loads
+  - id: 26gn.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Factory test and the on-site acceptance test procedure and results
+
+review_checks:
+  - id: 26gn.sizing
+    kind: conformance
+    check: >
+      The manufacturer's sizing on the submitted unit covers the connected
+      loads in each class, the largest motor starting step, nonlinear loads
+      (UPS, drives) the alternator has to carry, and regenerative power from
+      elevator drives it may have to absorb, within the voltage and frequency
+      dip the spec allows.
+    trace_to: [drawings.single_line, schedule.electrical_panel, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 26gn.load-steps
+    kind: coordination
+    check: >
+      The transfer sequence (which switch transfers first, time delays, load
+      shed and load add) matches the steps the generator was sized for, and
+      emergency loads transfer within the time their class requires.
+    trace_to: [drawings.single_line, spec.part3]
+    severity: high
+    owner: design_team
+
+  - id: 26gn.fuel
+    kind: conformance
+    check: >
+      Fuel storage (sub-base, day tank or remote tank) holds the run time the
+      load classification requires at the submitted fuel consumption, and
+      the tank's listing, venting, overfill and leak detection follow the
+      fire code.
+    trace_to: [spec.part2, drawings.site, drawings.electrical]
+    severity: high
+    owner: subcontractor
+
+  - id: 26gn.exhaust-and-air
+    kind: coordination
+    check: >
+      Exhaust routing and termination away from air intakes, doors and
+      operable windows, combustion and cooling air paths, louvers and
+      radiator discharge are coordinated with mechanical and architectural
+      for an indoor unit; setbacks and enclosure orientation for an outdoor
+      unit.
+    trace_to: [drawings.mechanical, drawings.site, drawings.exterior_elevations]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 26gn.structure-and-setting
+    kind: constructability
+    check: >
+      Weight with fuel, anchorage and vibration isolation are confirmed with
+      the structural engineer (pad, elevated slab or roof dunnage), and the
+      rigging path and crane access for setting are planned.
+    trace_to: [drawings.structural, drawings.site]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 26gn.permits
+    kind: completeness
+    check: >
+      Permits the generator needs beyond the building permit (air quality,
+      fuel storage, noise) are identified with who files each, and the
+      submitted engine's certification matches what the permit requires.
+    trace_to: [spec.part1]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 26gn.acceptance-test
+    kind: completeness
+    check: >
+      On-site acceptance testing (load bank or building load in the steps and
+      for the duration the spec and standard require, cold start, transfer
+      timing) is scheduled with the AHJ witness, fuel for the test, and a
+      load bank connection point.
+    trace_to: [spec.part3]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+  - id: 26gn.remote-signals
+    kind: absence
+    check: >
+      The remote annunciator, remote emergency stop and the run, trouble and
+      fuel signals to the fire alarm or building automation system are
+      located and wired as the standard and AHJ require.
+    trace_to: [drawings.electrical, drawings.fire_alarm]
+    severity: medium
+    owner: design_team
+
+failure_modes:
+  - id: 26gn.fm.air-permit-late
+    what_happens: Air quality permit for the stationary engine not applied for until the unit is installed
+    consequence: Generator cannot run beyond testing limits; emergency power acceptance and occupancy delayed
+    caught_by: [26gn.permits]
+    source: industry_practice
+
+  - id: 26gn.fm.motor-step
+    what_happens: Generator sized on total load; a large motor or fire pump start dips voltage enough to drop other loads
+    consequence: Failed acceptance test; load sequencing added or a larger unit
+    caught_by: [26gn.sizing, 26gn.load-steps, if.21-fire-pump-power]
+    source: industry_practice
+
+  - id: 26gn.fm.exhaust-at-intake
+    what_happens: Exhaust discharges near an outdoor air intake or operable window
+    consequence: Fumes drawn into the building at every exercise run; exhaust rerouted
+    caught_by: [26gn.exhaust-and-air]
+    source: industry_practice
+
+  - id: 26gn.fm.weight-with-fuel
+    what_happens: Roof or elevated-slab generator checked for its dry weight, not with a full sub-base tank
+    consequence: Structural reinforcement after the fact, or a smaller tank and a runtime shortfall
+    caught_by: [26gn.structure-and-setting]
+    source: industry_practice
+
+  - id: 26gn.fm.no-test-load
+    what_happens: Acceptance test scheduled with no load bank connection and no fuel delivery arranged
+    consequence: Test postponed; temporary occupancy delayed
+    caught_by: [26gn.acceptance-test]
+    source: industry_practice
+
+standards:
+  - id: 26gn.std.nfpa-110
+    name: NFPA 110
+    title: Standard for Emergency and Standby Power Systems
+    verify: Level and class the design assigns, and the acceptance test it prescribes
+  - id: 26gn.std.ul-2200
+    name: UL 2200
+    title: Stationary Engine Generator Assemblies
+    verify: Listing of the assembly as submitted
+
+regulatory_hooks:
+  - id: 26gn.rh.fuel-runtime
+    topic: emergency-generator-fuel-runtime
+    question: >
+      What on-site fuel supply or run time does the adopted code and standard
+      require for this system's class, and what limits does the fire code
+      place on fuel quantity, tank type, location and protection?
+    applies_when: Generators serving emergency or legally required standby loads, and any generator with on-site fuel storage
+    source_families: [fire_code, electrical_code]
+    severity: high
+
+  - id: 26gn.rh.air-permit
+    topic: generator-air-and-fuel-permits
+    question: >
+      Does the stationary engine need an air quality permit or registration
+      in this jurisdiction, what emissions certification and run-hour limits
+      apply, and who must file?
+    applies_when: Any stationary engine generator
+    source_families: [environmental]
+    severity: high
+
+  - id: 26gn.rh.noise
+    topic: generator-noise-limits
+    question: >
+      What property-line or ambient noise limits apply to generator testing
+      and operation at this site, and do the enclosure and location meet
+      them?
+    applies_when: Outdoor generators, and generators near property lines or noise-sensitive uses
+    source_families: [environmental]
+    severity: medium
+
+  - id: 26gn.rh.room-separation
+    topic: emergency-power-equipment-room-separation
+    question: >
+      Does the adopted code require a fire-rated room or separation for the
+      generator and transfer equipment of this system class or building type,
+      and what fire protection is required or prohibited in that room?
+    applies_when: Indoor generators and transfer equipment serving emergency or legally required loads
+    source_families: [building_code, electrical_code]
+    severity: medium
+
+extract_fields:
+  - id: 26gn.xf.rating
+    label: Standby rating at the specified power factor
+    type: number
+    unit: kW
+    per: package
+    reconcile_against: [drawings.single_line, spec.part2]
+  - id: 26gn.xf.fuel
+    label: Fuel storage capacity and the run time it gives at the stated load
+    type: string
+    per: package
+    reconcile_against: [spec.part2]

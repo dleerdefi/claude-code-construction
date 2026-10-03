@@ -1,0 +1,118 @@
+schema_version: 1
+kind: section
+id: "27 40 00"
+title: Audio-Video Communications
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # integrator design is common
+
+scope_summary: >
+  Audio-video systems in conference, training, assembly and public spaces
+  (27 41 00 and 27 42 00 inherit from here). AV is designed and installed
+  late, but its rough-in is not: blocking or structure for displays and
+  projectors, backboxes and floor boxes, conduit between wall, table, ceiling
+  and rack, and power and data at each. The misses are rough-in left out at
+  close-in, owner-purchased displays that differ from what was roughed in,
+  and the assistive listening the accessibility standard requires wherever
+  audio is amplified.
+
+submittals:
+  - id: 27av.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Room-by-room device plans and elevations with mounting heights, backing and box sizes
+      - Signal flow and conduit riser between wall, table, ceiling and rack locations
+      - Rack elevations with heat load and power
+  - id: 27av.sub.product-data
+    type: Product Data
+    must_show:
+      - Displays, projectors, screens, mounts and speakers with dimensions and weights
+      - Assistive listening transmitters, receivers and signage
+
+review_checks:
+  - id: 27av.rough-in
+    kind: constructability
+    check: >
+      Each AV location has its blocking or structural support, backboxes,
+      floor boxes, conduit runs and power, sized to the AV design, installed
+      before walls and ceilings close.
+    trace_to: [drawings.technology, drawings.interior_elevations, drawings.details]
+    severity: critical
+    owner: gc
+    gate: wall_close_in
+
+  - id: 27av.equipment-fixed
+    kind: coordination
+    check: >
+      Display, projector, screen and speaker models (owner- or
+      contractor-furnished) are fixed with dimensions, weights and mounting
+      before backing and boxes are set, and any later model change is
+      checked against what was built.
+    trace_to: [drawings.technology, drawings.interior_elevations]
+    severity: high
+    owner: owner
+    gate: in_wall_rough_in
+
+  - id: 27av.ceiling-devices
+    kind: coordination
+    check: >
+      Ceiling speakers, projectors, screens and lifts fit the ceiling system
+      and plenum depth and are coordinated with luminaires, diffusers and
+      sprinklers on the reflected ceiling plans.
+    trace_to: [drawings.rcp, drawings.technology]
+    severity: medium
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 27av.assistive-listening
+    kind: absence
+    check: >
+      Where audio is amplified in assembly areas, an assistive listening
+      system with the receivers and signage the accessibility standard
+      requires is in someone's scope.
+    trace_to: [drawings.technology, spec.part2]
+    severity: high
+    owner: design_team
+
+  - id: 27av.network
+    kind: coordination
+    check: >
+      Control, streaming and conferencing equipment's network ports, VLANs
+      and who configures them are agreed with the owner's IT group before
+      programming.
+    trace_to: [spec.part2, drawings.technology]
+    severity: medium
+    owner: owner
+
+failure_modes:
+  - id: 27av.fm.rough-in-missed
+    what_happens: AV conduit, backboxes and display blocking left out of the in-wall rough-in
+    consequence: Walls opened after finishes, or surface raceway in finished rooms
+    caught_by: [27av.rough-in]
+    source: industry_practice
+
+  - id: 27av.fm.display-changed
+    what_happens: Owner buys a larger or heavier display than the one the blocking and box were set for
+    consequence: Blocking and box relocated after paint
+    caught_by: [27av.equipment-fixed]
+    source: industry_practice
+
+  - id: 27av.fm.no-assistive-listening
+    what_happens: Assembly room with an amplified sound system and no assistive listening system or signage
+    consequence: Fails accessibility review; equipment and signage added at the end
+    caught_by: [27av.assistive-listening]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 27av.rh.assistive-listening
+    topic: assistive-listening-systems
+    question: >
+      Which assembly areas require an assistive listening system under the
+      adopted accessibility standard, how many receivers (and how many
+      hearing-aid compatible), and what signage?
+    applies_when: Assembly areas, conference and training rooms, and other spaces with amplified audio
+    source_families: [accessibility]
+    severity: high

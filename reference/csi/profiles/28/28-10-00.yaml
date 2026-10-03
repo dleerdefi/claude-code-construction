@@ -1,0 +1,149 @@
+schema_version: 1
+kind: section
+id: "28 10 00"
+title: Access Control
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes
+
+scope_summary: >
+  Card readers, controllers, credentials and the electrified hardware they
+  operate, reviewed opening by opening (28 11 00 through 28 19 00 inherit
+  from here). The access control submittal has to agree with the door
+  hardware sets on lock type, fail-safe or fail-secure, request-to-exit,
+  position switch and power transfer, and with the egress code on how each
+  locked door releases. Rough-in to the frame and power to the lock are
+  needed before walls close, long before the security contractor arrives.
+
+review_mode: per_element
+element_types: [controlled_opening]
+
+submittals:
+  - id: 28ac.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Door-by-door device matrix keyed to door numbers and hardware sets
+      - Wiring diagram for each opening type, including power supply and fire alarm release
+      - Controller and power supply locations
+  - id: 28ac.sub.product-data
+    type: Product Data
+    must_show:
+      - Readers, controllers, power supplies and credentials with their listing
+
+review_checks:
+  - id: 28ac.device-set
+    kind: completeness
+    check: >
+      Each controlled opening on the security plans has its full device set
+      (reader, electrified lock or strike, request-to-exit, door position
+      switch, power transfer, power supply), and the devices agree with the
+      opening's hardware set.
+    trace_to: [drawings.security, schedule.door_hardware, schedule.door]
+    severity: high
+    owner: subcontractor
+
+  - id: 28ac.egress-release
+    kind: conformance
+    reflex: true
+    check: >
+      For each locked egress door, the locking method and its release (free
+      egress through the door hardware, release on fire alarm and power
+      loss, delayed or controlled egress, sensor release) is one the egress
+      code permits for that door and occupancy, and stair doors meet the
+      re-entry rules.
+    trace_to: [schedule.door_hardware, drawings.life_safety]
+    severity: critical
+    owner: design_team
+
+  - id: 28ac.frame-rough-in
+    kind: constructability
+    check: >
+      Conduit and boxes from each frame (reader, lock, request-to-exit,
+      position switch, power transfer) to an accessible ceiling, and the
+      frame preparations for those devices, are in place before walls close;
+      the frame shop drawings carry the preps.
+    trace_to: [drawings.security, schedule.door_hardware]
+    severity: critical
+    owner: gc
+    gate: wall_close_in
+
+  - id: 28ac.elevator-access
+    kind: coordination
+    check: >
+      Readers in elevator cabs and at lobby call stations are coordinated
+      with the elevator controller interface and traveling cable, and fire
+      service recall overrides access control.
+    trace_to: [drawings.security, spec.part2]
+    severity: medium
+    owner: gc
+    scope: package
+
+  - id: 28ac.panel-locations
+    kind: constructability
+    check: >
+      Door controllers and lock power supplies sit in secured, accessible
+      locations within the cable distance the manufacturer allows, with
+      their circuits and fire alarm release inputs.
+    trace_to: [drawings.security, drawings.electrical]
+    severity: medium
+    owner: subcontractor
+    scope: package
+
+failure_modes:
+  - id: 28ac.fm.locked-egress
+    what_happens: Fail-secure lock on an egress door with no mechanical free egress, or a magnetic lock with no fire alarm and power-loss release
+    consequence: Life-safety violation at inspection; hardware replaced and releases rewired
+    caught_by: [28ac.egress-release, if.28-fire-alarm-access-release]
+    source: industry_practice
+
+  - id: 28ac.fm.frame-not-prepped
+    what_happens: Hollow metal frames fabricated without preps for strikes, position switches or power transfers
+    consequence: Frames field-cut or replaced, or devices surface-mounted
+    caught_by: [28ac.frame-rough-in]
+    source: industry_practice
+
+  - id: 28ac.fm.after-drywall
+    what_happens: Security contractor mobilizes after drywall with no conduit or cable to the frames
+    consequence: Walls opened at every controlled door, or surface raceway on finished frames
+    caught_by: [28ac.frame-rough-in, if.08-electrified-openings]
+    source: industry_practice
+
+  - id: 28ac.fm.devices-unassigned
+    what_happens: Hardware supplier and security contractor each assume the other furnishes power supplies, request-to-exit devices and position switches
+    consequence: Devices missing at trim-out; doors left on temporary locking
+    caught_by: [28ac.device-set]
+    source: industry_practice
+
+standards:
+  - id: 28ac.std.ul-294
+    name: UL 294
+    title: Access Control System Units
+    verify: Listing of controllers, readers and power supplies
+
+regulatory_hooks:
+  - id: 28ac.rh.locked-egress
+    topic: electrically-locked-egress-doors
+    question: >
+      Which electrically controlled locking arrangements does the adopted
+      building and fire code allow on egress doors for this occupancy
+      (sensor release, delayed egress, controlled egress, release on fire
+      alarm and power loss), and what re-entry is required from exit
+      stairways?
+    applies_when: Any access-controlled or electrically locked door in a means of egress
+    source_families: [building_code, fire_code]
+    severity: critical
+
+extract_fields:
+  - id: 28ac.xf.lock
+    label: Lock type and fail-safe or fail-secure
+    type: string
+    per: element
+    reconcile_against: [schedule.door_hardware]
+  - id: 28ac.xf.devices
+    label: Devices at the opening (reader, request-to-exit, position switch, power transfer)
+    type: list
+    per: element
+    reconcile_against: [drawings.security, schedule.door_hardware]

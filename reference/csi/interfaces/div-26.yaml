@@ -1,0 +1,188 @@
+schema_version: 1
+kind: interfaces
+id: div-26
+title: Interfaces owned by Division 26
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with lower divisions (03, 08, 09, 11, 14, 21, 22, 23) live in those divisions' files.
+
+edges:
+  # ── Utility service and site ──────────────────────────────────
+  - id: if.26-utility-service
+    a: ["26 20 00"]
+    a_trade: Electrical service and distribution
+    b: ["33 71 00", "33 73 00"]
+    b_trade: Electrical utility distribution and utility transformers
+    a_provides: Service size and voltage, load letter, and service equipment and metering drawings for the utility's acceptance
+    b_provides: The utility's written service requirements (transformer location, pad and clearances, metering and current transformers, available fault current and X/R), primary and secondary duct scope, and the energization process
+    responsibility:
+      - item: Utility transformer pad, primary duct and secondary service conductors
+        typical: {furnish: "serving utility, 33 71 00 or 26 05 43", install: "serving utility, 33 71 00 or 26 05 43"}
+        confirm_in: [report.utility_requirements, spec.part1, drawings.site]
+      - item: Metering and current-transformer enclosures
+        typical: {furnish: "serving utility or 26 20 00", install: "26 20 00"}
+        confirm_in: [report.utility_requirements, drawings.single_line]
+    gate:
+      milestone: procurement_release
+      note: Get the utility's requirements and fault data in writing before service equipment is released
+    severity: critical
+
+  - id: if.26-site-duct-banks
+    a: ["26 05 43"]
+    a_trade: Electrical underground ducts
+    b: ["31 23 00", "33 71 00"]
+    b_trade: Site excavation and site utilities
+    a_provides: Duct bank routes, depths, encasement, spare ducts and manhole or handhole locations
+    b_provides: Trenching and backfill scope, and the elevations of storm, sanitary, water and gas lines the duct banks cross
+    responsibility:
+      - item: Trenching, concrete encasement and backfill for electrical duct banks
+        typical: {furnish: "26 05 43 or 31 23 00", install: "26 05 43 or 31 23 00"}
+        confirm_in: [spec.part1, drawings.civil, drawings.electrical]
+    gate: {milestone: trench_backfill}
+    severity: high
+
+  - id: if.26-light-pole-bases
+    a: ["26 56 00"]
+    a_trade: Exterior lighting
+    b: ["32 12 00", "32 13 00", "32 16 00"]
+    b_trade: Paving, curbs and sidewalks
+    a_provides: Pole locations, base design, the approved pole's anchor bolt pattern, conduit stubs and handholes
+    b_provides: Final curb, island and paving geometry and the paving sequence
+    responsibility:
+      - item: Light pole bases
+        typical: {furnish: "26 56 00 or 03 30 00", install: "26 56 00, 03 30 00 or the site contractor"}
+        confirm_in: [spec.part1, drawings.site, drawings.details]
+    gate: {milestone: site_paving}
+    severity: medium
+
+  # ── Communications ────────────────────────────────────────────
+  - id: if.26-telecom-room-power
+    a: ["26 05 19", "26 05 33", "26 24 00", "26 27 26"]
+    a_trade: Electrical branch circuits and panelboards
+    b: ["27 10 00", "27 11 00"]
+    b_trade: Structured cabling and equipment room fittings
+    a_provides: Dedicated circuits and receptacle configurations at each rack, the panel serving telecom rooms and its source, and UPS where electrical furnishes it
+    b_provides: Rack layouts, equipment loads and plug types, UPS sizing and who furnishes it
+    responsibility:
+      - item: UPS for telecom racks
+        typical: {furnish: "26 33 53, 27 11 26 or owner", install: "26 33 53 or 27 11 26"}
+        confirm_in: [spec.part1, drawings.technology]
+    gate:
+      milestone: in_wall_rough_in
+      note: Receptacle types follow the owner's equipment choice, which often comes late
+    severity: high
+    failure: Racks arrive with plug types and loads the room circuits don't match; circuits rerun after the room is finished
+
+  - id: if.26-telecom-grounding
+    a: ["26 05 26"]
+    a_trade: Electrical grounding and bonding
+    b: ["27 05 26"]
+    b_trade: Communications grounding and bonding
+    a_provides: Bonding conductor from the service grounding electrode system to the primary telecommunications busbar, and bonding of panelboards serving telecom rooms
+    b_provides: Telecommunications bonding backbone, busbar locations in each room, and bonding of racks, tray and entrance protectors
+    responsibility:
+      - item: Primary telecommunications busbar and its conductor to the service
+        typical: {furnish: "26 05 26 or 27 05 26", install: "26 05 26 or 27 05 26"}
+        confirm_in: [spec.part1, drawings.technology, drawings.electrical]
+    gate:
+      milestone: above_ceiling_close_in
+      note: The bonding backbone runs between floors and through ceilings
+    severity: medium
+
+  - id: if.26-errcs-power
+    a: ["26 05 19", "26 05 33", "26 24 00"]
+    a_trade: Electrical branch circuits and panelboards
+    b: ["27 53 19"]
+    b_trade: In-building radio and antenna systems
+    a_provides: Dedicated circuit on the source the radio coverage code requires, with locking means and identification
+    b_provides: Amplifier and headend locations and loads, battery cabinets, and the source the code requires
+    gate:
+      milestone: above_ceiling_close_in
+      note: Radio coverage is often added after the survey; request locations as soon as the need is known
+    severity: high
+
+  - id: if.26-av-floor-boxes
+    a: ["26 27 26"]
+    a_trade: Wiring devices and floor boxes
+    b: ["27 40 00", "27 10 00"]
+    b_trade: Audio-video and structured cabling
+    a_provides: Floor boxes and poke-throughs with power devices, low-voltage compartments and embedded raceway
+    b_provides: Low-voltage inserts, connector plates and cable counts per box, and AV conduit sizes from the AV design
+    responsibility:
+      - item: Floor box bodies and power devices
+        typical: {furnish: "26 27 26", install: "26 27 26"}
+        confirm_in: [spec.part2, drawings.electrical]
+      - item: Low-voltage inserts and plates in floor boxes
+        typical: {furnish: "27 40 00 or 27 10 00", install: "27 40 00 or 27 10 00"}
+        confirm_in: [spec.part2, drawings.technology]
+    gate:
+      milestone: slab_pour
+      note: Cast-in boxes and their raceway are fixed at the pour
+    severity: high
+
+  # ── Electronic safety and security ────────────────────────────
+  - id: if.26-fire-alarm-power
+    a: ["26 05 19", "26 05 33", "26 24 00"]
+    a_trade: Electrical branch circuits and panelboards
+    b: ["28 46 00"]
+    b_trade: Fire detection and alarm
+    a_provides: Dedicated branch circuits to the control unit, power extender panels and other fire alarm equipment, with locking means and circuit identification, on the source the design requires; monitoring contacts on generators, transfer switches and fire pump controllers where required
+    b_provides: Number, locations and loads of control units and power extender panels from the fire alarm shop drawings, and the electrical status points it must monitor
+    responsibility:
+      - item: Branch circuits to power extender panels added by the fire alarm shop drawings
+        typical: {install: "Division 26 or 28 46 00"}
+        confirm_in: [spec.part1, drawings.fire_alarm]
+    gate:
+      milestone: above_ceiling_close_in
+      note: Extender locations come from the fire alarm shop drawings, which often arrive after electrical rough-in starts
+    severity: high
+    failure: Power extender panels located by the fire alarm designer with no circuits; circuits pulled through finished ceilings before the acceptance test
+
+  - id: if.26-security-power
+    a: ["26 05 19", "26 05 33", "26 24 00"]
+    a_trade: Electrical branch circuits and panelboards
+    b: ["28 10 00", "28 20 00", "28 30 00"]
+    b_trade: Access control, video surveillance and intrusion detection
+    a_provides: Circuits to access control panels, lock power supplies, intrusion panels and security equipment racks, on the source the owner's standards require
+    b_provides: Panel and power supply locations and loads, and which must be on standby power
+    gate: {milestone: above_ceiling_close_in}
+    severity: medium
+    failure: Lock power supplies and panels located late with no circuits, or on normal power where the owner expected standby
+
+  - id: if.26-generator-fuel
+    a: ["26 32 00"]
+    a_trade: Engine generators
+    b: ["33 56 00", "23 13 00", "23 11 13"]
+    b_trade: Site and facility fuel storage and fuel-oil piping
+    a_provides: Sub-base tank capacity and listing, or the remote tank and day tank the generator needs, fuel consumption at the rated load, supply and return connection sizes and locations
+    b_provides: Remote or day tank capacity, location, fill and vent points, fuel piping route and material, leak detection and overfill alarms with where they annunciate
+    responsibility:
+      - item: Fuel tank (sub-base, day tank or remote tank)
+        typical: {furnish: "26 32 00, 23 13 00 or 33 56 00", install: "26 32 00, 23 13 00 or 33 56 00"}
+        confirm_in: [spec.part1, drawings.electrical, drawings.civil]
+      - item: Fuel piping between the tank and the generator
+        typical: {furnish: "23 11 13 or 26 32 00", install: "23 11 13 or 26 32 00"}
+        confirm_in: [spec.part1, drawings.mechanical]
+      - item: Initial fuel fill and fuel for the acceptance test
+        typical: {furnish: "26 32 00 or owner"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: procurement_release}
+    severity: high
+    failure: The tank is assumed to come with the generator while the site and mechanical scopes assume the same, or nobody carries the fuel piping and fill and vent points; the generator arrives with nothing to run on
+
+  # ── Within Division 26 ────────────────────────────────────────
+  - id: if.26-lighting-controls-luminaires
+    a: ["26 09 00"]
+    a_trade: Lighting controls
+    b: ["26 50 00"]
+    b_trade: Luminaires
+    a_provides: Control protocol, zoning and wiring, the compatible-driver list, and emergency transfer devices
+    b_provides: Driver model, protocol and dimming range per type, and which emergency luminaires are normally controlled
+    gate:
+      milestone: procurement_release
+      note: Review the luminaire and control submittals together
+    severity: high
