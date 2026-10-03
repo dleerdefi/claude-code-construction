@@ -1,0 +1,102 @@
+schema_version: 1
+kind: overlay
+id: healthcare.hospital
+facility_type: healthcare.hospital
+title: Hospitals (inpatient acute care)
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Loads after healthcare.yaml. What a hospital adds: equipment that must keep
+# working after an earthquake, ceiling-mounted surgical and patient-handling
+# equipment, and an emergency power supply that is tested and surveyed before
+# licensure. Default scope: generators and transfer switches.
+sections: ["26 3*"]
+
+review_checks:
+  - id: hc.seismic-certification
+    kind: completeness
+    sections: ["11 7*", "21", "22", "23", "26", "27", "28"]
+    submittal_types: [Product Data, Certificates, Design Data]
+    check: >
+      Where the hospital is an essential facility, equipment that must keep
+      working after an earthquake (generators, transfer switches, switchgear,
+      medical gas sources, fire pumps, air handlers serving critical areas,
+      other designated items) is submitted with the manufacturer's seismic
+      certification of operability and an anchorage design, not a generic
+      mounting detail.
+    trace_to: [spec.part2, spec.part1_submittals, drawings.structural]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: hc.ceiling-mounted-equipment
+    kind: coordination
+    sections: ["05 5*", "09 5*"]
+    check: >
+      Support steel and ceilings in operating, procedure, imaging and patient
+      rooms are laid out from the selected vendors' drawings for ceiling-mounted
+      equipment (surgical lights, booms, imaging rails, patient lift tracks):
+      support plates set level at the vendor's elevation and inspected before
+      the ceiling, and grid, lights, diffusers, sprinklers and medical gas drops
+      kept clear of the mounting zones.
+    trace_to: [drawings.structural, drawings.rcp, schedule.equipment]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: hc.epss-acceptance
+    kind: completeness
+    sections: ["26 3*"]
+    check: >
+      Generator and transfer switch submittals and the test plan meet the
+      emergency power supply system class, level and type the design states:
+      transfer time for the life safety and critical branches, on-site fuel
+      duration, remote annunciation where staff will see it, and acceptance
+      testing under building load and load bank, witnessed as the AHJ and the
+      agency require.
+    trace_to: [drawings.single_line, spec.part3, report.commissioning]
+    severity: critical
+    owner: gc
+    gate: substantial_completion
+
+escalate:
+  - target: cw.rh.seismic-anchorage
+    sections: ["12 3*", "06 41*"]
+    severity: high
+    reason: A hospital that must stay operational after an earthquake cannot have tall casework and storage that topples into corridors and patient rooms
+
+failure_modes:
+  - id: hc.fm.uncertified-equipment
+    sections: ["11 7*", "21", "22", "23", "26", "27", "28"]
+    what_happens: Equipment for an essential facility bought with a standard anchorage detail and no seismic certification
+    consequence: Rejected at inspection by the building official or agency; equipment replaced or certified after delivery
+    caught_by: [hc.seismic-certification]
+    source: field_experience
+
+  - id: hc.fm.ceiling-over-mounts
+    sections: ["05 5*", "09 5*"]
+    what_happens: Ceiling grid, lights, diffusers or sprinkler heads laid out over the mounting zones of booms, surgical lights or lift tracks
+    consequence: Ceiling and MEP devices relocated in a finished operating or patient room before the equipment can be hung
+    caught_by: [hc.ceiling-mounted-equipment]
+    source: field_experience
+
+  - id: hc.fm.epss-not-proven
+    sections: ["26 3*"]
+    what_happens: Branch transfer times, fuel duration or remote annunciation not demonstrated at acceptance
+    consequence: AHJ or agency finding before licensure; retest and added annunciation while occupancy waits
+    caught_by: [hc.epss-acceptance]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: hc.rh.hospital-epss
+    topic: hospital-emergency-power-supply
+    sections: ["26 3*"]
+    question: >
+      What emergency power supply system class, level and type, transfer time,
+      on-site fuel duration and acceptance testing do the adopted NFPA 99 and
+      NFPA 110 editions and the state agency require for this hospital?
+    applies_when: Hospital generators and transfer switches
+    source_families: [electrical_code, health_facility_licensing]
+    severity: critical

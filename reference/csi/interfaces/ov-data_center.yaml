@@ -1,0 +1,58 @@
+schema_version: 1
+kind: interfaces
+id: ov-data_center
+title: Interfaces that exist only in data centers and mission-critical IT spaces
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Facility-filtered edges. An edge carries `failure` only when no failure mode
+# covers it.
+
+edges:
+  - id: if.dc-agent-release
+    a: ["21 22 00"]
+    a_trade: Clean-agent fire extinguishing
+    b: ["23 33 00", "23 09 00", "28 46 00"]
+    b_trade: Dampers, HVAC controls and fire alarm
+    a_provides: Release sequence, protected enclosure boundary, damper and HVAC shutdown points, abort and manual release locations
+    b_provides: Motorized dampers at the enclosure boundary that close on release, HVAC shutdown or recirculation as the design states, and releasing panel or fire alarm interface wiring
+    responsibility:
+      - item: Dampers that close on agent release in ducts crossing the enclosure boundary
+        typical: {furnish: "23 33 00", install: "23 33 00", connect: "21 22 00 or 28 46 00"}
+        confirm_in: [spec.part1, drawings.fire_protection]
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+    facility_types: [data_center]
+
+  - id: if.dc-floor-bonding
+    a: ["09 69 00"]
+    a_trade: Access flooring
+    b: ["26 05 26", "27 05 26"]
+    b_trade: Electrical and telecommunications bonding
+    a_provides: Pedestal grid layout, bonding points on pedestals and stringers, and the floor installation sequence
+    b_provides: Bonding conductors or mesh under the floor tied to the computer room bonding network, installed ahead of the panels
+    responsibility:
+      - item: Bonding conductors and clamps from pedestals to the bonding network
+        typical: {furnish: "27 05 26 or 26 05 26", install: "27 05 26 or 26 05 26"}
+        confirm_in: [spec.part1, drawings.technology]
+    gate: {milestone: floor_finish_install, note: Bond pedestals before panels go down across the room}
+    severity: medium
+    failure: Pedestals left unbonded; panels lifted across the room to add conductors
+    facility_types: [data_center]
+
+  - id: if.dc-containment-fire
+    a: ["27 11 00"]
+    a_trade: Racks and aisle containment
+    b: ["21 13 00", "28 46 00"]
+    b_trade: Sprinklers and fire detection
+    a_provides: Containment layout and heights, panel materials and listings, and drop-away or retracting roof panels with their release
+    b_provides: Head and detector layout for contained aisles, preaction release detection, and the alarm signal that drops or retracts roof panels
+    responsibility:
+      - item: Aisle containment, often owner- or IT-vendor-furnished
+        typical: {furnish: "27 11 00", install: "27 11 00"}
+        confirm_in: [spec.part1, drawings.plans]
+    gate: {milestone: overhead_rough_in}
+    severity: high
+    facility_types: [data_center]

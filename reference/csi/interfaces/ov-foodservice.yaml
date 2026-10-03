@@ -1,0 +1,28 @@
+schema_version: 1
+kind: interfaces
+id: ov-foodservice
+title: Interfaces that exist only in foodservice facilities
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Facility-filtered edges. Equipment-to-trade edges for kitchens (plumbing,
+# power, gas and exhaust, hood suppression and fire alarm, walk-ins) live in
+# div-11.yaml. An edge carries `failure` only when no failure mode covers it.
+
+edges:
+  - id: if.food-grease-duct-enclosure
+    a: ["23 31 00", "23 38 13"]
+    a_trade: Grease duct and kitchen hood exhaust
+    b: ["09 21 00", "08 31 00"]
+    b_trade: Shaft wall assemblies and access doors
+    a_provides: Grease duct route, cleanout locations and sizes, the clearance the duct needs to its enclosure, and where it enters and leaves the shaft
+    b_provides: Rated shaft built to that clearance, rated access doors aligned with every cleanout, and no other services inside
+    responsibility:
+      - item: Rated access doors in the shaft at grease duct cleanouts
+        typical: {furnish: "08 31 00 or 23 31 00", install: "09 21 00"}
+        confirm_in: [spec.part1, drawings.details]
+    gate: {milestone: wall_close_in, note: Frame the access doors before the shaft's second side is boarded}
+    severity: high
+    facility_types: [foodservice]

@@ -1,0 +1,422 @@
+schema_version: 1
+kind: overlay
+id: data_center
+facility_type: data_center
+title: Data centers and mission-critical IT spaces
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# The owner's basis of design states a redundancy topology for power and
+# cooling; every submittal is checked against that topology, not only against
+# its ratings. The failures are shared components that defeat redundancy, water
+# over the white space, rooms that will not hold their suppression agent, and
+# testing nobody resourced. Topology labels and loads are project facts.
+# Default scope: electrical and HVAC.
+sections: ["26", "23"]
+
+review_checks:
+  - id: dc.power-topology
+    kind: conformance
+    scope: package
+    sections: ["26"]
+    check: >
+      The single-line achieves the redundancy topology the owner's basis of
+      design states at each level (utility, generators, switchgear, UPS,
+      distribution to the rack), with no tie, shared bus, single fuel path,
+      single bypass or common control power that defeats it, and each component
+      can be maintained the way the basis of design claims. Equipment
+      submittals (UPS bypass arrangement, switchgear ties, transfer schemes) are
+      checked against that topology, not only against ratings.
+    trace_to: [drawings.single_line, spec.division_01, spec.part2]
+    severity: critical
+    owner: design_team
+
+  - id: dc.cooling-continuity
+    kind: conformance
+    scope: package
+    sections: ["23"]
+    check: >
+      Cooling redundancy matches the basis of design through the whole chain
+      (heat rejection, chillers or condensing units, pumps, headers and makeup
+      water, cooling units, controls and their power), and cooling carries on
+      through a utility outage: which fans and pumps ride on UPS, whether
+      thermal storage carries the load, and how long chillers take to restart
+      on generator.
+    trace_to: [drawings.mechanical, schedule.mechanical_equipment, drawings.single_line]
+    severity: critical
+    owner: design_team
+
+  - id: dc.containment-sprinklers
+    kind: coordination
+    sections: ["21 1*", "28 46*", "27 1*"]
+    check: >
+      Hot- or cold-aisle containment, often furnished late by the owner or IT
+      vendor, is coordinated with fire protection: sprinkler discharge is not
+      obstructed, roof panels that drop or retract on alarm are listed for it,
+      detection covers the inside of contained aisles, and the preaction type
+      and its release detection match the design and the owner's insurer.
+    trace_to: [drawings.fire_protection, drawings.fire_alarm, drawings.plans]
+    severity: high
+    owner: gc
+
+  - id: dc.clean-agent
+    kind: conformance
+    sections: ["21 2*"]
+    check: >
+      The clean-agent design uses the protected volume as built (including
+      under-floor and above-ceiling spaces if protected) and the design
+      concentration the spec requires, with pressure relief venting for the
+      enclosure where the agent needs it, abort and manual release stations,
+      cross-zoned detection, HVAC shutdown and damper closure, and an enclosure
+      integrity test before acceptance.
+    trace_to: [drawings.fire_protection, drawings.mechanical, spec.part3]
+    severity: critical
+    owner: subcontractor
+
+  - id: dc.room-integrity
+    kind: constructability
+    sections: ["21 2*", "07 84*", "09 2*", "08 7*", "23 33*"]
+    check: >
+      Rooms protected by clean agent are built to hold it: walls to the deck or
+      sealed where the design assumes, every penetration sealed including
+      through non-rated walls and the floor, doors with closers and seals, and
+      dampers that close on discharge. Who seals what is assigned, and sealing
+      is complete before the ceiling closes and the integrity test is run.
+    trace_to: [drawings.plans, drawings.details, spec.part3]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: dc.epo
+    kind: conformance
+    sections: ["26", "28 46*", "23 09*"]
+    check: >
+      The design states whether the IT rooms use the electrical code's
+      information technology equipment provisions and so need an emergency
+      power-off. Where one is provided, its stations are at the exit doors,
+      guarded and clearly distinct from door releases and abort switches, and
+      the drawings show what it disconnects (IT power, HVAC, dampers, UPS
+      output) and how it ties to the UPS, suppression and fire alarm.
+    trace_to: [drawings.electrical, drawings.single_line, drawings.fire_alarm]
+    severity: high
+    owner: design_team
+
+  - id: dc.ups-batteries
+    kind: conformance
+    sections: ["26 33*"]
+    submittal_types: [Product Data, Shop Drawings]
+    check: >
+      The UPS submittal matches the single-line (module count, static and
+      maintenance bypass, input and output breakers) and the battery basis:
+      chemistry, runtime at the design load, room or cabinet ventilation, spill
+      containment for vented batteries, and for lithium-ion the listings and
+      test data the fire code asks of energy storage systems.
+    trace_to: [drawings.single_line, spec.part2, drawings.mechanical]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: dc.equipment-testing
+    kind: completeness
+    sections: ["26 1*", "26 2*", "26 3*", "26 05*", "26 08*"]
+    check: >
+      Acceptance testing of switchgear, UPS, generators and transfer equipment
+      follows the standard the spec cites (ANSI/NETA ATS or equal): factory
+      witness tests, generator load-bank tests, battery acceptance discharge
+      tests, and protective device settings from the approved coordination
+      study applied before energization.
+    trace_to: [spec.part3, report.commissioning]
+    severity: high
+    owner: gc
+    gate: energization
+
+  - id: dc.integrated-testing
+    kind: completeness
+    scope: package
+    sections: ["01 9*", "21 08*", "23 08*", "26 08*", "26 3*", "23 6*", "23 8*"]
+    check: >
+      Commissioning defines each level from factory witness tests through
+      integrated systems testing, with the failure scenarios the topology must
+      survive (utility loss, generator start and transfer, UPS on battery,
+      cooling restart, loss of any single component), and assigns the load
+      banks, their power and heat rejection, the fuel and the test sequence,
+      all before IT move-in.
+    trace_to: [spec.division_01, report.commissioning, schedule.master]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+  - id: dc.access-floor
+    kind: conformance
+    sections: ["09 69*"]
+    check: >
+      Panels and pedestals are rated for the heaviest cabinets and for rolling
+      loads along the route from the loading dock (concentrated, uniform and
+      rolling), with seismic bracing where required, perforated tiles placed to
+      the cooling design, sealed cable cutouts, and pedestals bonded to the
+      computer room bonding network.
+    trace_to: [drawings.plans, spec.part2, schedule.equipment]
+    severity: high
+    owner: subcontractor
+
+  - id: dc.water-in-white-space
+    kind: absence
+    reflex: true
+    sections: ["22", "23", "28 45*", "09 69*"]
+    check: >
+      No domestic water, drain or roof leader piping runs over IT equipment
+      unless the design accepts it with drip pans, and leak detection covers
+      every water source in or under the white space (cooling units, chilled
+      water, humidifiers, condensate, liquid-cooling distribution) and reports
+      by zone.
+    trace_to: [drawings.plumbing, drawings.mechanical, drawings.plans]
+    severity: high
+    owner: design_team
+
+  - id: dc.bonding
+    kind: conformance
+    sections: ["26 05*", "27 05*", "09 69*", "26 3*"]
+    check: >
+      Bonding and grounding of the IT spaces is complete end to end: the
+      telecommunications bonding backbone and busbars per the ANSI/TIA-607
+      edition the spec cites, a mesh or common bonding network in the computer
+      room, bonding of racks, tray and access floor, and a neutral-to-ground
+      arrangement at generators, transfer switches and UPS that matches the
+      single-line (switched or solid neutral, separately derived or not) so
+      ground-fault sensing works.
+    trace_to: [drawings.electrical, drawings.single_line, drawings.technology]
+    severity: high
+    owner: gc
+
+  - id: dc.pathways
+    kind: constructability
+    sections: ["26 05*", "27 05*", "27 1*"]
+    check: >
+      Cable tray and pathways are sized for fill and weight at full build-out,
+      keep power and communications separated as the design and cited standards
+      require, give A and B paths diverse routes with no common point, and are
+      braced and bonded.
+    trace_to: [drawings.technology, drawings.electrical, drawings.plans]
+    severity: medium
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: dc.generator-plant
+    kind: conformance
+    sections: ["26 32*", "23 1*"]
+    check: >
+      The generator plant matches the topology and runtime basis: fuel storage,
+      day tanks and transfer pumps arranged without a single point of failure,
+      fuel maintenance as specified, and the environmental filings for tanks
+      and engines (air permit, tank registration, spill prevention plan) started
+      in time for commissioning runs.
+    trace_to: [drawings.single_line, drawings.site, spec.part2]
+    severity: high
+    owner: design_team
+
+reconciliations:
+  - id: dc.rc.dual-cord
+    sections: ["26"]
+    between: [schedule.electrical_panel, drawings.single_line, drawings.electrical]
+    key: Rack position A and B feeds
+    fields: [source UPS or bus, power distribution unit or remote power panel, circuit, receptacle configuration]
+    check: >
+      Each rack position's A and B circuits trace back through the panel
+      schedules and single-line to the separate sources the topology requires;
+      a row with both feeds on one source, or a remote panel fed from the wrong
+      side, is a finding.
+    severity: critical
+    owner: design_team
+    gate: energization
+
+  - id: dc.rc.overhead-layers
+    sections: ["21 1*", "26 05*", "27 05*", "27 1*", "23 3*"]
+    between: [drawings.technology, drawings.electrical, drawings.fire_protection, drawings.mechanical]
+    key: Rack row or aisle
+    fields: [cable tray elevation, power busway elevation, containment top, sprinkler deflector and clearance, lighting, ductwork]
+    check: >
+      At each rack row the overhead layers have assigned elevations that do not
+      conflict and keep sprinkler clearances.
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+escalate:
+  - target: fs.re-entry
+    sections: ["07 84*"]
+    severity: medium
+    reason: Cabling in IT spaces changes through the building's life; one-time sealants reopened at each change break rated and clean-agent enclosures
+
+failure_modes:
+  - id: dc.fm.hidden-single-point
+    sections: ["26"]
+    what_happens: A shared component the single-line does not make obvious (one fuel day tank, common control power, a single static bypass) defeats the stated redundancy
+    consequence: Found at integrated systems testing or at the first failure; distribution or controls redesigned against a move-in date
+    caught_by: [dc.power-topology]
+    source: industry_practice
+
+  - id: dc.fm.cooling-lost-on-transfer
+    sections: ["23"]
+    what_happens: Chillers and cooling-unit fans restart only after generator transfer, with nothing carrying the heat load in between
+    consequence: IT inlet temperatures spike at every outage test; UPS-fed fans or thermal storage added late
+    caught_by: [dc.cooling-continuity]
+    source: industry_practice
+
+  - id: dc.fm.containment-blocks-sprinklers
+    sections: ["21 13*", "28 46*", "27 11*"]
+    what_happens: Containment installed by the IT vendor after fire protection is complete blocks sprinkler discharge or detection
+    consequence: The space fails inspection; drop-away panels or added heads and detectors before move-in
+    caught_by: [dc.containment-sprinklers, if.dc-containment-fire]
+    source: field_experience
+
+  - id: dc.fm.integrity-test-fails
+    sections: ["21 2*", "07 84*", "09 2*", "08 7*", "23 33*"]
+    what_happens: Room fails the enclosure integrity test because penetrations above the ceiling, in non-rated walls or at the floor were never sealed
+    consequence: Leak hunting with ceilings closed; acceptance and move-in slip
+    caught_by: [dc.room-integrity]
+    source: field_experience
+
+  - id: dc.fm.epo-accidental
+    sections: ["26", "28 46*", "23 09*"]
+    what_happens: Unguarded emergency power-off mistaken for a door release or an abort switch
+    consequence: Whole-room outage in operation
+    caught_by: [dc.epo]
+    source: industry_practice
+
+  - id: dc.fm.battery-chemistry-swap
+    sections: ["26 33*"]
+    what_happens: Lithium-ion UPS batteries substituted for lead-acid without designing the energy storage requirements
+    consequence: Separation, detection or suppression added at permit or inspection; battery room redesigned
+    caught_by: [dc.ups-batteries]
+    source: industry_practice
+
+  - id: dc.fm.default-settings
+    sections: ["26 1*", "26 2*", "26 3*", "26 05*", "26 08*"]
+    what_happens: Breakers energized at factory settings because the coordination study was late
+    consequence: A branch fault trips upstream equipment and drops loads the topology was meant to protect
+    caught_by: [dc.equipment-testing]
+    source: field_experience
+
+  - id: dc.fm.ist-unresourced
+    sections: ["01 9*", "21 08*", "23 08*", "26 08*", "26 3*", "23 6*", "23 8*"]
+    what_happens: Load banks, temporary heat rejection and fuel for integrated systems testing carried by no one
+    consequence: Testing slips past IT move-in or runs partially, leaving failure scenarios unproven
+    caught_by: [dc.integrated-testing]
+    source: field_experience
+
+  - id: dc.fm.water-over-racks
+    sections: ["22", "23", "28 45*", "09 69*"]
+    what_happens: Roof leader or domestic water from above routed over the white space in the field to clear other work
+    consequence: A leak lands on live equipment; piping rerouted in an operating room
+    caught_by: [dc.water-in-white-space]
+    source: field_experience
+
+  - id: dc.fm.neutral-bonding
+    sections: ["26 05*", "27 05*", "09 69*", "26 3*"]
+    what_happens: Generator neutral bonded with solid-neutral transfer switches, or switched-neutral transfer switches with no bond at the generator
+    consequence: Objectionable neutral current, nuisance or failed ground-fault tripping; transfer switches or bonding reworked
+    caught_by: [dc.bonding]
+    source: industry_practice
+
+  - id: dc.fm.dual-cord-same-source
+    sections: ["26"]
+    what_happens: Both power supplies of dual-corded equipment fed from the same UPS through misassigned panels or circuits
+    consequence: One UPS or panel outage drops equipment the owner believed was redundant
+    caught_by: [dc.rc.dual-cord]
+    source: field_experience
+
+  - id: dc.fm.overhead-clashes
+    sections: ["21 1*", "26 05*", "27 05*", "27 1*", "23 3*"]
+    what_happens: Tray, busway, containment and sprinkler piping designed independently over the rack rows
+    consequence: Clashes found at installation in the aisles; sprinkler heads and tray moved
+    caught_by: [dc.rc.overhead-layers]
+    source: field_experience
+
+  - id: dc.fm.air-permit-late
+    sections: ["26 32*", "23 1*"]
+    what_happens: Generator air permit or tank filings started after the equipment is set
+    consequence: Engines cannot run for commissioning until permits issue; testing compressed against move-in
+    caught_by: [dc.generator-plant]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: dc.rh.ite-room-epo
+    topic: information-technology-room-epo
+    sections: ["26", "28 46*", "23 09*"]
+    question: >
+      Do the IT rooms qualify for and use the adopted electrical code's
+      information technology equipment provisions, does NFPA 75 apply here, and
+      what emergency power-off locations, functions and exceptions follow?
+    applies_when: Computer rooms, data halls and telecom rooms with dedicated IT power
+    source_families: [electrical_code, fire_code]
+    severity: high
+
+  - id: dc.rh.it-fire-protection
+    topic: it-room-fire-protection
+    sections: ["21", "28 46*", "27 1*"]
+    question: >
+      What fire protection do the adopted fire code, NFPA 75 or NFPA 76 where
+      they apply, and the owner's insurer require for the IT spaces (sprinkler
+      type, clean agent, detection in containment and under floors), and how
+      must aisle containment interact with it?
+    applies_when: White space, telecom rooms and their support spaces
+    source_families: [fire_code]
+    severity: high
+
+  - id: dc.rh.clean-agent
+    topic: clean-agent-system-requirements
+    sections: ["21 2*"]
+    question: >
+      What do the adopted fire code and NFPA 2001 edition require for this
+      agent: design concentration, hold time, enclosure integrity testing,
+      pressure relief venting, and safeguards for normally occupied spaces?
+    applies_when: Clean-agent protected rooms
+    source_families: [fire_code]
+    severity: high
+
+  - id: dc.rh.battery-ess
+    topic: battery-energy-storage-fire-code
+    sections: ["26 33*"]
+    question: >
+      At this battery chemistry and capacity, what do the adopted fire code and
+      NFPA 855 (where adopted) require of the UPS battery installation: UL 9540
+      listing or UL 9540A test data, separation, ventilation, spill control,
+      explosion control, detection and suppression?
+    applies_when: UPS or other stationary battery systems
+    source_families: [fire_code, building_code]
+    severity: high
+
+  - id: dc.rh.underfloor-plenum
+    topic: underfloor-air-space-wiring
+    sections: ["09 69*", "26 05*", "27 05*"]
+    question: >
+      Is the space under the access floor or above the ceiling used for air
+      handling, and which cables, wiring methods and materials do the adopted
+      electrical and mechanical codes permit there?
+    applies_when: Access floors and ceiling plenums in IT spaces
+    source_families: [electrical_code, mechanical_code]
+    severity: medium
+
+  - id: dc.rh.generator-permits
+    topic: generator-air-and-fuel-permits
+    sections: ["26 32*", "23 1*"]
+    question: >
+      What air permit, engine emission tier, run-hour limits, fuel storage
+      limits, tank registration and spill-prevention plan apply to the
+      generator plant at this site?
+    applies_when: Standby generator plants with on-site fuel
+    source_families: [environmental, fire_code]
+    severity: high
+
+  - id: dc.rh.rack-seismic
+    topic: seismic-nonstructural-anchorage
+    sections: ["09 69*", "27 1*", "26 05*", "27 05*"]
+    question: >
+      Do access floor pedestals, equipment racks and overhead cable supports
+      need seismic bracing or anchorage in this seismic design category, and has
+      the owner set a component importance above the code minimum?
+    applies_when: Access floors, racks and overhead pathways
+    source_families: [building_code_seismic]
+    severity: medium

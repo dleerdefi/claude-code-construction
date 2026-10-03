@@ -1,0 +1,28 @@
+schema_version: 1
+kind: interfaces
+id: ov-healthcare
+title: Interfaces that exist only in healthcare facilities
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Facility-filtered edges. Healthcare equipment edges (shielding, medical gas,
+# power and data) live in div-11.yaml; casework at headwalls in div-12.yaml.
+# An edge carries `failure` only when no failure mode covers it.
+
+edges:
+  - id: if.hc-shielding-penetrations
+    a: ["13 49 00"]
+    a_trade: Radiation protection
+    b: ["26 05 33", "27 05 33", "22 05 00", "23 05 00"]
+    b_trade: Electrical, communications, plumbing and HVAC penetrations
+    a_provides: Shielded wall, floor and ceiling extents with lead equivalence, and the backing required at boxes and penetrations
+    b_provides: Box, conduit, pipe and duct locations in shielded construction, fixed before the shielding goes up
+    responsibility:
+      - item: Lead backing at boxes and penetrations in shielded walls
+        typical: {furnish: "13 49 00", install: "13 49 00"}
+        confirm_in: [spec.part1, drawings.details]
+    gate: {milestone: wall_close_in}
+    severity: high
+    facility_types: [healthcare]

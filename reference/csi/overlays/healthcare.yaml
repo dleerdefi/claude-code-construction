@@ -8,7 +8,13 @@ maintainers: [dleerdefi]
 reviewed_by: []
 last_reviewed: null
 
-# Default scope for items without their own `sections`.
+# A licensed healthcare building is reviewed by the state health facility
+# agency against the FGI Guidelines edition it adopts, and often again for
+# every change made during construction. Space type drives finishes, doors,
+# ventilation, power and communications room by room. Work in occupied
+# facilities adds infection control and interim life safety. Hospital-only
+# items are in healthcare.hospital.yaml.
+# Default scope for items without their own `sections`: casework.
 sections: ["12 3*", "06 41*"]
 
 review_checks:
@@ -52,16 +58,294 @@ review_checks:
     severity: medium
     owner: gc
 
+  - id: hc.agency-changes
+    kind: completeness
+    scope: package
+    sections: ["06 41*", "08", "09", "10", "11", "12", "13", "21", "22", "23", "26", "27", "28"]
+    check: >
+      Substitutions, RFI responses, ASIs and field changes that touch a feature
+      the health facility agency reviewed (room sizes and clearances, clinical
+      finishes, handwashing, medical gas, ventilation, essential power, nurse
+      call, fire and smoke barriers) are flagged and sent to the agency for
+      approval where it requires, before installation.
+    trace_to: [register.substitutions, register.rfi_log, register.asi_bulletin_log]
+    severity: high
+    owner: gc
+
+  - id: hc.finishes-by-room
+    kind: conformance
+    sections: ["09 2*", "09 5*", "09 6*"]
+    check: >
+      Ceilings and floors match each room's classification, room by room on the
+      finish schedule and RCP: in restricted and semi-restricted areas
+      (operating and procedure rooms, sterile processing and storage) the
+      monolithic, scrubbable, gasketed or held-down ceiling the class requires,
+      with gasketed access panels in monolithic ceilings, and seamless flooring
+      with integral cove base where the class requires it. One ceiling or floor
+      type scheduled across a whole floor is a flag.
+    trace_to: [schedule.finish, drawings.rcp, drawings.details]
+    severity: high
+    owner: design_team
+
+  - id: hc.door-hardware
+    kind: conformance
+    sections: ["08 1*", "08 7*", "28 1*"]
+    check: >
+      Hardware sets match each opening's function: latching, self-closing and
+      smoke-resistant where the life safety plans require it (patient room and
+      corridor doors, smoke barrier doors), and special locking (delayed or
+      controlled egress, clinical-needs or security locking at behavioral
+      health, pharmacy and infant protection areas) only where the code allows
+      it, with the fire alarm release, power-loss release and staff override
+      that allowance depends on.
+    trace_to: [schedule.door_hardware, drawings.life_safety, drawings.security]
+    severity: high
+    owner: design_team
+
+  - id: hc.ligature-resistant
+    kind: conformance
+    sections: ["08 7*", "10 2*", "22 4*", "09 5*", "26 5*", "23 3*", "21 1*"]
+    check: >
+      In behavioral health and other at-risk patient rooms, every
+      patient-accessible item (door hardware and hinges, plumbing fixtures and
+      trim, toilet accessories, grilles, light fixtures, sprinkler heads,
+      ceilings) is the ligature-resistant product the owner's risk assessment
+      assigns to that room's risk level, with tamper-resistant fasteners.
+    trace_to: [drawings.plans, schedule.door_hardware, schedule.plumbing_fixture]
+    severity: critical
+    owner: design_team
+
+  - id: hc.medgas-verification
+    kind: completeness
+    sections: ["22 6*"]
+    check: >
+      Medical gas and vacuum work has installers and brazers qualified to the
+      ASSE 6000 series as the spec requires, an independent verifier who is not
+      the installer, the installer's initial tests (blowdown, pressure,
+      cross-connection) witnessed before walls and ceilings close, and final
+      verification of purity, flow, alarms and zone valves before patient use,
+      including existing zones affected by tie-ins.
+    trace_to: [spec.part1, spec.part3, drawings.lab_gas]
+    severity: critical
+    owner: gc
+    gate: wall_close_in
+
+  - id: hc.icra-ilsm
+    kind: completeness
+    scope: package
+    sections: ["01", "02 4*"]
+    check: >
+      For work in or next to an occupied facility, the infection control risk
+      assessment class and the interim life safety measures for each phase are
+      in the contract documents and the contractor's plan: barrier
+      construction, negative pressure and filtration, debris and traffic
+      routes, the facility's above-ceiling access permits, monitoring by
+      infection prevention, and each impairment of exits, fire alarm,
+      sprinklers or fire and smoke barriers with its compensating measures.
+    trace_to: [spec.division_01, drawings.plans, drawings.life_safety]
+    severity: critical
+    owner: gc
+
+  - id: hc.room-ventilation
+    kind: conformance
+    sections: ["23"]
+    check: >
+      Each room's ventilation (pressure relationship, total and outdoor air
+      changes, exhaust, filtration, temperature and humidity range) matches the
+      space type it serves; airborne infection isolation and protective
+      environment rooms have their anterooms, sealed construction and room
+      pressure monitors; and the balancing report shows each pressure
+      relationship with doors closed.
+    trace_to: [drawings.mechanical, schedule.mechanical_equipment, report.commissioning]
+    severity: critical
+    owner: design_team
+
+  - id: hc.ees-branches
+    kind: conformance
+    sections: ["26"]
+    check: >
+      Every patient care and life safety load is on the essential electrical
+      system branch the design assigns (life safety, critical, equipment) or on
+      normal power; each branch has its own transfer switch, panels and
+      raceways; receptacles and plates are identified by branch; and the
+      patient care space category behind each room's design is shown.
+    trace_to: [drawings.electrical, schedule.electrical_panel, drawings.single_line]
+    severity: critical
+    owner: design_team
+
+  - id: hc.nurse-call
+    kind: conformance
+    sections: ["27 52*"]
+    check: >
+      Nurse call and code devices match the program room by room (bed
+      stations, toilet and shower emergency stations, staff and duty stations,
+      code call, dome lights), the system carries the listing the spec and
+      agency require, and integration with phones, locating and other clinical
+      systems is assigned to a party.
+    trace_to: [drawings.technology, drawings.plans, spec.part2]
+    severity: high
+    owner: design_team
+
+  - id: hc.radiation-shielding
+    kind: constructability
+    sections: ["13 49*", "09 2*", "08 1*"]
+    check: >
+      Shielding follows the qualified expert's shielding report for the imaging
+      equipment actually purchased: lead equivalence by wall, door, frame and
+      view window, height, floor and ceiling protection, overlaps at joints, and
+      continuity behind device boxes, penetrations and frame anchors. The
+      expert or the spec's inspector reviews it before walls close.
+    trace_to: [drawings.plans, drawings.details, spec.part3]
+    severity: critical
+    owner: gc
+    gate: wall_close_in
+
+  - id: hc.smoke-barrier-penetrations
+    kind: conformance
+    sections: ["07 84*"]
+    check: >
+      Penetrations and joints in smoke barriers have the leakage rating where
+      required and the dampers the life safety plans show; in an occupied
+      facility, work through existing barriers is sealed, labeled and logged
+      in the facility's barrier records before each ceiling closes.
+    trace_to: [drawings.life_safety, spec.part3, register.special_inspections]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+reconciliations:
+  - id: hc.rc.room-ventilation
+    sections: ["23"]
+    between: [drawings.plans, drawings.mechanical]
+    key: Room number
+    fields: [room function, pressure relationship, air change rates, exhaust, filtration]
+    check: >
+      Room functions on the current architectural plans match the room names
+      and ventilation criteria on the mechanical drawings; a room renamed or
+      repurposed by ASI (storage to soiled utility, office to exam) carries its
+      new ventilation requirement.
+    severity: high
+    owner: design_team
+    gate: above_ceiling_close_in
+
+  - id: hc.rc.ees-circuits
+    sections: ["26"]
+    between: [drawings.electrical, schedule.electrical_panel]
+    key: Device circuit
+    fields: [panel, branch, receptacle type and identification, room category]
+    check: >
+      Devices on the plans and circuits on the panel schedules agree on panel
+      and branch; a critical-branch receptacle fed from a normal panel, or a
+      life safety load on the equipment branch, is a finding.
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
+  - id: hc.rc.medgas-outlets
+    sections: ["22 6*"]
+    between: [drawings.lab_gas, drawings.interior_elevations, schedule.equipment]
+    key: Room and bed location
+    fields: [outlets by gas and vacuum service, count, wall or boom or headwall mounting, zone valve box and area alarm serving it]
+    check: >
+      Outlets per bed location on the medical gas drawings match the headwall
+      elevations and any boom or headwall unit submittal by service and count,
+      and every outlet is downstream of a shown zone valve box and area alarm.
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
 escalate:
   - target: cw.counter-heights
     severity: critical
     reason: Health facility licensing rules can govern casework heights beyond what the drawings show
+
+  - target: fs.rh.smoke-barriers
+    sections: ["07 84*"]
+    severity: high
+    reason: Healthcare occupancies defend patients in place behind smoke barriers, so their penetration ratings decide whether the compartments work
 
 failure_modes:
   - id: hc.fm.licensing-heights
     what_happens: Counter heights checked against the drawings only; the state health facility rules governed and the drawings didn't reflect them
     consequence: Casework fails licensing review after fabrication; rework and occupancy risk
     caught_by: [cw.counter-heights]
+    source: field_experience
+
+  - id: hc.fm.unapproved-change
+    sections: ["06 41*", "08", "09", "10", "11", "12", "13", "21", "22", "23", "26", "27", "28"]
+    what_happens: A substitution or field change in a licensed space never sent to the health facility agency
+    consequence: Found at the licensing survey; occupancy or licensure waits while work is redone or re-reviewed
+    caught_by: [hc.agency-changes]
+    source: field_experience
+
+  - id: hc.fm.one-finish-type
+    sections: ["09 2*", "09 5*", "09 6*"]
+    what_happens: Standard acoustical tile or seamed flooring carried into restricted or semi-restricted rooms because the schedule lists one type per floor
+    consequence: Infection control finding at the licensing survey; ceilings or floors replaced in finished rooms
+    caught_by: [hc.finishes-by-room]
+    source: field_experience
+
+  - id: hc.fm.locking-without-release
+    sections: ["08 1*", "08 7*", "28 1*"]
+    what_happens: Delayed or controlled egress locks installed without the fire alarm release, power-loss release or staff override the code ties them to
+    consequence: Fails acceptance testing; an egress hazard until rewired
+    caught_by: [hc.door-hardware]
+    source: field_experience
+
+  - id: hc.fm.standard-item-in-bh-room
+    sections: ["08 7*", "10 2*", "22 4*", "09 5*", "26 5*", "23 3*", "21 1*"]
+    what_happens: A standard sprinkler head, grille, closer or accessory from the general project schedule installed in a behavioral health room
+    consequence: Patient safety finding before occupancy; items replaced across the unit
+    caught_by: [hc.ligature-resistant]
+    source: field_experience
+
+  - id: hc.fm.medgas-closed-untested
+    sections: ["22 6*"]
+    what_happens: Walls and ceilings closed before the installer's initial medical gas tests are witnessed, or the verifier engaged only at the end
+    consequence: Walls reopened; patient occupancy waits on verification
+    caught_by: [hc.medgas-verification]
+    source: field_experience
+
+  - id: hc.fm.icra-class-low
+    sections: ["01", "02 4*"]
+    what_happens: Barriers and negative air built to a lower risk class than the adjacent patient population requires
+    consequence: Infection prevention stops the work; barriers rebuilt; infection risk to patients
+    caught_by: [hc.icra-ilsm]
+    source: field_experience
+
+  - id: hc.fm.room-repurposed
+    sections: ["23"]
+    what_happens: A room's function changed by ASI or owner request while the mechanical design kept the old room's ventilation
+    consequence: Wrong pressure or exhaust found at balancing or the licensing survey; ductwork and controls reworked
+    caught_by: [hc.rc.room-ventilation]
+    source: field_experience
+
+  - id: hc.fm.branch-mixed
+    sections: ["26"]
+    what_happens: Essential branch conductors share raceways or boxes with another branch, or circuits are pulled from the wrong panel in the field
+    consequence: Inspection failure; rewiring behind finished walls
+    caught_by: [hc.ees-branches, hc.rc.ees-circuits]
+    source: industry_practice
+
+  - id: hc.fm.medgas-outlet-mismatch
+    sections: ["22 6*"]
+    what_happens: Boom or headwall unit submittal carries a different outlet set than the medical gas drawings
+    consequence: Outlets added or capped after walls close, and the zone re-verified
+    caught_by: [hc.rc.medgas-outlets]
+    source: field_experience
+
+  - id: hc.fm.shielding-gaps
+    sections: ["13 49*", "09 2*", "08 1*"]
+    what_happens: Electricians and plumbers cut boxes and penetrations into lead-lined walls after the shielding installer has left, with no lead backing behind them
+    consequence: Radiation survey fails after finishes; walls opened and shielding patched
+    caught_by: [hc.radiation-shielding]
+    source: field_experience
+
+  - id: hc.fm.existing-barrier-breached
+    sections: ["07 84*"]
+    what_happens: Cabling and piping run through existing smoke barriers above ceilings in an occupied facility and left unsealed
+    consequence: Barrier findings at the accreditation or fire marshal inspection; ceilings reopened across occupied units
+    caught_by: [hc.smoke-barrier-penetrations]
     source: field_experience
 
 regulatory_hooks:
@@ -105,4 +389,141 @@ regulatory_hooks:
       health facility agency?
     applies_when: Casework and equipment in healthcare occupancies
     source_families: [health_facility_licensing, building_code_seismic]
+    severity: high
+
+  - id: hc.rh.agency-review
+    topic: health-facility-plan-review
+    sections: ["06 41*", "08", "09", "10", "11", "12", "13", "21", "22", "23", "26", "27", "28"]
+    question: >
+      Does the state health facility agency require plan review before
+      construction, approval of changes during construction, its own
+      construction inspections, and an occupancy survey or license before
+      patients are admitted; which FGI Guidelines edition does it apply?
+    applies_when: Any licensed healthcare occupancy
+    source_families: [health_facility_licensing, fgi_guidelines]
+    severity: high
+
+  - id: hc.rh.egress-locking
+    topic: health-care-egress-locking
+    sections: ["08 1*", "08 7*", "28 1*"]
+    question: >
+      Which special locking arrangements (delayed egress, controlled egress,
+      clinical-needs or security locking) do the adopted building code and life
+      safety code allow in this healthcare occupancy, and with what release
+      and staff conditions?
+    applies_when: Locked or secured units, behavioral health, pharmacy and infant protection areas
+    source_families: [building_code, fire_code]
+    severity: high
+
+  - id: hc.rh.ligature-resistance
+    topic: behavioral-health-ligature-resistance
+    sections: ["08 7*", "10 2*", "22 4*", "09 5*", "26 5*", "23 3*", "21 1*"]
+    question: >
+      What ligature-resistance requirements apply by room type and risk level
+      in behavioral health and other at-risk patient areas, and does the agency
+      or accreditor require the owner's risk assessment to set them?
+    applies_when: Behavioral health units and at-risk patient rooms
+    source_families: [health_facility_licensing, fgi_guidelines]
+    severity: critical
+
+  - id: hc.rh.medical-gas
+    topic: medical-gas-system-requirements
+    sections: ["22 6*"]
+    question: >
+      Which NFPA 99 edition governs the medical gas and vacuum systems, what
+      installer, brazer and verifier qualifications and tests does it require,
+      and does the state inspect medical gas separately?
+    applies_when: Medical gas and vacuum systems
+    source_families: [health_facility_licensing, plumbing_code]
+    severity: critical
+
+  - id: hc.rh.construction-icra
+    topic: health-facility-construction-infection-control
+    sections: ["01", "02 4*"]
+    question: >
+      What do the adopted FGI edition and the state agency require for the
+      infection control and pre-construction risk assessments during
+      construction, and who must prepare and sign them?
+    applies_when: Construction in or next to an occupied healthcare facility
+    source_families: [fgi_guidelines, health_facility_licensing]
+    severity: high
+
+  - id: hc.rh.interim-life-safety
+    topic: interim-life-safety-measures
+    sections: ["01", "02 4*"]
+    question: >
+      What interim life safety measures and fire watch do the AHJ, the adopted
+      life safety code and the facility's accreditor require when exits, fire
+      alarm, sprinklers or barriers are impaired during construction?
+    applies_when: Construction in an occupied healthcare facility
+    source_families: [fire_code, health_facility_licensing]
+    severity: high
+
+  - id: hc.rh.ventilation
+    topic: health-facility-ventilation
+    sections: ["23"]
+    question: >
+      Which ASHRAE 170 edition, or state rule, governs pressure relationships,
+      air change rates, filtration, temperature and humidity by space type, and
+      does the agency require test data before occupancy?
+    applies_when: HVAC serving patient care, procedure and support spaces
+    source_families: [mechanical_code, fgi_guidelines, health_facility_licensing]
+    severity: critical
+
+  - id: hc.rh.essential-electrical
+    topic: health-facility-essential-electrical-system
+    sections: ["26"]
+    question: >
+      Under the adopted NFPA 99 and electrical code editions, which patient care
+      space categories apply, what essential electrical system type and
+      branches serve them, which loads go on each branch, and how many
+      receptacles of which branch and grade are needed at each patient bed
+      location?
+    applies_when: Any healthcare facility with patient care spaces
+    source_families: [electrical_code, health_facility_licensing]
+    severity: critical
+
+  - id: hc.rh.patient-care-wiring
+    topic: patient-care-space-wiring
+    sections: ["26"]
+    question: >
+      What redundant grounding wiring method do patient care spaces need, which
+      rooms are wet procedure locations, and does that call for isolated power
+      or ground-fault protection there?
+    applies_when: Patient care spaces and procedure rooms
+    source_families: [electrical_code]
+    severity: high
+
+  - id: hc.rh.nurse-call
+    topic: health-facility-nurse-call
+    sections: ["27 52*"]
+    question: >
+      Which nurse call, emergency call and code call devices does the adopted
+      FGI edition require by room type, and must the system be listed to UL
+      1069?
+    applies_when: Nurse call and emergency call systems
+    source_families: [fgi_guidelines, health_facility_licensing]
+    severity: high
+
+  - id: hc.rh.radiation-shielding
+    topic: radiation-shielding-plan-review
+    sections: ["13 49*", "09 2*", "08 1*"]
+    question: >
+      For shielded rooms built under this permit, must the qualified expert's
+      shielding design be filed with the state radiation program, and who
+      inspects the lead before walls close?
+    applies_when: Rooms for X-ray, CT, fluoroscopy, nuclear medicine or radiation therapy
+    source_families: [health_facility_licensing, occupational_safety]
+    severity: critical
+
+  - id: hc.rh.essential-facility-seismic
+    topic: seismic-equipment-certification
+    sections: ["11 7*", "21", "22", "23", "26", "27", "28"]
+    question: >
+      Is the facility an essential facility (Risk Category IV) under the
+      adopted building code, and if so which mechanical, electrical and medical
+      equipment needs special seismic certification that it stays operable,
+      and what does the state agency add?
+    applies_when: Hospitals and other healthcare facilities that may be essential facilities
+    source_families: [building_code_seismic, health_facility_licensing]
     severity: high
