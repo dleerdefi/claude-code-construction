@@ -63,7 +63,6 @@ review_checks:
 
   - id: 14el.pit
     kind: absence
-    reflex: true
     check: >
       Each pit shows a drain or sump as the code requires, pit ladder, pit
       light and receptacle, waterproofing where the groundwater condition
@@ -97,7 +96,7 @@ review_checks:
     trace_to: [drawings.enlarged_plans, drawings.mechanical, drawings.electrical, drawings.plumbing]
     severity: high
     owner: design_team
-    gate: above_ceiling_close_in
+    gate: procurement_release
 
   - id: 14el.standby-operation
     kind: coordination
@@ -195,11 +194,12 @@ reconciliations:
     key: Hoistway, pit, machine room or control space, and each elevator lobby
     fields: [sprinkler heads, heat detector beside each sprinkler, smoke detectors, shunt-trip disconnect, recall and hat relays]
     check: >
-      Wherever sprinklers are shown in the hoistway, pit or machine room, the
-      fire alarm drawings show a heat detector beside each and the electrical
-      drawings show the shunt trip; lobby, machine room and hoistway smoke
-      detectors are on the fire alarm drawings at every landing the recall
-      design needs.
+      Wherever sprinklers are shown in the hoistway, machine room or control
+      space, the fire alarm drawings show a heat detector beside each and the
+      electrical drawings show the shunt trip; pit sprinklers are checked
+      against the shunt-trip hook rather than assumed to need one. Lobby,
+      machine room and hoistway smoke detectors are on the fire alarm
+      drawings at every landing the recall design needs.
     severity: critical
     owner: design_team
     gate: overhead_rough_in

@@ -10,10 +10,12 @@ last_reviewed: null
 equivalents: ["11 41 00"]
 
 scope_summary: >
-  Walk-in coolers and freezers and larger cold rooms (foodservice walk-ins
-  are often specified with foodservice storage equipment instead). The
-  expensive failures are slow: a freezer floor on grade without heat trace or
-  a ventilated subfloor heaves the slab over months, and a vapor retarder
+  Cold storage rooms and specialty walk-in coolers and freezers
+  (13 21 26.13, 13 21 26.16): laboratory, pharmacy, morgue, floral and
+  warehouse cold rooms. MasterFormat sends foodservice walk-ins to 11 41 23
+  and 11 41 26, reviewed with 11 41 00. The expensive failures are slow: a
+  freezer floor on grade without heat trace or a ventilated subfloor heaves
+  the slab over months, and a vapor retarder
   that isn't on the warm side and continuous fills panels and walls with ice
   or condensation. The room also needs things from three other trades: door
   and relief-port heaters and heat trace on circuits, condensate drains that
@@ -112,13 +114,13 @@ failure_modes:
   - id: 13cs.fm.frost-heave
     what_happens: Freezer built on grade without heat trace or a ventilated subfloor, or the heat trace never energized or monitored
     consequence: The slab heaves over months; floor, panels and doors rebuilt with the room out of service
-    caught_by: [13cs.floor-frost, if.13-cold-storage-power, if.03-cold-storage-floors]
+    caught_by: [13cs.floor-frost, if.13-cold-storage-power]
     source: field_experience
 
   - id: 13cs.fm.no-recess
     what_happens: Slab poured flat under a room whose insulated floor needs a recess
     consequence: The room floor sits above the corridor; a ramp at the door that carts and the accessible route can't use
-    caught_by: [13cs.floor-frost, if.03-cold-storage-floors]
+    caught_by: [13cs.floor-frost]
     source: field_experience
 
   - id: 13cs.fm.frozen-drain
@@ -136,7 +138,7 @@ failure_modes:
   - id: 13cs.fm.refrigeration-gap
     what_happens: Piping and control wiring between condensing unit and evaporators falls between the room vendor, the refrigeration contractor and the electrician
     consequence: Late start-up and a change order for work everyone assumed someone else carried
-    caught_by: [13cs.refrigeration-split, if.13-cold-storage-refrigeration]
+    caught_by: [13cs.refrigeration-split, if.11-walk-in-refrigeration]
     source: industry_practice
 
   - id: 13cs.fm.envelope-condensation

@@ -118,20 +118,6 @@ edges:
     gate: {milestone: above_ceiling_close_in}
     severity: high
 
-  - id: if.13-cold-storage-refrigeration
-    a: ["13 21 26"]
-    a_trade: Cold storage rooms
-    b: ["23 23 00", "23 62 00"]
-    b_trade: Refrigerant piping and condensing units
-    a_provides: Evaporator and room controller locations, refrigeration loads, and panel penetrations for refrigerant lines
-    b_provides: Condensing unit location and support, refrigerant piping, charging, and start-up, where the refrigeration is not in the room vendor's scope
-    responsibility:
-      - item: Refrigeration system design, piping, charge and start-up
-        typical: {furnish: "13 21 26 or 23 62 00", install: "13 21 26 or 23 23 00"}
-        confirm_in: [spec.part1, drawings.mechanical]
-    gate: {milestone: procurement_release}
-    severity: high
-
   - id: if.13-cleanroom-air
     a: ["13 21 13"]
     a_trade: Clean rooms

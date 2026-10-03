@@ -11,8 +11,11 @@ equivalents: ["13 21 26"]   # walk-ins are sometimes specified as cold storage r
 element_types: [walk_in_box]
 
 scope_summary: >
-  Walk-in coolers and freezers, refrigerated storage cases and shelving
-  (11 41 23 and 11 41 26 inherit from here). A walk-in is a small building
+  Foodservice walk-in coolers and freezers, refrigerated storage cases and
+  shelving (11 41 23 and 11 41 26 inherit from here). MasterFormat sends
+  foodservice walk-ins here and specialty cold rooms (laboratory, pharmacy,
+  morgue, warehouse) to 13 21 26; a walk-in carried as an item in 11 40 00
+  is reviewed with this profile. A walk-in is a small building
   inside the building: its floor, slab depression, vapor control, underfloor
   heat, refrigeration, condensate, door heaters, sprinklers and lights are
   split among the concrete, refrigeration, plumbing, electrical and fire
@@ -215,7 +218,7 @@ failure_modes:
 
 regulatory_hooks:
   - id: 11wi.rh.foam-panels
-    topic: walk-in-foam-plastic-panels
+    topic: foam-plastic-insulated-panels
     question: >
       May the foam-plastic insulated panels of walk-in coolers and freezers be
       used without a thermal barrier under the adopted building code, and what

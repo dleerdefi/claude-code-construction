@@ -22,7 +22,6 @@ scope_summary: >
 review_checks:
   - id: d13.specialist-documents
     kind: absence
-    reflex: true
     check: >
       The specialty design this scope depends on (shielding report,
       manufacturer's structural design, pool or refrigeration design,
