@@ -1,0 +1,82 @@
+schema_version: 1
+kind: overlay
+id: education.k12
+facility_type: education.k12
+title: K-12 schools
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Loaded after education.yaml. Only what differs for primary and secondary
+# schools: storm shelters and elements sized for children. Playground
+# surfacing is in 32 18 00.
+sections: ["03", "04", "05", "07 5*", "08", "23 3*"]
+
+review_checks:
+  - id: edu.storm-shelter
+    kind: completeness
+    scope: package
+    check: >
+      Where the school has a storm shelter or safe room, every element of the
+      shelter envelope (walls, roof deck and covering, doors with their frames
+      and hardware, windows, louvers and penetrations) is submitted with
+      evidence that it meets ICC 500 pressure and debris-impact testing as the
+      tested assembly, and the shelter's ventilation, emergency lighting,
+      toilets and power are shown. One standard door, louver or hardware
+      substitution in the shelter boundary breaks the shelter.
+    trace_to: [drawings.life_safety, drawings.plans, spec.part2]
+    severity: critical
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: edu.childrens-dimensions
+    kind: conformance
+    sections: ["10 21*", "10 28*", "12 3*", "22 4*"]
+    check: >
+      Where elements are designed for children (toilets, lavatories, drinking
+      fountains, grab bars, accessories, work surfaces in the lower grades),
+      the heights follow the children's provisions the design chose,
+      consistently by grade group, and the fixture, accessory, partition and
+      casework submittals use those heights rather than adult defaults.
+    trace_to: [drawings.interior_elevations, schedule.plumbing_fixture, schedule.toilet_accessories]
+    severity: high
+    owner: subcontractor
+    gate: in_wall_rough_in
+
+failure_modes:
+  - id: edu.fm.shelter-assembly-broken
+    what_happens: Shelter doors, frames, hardware or louvers submitted as standard products, or tested components mixed across manufacturers
+    consequence: The shelter boundary no longer matches a tested assembly; doors, frames or louvers replaced before occupancy
+    caught_by: [edu.storm-shelter]
+    source: industry_practice
+
+  - id: edu.fm.adult-heights
+    sections: ["10 21*", "10 28*", "12 3*", "22 4*"]
+    what_happens: Fixtures, accessories and partitions in lower-grade toilet rooms installed at adult accessible heights, or the reverse
+    consequence: Elements unusable by the intended users or non-compliant; carriers, backing and accessories reset
+    caught_by: [edu.childrens-dimensions]
+    source: field_experience
+
+regulatory_hooks:
+  - id: edu.rh.storm-shelter
+    topic: storm-shelter-requirements
+    question: >
+      Does the adopted building code require a storm shelter for this school
+      (tornado design wind speed, occupant load), what capacity and location
+      does it need, which ICC 500 edition governs, and what special inspection
+      applies to the shelter?
+    applies_when: Schools in regions with tornado shelter requirements, or where the owner designates a safe room
+    source_families: [building_code]
+    severity: critical
+
+  - id: edu.rh.childrens-dimensions
+    topic: childrens-accessibility-dimensions
+    sections: ["10 21*", "10 28*", "12 3*", "22 4*"]
+    question: >
+      Which children's reach ranges and fixture, counter and grab bar heights
+      does the adopted accessibility standard allow or require for elements
+      designed primarily for children, and for which age groups?
+    applies_when: Toilet rooms, fountains and casework serving lower grades
+    source_families: [accessibility]
+    severity: high

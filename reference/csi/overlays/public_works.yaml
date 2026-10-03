@@ -1,0 +1,158 @@
+schema_version: 1
+kind: overlay
+id: public_works
+facility_type: public_works
+title: Publicly funded and agency-owned projects
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# A project condition, listed in building.facility_types alongside the
+# building type. The funding source and the owning agency add rules the
+# drawings never show: where products come from, who approves which
+# submittals, when the agency inspects, and for some facilities the security
+# criteria. Prevailing-wage reporting does not change submittal review and is
+# left to the contract administration process.
+sections: ["03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "21", "22", "23",
+           "25", "26", "27", "28", "31", "32", "33", "34", "35", "40", "41", "43", "44", "46", "48"]
+
+review_checks:
+  - id: pw.domestic-preference
+    kind: completeness
+    check: >
+      Where the funding source carries a domestic-preference rule, the
+      submittal includes the evidence that rule requires for each covered
+      product (manufacturer's certification of domestic manufacture, mill
+      certifications showing where steel and iron were melted and
+      manufactured, component origin or cost data for manufactured products),
+      or an approved waiver, before the product is ordered.
+    trace_to: [spec.division_01, spec.part2]
+    severity: critical
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: pw.approval-authority
+    kind: completeness
+    scope: package
+    check: >
+      The submittal register shows which submittals need the agency's
+      approval and which the contractor's quality control approves, and
+      agency-approval items are routed to the agency with its review period.
+      Work released on contractor approval of an agency-approval item is at
+      risk of rejection.
+    trace_to: [register.submittal_log, spec.division_01]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: pw.agency-hold-points
+    kind: completeness
+    scope: package
+    check: >
+      The agency's inspection and acceptance hold points (preparatory and
+      initial inspections before each feature of work, agency inspection
+      before cover, acceptance tests the agency witnesses or performs) are in
+      the schedule and the subcontracts, and covering work before a hold
+      point is released is treated as a stop, not a risk.
+    trace_to: [spec.division_01, schedule.master, register.special_inspections]
+    severity: high
+    owner: gc
+
+  - id: pw.approved-sources
+    kind: conformance
+    sections: ["03", "31", "32", "33", "34"]
+    check: >
+      Materials the agency controls by source (qualified or approved product
+      lists, certified plants and producers, approved testing laboratories)
+      come from listed sources, with certifications and test reports in the
+      agency's form, and agency acceptance sampling and testing are scheduled
+      with the agency rather than assumed from the contractor's own testing.
+    trace_to: [spec.part2, spec.division_01, register.special_inspections]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: pw.security-criteria
+    kind: conformance
+    sections: ["08 1*", "08 3*", "08 4*", "08 5*", "08 8*", "32 3*", "34 71*"]
+    check: >
+      Where antiterrorism or physical security criteria apply, glazing,
+      window and curtain wall frames and their anchorage, doors, and site
+      barriers are submitted with the blast or forced-entry performance the
+      criteria require and the test or analysis behind it. The criteria often
+      sit in an agency document the contract references rather than in the
+      section itself.
+    trace_to: [spec.division_01, spec.part2, drawings.site]
+    severity: critical
+    owner: subcontractor
+    gate: procurement_release
+
+failure_modes:
+  - id: pw.fm.undocumented-origin
+    what_happens: A covered product ordered without domestic-origin documentation, or before its waiver was granted
+    consequence: The funding agency disallows the cost; removal and replacement, or lost reimbursement
+    caught_by: [pw.domestic-preference]
+    source: industry_practice
+
+  - id: pw.fm.agency-item-installed
+    what_happens: An agency-approval submittal treated as contractor-approved and the work installed
+    consequence: Agency rejects the work at inspection; removal or a contract modification
+    caught_by: [pw.approval-authority]
+    source: industry_practice
+
+  - id: pw.fm.covered-before-hold-point
+    what_happens: Work covered before the agency's inspection hold point was released
+    consequence: Agency requires the work opened for inspection, or withholds acceptance and payment for that feature
+    caught_by: [pw.agency-hold-points]
+    source: industry_practice
+
+  - id: pw.fm.unlisted-source
+    sections: ["03", "31", "32", "33", "34"]
+    what_happens: Aggregate, precast, pipe or paving material supplied from a plant not on the agency's list
+    consequence: Material rejected or paid at a reduced price at acceptance; replacement under traffic or schedule pressure
+    caught_by: [pw.approved-sources]
+    source: industry_practice
+
+  - id: pw.fm.standard-glazing
+    sections: ["08 1*", "08 3*", "08 4*", "08 5*", "08 8*", "32 3*", "34 71*"]
+    what_happens: Standard insulating glass, frames and anchorage submitted where blast-mitigation criteria apply
+    consequence: Rejected at agency review, or installed non-compliant; glass, frames and anchors replaced
+    caught_by: [pw.security-criteria]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: pw.rh.domestic-preference
+    topic: domestic-preference-requirements
+    question: >
+      Which domestic-preference rules attach to this project's funding
+      (Buy American for direct federal construction, Buy America for federal
+      transportation funding, Build America Buy America for federal financial
+      assistance, American Iron and Steel for water infrastructure, or state
+      equivalents), which products and materials do they cover, and what
+      certification and waiver process applies?
+    applies_when: Projects with federal or state funding that carries domestic-content conditions
+    severity: critical
+
+  - id: pw.rh.agency-jurisdiction
+    topic: agency-building-official-jurisdiction
+    question: >
+      Is the owning agency its own building official for this project (federal
+      or state property), and if so which codes, plan review, deferred
+      submittal and inspection authority apply in place of the local
+      jurisdiction's?
+    applies_when: Federal, state and some local agency projects
+    source_families: [building_code]
+    severity: high
+
+  - id: pw.rh.security-criteria
+    topic: federal-security-design-criteria
+    sections: ["08 1*", "08 3*", "08 4*", "08 5*", "08 8*", "32 3*", "34 71*"]
+    question: >
+      Do federal antiterrorism or physical security criteria apply to this
+      facility (Department of Defense minimum antiterrorism standards,
+      Interagency Security Committee criteria for federal facilities, or
+      agency-specific criteria), at what protection level, and to which
+      building elements?
+    applies_when: Federal, military and other agency facilities with security criteria
+    severity: critical

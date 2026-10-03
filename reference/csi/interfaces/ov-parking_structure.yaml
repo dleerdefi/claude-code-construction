@@ -1,0 +1,26 @@
+schema_version: 1
+kind: interfaces
+id: ov-parking_structure
+title: Interfaces that apply to parking structures
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+edges:
+  - id: if.park-barrier-anchorage
+    a: ["03 31 00", "03 38 00", "03 41 00"]
+    a_trade: Structural concrete, post-tensioned and precast structure
+    b: ["05 52 00", "34 71 00"]
+    b_trade: Vehicle barrier systems (cable, steel rail)
+    a_provides: Columns, beams and spandrels checked for the barrier loads, with anchors, sleeves and embeds placed before casting and clear of tendons and strands
+    b_provides: Barrier design loads, anchor and embed layout, cable-end hardware and tensioning sequence, before the elements that receive them are cast
+    responsibility:
+      - item: Barrier anchors and embeds cast into structure
+        typical: {furnish: "05 52 00 or 34 71 00", install: "03 31 00 or 03 41 00"}
+        confirm_in: [spec.part1, drawings.details]
+    gate:
+      milestone: procurement_release
+      note: Anchor layout goes to the post-tensioning and precast shop drawings before they are approved
+    severity: high
+    facility_types: [parking_structure]

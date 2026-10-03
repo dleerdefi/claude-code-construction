@@ -1,0 +1,261 @@
+schema_version: 1
+kind: overlay
+id: education
+facility_type: education
+title: Educational facilities (K-12 schools, colleges and universities)
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# School work is shaped by the academic calendar, by review regimes outside the
+# local building department, and by owners with campus- or district-wide
+# standards. Science labs are reviewed with the `laboratory` overlay, kitchens
+# with `foodservice`, and residence halls with `residential`: list those facility
+# types too. K-12-only items are in education.k12.yaml.
+sections: ["08", "09", "10", "11", "12", "14", "21", "22", "23", "26", "27", "28"]
+
+review_checks:
+  - id: edu.summer-window
+    kind: constructability
+    scope: package
+    check: >
+      Where work in existing schools must fit a break in the academic calendar,
+      each submittal's approval, owner selections, mock-ups and delivery are
+      dated against the day the window opens, not against a floating schedule
+      activity. Long-lead items (door frames and hardware, HVAC equipment,
+      switchgear, casework, flooring) that miss the window push work into
+      occupied classrooms or a year later, so their submittals are released
+      first.
+    trace_to: [schedule.master, spec.division_01]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: edu.agency-approvals
+    kind: completeness
+    scope: package
+    check: >
+      Where a state school-construction agency has jurisdiction, deferred
+      submittals, substitutions and field changes that touch structure, fire
+      and life safety or accessibility are approved by that agency before
+      fabrication, not only by the architect, and the agency's inspector and
+      testing requirements are in the inspection program.
+    trace_to: [spec.division_01, register.special_inspections, register.substitutions]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: edu.risk-category-delegated
+    kind: conformance
+    scope: package
+    sections: ["03", "04", "05", "07 4*", "07 5*", "08 4*", "08 5*", "12 3*", "13 34*", "21", "22", "23", "26"]
+    check: >
+      Delegated designs (cladding and curtain wall, roofing attachment, joists
+      and trusses, nonstructural and equipment anchorage) state the risk
+      category and importance factors they used, and these match the
+      structural general notes; schools are often assigned above the default,
+      and designers who assume the default under-design.
+    trace_to: [drawings.structural, spec.part1_submittals]
+    severity: high
+    owner: subcontractor
+
+  - id: edu.lockdown-hardware
+    kind: conformance
+    sections: ["08 1*", "08 7*", "28 1*"]
+    check: >
+      Classroom and other occupied-room doors lock from inside the room
+      without opening the door, keep free egress, and can be unlocked from the
+      corridor by key or credential, using the lock function the owner's
+      security standard names. Add-on barricade devices that are not part of
+      the listed door assembly are flagged: they can defeat egress, the fire
+      door label and accessible operation.
+    trace_to: [schedule.door_hardware, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: edu.secure-vestibule
+    kind: coordination
+    scope: package
+    sections: ["08 4*", "08 7*", "08 8*", "28 1*"]
+    check: >
+      The secure entry vestibule works as one system: exterior doors released
+      by schedule or from the office, inner doors held until staff release
+      them with sight of the visitor, a transaction window or pass-through,
+      fire alarm release and egress from the vestibule. Door hardware, access
+      control, storefront and glazing submittals are reviewed together, and
+      any attack- or ballistic-resistant rating covers glass, frame and
+      anchorage as tested, not the glass alone.
+    trace_to: [schedule.door_hardware, drawings.security, spec.part2]
+    severity: high
+    owner: gc
+
+  - id: edu.classroom-acoustics
+    kind: conformance
+    sections: ["09 5*", "09 8*", "23 3*", "23 7*", "23 8*"]
+    check: >
+      Where classroom acoustic criteria apply, HVAC equipment serving or
+      located in learning spaces (unit ventilators, fan coils, terminal units,
+      indoor units, rooftop units over classrooms) submits sound data in the
+      form the criteria are judged by, and acoustical ceilings and wall panels
+      keep the absorption the design relied on. Substitutions are compared on
+      sound performance, not capacity and price alone.
+    trace_to: [report.acoustical, schedule.mechanical_equipment, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: edu.maintenance-durable-finishes
+    kind: conformance
+    sections: ["09", "10 26*"]
+    check: >
+      Corridor, gym, cafeteria and restroom finishes are the abuse-resistant
+      products scheduled (impact-resistant board or masonry to the scheduled
+      height, wall and corner guards), and floor finishes suit the owner's
+      maintenance program (stripped and waxed, or no-wax) so the first
+      cleaning cycle does not void the warranty. A standard product in these
+      spaces is a substitution even when color and pattern match.
+    trace_to: [schedule.finish, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: edu.central-plant
+    kind: coordination
+    sections: ["22 1*", "23 2*", "26 2*", "27", "33"]
+    check: >
+      Connections to a campus or district central plant or distribution
+      network (steam and condensate, heating and chilled water, campus power
+      and telecom) follow the owner's utility standards for valves, metering,
+      materials and points, are reviewed by the owner's utility group, and are
+      scheduled through its outage process, which can limit tie-ins to
+      academic breaks.
+    trace_to: [drawings.site, drawings.mechanical, spec.division_01]
+    severity: high
+    owner: gc
+
+  - id: edu.instructional-lab-shutoffs
+    kind: coordination
+    sections: ["11 53*", "12 35*", "22 6*", "23 11*"]
+    check: >
+      Science classrooms and instructional labs show the emergency shutoff of
+      fuel gas (and of power where required) operable from the teacher
+      station, with the valve, controls, resets and any fire alarm or hood
+      interlock on the plumbing, electrical and lab equipment submittals.
+      Research-lab requirements come from the laboratory overlay.
+    trace_to: [drawings.plumbing, drawings.lab_gas, drawings.electrical]
+    severity: high
+    owner: gc
+
+failure_modes:
+  - id: edu.fm.missed-window
+    what_happens: Hardware, HVAC equipment or casework approved late and delivered after the summer window closes
+    consequence: Work moves into occupied classrooms after hours with temporary systems, or the phase slips a full year
+    caught_by: [edu.summer-window]
+    source: field_experience
+
+  - id: edu.fm.agency-change-unapproved
+    what_happens: A substitution or field change accepted by the architect is never submitted to the state school-construction agency
+    consequence: The agency withholds certification or closeout of the project; work is reopened or occupancy delayed
+    caught_by: [edu.agency-approvals]
+    source: industry_practice
+
+  - id: edu.fm.default-risk-category
+    sections: ["03", "04", "05", "07 4*", "07 5*", "08 4*", "08 5*", "12 3*", "13 34*", "21", "22", "23", "26"]
+    what_happens: Delegated cladding, joist or anchorage design done to the default risk category on a school assigned a higher one
+    consequence: Components under-designed; recalculation and field reinforcement after installation
+    caught_by: [edu.risk-category-delegated]
+    source: industry_practice
+
+  - id: edu.fm.barricade-device
+    sections: ["08 1*", "08 7*", "28 1*"]
+    what_happens: Add-on classroom barricade devices bought by the owner or added to the hardware sets late
+    consequence: Fire door labels and egress compromised; devices removed at inspection or after an incident review
+    caught_by: [edu.lockdown-hardware]
+    source: industry_practice
+
+  - id: edu.fm.rated-glass-standard-frame
+    sections: ["08 4*", "08 7*", "08 8*", "28 1*"]
+    what_happens: Attack- or ballistic-resistant glazing submitted in a standard storefront frame with standard anchorage
+    consequence: The opening does not deliver the rating the owner paid for; frames and anchorage replaced
+    caught_by: [edu.secure-vestibule]
+    source: field_experience
+
+  - id: edu.fm.noisy-classroom-units
+    sections: ["09 5*", "09 8*", "23 3*", "23 7*", "23 8*"]
+    what_happens: In-room HVAC units or ceilings substituted on capacity and price, with sound data never compared
+    consequence: Classrooms exceed background-noise or reverberation criteria; silencers, unit relocation or ceiling replacement after occupancy
+    caught_by: [edu.classroom-acoustics]
+    source: field_experience
+
+  - id: edu.fm.flooring-maintenance
+    sections: ["09", "10 26*"]
+    what_happens: Resilient flooring selected or substituted without regard to the district's strip-and-wax or no-wax maintenance
+    consequence: Warranty voided by the first maintenance cycle, or a finish that degrades within the first school year
+    caught_by: [edu.maintenance-durable-finishes]
+    source: field_experience
+
+escalate:
+  - target: cw.rh.seismic-anchorage
+    severity: high
+    reason: >
+      Schools are often assigned a higher risk category, and tall classroom
+      storage and shelving can topple onto students
+
+regulatory_hooks:
+  - id: edu.rh.school-agency-review
+    topic: school-construction-agency-review
+    question: >
+      Does a state agency other than the local building department review
+      plans, approve changes or inspect construction for this school (common
+      for public K-12 and in some states for community colleges), and what
+      does it require for deferred submittals, change documents, testing
+      laboratories and the inspector of record?
+    applies_when: Public schools and colleges in states with a school-construction agency
+    source_families: [building_code]
+    severity: high
+
+  - id: edu.rh.risk-category
+    topic: building-risk-category-assignment
+    sections: ["03", "04", "05", "07 4*", "07 5*", "08 4*", "08 5*", "12 3*", "13 34*", "21", "22", "23", "26"]
+    question: >
+      What risk category applies to this building under the adopted code
+      (occupant load, designation as an emergency or community shelter), and
+      which design loads, nonstructural anchorage and special inspections
+      change because of it?
+    applies_when: Any school or campus building with large occupant loads or a shelter designation
+    source_families: [building_code, building_code_seismic]
+    severity: high
+
+  - id: edu.rh.classroom-locking
+    topic: classroom-door-locking
+    sections: ["08 1*", "08 7*", "28 1*"]
+    question: >
+      What do the adopted building and fire codes, and any state school-safety
+      law, allow for locking classroom doors from inside, including
+      supplemental barricade devices, and what egress, fire door and
+      accessible-operation limits apply?
+    applies_when: Classroom and occupied-room doors in schools
+    source_families: [building_code, fire_code, accessibility]
+    severity: high
+
+  - id: edu.rh.classroom-acoustics
+    topic: classroom-acoustics-criteria
+    sections: ["09 5*", "09 8*", "23 3*", "23 7*", "23 8*"]
+    question: >
+      Does the state, the owner's standards or a green-building program the
+      project pursues require classroom acoustic performance (ASA/ANSI S12.60
+      Part 1 or an equivalent), which edition, and must background noise and
+      reverberation be verified in the field?
+    applies_when: Classrooms and other core learning spaces
+    source_families: [building_code]
+    severity: medium
+
+  - id: edu.rh.instructional-lab-shutoffs
+    topic: instructional-lab-emergency-shutoffs
+    sections: ["11 53*", "12 35*", "22 6*", "23 11*"]
+    question: >
+      Do the adopted fire and fuel gas codes, NFPA 45 where it is adopted, or
+      state education rules require emergency shutoff of fuel gas or power in
+      instructional science labs, and where must the controls be located?
+    applies_when: Science classrooms and instructional labs with gas or lab services
+    source_families: [fire_code]
+    severity: high

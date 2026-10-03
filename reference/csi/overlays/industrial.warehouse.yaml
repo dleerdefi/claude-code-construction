@@ -1,0 +1,106 @@
+schema_version: 1
+kind: overlay
+id: industrial.warehouse
+facility_type: industrial.warehouse
+title: Warehouse and distribution buildings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Loaded after industrial.yaml. In a warehouse the storage decides the fire
+# protection, the floor and the ceiling layout, and on a speculative building
+# nobody yet knows what will be stored.
+sections: ["21 1*", "21 3*"]
+
+review_checks:
+  - id: ind.storage-basis
+    kind: conformance
+    scope: package
+    check: >
+      The sprinkler design states the storage it protects (commodity class
+      including plastics, storage height, rack or solid-pile arrangement,
+      aisle widths, clearance to sprinklers) and that basis matches the
+      owner's or tenant's storage program. A speculative building records the
+      basis it was designed for, so the first tenant can be checked against
+      it before move-in.
+    trace_to: [drawings.fire_protection, spec.part2, drawings.equipment]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+reconciliations:
+  - id: ind.rc.ceiling-obstructions
+    sections: ["05 2*", "21 1*", "23 3*", "23 5*", "26 5*"]
+    between: [drawings.fire_protection, drawings.electrical, drawings.mechanical, drawings.structural]
+    key: Sprinkler layout by roof bay
+    fields: [sprinkler location and deflector elevation, light fixture and heater locations, duct and joist bridging locations]
+    check: >
+      High-bay lights, unit heaters, ducts, joist bridging and conveyors are
+      placed to meet the obstruction rules of the storage sprinklers
+      (strictest for early-suppression types), not laid out by each trade on
+      its own drawing.
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: ind.rc.rack-plan
+    sections: ["03 3*", "21 1*", "41 5*"]
+    between: [drawings.equipment, drawings.structural, drawings.fire_protection, spec.part3]
+    key: Rack row or storage aisle
+    fields: [lift-truck type and aisle width, floor tolerance along the wheel paths, slab joints relative to rack base plates, in-rack sprinklers and flue spaces, rack anchorage]
+    check: >
+      The owner's rack and aisle layout, the slab joint plan and floor
+      tolerance zones, and the sprinkler drawings describe the same storage:
+      base plates clear of joints, defined-traffic tolerances where
+      narrow-aisle trucks run, and in-rack sprinklers and flue spaces where
+      the racks actually are.
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+failure_modes:
+  - id: ind.fm.tenant-exceeds-basis
+    what_happens: A tenant stores plastics, or stores higher, than the sprinkler basis of a speculative warehouse
+    consequence: Protection inadequate for the hazard; in-rack sprinklers, a new pump or a system redesign before occupancy
+    caught_by: [ind.storage-basis]
+    source: field_experience
+
+  - id: ind.fm.esfr-obstruction
+    sections: ["05 2*", "21 1*", "23 3*", "23 5*", "26 5*"]
+    what_happens: Lights or heaters hung directly beside or below early-suppression sprinklers
+    consequence: Failed sprinkler inspection; fixtures, heaters or heads relocated after installation
+    caught_by: [ind.rc.ceiling-obstructions]
+    source: field_experience
+
+  - id: ind.fm.racks-on-joints
+    sections: ["03 3*", "21 1*", "41 5*"]
+    what_happens: Rack layout arrives after the slab is placed, and base plates land on joints or narrow aisles fall outside the flat zones
+    consequence: Joint damage and anchor failures under post loads, or trucks that cannot run at full height; racks moved or floors ground
+    caught_by: [ind.rc.rack-plan]
+    source: field_experience
+
+regulatory_hooks:
+  - id: ind.rh.high-piled-storage
+    topic: high-piled-combustible-storage
+    sections: ["08 3*", "21 1*", "21 3*", "23 3*"]
+    question: >
+      Does the planned storage trigger the adopted fire code's high-piled
+      combustible storage provisions (permit, storage plan, fire department
+      access doors, smoke removal, detection), and which sprinkler criteria in
+      the adopted NFPA 13 edition apply to the commodity and arrangement?
+    applies_when: Storage above the high-piled threshold, or a speculative building marketed for it
+    source_families: [fire_code]
+    severity: critical
+
+  - id: ind.rh.rack-permits
+    topic: storage-rack-permits-seismic
+    sections: ["03 3*", "41 5*"]
+    question: >
+      Do storage racks above the jurisdiction's height threshold need a
+      building permit, seismic design and engineered anchorage, which rack
+      design standard applies, and who submits it (owner, tenant or
+      contractor)?
+    applies_when: Pallet racking and other storage racks
+    source_families: [building_code, building_code_seismic]
+    severity: high

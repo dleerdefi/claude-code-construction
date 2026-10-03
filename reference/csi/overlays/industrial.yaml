@@ -1,0 +1,164 @@
+schema_version: 1
+kind: overlay
+id: industrial
+facility_type: industrial
+title: Industrial facilities (manufacturing, warehouse and distribution)
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Large, lightly framed roofs carrying a lot of hung equipment, slabs that take
+# hard-wheel traffic, owner-furnished process equipment, and a hazard set by
+# what the owner makes or stores. Dock pits and dock equipment are in 11 13 00,
+# hung loads on joists in 05 21 00.
+# Storage and racking items are in industrial.warehouse.yaml.
+sections: ["05 2*", "07 5*", "13 34*", "21 1*", "22 1*"]
+
+review_checks:
+  - id: ind.long-span-drainage
+    kind: constructability
+    sections: ["05 2*", "07 5*", "13 34*", "22 14*"]
+    check: >
+      On long-span, low-slope roofs, drain locations and slope account for the
+      deflection of the roof structure under load: on a dead-flat roof the
+      column lines are the high points once the joists deflect, so drains
+      there leave water ponding at mid-span.
+    trace_to: [drawings.roof_plan, drawings.structural, drawings.plumbing]
+    severity: high
+    owner: design_team
+
+  - id: ind.lift-truck-joints
+    kind: constructability
+    sections: ["03 3*", "07 92*"]
+    check: >
+      Slab joints that take hard-wheel lift-truck traffic (across aisles, at
+      dock doors, at pour breaks) are armored or filled with a semi-rigid
+      filler that supports the joint edges, installed as late as the schedule
+      allows after slab shrinkage, not an elastomeric sealant.
+    trace_to: [drawings.structural, drawings.foundation, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: ind.process-equipment-data
+    kind: coordination
+    scope: package
+    sections: ["11", "22 1*", "23 2*", "26 2*", "41"]
+    check: >
+      Owner-furnished process equipment has certified data (power, compressed
+      air, water, drains, exhaust, foundations and anchorage) in hand before
+      the base-building utilities, pads and pits it needs are released; work
+      released on preliminary data is identified so the owner carries the
+      risk knowingly.
+    trace_to: [schedule.equipment, drawings.equipment, spec.division_01]
+    severity: high
+    owner: owner
+    gate: procurement_release
+
+  - id: ind.crane-runways
+    kind: constructability
+    sections: ["05 1*", "41 2*"]
+    check: >
+      Crane runway beams, rails, stops and power rails are surveyed for
+      alignment, span and elevation after erection and before the crane is
+      installed, with corrections made by the runway erector, not absorbed by
+      the crane.
+    trace_to: [drawings.structural, spec.part3]
+    severity: high
+    owner: gc
+    gate: equipment_set
+
+  - id: ind.truck-court
+    kind: absence
+    sections: ["32 1*"]
+    check: >
+      Truck courts and dock aprons have pavement designed for trailer
+      landing-gear loads (a concrete apron or dolly pad where trailers are
+      dropped), not only for the axle loads of the drive aisles.
+    trace_to: [drawings.civil, drawings.site]
+    severity: medium
+    owner: design_team
+
+reconciliations:
+  - id: ind.rc.crane-data
+    sections: ["05 1*", "41 2*"]
+    between: [drawings.structural, spec.part2]
+    key: Each crane and its runway
+    fields: [capacity and service class, span, wheel loads and spacing, rail size and attachment, runway tolerances]
+    check: >
+      The crane supplier's data matches the runway design basis on the
+      structural drawings; a larger crane or different wheel arrangement
+      selected late goes back to the structural engineer.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: ind.fm.ponding-instability
+    sections: ["05 2*", "07 5*", "13 34*", "22 14*"]
+    what_happens: Water ponds at mid-span of a deflecting long-span roof with drains at the columns
+    consequence: Ponding load deflects the roof further; deck and joist overstress and, in a heavy storm, collapse
+    caught_by: [ind.long-span-drainage]
+    source: industry_practice
+
+  - id: ind.fm.joint-spalling
+    sections: ["03 3*", "07 92*"]
+    what_happens: Elastomeric sealant in floor joints under lift trucks, or semi-rigid filler installed while the slab is still shrinking
+    consequence: Joint edges spall and filler separates; repairs that never end in an operating facility
+    caught_by: [ind.lift-truck-joints]
+    source: field_experience
+
+  - id: ind.fm.late-equipment-data
+    sections: ["11", "22 1*", "23 2*", "26 2*", "41"]
+    what_happens: Base-building utilities and foundations built to preliminary owner equipment data
+    consequence: Pads re-poured, feeders and piping resized, at the owner's cost and schedule
+    caught_by: [ind.process-equipment-data]
+    source: field_experience
+
+  - id: ind.fm.runway-misaligned
+    sections: ["05 1*", "41 2*"]
+    what_happens: Crane installed on a runway never surveyed after erection, or on a runway designed for a different crane
+    consequence: Rail wear, skewing and wheel failures; runway realigned or reinforced in an operating plant
+    caught_by: [ind.crane-runways, ind.rc.crane-data]
+    source: field_experience
+
+  - id: ind.fm.landing-gear-punch
+    sections: ["32 1*"]
+    what_happens: Trailers dropped on asphalt in the truck court
+    consequence: Landing gear punches through within a season; aprons replaced in concrete
+    caught_by: [ind.truck-court]
+    source: field_experience
+
+escalate:
+  - target: rf.drainage
+    severity: critical
+    reason: >
+      On long-span, lightly framed industrial roofs a drainage shortfall
+      becomes a structural ponding problem
+
+regulatory_hooks:
+  - id: ind.rh.smoke-heat-removal
+    topic: smoke-heat-removal
+    sections: ["07 7*", "08 6*", "21 1*", "23 3*"]
+    question: >
+      Does the adopted fire code require smoke and heat removal for this
+      building (occupancy, undivided floor area, high-piled storage), by vents
+      or by mechanical exhaust, and how must it be coordinated with the
+      sprinkler type, since automatic vent operation is restricted with some
+      storage sprinklers?
+    applies_when: Large manufacturing and storage buildings
+    source_families: [fire_code]
+    severity: high
+
+  - id: ind.rh.process-hazmat
+    topic: hazardous-materials-control-areas
+    sections: ["09 2*", "21 1*", "22 1*", "23 3*", "26 2*", "28 4*"]
+    question: >
+      Do the hazardous materials the owner will make, use or store exceed what
+      the control areas allow, and if so what follows for this building:
+      high-hazard occupancy, control-area separations, spill control and
+      secondary containment, exhaust ventilation, explosion control, standby
+      power and detection?
+    applies_when: Manufacturing or storage involving flammable, combustible, toxic or reactive materials
+    source_families: [fire_code, building_code]
+    severity: critical

@@ -1,0 +1,325 @@
+schema_version: 1
+kind: overlay
+id: residential
+facility_type: residential
+title: Residential (multifamily, student and senior housing with dwelling or sleeping units)
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# What changes when the building is a stack of units: every detail repeats
+# hundreds of times, accessibility is assigned unit by unit under more than one
+# regime, units are separated for fire and sound, and residents live with the
+# balconies and alarms. Appliance packages, dryer exhaust and range hoods are
+# in 11 30 00; wood-frame shrinkage at the framing itself is in 06 11 00.
+sections: ["06 4*", "08 1*", "08 5*", "08 7*", "10 28*", "11 3*", "12 3*", "22 4*"]
+
+review_checks:
+  - id: mf.unit-type-matrix
+    kind: completeness
+    scope: package
+    check: >
+      Submittals organized by unit type cover every unit type and its mirrored
+      or handed variants, with quantities that add up to the unit matrix. Door
+      swings and hardware handing, casework runs and plumbing wet walls are
+      checked on the mirrored units, not only on the typical one.
+    trace_to: [drawings.enlarged_plans, drawings.plans, schedule.door]
+    severity: high
+    owner: subcontractor
+
+  - id: mf.accessible-unit-designation
+    kind: conformance
+    sections: ["06 4*", "08 7*", "10 28*", "11 3*", "12 3*", "22 4*", "28 4*"]
+    check: >
+      Each unit's designation (fully accessible or Type A, Type B or fair
+      housing covered, units with communication features, units counted for a
+      funding program) is identified in the submittal, and the casework,
+      fixtures, accessories, door hardware and alarm devices deliver what the
+      designation needs: removable base cabinets or knee space, lever
+      hardware, clear floor space, visible alarm and doorbell signaling.
+    trace_to: [drawings.enlarged_plans, drawings.plans, schedule.plumbing_fixture]
+    severity: critical
+    owner: gc
+
+  - id: mf.grab-bar-reinforcement
+    kind: absence
+    sections: ["06 1*", "09 2*", "10 28*", "22 4*"]
+    check: >
+      Wall reinforcement for future grab bars at toilets, tubs and showers is
+      detailed and installed in every covered unit, not only in the units that
+      receive grab bars now, and the framing or backing submittal shows it.
+    trace_to: [drawings.details, drawings.enlarged_plans]
+    severity: high
+    owner: gc
+    gate: wall_close_in
+
+  - id: mf.impact-isolation
+    kind: conformance
+    sections: ["03 54*", "06 1*", "09 2*", "09 6*", "09 8*"]
+    check: >
+      Floor-ceilings between units keep the combination their impact rating
+      was tested with: the flooring and underlayment in every unit finish
+      (including hard-surface upgrades sold to buyers or chosen late by the
+      owner), any cast or mat underlayment, and the resilient ceiling
+      mounting. A flooring change in the units is an acoustic change and goes
+      back to the acoustical consultant.
+    trace_to: [report.acoustical, schedule.finish, schedule.partition_type, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: mf.first-unit-review
+    kind: completeness
+    scope: package
+    sections: ["06 1*", "07 84*", "09 2*", "09 3*", "09 6*", "22 4*", "23 3*"]
+    check: >
+      Before work repeats floor after floor, a first finished unit of each
+      type (or a unit mock-up) is inspected by the design team and the
+      specialty reviewers, with the inspector where willing: rated
+      penetrations and ceiling openings, resilient mountings and acoustic
+      sealing, wet-area and balcony waterproofing, accessibility features and
+      finishes. Field sound testing, if required, is done on these early
+      units so a failing assembly is fixed before it is copied.
+    trace_to: [spec.division_01, report.acoustical, schedule.master]
+    severity: high
+    owner: gc
+    gate: wall_close_in
+
+  - id: mf.shrinkage-receivers
+    kind: coordination
+    sections: ["04 2*", "05 5*", "07 4*", "08 5*", "14 2*", "21 1*", "22 1*", "23 3*"]
+    check: >
+      In a multistory wood-frame building, this submittal shows how it takes
+      the frame's cumulative shrinkage at each level: slip or expansion
+      provisions in risers and stacks, adjustable elevator entrances and sills
+      at landings, veneer and cladding joints, gaps at window heads under
+      veneer, slotted stair connections. Sized to the structural engineer's
+      estimate, not a generic allowance.
+    trace_to: [drawings.structural, drawings.details, drawings.wall_sections]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: mf.escape-openings
+    kind: conformance
+    sections: ["08 5*"]
+    check: >
+      Windows serving as emergency escape and rescue openings deliver the
+      clear opening the window schedule assumes in the sash type, size and
+      hardware actually submitted; a change of operation type or added
+      limit stops is rechecked room by room.
+    trace_to: [schedule.window, drawings.exterior_elevations, drawings.enlarged_plans]
+    severity: high
+    owner: subcontractor
+
+  - id: mf.unit-alarms
+    kind: completeness
+    scope: package
+    sections: ["26 05*", "28 4*"]
+    check: >
+      Smoke and carbon monoxide alarm locations are shown and submitted per
+      unit type, with interconnection inside the unit, primary and backup
+      power, distance from cooking appliances and bathrooms, and how unit
+      alarms relate to the building fire alarm (supervision, notification and
+      the visible-alarm capability units need).
+    trace_to: [drawings.fire_alarm, drawings.electrical, drawings.enlarged_plans]
+    severity: high
+    owner: subcontractor
+
+  - id: mf.balcony-waterproofing
+    kind: constructability
+    sections: ["05 5*", "06 1*", "07 1*", "07 6*", "08 3*", "08 4*", "08 5*"]
+    check: >
+      Balconies, decks and walkways over occupied space or enclosed framing
+      have a continuous membrane sloped away from the building, lapped up the
+      wall behind the water-resistive barrier and under the door sill pan;
+      railing posts attach through the side or fascia rather than through the
+      membrane; enclosed framing below is ventilated or protected; and the
+      door threshold detail reconciles the membrane upturn with the threshold
+      the unit's accessibility designation allows.
+    trace_to: [drawings.details, drawings.wall_sections, spec.part3]
+    severity: critical
+    owner: gc
+    gate: overburden_placement
+
+  - id: mf.trash-chute
+    kind: coordination
+    sections: ["08 1*", "14 9*", "21 1*"]
+    check: >
+      The trash or recycling chute is coordinated as a rated shaft system:
+      intake doors listed for the shaft rating with self-closing and latching
+      hardware, sprinklers inside the chute and in the termination room, a
+      discharge door that closes on fire, a vent through the roof, and the
+      chute aligned through every floor.
+    trace_to: [drawings.plans, drawings.fire_protection, drawings.building_sections]
+    severity: high
+    owner: gc
+
+reconciliations:
+  - id: mf.rc.unit-designations
+    sections: ["06 4*", "08 7*", "10 28*", "11 3*", "12 3*", "22 4*", "28 4*"]
+    between: [drawings.plans, drawings.enlarged_plans, drawings.fire_alarm, schedule.plumbing_fixture]
+    key: Unit number
+    fields: [unit type and hand, accessibility designation, communication features, fixture and casework package]
+    check: >
+      The unit matrix, enlarged unit plans, fire alarm drawings and fixture
+      schedule agree on which units are accessible, adaptable or carry
+      communication features, so the trades build the right package in the
+      right unit.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: mf.fm.mirrored-units
+    what_happens: Shop drawings prepared for the typical unit only; mirrored units fabricated as typical
+    consequence: Wrong-hand doors, casework and tops across a whole stack of units
+    caught_by: [mf.unit-type-matrix]
+    source: field_experience
+
+  - id: mf.fm.accessible-features-missing
+    sections: ["06 4*", "08 7*", "10 28*", "11 3*", "12 3*", "22 4*", "28 4*"]
+    what_happens: Accessible or adaptable units receive the standard package (fixed sink base, knob hardware, no visible-alarm provision)
+    consequence: Accessibility or fair housing findings after occupancy; retrofits in occupied units
+    caught_by: [mf.accessible-unit-designation, mf.rc.unit-designations]
+    source: field_experience
+
+  - id: mf.fm.grab-bar-backing
+    sections: ["06 1*", "09 2*", "10 28*", "22 4*"]
+    what_happens: Grab bar reinforcement left out of bathrooms in adaptable or covered units because no grab bars are installed there
+    consequence: Walls opened in finished units, or a fair housing complaint after occupancy
+    caught_by: [mf.grab-bar-reinforcement]
+    source: field_experience
+
+  - id: mf.fm.hard-flooring-swap
+    sections: ["03 54*", "06 1*", "09 2*", "09 6*", "09 8*"]
+    what_happens: Carpet changed to hard-surface flooring, or the underlayment dropped, late in the job
+    consequence: Impact rating no longer met; complaints from units below and flooring replaced in occupied units
+    caught_by: [mf.impact-isolation]
+    source: field_experience
+
+  - id: mf.fm.resilient-channel-shorted
+    sections: ["09 2*"]
+    what_happens: Resilient channel or clips short-circuited by board screws driven into framing, or channel installed upside down
+    consequence: Field sound tests fail floor-wide; ceilings removed and reinstalled
+    caught_by: [mf.first-unit-review]
+    source: field_experience
+
+  - id: mf.fm.repeated-defect
+    sections: ["06 1*", "07 84*", "09 2*", "09 3*", "09 6*", "22 4*", "23 3*"]
+    what_happens: A defect in the typical unit detail (rated ceiling opening, acoustic seal, shower waterproofing) first found at final inspection
+    consequence: The same correction in every unit of that type, much of it through finished surfaces
+    caught_by: [mf.first-unit-review]
+    source: field_experience
+
+  - id: mf.fm.elevator-sill-offset
+    sections: ["14 2*"]
+    what_happens: Elevator hoistway in concrete or masonry serving wood-frame floors with fixed entrances and sills
+    consequence: Sills step out of level with the floors as the frame shrinks; trip hazards and entrance rework at every landing
+    caught_by: [mf.shrinkage-receivers]
+    source: industry_practice
+
+  - id: mf.fm.sash-type-swap
+    sections: ["08 5*"]
+    what_happens: Casement windows changed to hung or sliding units, or limit stops added, in rooms that need an escape opening
+    consequence: Clear opening below the requirement; windows replaced at final inspection
+    caught_by: [mf.escape-openings]
+    source: field_experience
+
+  - id: mf.fm.cooking-nuisance-alarms
+    sections: ["26 05*", "28 4*"]
+    what_happens: Smoke alarms placed close to the cooktop in compact unit kitchens
+    consequence: Nuisance alarms, residents disabling alarms, and relocation in every unit
+    caught_by: [mf.unit-alarms]
+    source: field_experience
+
+  - id: mf.fm.balcony-decay
+    sections: ["05 5*", "06 1*", "07 1*", "07 6*", "08 3*", "08 4*", "08 5*"]
+    what_happens: Water enters enclosed balcony framing through railing post penetrations or a membrane that stops short of the wall
+    consequence: Concealed decay of joists and ledgers, a structural hazard, and full balcony reconstruction
+    caught_by: [mf.balcony-waterproofing]
+    source: industry_practice
+
+  - id: mf.fm.chute-door-unlisted
+    sections: ["08 1*", "14 9*", "21 1*"]
+    what_happens: Chute intake or discharge doors supplied without a listing for the shaft rating, or sprinklers left out of the chute
+    consequence: Failed fire inspection of the shaft; doors replaced and sprinklers retrofitted in a finished shaft
+    caught_by: [mf.trash-chute]
+    source: industry_practice
+
+escalate:
+  - target: cw.rh.accessibility-work-surfaces
+    severity: critical
+    reason: >
+      Fair housing and accessible-unit requirements reach every covered unit,
+      and findings after occupancy mean retrofits in occupied homes
+  - target: cw.appliance-openings
+    severity: high
+    reason: An opening error repeats in every unit of the type
+  - target: fs.membrane-penetrations
+    severity: high
+    reason: >
+      Exhaust fans, lights and devices in rated unit ceilings and demising
+      walls repeat in every unit, so one wrong detail fails a whole building
+
+regulatory_hooks:
+  - id: mf.rh.unit-accessibility
+    topic: dwelling-unit-accessibility-types
+    sections: ["06 4*", "08 3*", "08 7*", "10 28*", "11 3*", "12 3*", "22 4*", "28 4*"]
+    question: >
+      Which accessibility regimes apply to the units (Fair Housing Act design
+      and construction requirements, the adopted code's Accessible, Type A
+      and Type B units under ICC A117.1, Section 504 or other funding-program
+      rules), how many units of each type with what dispersion and
+      communication features, and what threshold is allowed at balcony and
+      patio doors?
+    applies_when: Buildings with dwelling units, and sleeping units under the adopted code
+    source_families: [accessibility, building_code]
+    severity: critical
+
+  - id: mf.rh.sound-ratings
+    topic: dwelling-unit-sound-transmission
+    sections: ["03 54*", "06 1*", "09 2*", "09 6*", "09 8*"]
+    question: >
+      What airborne and impact sound ratings must walls and floor-ceilings
+      between units, and between units and corridors, stairs or service
+      areas, meet, may they be shown by tested assembly or must they be field
+      tested, and does the owner or a funding program require more?
+    applies_when: Assemblies separating dwelling or sleeping units
+    source_families: [building_code]
+    severity: high
+
+  - id: mf.rh.unit-alarms
+    topic: dwelling-smoke-co-alarms
+    sections: ["26 05*", "28 4*"]
+    question: >
+      Where are smoke alarms required in dwelling and sleeping units, with
+      what power, interconnection and distance from cooking appliances and
+      bathrooms, how do they relate to a building fire alarm system, and what
+      visible-notification capability must every unit have?
+    applies_when: Every dwelling and sleeping unit
+    source_families: [fire_code, building_code]
+    severity: high
+
+  - id: mf.rh.elevated-elements
+    topic: exterior-elevated-elements-inspection
+    sections: ["05 5*", "06 1*", "07 1*", "07 6*", "08 3*", "08 4*", "08 5*"]
+    question: >
+      Does the jurisdiction require special inspection during construction,
+      or periodic inspection after occupancy, of balconies, decks, walkways
+      and other exterior elevated elements and their waterproofing, and what
+      must be documented for it?
+    applies_when: Balconies, decks and elevated walkways, especially wood-framed
+    source_families: [building_code]
+    severity: high
+
+  - id: mf.rh.waste-chutes
+    topic: waste-chute-requirements
+    sections: ["08 1*", "14 9*", "21 1*"]
+    question: >
+      What do the adopted building and fire codes, and the NFPA 82 edition
+      they reference, require for waste and linen chutes: shaft rating, access
+      rooms and doors, termination room, sprinklers and venting?
+    applies_when: Trash, recycling or linen chutes
+    source_families: [building_code, fire_code]
+    severity: high

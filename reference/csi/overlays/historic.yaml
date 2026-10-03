@@ -1,0 +1,209 @@
+schema_version: 1
+kind: overlay
+id: historic
+facility_type: historic
+title: Work on historic buildings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# A project condition, listed in building.facility_types alongside the
+# building type. Historic fabric cannot be replaced once it is damaged, and a
+# preservation reviewer outside the design team often approves the treatment.
+# The review question shifts from "does it match the spec" to "does it match
+# what was approved, and does it harm what stays". MasterFormat's NN 01 and
+# NN 03 sections (maintenance and conservation treatment) carry much of this
+# work.
+sections: ["?? 01*", "?? 03*", "04", "05 7*", "06 2*", "06 4*", "07 3*", "07 4*", "07 6*", "08", "09", "10 14*"]
+
+review_checks:
+  - id: hist.preservation-approval
+    kind: conformance
+    check: >
+      Submittals that alter, replace or add to character-defining features
+      (windows, storefronts, masonry, roofing and sheet metal, ornamental
+      metal and wood, interior finishes in significant spaces, signage) match
+      the treatment the preservation reviewer approved in profile, dimension,
+      material, finish and method, and any change goes back to that reviewer
+      before fabrication, not only to the architect. Replacement in kind
+      matches the original; new additions are meant to be compatible but
+      distinguishable, so review against the approval, not a generic match.
+    trace_to: [spec.division_01, drawings.details, drawings.exterior_elevations]
+    severity: critical
+    owner: gc
+    gate: procurement_release
+
+  - id: hist.repointing-mortar
+    kind: conformance
+    sections: ["04 01*", "04 03*", "04 05*", "04 2*", "04 4*"]
+    check: >
+      Repointing and repair mortar is weaker and more vapor-permeable than the
+      historic units, usually lime-rich and based on analysis of the original
+      mortar (ASTM C1713 where the spec cites it), and matches it in color,
+      texture and joint profile. Old mortar is
+      removed to the specified depth by hand or with controlled tools that do
+      not widen joints or chip unit edges, and work starts on an approved
+      sample panel.
+    trace_to: [spec.part2, spec.part3]
+    severity: critical
+    owner: subcontractor
+
+  - id: hist.treatment-trials
+    kind: constructability
+    sections: ["?? 01*", "?? 03*", "04 01*", "04 2*", "04 4*", "09 9*"]
+    check: >
+      Each treatment of historic surfaces (cleaning, paint removal, patching,
+      consolidants, coatings and water repellents) is tried on a panel in an
+      inconspicuous area with the actual products and crew, starting with the
+      gentlest method that works, and approved by the preservation reviewer
+      where required. Abrasive blasting and high-pressure water are excluded
+      unless the approval allows them, and chemical products are checked for
+      staining, etching and residue on each substrate.
+    trace_to: [spec.part3, spec.part1]
+    severity: high
+    owner: subcontractor
+
+  - id: hist.salvage-documentation
+    kind: completeness
+    scope: package
+    sections: ["02 4*", "?? 01*", "?? 03*", "05 7*", "06 4*", "08"]
+    check: >
+      Historic elements to be removed and reinstalled (windows, doors,
+      millwork, ornamental metal, stone, fixtures, hardware) are inventoried,
+      tagged to their locations, documented and stored in controlled
+      conditions, elements staying in place are protected from demolition,
+      vibration and other trades, and conditions are recorded before work and
+      the completed treatment after, in the form the approval or funding
+      requires.
+    trace_to: [drawings.demolition, report.existing_conditions, spec.division_01]
+    severity: high
+    owner: gc
+
+  - id: hist.insulating-masonry
+    kind: constructability
+    sections: ["04 2*", "04 4*", "07 2*", "09 2*"]
+    check: >
+      Interior insulation, air sealing or vapor control added to historic
+      solid masonry walls is backed by the design team's moisture analysis of
+      that wall. It removes the heat and drying the masonry relied on, which
+      raises freeze-thaw and embedded-steel corrosion risk.
+    trace_to: [drawings.wall_sections, spec.part2]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: hist.hot-work
+    kind: constructability
+    sections: ["05 7*", "07 3*", "07 5*", "07 6*", "09 9*"]
+    check: >
+      Hot work on or near historic roofs, cornices, attics and exposed timber
+      (soldering sheet metal, torch-applied roofing, heat paint removal,
+      cutting) runs under a hot-work permit with fire watch kept after the
+      work stops, or is replaced by cold methods; concealed voids with old
+      timber and debris are protected or cleared first.
+    trace_to: [spec.division_01, spec.part3]
+    severity: critical
+    owner: gc
+
+failure_modes:
+  - id: hist.fm.unapproved-replacement
+    what_happens: Replacement windows or storefronts submitted and installed to a profile or material the preservation approval did not cover
+    consequence: Historic tax credit or local approval at risk; windows replaced at the owner's cost
+    caught_by: [hist.preservation-approval]
+    source: field_experience
+
+  - id: hist.fm.hard-mortar
+    sections: ["04 01*", "04 03*", "04 05*", "04 2*", "04 4*"]
+    what_happens: Portland-cement-rich mortar used to repoint soft historic brick or stone
+    consequence: The units, not the joints, take the movement and moisture; faces spall and crack, an irreversible loss of historic material
+    caught_by: [hist.repointing-mortar]
+    source: industry_practice
+
+  - id: hist.fm.ground-joints
+    sections: ["04 01*", "04 03*", "04 05*", "04 2*", "04 4*"]
+    what_happens: Joints raked out with power grinders
+    consequence: Widened joints and chipped unit edges across the facade, a permanent change in appearance
+    caught_by: [hist.repointing-mortar]
+    source: industry_practice
+
+  - id: hist.fm.abrasive-cleaning
+    sections: ["?? 01*", "?? 03*", "04 01*", "04 2*", "04 4*", "09 9*"]
+    what_happens: Abrasive or high-pressure cleaning used on historic brick, soft stone or wood
+    consequence: The fired face or surface is lost, the material absorbs water and decays faster; the damage cannot be undone
+    caught_by: [hist.treatment-trials]
+    source: industry_practice
+
+  - id: hist.fm.water-repellent
+    sections: ["?? 01*", "?? 03*", "04 01*", "04 2*", "04 4*", "09 9*"]
+    what_happens: A clear water repellent or coating applied to historic masonry to stop leaks
+    consequence: Moisture trapped behind the treated face causes spalling and efflorescence, while the real leak at joints or flashing remains
+    caught_by: [hist.treatment-trials]
+    source: industry_practice
+
+  - id: hist.fm.salvage-lost
+    sections: ["02 4*", "?? 01*", "?? 03*", "05 7*", "06 4*", "08"]
+    what_happens: Historic elements removed without an inventory or tagged locations
+    consequence: Pieces lost, damaged or reinstalled in the wrong place; replicas made at high cost
+    caught_by: [hist.salvage-documentation]
+    source: field_experience
+
+  - id: hist.fm.interior-insulation
+    sections: ["04 2*", "04 4*", "07 2*", "09 2*"]
+    what_happens: Interior insulation with a vapor-closed layer added to historic solid masonry without analysis
+    consequence: Masonry stays colder and wetter; freeze-thaw spalling and corrosion of embedded steel within a few winters
+    caught_by: [hist.insulating-masonry]
+    source: industry_practice
+
+  - id: hist.fm.hot-work-fire
+    sections: ["05 7*", "07 3*", "07 5*", "07 6*", "09 9*"]
+    what_happens: Torch or heat-gun work ignites concealed old timber or debris in an attic, cornice or roof void
+    consequence: Fire that destroys irreplaceable fabric, often discovered after the crew has left
+    caught_by: [hist.hot-work]
+    source: industry_practice
+
+escalate:
+  - target: ab.vapor-permeance
+    severity: critical
+    reason: >
+      Changing how a historic masonry wall dries can damage fabric that
+      cannot be replaced
+  - target: js.adhesion-testing
+    severity: critical
+    reason: Sealant staining of historic stone or terra cotta is permanent damage to protected fabric
+
+regulatory_hooks:
+  - id: hist.rh.preservation-review
+    topic: historic-preservation-review
+    question: >
+      Which preservation reviews govern this work (federal undertaking review
+      with the State Historic Preservation Office, historic tax credit
+      certification under the Secretary of the Interior's Standards, a local
+      landmark or district commission, a preservation easement holder), what
+      must they approve before historic fabric is changed, and what
+      conditions did they set?
+    applies_when: Listed or eligible buildings, local landmarks, buildings in historic districts, or tax credit projects
+    severity: critical
+
+  - id: hist.rh.historic-code-alternatives
+    topic: historic-building-code-alternatives
+    question: >
+      Do the historic-building provisions of the adopted existing building
+      code allow alternatives to full compliance for this work (fire
+      resistance, egress, accessibility, energy), and has the building
+      official accepted them, or must new work comply fully?
+    applies_when: Alterations to historic buildings
+    source_families: [building_code, accessibility, energy]
+    severity: high
+
+  - id: hist.rh.paint-removal
+    topic: lead-renovation-work-practices
+    sections: ["?? 01*", "?? 03*", "05 7*", "06 2*", "06 4*", "08", "09 9*"]
+    question: >
+      Which lead-safe work rules apply to removing or disturbing old paint on
+      historic windows, millwork, metal and plaster here, and which removal
+      methods (open flame, high-heat guns, dry sanding, abrasive blasting)
+      do they restrict?
+    applies_when: Paint removal or preparation on historic surfaces
+    source_families: [environmental, occupational_safety]
+    severity: high
