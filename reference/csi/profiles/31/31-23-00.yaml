@@ -1,0 +1,325 @@
+schema_version: 1
+kind: section
+id: "31 23 00"
+title: Excavation and Fill
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["31 20 00"]
+contractor_designed: sometimes   # dewatering systems are usually designed by the contractor
+
+scope_summary: >
+  Excavation, fill and backfill, subgrade preparation and compaction under
+  buildings, slabs, pavements and against structures, with dewatering
+  (31 20 00 Earth Moving resolves here). The geotechnical report decides
+  which soils can be reused, the compaction standard and moisture range for
+  each fill zone, and how subgrades are accepted. The work is judged by its
+  test record, so test frequency, test locations by lift, closure of every
+  failing test and the engineer's acceptance of each subgrade matter as much
+  as the material. Wet-weather earthwork, unsuitable soil quantities, rock
+  and dewatering are where the money goes.
+
+submittals:
+  - id: ef.sub.fill-materials
+    type: Test Reports
+    must_show:
+      - Each fill type the spec names (structural, general, select, drainage aggregate, base), with its source
+      - Classification, gradation and plasticity results against the limits for that fill type
+      - The moisture-density relationship, by the method the report requires, that field tests will be judged against
+      - Environmental documentation for imported material as the spec or site environmental requirements define it
+  - id: ef.sub.dewatering
+    type: Delegated Design
+    must_show:
+      - Drawdown target below the excavation, well or sump layout, and the groundwater data it is based on
+      - Discharge location, treatment and the permit or authorization for it
+      - Groundwater observation and settlement monitoring of nearby structures and utilities during drawdown
+  - id: ef.sub.field-tests
+    type: Test Reports
+    must_show:
+      - Field density and moisture tests keyed to area, elevation or lift, and to the fill type and lab curve used
+      - Every failing test with the retest that closed it at the same location and lift
+      - Proof-roll observations and the geotechnical engineer's acceptance of each subgrade area
+
+review_checks:
+  - id: ef.fill-criteria
+    kind: conformance
+    submittal_types: [Test Reports, Product Data]
+    check: >
+      For each fill zone the submittal names a material that the zone
+      allows, and the field tests use the lab curve for that material and
+      the method the report requires (standard or modified effort); results
+      judged against the wrong curve or method pass fill that is not
+      compacted.
+    trace_to: [report.geotechnical, spec.part2, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: ef.onsite-reuse
+    kind: conformance
+    check: >
+      Whether excavated site soils may be reused, and where, follows the
+      report: plastic or expansive clays, organic, frozen or saturated soils
+      stay out of building pads, the low-volume-change zone under slabs and
+      wall backfill, even when they are the cheapest material on site.
+    trace_to: [report.geotechnical, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: ef.bearing-surfaces
+    kind: constructability
+    check: >
+      Footing excavations are observed for bearing material before
+      reinforcing is set; where soft or unsuitable soil is found, the
+      over-excavation extends below and beyond the footing edges as the
+      report requires and is backfilled with the material it names.
+    trace_to: [report.geotechnical, drawings.foundation]
+    severity: high
+    owner: gc
+    gate: foundation_pour
+
+  - id: ef.subgrade-acceptance
+    kind: completeness
+    check: >
+      Each building pad and slab subgrade is proof-rolled or otherwise
+      accepted by the geotechnical engineer as the report requires (a
+      technician's passing density test is not that acceptance), close to
+      the time the vapor retarder and base go down; subgrades rained on,
+      frozen or rutted after acceptance are accepted again, not covered.
+    trace_to: [report.geotechnical, spec.part3]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: ef.test-frequency
+    kind: completeness
+    check: >
+      The testing plan meets the frequency the spec and special inspection
+      program set for each zone (per area per lift, per length of trench,
+      per footing, per wall), with tests in every lift rather than only at
+      final grade.
+    trace_to: [spec.part3, register.special_inspections]
+    severity: high
+    owner: gc
+
+  - id: ef.failed-test-closure
+    kind: completeness
+    check: >
+      Every failing density or moisture test is closed by rework and a
+      passing retest at the same location and lift before the next lift or
+      cover goes on, and the log pairs each failure with its retest. A
+      failure in a lift raises the question of the whole lift, not one spot.
+    trace_to: [spec.part3]
+    severity: high
+    owner: gc
+
+  - id: ef.wet-weather
+    kind: constructability
+    check: >
+      Where the report calls the site soils moisture-sensitive, the plan for
+      working them in wet or freezing weather (drying, chemical
+      stabilization designed by the geotechnical engineer, undercut and
+      aggregate replacement) and how it is paid are settled before the
+      season, not during it.
+    trace_to: [report.geotechnical, schedule.master, spec.part3]
+    severity: medium
+    owner: gc
+
+  - id: ef.dewatering
+    kind: constructability
+    check: >
+      Groundwater levels in the borings and their seasonal range are
+      compared with excavation depths; where excavation goes below them, the
+      dewatering design lowers water ahead of the dig, discharge is
+      authorized and treated, and the effect of drawdown on nearby
+      foundations and utilities is evaluated and monitored.
+    trace_to: [report.geotechnical, report.existing_conditions, spec.part1]
+    severity: high
+    owner: gc
+    gate: excavation
+
+  - id: ef.rock-definition
+    kind: absence
+    check: >
+      The contract defines rock (by material description or by the equipment
+      that cannot remove it), whether blasting is allowed, and the
+      pre-blast survey and vibration monitoring blasting requires; borings
+      that show weathered rock near subgrade make this a pre-bid question.
+    trace_to: [spec.part1, report.geotechnical, spec.division_01]
+    severity: medium
+    owner: design_team
+
+  - id: ef.backfill-against-walls
+    kind: coordination
+    check: >
+      Backfill against basement and retaining walls waits until the wall has
+      the strength and the bracing the structural drawings assume (walls
+      braced by floor framing are not backfilled before it), uses the
+      material and the light compaction equipment the specs require next to
+      walls, and starts only after the waterproofing and drain are released.
+    trace_to: [drawings.structural, drawings.foundation, spec.part3]
+    severity: high
+    owner: gc
+    gate: backfill
+
+reconciliations:
+  - id: ef.rc.fill-zones
+    between: [report.geotechnical, spec.part3]
+    key: Fill zone (building pad, under slabs, under footings, wall backfill, pavement subgrade, utility trench, landscape)
+    fields: [allowed material, compaction method and minimum, moisture range, lift thickness, test frequency]
+    check: >
+      The report and the spec give the same criteria for each fill zone;
+      specs often use a different compaction method or drop the moisture
+      range the report requires.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: ef.rc.pad-vs-floor
+    between: [drawings.civil, drawings.plans, drawings.foundation]
+    key: Each building or building area at a different floor level
+    fields: [finish floor elevation, slab thickness, base and vapor retarder thickness, building pad elevation, top of footing]
+    check: >
+      The finish floor elevation on the civil grading plan matches the
+      architectural and structural drawings, and the pad the earthwork
+      contractor grades to equals finish floor less the slab, base and
+      underslab layers.
+    severity: high
+    owner: design_team
+    gate: excavation
+
+failure_modes:
+  - id: ef.fm.spec-from-draft-report
+    what_happens: The earthwork spec paraphrases an earlier draft of the geotechnical report, and the field follows the spec where the final report or an addendum differs
+    consequence: Fill or subgrade built to superseded criteria; rework and a dispute over which document governed
+    caught_by: [ef.rc.fill-zones]
+    source: industry_practice
+
+  - id: ef.fm.wrong-curve
+    what_happens: Field density judged against the standard-effort curve when the report requires modified effort, or against another material's curve
+    consequence: Under-compacted fill passes its tests; slabs and pavements settle
+    caught_by: [ef.rc.fill-zones, ef.fill-criteria]
+    source: industry_practice
+
+  - id: ef.fm.final-grade-only
+    what_happens: Fill placed in thick lifts and tested only at final grade
+    consequence: Lower lifts never compacted; settlement shows up after the slab is on it
+    caught_by: [ef.test-frequency]
+    source: industry_practice
+
+  - id: ef.fm.open-failures
+    what_happens: Failing tests with no recorded retest, covered by the next lift or the slab
+    consequence: Compliance cannot be shown; coring, plate load tests or removal
+    caught_by: [ef.failed-test-closure]
+    source: industry_practice
+
+  - id: ef.fm.subgrade-degraded
+    what_happens: Subgrade accepted, then left exposed to rain, frost or construction traffic before the slab or base
+    consequence: Pumping subgrade found the day of the pour; undercut and replacement at the last minute
+    caught_by: [ef.subgrade-acceptance, if.31-subgrade-paving]
+    source: industry_practice
+
+  - id: ef.fm.clay-in-pad
+    what_happens: Site clay placed in the building pad where the report requires a low-volume-change fill zone
+    consequence: Slab heave and cracking after occupancy
+    caught_by: [ef.onsite-reuse]
+    source: industry_practice
+
+  - id: ef.fm.narrow-overex
+    what_happens: Over-excavation under a footing dug only to the footing width
+    consequence: Footing edges bear on the unsuitable soil; differential settlement
+    caught_by: [ef.bearing-surfaces]
+    source: industry_practice
+
+  - id: ef.fm.wall-backfilled-early
+    what_happens: Basement or retaining wall backfilled before the floor framing braces it, or compacted with heavy equipment against it
+    consequence: Cracked or rotated walls and damaged waterproofing
+    caught_by: [ef.backfill-against-walls, if.waterproofing-backfill]
+    source: industry_practice
+
+  - id: ef.fm.trench-settlement
+    what_happens: Utility trenches backfilled in thick lifts or without tests, under future paving or slabs
+    consequence: Settlement in new pavement and slabs along the trench line; saw-cut and patch
+    caught_by: [if.31-utility-trenches, ef.test-frequency]
+    source: industry_practice
+
+  - id: ef.fm.drawdown-settlement
+    what_happens: Dewatering drawdown reaches under shallow neighboring foundations or old utilities
+    consequence: Settlement damage to neighbors; claims and stop-work
+    caught_by: [ef.dewatering, d31.adjacent-monitoring]
+    source: industry_practice
+
+  - id: ef.fm.wet-season-unplanned
+    what_happens: Moisture-sensitive soils worked in the wet season with no agreed plan
+    consequence: Weeks lost, then undercut and imported aggregate argued as extra work
+    caught_by: [ef.wet-weather]
+    source: industry_practice
+
+  - id: ef.fm.pad-elevation-wrong
+    what_happens: Building pad graded to a civil finish floor elevation that differs from the architectural one
+    consequence: Thresholds and entrance walks do not meet the floor; regrading and import or export
+    caught_by: [ef.rc.pad-vs-floor]
+    source: industry_practice
+
+standards:
+  - id: ef.std.astm-d698
+    name: ASTM D698
+    title: Laboratory Compaction Characteristics of Soil Using Standard Effort
+    verify: Lab curve method where the report or spec requires standard effort
+  - id: ef.std.astm-d1557
+    name: ASTM D1557
+    title: Laboratory Compaction Characteristics of Soil Using Modified Effort
+    verify: Lab curve method where the report or spec requires modified effort; the two are not interchangeable
+  - id: ef.std.astm-d6938
+    name: ASTM D6938
+    title: In-Place Density and Water Content of Soil and Soil-Aggregate by Nuclear Methods (Shallow Depth)
+    verify: Field density test method and gauge calibration
+  - id: ef.std.astm-d1556
+    name: ASTM D1556/D1556M
+    title: Density and Unit Weight of Soil in Place by Sand-Cone Method
+    verify: Field test method where the spec requires sand cone or nuclear gauge correlation
+    note: The 2015 edition was superseded in 2024; confirm the edition the spec cites
+  - id: ef.std.astm-d2487
+    name: ASTM D2487
+    title: Classification of Soils for Engineering Purposes (Unified Soil Classification System)
+    verify: Soil classification of proposed fill against the report's allowed groups
+
+regulatory_hooks:
+  - id: ef.rh.soils-special-inspection
+    topic: soils-special-inspection
+    question: >
+      What special inspections of soils does the adopted building code
+      require (bearing material, excavation depth, fill material
+      classification, density and lift thickness during placement), and are
+      they on the statement of special inspections?
+    applies_when: Building foundations, structural fill and building pads
+    source_families: [building_code]
+    severity: high
+
+  - id: ef.rh.dewatering-discharge
+    topic: dewatering-discharge-permit
+    question: >
+      Does discharging groundwater from dewatering need a permit or
+      authorization here (to storm sewer, sanitary sewer or surface water),
+      and what treatment, sampling and flow limits come with it?
+    applies_when: Excavation or trench dewatering
+    source_families: [environmental]
+    severity: medium
+
+extract_fields:
+  - id: ef.xf.fill-types
+    label: Fill type and source proposed for each fill zone
+    type: list
+    per: package
+    reconcile_against: [report.geotechnical, spec.part2]
+  - id: ef.xf.lab-curves
+    label: Lab curve per fill type (method, maximum dry density, optimum moisture)
+    type: list
+    per: package
+    reconcile_against: [report.geotechnical]
+  - id: ef.xf.open-failures
+    label: Failing tests without a recorded passing retest
+    type: number
+    per: package
+    reconcile_against: [spec.part3]

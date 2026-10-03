@@ -1,0 +1,68 @@
+schema_version: 1
+kind: section
+id: "33 80 00"
+title: Communications Utilities
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Underground pathways for telecommunications and data services: carrier
+  entrance conduits from the property line or carrier handhole to the
+  entrance room, handholes and maintenance holes, and campus duct banks
+  between buildings. Each carrier sets its own conduit, bend and pull-point
+  requirements (carried by the Division 27 edge), and the entrance room and
+  its grounding are designed under Division 27. Redundant entrances and
+  spare conduits are owner decisions that are cheap only before the trench
+  is backfilled.
+
+submittals:
+  - id: cu.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Pathway routing per carrier, conduit count and size, bends, pull points and handhole locations from the carrier's service point to the entrance room
+
+review_checks:
+  - id: cu.diverse-entrances
+    kind: absence
+    check: >
+      Where the owner requires redundant service, two physically separated
+      entrance pathways from different directions are shown, and spare
+      conduits for future carriers are included.
+    trace_to: [drawings.technology, drawings.civil, spec.part1]
+    severity: medium
+    owner: design_team
+
+  - id: cu.entrance-seal
+    kind: constructability
+    check: >
+      Entrance conduits slope away from the building and are sealed at the
+      wall, including spares and the space around cables, so water and gas
+      cannot follow them into the entrance room.
+    trace_to: [drawings.details, drawings.technology]
+    severity: medium
+    owner: subcontractor
+    gate: trench_backfill
+
+failure_modes:
+  - id: cu.fm.single-entrance
+    what_happens: One entrance pathway built where the owner needed redundant service
+    consequence: A second pathway dug through finished site work
+    caught_by: [cu.diverse-entrances]
+    source: industry_practice
+
+  - id: cu.fm.water-into-room
+    what_happens: Entrance conduits slope toward the building and are left unsealed
+    consequence: Water, and sometimes sewer or gas, entering the entrance room
+    caught_by: [cu.entrance-seal]
+    source: industry_practice
+
+standards:
+  - id: cu.std.tia-758
+    name: ANSI/TIA-758
+    title: Customer-Owned Outside Plant Telecommunications Infrastructure Standard
+    verify: Pathway, pull point and maintenance hole practice for campus and entrance pathways
+    note: Revision B is current at the time of writing; confirm the revision the spec cites

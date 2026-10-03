@@ -1,0 +1,210 @@
+schema_version: 1
+kind: section
+id: "31 60 00"
+title: Special Foundations and Load-Bearing Elements
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # driven and bored piles are usually designed by the EOR; ground improvement and helical piles are usually delegated
+
+scope_summary: >
+  Deep foundations and ground improvement: driven piles, drilled shafts,
+  auger-cast piles, micropiles, helical piles, aggregate piers and rigid
+  inclusions; the type sections inherit from here. Capacity cannot be seen
+  in the finished element. It is inferred from installation criteria, a
+  test program and a log for every element, so the review checks that the
+  criteria exist before production starts, that each element met them under
+  continuous inspection, and that elements rejected, out of tolerance or
+  stopped on obstructions reach the structural engineer before the pile cap
+  is formed.
+
+submittals:
+  - id: dp.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Layout with an identification number for every element, keyed to the caps, footings and grid on the structural drawings
+      - Cutoff elevations, embedment into caps, reinforcing and uplift connections
+      - Equipment, installation sequence, and the method for obstructions
+  - id: dp.sub.test-results
+    type: Test Reports
+    must_show:
+      - Load or dynamic test results with the test element's installation record, and the capacity interpretation the production criteria rely on
+  - id: dp.sub.records
+    type: Record Documents
+    must_show:
+      - Installation log for every element signed by the special inspector
+      - As-built location and plumbness survey of every element, with deviations from plan
+  - id: dp.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Installer experience with this element type in comparable soils, and the testing agency's qualifications
+
+review_checks:
+  - id: dp.foundation-type
+    kind: conformance
+    reflex: true
+    check: >
+      The foundation type, bearing stratum, element type and capacities on
+      the structural drawings match the recommendations of the current
+      geotechnical report and its addenda; a report revised after the
+      foundation design, or a value-engineered element type, is checked
+      before anything is ordered.
+    trace_to: [report.geotechnical, drawings.foundation, drawings.structural]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: dp.installation-criteria
+    kind: completeness
+    check: >
+      Production acceptance criteria (minimum tip elevation or penetration,
+      final driving resistance, installation torque, grout or concrete
+      volume, bearing stratum) are set in writing from the test program by
+      the engineer responsible (engineer of record, geotechnical engineer or
+      delegated designer), and given to the installer and the special
+      inspector before production starts.
+    trace_to: [spec.part3, report.geotechnical, drawings.foundation]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: dp.test-program
+    kind: completeness
+    check: >
+      Test elements (static, dynamic, rapid or bi-directional load tests and
+      integrity tests) match the type, number and location the spec
+      requires, are installed with the production equipment and method, and
+      are tested before production elements are ordered or installed.
+    trace_to: [spec.part3, drawings.foundation]
+    severity: high
+    owner: gc
+
+  - id: dp.special-inspection
+    kind: completeness
+    check: >
+      Installation is on the statement of special inspections, the inspector
+      is present for every element, and the inspector's log is the record
+      the engineer accepts.
+    trace_to: [register.special_inspections, spec.part3]
+    severity: high
+    owner: gc
+
+  - id: dp.logs-reviewed
+    kind: completeness
+    check: >
+      Each element's log shows it met the criteria and the as-built survey
+      shows its location and plumbness; the engineer reviews both, cap by
+      cap, before caps are formed and reinforced.
+    trace_to: [spec.part3, drawings.foundation]
+    severity: high
+    owner: gc
+    gate: foundation_pour
+
+  - id: dp.rejected-elements
+    kind: coordination
+    check: >
+      Elements out of location or plumb tolerance, damaged, short of
+      criteria or abandoned on obstructions are reported with their
+      location, and the engineer of record's remedy (added elements,
+      enlarged cap, grade beam) is issued before that cap is formed.
+    trace_to: [drawings.foundation, drawings.structural]
+    severity: critical
+    owner: design_team
+    gate: foundation_pour
+
+  - id: dp.cutoffs
+    kind: conformance
+    check: >
+      Cutoff elevations, embedment and reinforcing projection into caps
+      match the structural drawings; elements left low are built up only by
+      an engineer's detail, and uplift and lateral connections are shown.
+    trace_to: [drawings.foundation, drawings.structural]
+    severity: high
+    owner: subcontractor
+
+reconciliations:
+  - id: dp.rc.elements-vs-caps
+    between: [drawings.foundation, schedule.structural, drawings.details]
+    key: Pile cap, footing or element group
+    fields: [element count, element type and capacity, layout within the cap, cutoff and top-of-cap elevations]
+    check: >
+      The element count and layout under each cap on the foundation plan
+      match the cap schedule and details, and the shop drawing numbers every
+      element under every cap.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: dp.fm.design-outdated
+    what_happens: Foundation design based on a preliminary geotechnical report, or an element type changed by value engineering without the geotechnical engineer
+    consequence: Elements of the wrong type or length ordered; test program fails and the foundation is redesigned during construction
+    caught_by: [dp.foundation-type]
+    source: industry_practice
+
+  - id: dp.fm.no-criteria
+    what_happens: Production starts before the test program sets criteria, or with criteria nobody wrote down
+    consequence: Elements of unknown capacity; extra testing or added elements
+    caught_by: [dp.installation-criteria, dp.test-program]
+    source: industry_practice
+
+  - id: dp.fm.cap-before-review
+    what_happens: A pile cap formed and reinforced before the logs and as-built survey are reviewed
+    consequence: A short or out-of-tolerance element found after the pour; cap demolition or supplemental elements
+    caught_by: [dp.logs-reviewed, dp.rejected-elements]
+    source: industry_practice
+
+  - id: dp.fm.inspector-absent
+    what_happens: Elements installed while the special inspector was not on site
+    consequence: Elements rejected, or tested after the fact at the contractor's cost
+    caught_by: [dp.special-inspection]
+    source: industry_practice
+
+  - id: dp.fm.cutoff-wrong
+    what_happens: Elements cut off at the wrong elevation or with too little reinforcing projection
+    consequence: Cap connection does not work as detailed; build-ups or redesign
+    caught_by: [dp.cutoffs]
+    source: industry_practice
+
+  - id: dp.fm.count-mismatch
+    what_happens: Element count per cap differs between the plan and the cap schedule
+    consequence: An under-supported cap, or wasted elements
+    caught_by: [dp.rc.elements-vs-caps]
+    source: industry_practice
+
+standards:
+  - id: dp.std.astm-d1143
+    name: ASTM D1143/D1143M
+    title: Deep Foundation Elements Under Static Axial Compressive Load
+    verify: Static load test procedure and the interpretation method the spec names
+  - id: dp.std.astm-d4945
+    name: ASTM D4945
+    title: High-Strain Dynamic Testing of Deep Foundations
+    verify: Dynamic testing at initial drive and restrike, and signal matching where required
+    note: The current edition is D4945-26; specs often cite earlier ones
+
+regulatory_hooks:
+  - id: dp.rh.special-inspection
+    topic: deep-foundation-special-inspection
+    question: >
+      What special inspections does the adopted building code require for
+      driven and cast-in-place deep foundation elements and for ground
+      improvement (continuous or periodic, by whom), and when does the code
+      require load tests to establish capacity?
+    applies_when: Any deep foundation or ground improvement
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: dp.xf.criteria
+    label: Production acceptance criteria per element type
+    type: string
+    per: package
+    reconcile_against: [spec.part3]
+  - id: dp.xf.rejected
+    label: Elements rejected, abandoned or out of tolerance, with location
+    type: list
+    per: package
+    reconcile_against: [drawings.foundation]

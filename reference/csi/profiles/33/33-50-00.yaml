@@ -1,0 +1,129 @@
+schema_version: 1
+kind: section
+id: "33 50 00"
+title: Hydrocarbon Utilities
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Natural gas service and site gas piping, propane, and fuel oil or diesel
+  storage and piping on site (titled Fuel Distribution Utilities in older
+  MasterFormat editions). The gas utility usually designs and installs the
+  service and meter, so the contractor's scope starts at the meter outlet,
+  and the delivery pressure, meter location and load letter have to be
+  settled with the utility early. Fuel storage tanks carry registration,
+  leak detection, spill and fire code requirements the drawings rarely show.
+
+submittals:
+  - id: hc.sub.product-data
+    type: Product Data
+    must_show:
+      - Buried gas pipe and fittings (polyethylene with tracer wire, or coated and cathodically protected steel), risers and transition fittings
+      - Fuel tanks with their listing, secondary containment, leak detection, overfill and spill protection, and anchorage
+  - id: hc.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Pressure tests of gas and fuel piping witnessed as the code and utility require
+
+review_checks:
+  - id: hc.load-letter
+    kind: completeness
+    check: >
+      The load letter (connected load by appliance and the delivery pressure
+      requested) has gone to the gas utility, and the pressure and meter
+      location it confirms match the pressure the building gas design is
+      sized for.
+    trace_to: [drawings.mechanical, drawings.plumbing, report.utility_requirements]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: hc.meter-location
+    kind: coordination
+    check: >
+      The meter and regulator location meets the utility's and the code's
+      clearances from openings, air intakes, ignition sources and property
+      lines, with vehicle impact protection where it is exposed to traffic.
+    trace_to: [drawings.site, drawings.civil, report.utility_requirements]
+    severity: medium
+    owner: design_team
+
+  - id: hc.buried-piping
+    kind: conformance
+    check: >
+      Buried gas piping material, tracer wire, cathodic protection for steel
+      and the transition to above-grade piping follow the fuel gas code and
+      the utility; gas piping under the building is avoided or sleeved as
+      the code allows.
+    trace_to: [spec.part2, drawings.civil]
+    severity: high
+    owner: subcontractor
+
+  - id: hc.fuel-tanks
+    kind: completeness
+    check: >
+      Fuel tanks show who furnishes them (generator supplier, site or
+      mechanical contractor), their registration with the environmental
+      authority, leak detection, overfill and spill protection, secondary
+      containment, and the fire code's location and separation requirements.
+    trace_to: [drawings.electrical, drawings.civil, spec.part2]
+    severity: high
+    owner: gc
+
+failure_modes:
+  - id: hc.fm.pressure-mismatch
+    what_happens: The utility delivers a lower pressure than the building gas piping was sized for
+    consequence: Piping resized or boosters added late; equipment fails to fire at start-up
+    caught_by: [hc.load-letter]
+    source: industry_practice
+
+  - id: hc.fm.meter-refused
+    what_happens: Meter set location does not meet the clearances to openings or air intakes
+    consequence: The utility refuses to set the meter; relocation and delayed gas service
+    caught_by: [hc.meter-location]
+    source: industry_practice
+
+  - id: hc.fm.tank-not-registered
+    what_happens: Tank installed without the registration, leak detection or spill protection the rules require
+    consequence: Tank cannot be filled or put into service; fines
+    caught_by: [hc.fuel-tanks]
+    source: industry_practice
+
+standards:
+  - id: hc.std.astm-d2513
+    name: ASTM D2513
+    title: Polyethylene (PE) Gas Pressure Pipe, Tubing, and Fittings
+    verify: Buried polyethylene gas pipe and fittings
+
+regulatory_hooks:
+  - id: hc.rh.fuel-gas
+    topic: fuel-gas-service-installation
+    question: >
+      What do the adopted fuel gas code and the gas utility require for
+      service lines, meter location and clearances, buried piping material
+      and protection, and pressure testing?
+    applies_when: Natural gas or propane service
+    source_families: [mechanical_code, plumbing_code]
+    severity: high
+
+  - id: hc.rh.fuel-storage
+    topic: fuel-storage-tank-requirements
+    question: >
+      What do the fire code and environmental rules require for fuel storage
+      tanks on this site (above or below ground, listing, secondary
+      containment, leak detection, registration, setbacks and
+      spill-prevention planning)?
+    applies_when: Fuel oil, diesel or gasoline storage tanks on site
+    source_families: [fire_code, environmental]
+    severity: high
+
+extract_fields:
+  - id: hc.xf.delivery-pressure
+    label: Gas delivery pressure confirmed by the utility
+    type: string
+    per: package
+    reconcile_against: [drawings.mechanical, drawings.plumbing]

@@ -1,0 +1,145 @@
+schema_version: 1
+kind: division
+id: "31"
+title: Earthwork
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Site clearing, earth moving, erosion control, soil treatment, excavation
+  support and deep foundations. The geotechnical report sets the rules and
+  the specs often carry them over late, partially or from an earlier draft.
+  Subsurface conditions differ from the borings, and the contract pays for
+  that through unit prices or a differing-site-conditions clause, so
+  conditions and quantities have to be documented when they are uncovered,
+  not reconstructed afterward. Nearly all of it is buried by the next
+  operation; the proof of compliance is the test record and the installation
+  log. Excavation, dewatering and vibration put neighbors, streets and
+  utilities at risk.
+
+review_checks:
+  - id: d31.differing-conditions
+    kind: absence
+    check: >
+      Where the work excavates, drills or drives, the contract says how
+      unsuitable soil, rock and buried obstructions are defined, measured and
+      paid (unit prices, allowances or the
+      differing-site-conditions clause), who confirms the condition (the
+      geotechnical engineer, not the excavator), and how quantities are
+      surveyed before the excavation is backfilled.
+    trace_to: [spec.division_01, spec.part1, report.geotechnical]
+    severity: high
+    owner: design_team
+    gate: excavation
+
+  - id: d31.existing-utilities
+    kind: constructability
+    check: >
+      Before excavation, drilling or driving, existing utilities in and next
+      to the work are located by the one-call service and by a private locator for lines it will not mark (site
+      lighting, irrigation, private storm and water, fire service, site
+      communications), potholed where excavation, shoring or piles come
+      close, and their support, protection, relocation or abandonment is
+      assigned before digging.
+    trace_to: [drawings.civil, drawings.demolition, report.existing_conditions]
+    severity: high
+    owner: gc
+    gate: excavation
+
+  - id: d31.adjacent-monitoring
+    kind: completeness
+    reflex: true
+    check: >
+      Where excavation, dewatering, pile or sheet driving, or vibratory
+      compaction happens near existing buildings, streets, utilities or
+      vibration-sensitive occupancies, a pre-construction condition survey
+      with photographs is taken and vibration and settlement limits with
+      response actions are set before the work starts.
+    trace_to: [spec.part3, report.geotechnical, report.existing_conditions]
+    severity: high
+    owner: gc
+    gate: excavation
+
+  - id: d31.material-tracking
+    kind: completeness
+    check: >
+      Where soil is imported or exported, imported fill has a named source
+      with test results and environmental documentation before the first
+      load arrives, and exported soil has a receiving site that accepts it, with load tickets or manifests kept.
+      Soil that looks or smells contaminated has a stop-and-test procedure.
+    trace_to: [spec.part2, spec.part3]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: d31.fm.unmeasured-conditions
+    what_happens: Unsuitable soil, rock or obstructions removed and backfilled before anyone measured or confirmed them
+    consequence: A quantity claim nobody can verify; paid on argument instead of survey
+    caught_by: [d31.differing-conditions]
+    source: industry_practice
+
+  - id: d31.fm.private-line-hit
+    what_happens: Excavation relies on one-call marks, which stop at the meter or property line, and hits an unmarked private site line
+    consequence: Outage of a live service, injury risk, repair cost and delay
+    caught_by: [d31.existing-utilities]
+    source: industry_practice
+
+  - id: d31.fm.neighbor-claim
+    what_happens: No condition survey of the neighboring building before excavation, dewatering or driving starts
+    consequence: Damage claims for pre-existing cracks that cannot be refuted; work stopped while they are investigated
+    caught_by: [d31.adjacent-monitoring]
+    source: industry_practice
+
+  - id: d31.fm.dirty-import
+    what_happens: Fill imported from an undocumented source turns out contaminated or outside the gradation limits
+    consequence: Excavation and disposal of placed fill, and environmental liability for the site
+    caught_by: [d31.material-tracking]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: d31.rh.excavation-safety
+    topic: excavation-protective-systems
+    question: >
+      What do the occupational safety rules require for excavations and
+      trenches on this project (protective systems, when a registered
+      engineer must design them, competent-person inspections, access and
+      egress, spoil setback), and does the support or trenching plan meet
+      them?
+    applies_when: Any excavation or trench that workers enter
+    source_families: [occupational_safety]
+    severity: high
+
+  - id: d31.rh.utility-locate
+    topic: underground-utility-locate
+    question: >
+      What does the state damage-prevention law require before excavation
+      (one-call notice, marking, tolerance zone and hand digging inside it,
+      responsibility for private facilities), and what must be done when an
+      unmarked line is found?
+    applies_when: Any excavation, drilling or driving
+    source_families: [occupational_safety]
+    severity: high
+
+  - id: d31.rh.contaminated-soil
+    topic: contaminated-soil-management
+    question: >
+      Do environmental rules or site documents (soil management plan,
+      remediation or brownfield agreement, deed restriction) govern
+      excavation, stockpiling, reuse and export of soil here, and what
+      testing and documentation do import and export require?
+    applies_when: Soil import or export, or sites with known or suspected contamination
+    source_families: [environmental]
+    severity: medium
+
+  - id: d31.rh.adjoining-property
+    topic: adjoining-property-protection
+    question: >
+      What does the adopted building code require when excavation can affect
+      adjoining property (notice to the neighbor, protection and support of
+      adjoining foundations, who is responsible), and are access or
+      underpinning agreements needed?
+    applies_when: Excavation near a property line, an adjoining building or the public way
+    source_families: [building_code]
+    severity: high

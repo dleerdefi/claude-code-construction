@@ -1,0 +1,186 @@
+schema_version: 1
+kind: division
+id: "33"
+title: Utilities
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Site utilities from the public main or the serving utility to the
+  building service entry. The civil engineer designs most of it, the
+  building MEP engineers design what it connects to, and a utility or public
+  agency owns, inspects or accepts much of it under standards that override
+  the spec. The expensive misses are at both ends: the connection to the
+  public system (applications, taps, fees, the utility's own design and its
+  inspector) and the building line, where size, invert, location and
+  material must match drawings by another engineer. Everything is buried,
+  so tests, tracer wire and an as-built survey happen before backfill.
+
+review_checks:
+  - id: d33.utility-standards
+    kind: conformance
+    check: >
+      Where a utility or public agency will own, operate or inspect the line
+      (water main, meter and fire service tap, sewer lateral to the main,
+      gas service, primary electric, carrier entrances), its construction
+      standards, approved-materials list and inspections govern, and the
+      submitted materials are on that list.
+    trace_to: [report.utility_requirements, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: d33.agency-coordination
+    kind: completeness
+    check: >
+      Service applications, load letters, tap and connection fees, the
+      utility's own design (electric and gas service), easements it needs,
+      and its inspection and work scheduling are started early enough that
+      permanent services are not the item holding start-up and occupancy.
+    trace_to: [report.utility_requirements, schedule.master, spec.division_01]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: d33.crossings
+    kind: absence
+    check: >
+      Every crossing between a gravity line (sanitary, storm) and another
+      utility has a profile or elevation that shows the clearance, existing
+      lines at crossings are potholed before the gravity line is laid, and
+      conflicts are resolved on paper rather than in the trench.
+    trace_to: [drawings.civil, report.existing_conditions]
+    severity: high
+    owner: design_team
+    gate: excavation
+
+  - id: d33.tests-before-cover
+    kind: completeness
+    check: >
+      Each line has its acceptance tests named with the stage they happen
+      at (before backfill, after backfill, before paving) and who witnesses
+      them, including the agency's inspector where it will accept the line:
+      pressure and leakage for pressure pipe, air or water and deflection for
+      gravity pipe, vacuum for manholes, mandrel for ducts, continuity for
+      tracer wire.
+    trace_to: [spec.part3, report.utility_requirements]
+    severity: high
+    owner: gc
+    gate: trench_backfill
+
+  - id: d33.locatability
+    kind: completeness
+    check: >
+      Nonmetallic lines carry tracer wire with access at structures and a
+      continuity test, and warning tape is placed over every buried line,
+      private site lines included, since the one-call service will not mark
+      them later.
+    trace_to: [spec.part2, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: d33.as-built-survey
+    kind: completeness
+    check: >
+      Location, depth and inverts of lines, fittings, valves, cleanouts and
+      structures are surveyed before backfill and turned into record
+      drawings, in the agency's format where it accepts the line.
+    trace_to: [spec.division_01, spec.part3]
+    severity: medium
+    owner: gc
+    gate: trench_backfill
+
+  - id: d33.structure-tops
+    kind: coordination
+    check: >
+      Rims and frames of manholes, inlets, cleanouts, valve boxes and
+      handholes are set to the finished grade on the grading plan, not to
+      an interim grade, and covers in drives and parking carry a vehicular
+      load rating; pedestrian-rated boxes stay out of traffic.
+    trace_to: [drawings.civil, drawings.landscape, spec.part2]
+    severity: medium
+    owner: gc
+    gate: site_paving
+
+reconciliations:
+  - id: d33.rc.building-line
+    reflex: true
+    between: [drawings.civil, drawings.plumbing, drawings.fire_protection, drawings.electrical, drawings.technology]
+    key: Each service at the building line (domestic water, fire service, sanitary, storm, gas, electric, communications)
+    fields: [entry location on the building, size, material, invert or depth, point where site scope ends and building scope begins]
+    check: >
+      Every service the civil drawings bring to the building matches the
+      building drawings in location, size, material and invert or depth,
+      and both sets put the end of the site scope at the same point; the
+      two sides are usually drawn by different engineers.
+    severity: high
+    owner: design_team
+    gate: foundation_pour
+
+failure_modes:
+  - id: d33.fm.building-line-mismatch
+    what_happens: Civil water, sewer or storm size, invert or entry location differs from the plumbing or fire protection drawings
+    consequence: Transitions and re-routing at the foundation, sleeves cored through new walls, or a sewer that cannot drain by gravity
+    caught_by: [d33.rc.building-line]
+    source: industry_practice
+
+  - id: d33.fm.material-not-approved
+    what_happens: A material allowed by the spec but not on the utility's approved list is installed in a line the utility will own
+    consequence: The utility refuses acceptance; remove and replace
+    caught_by: [d33.utility-standards]
+    source: industry_practice
+
+  - id: d33.fm.service-late
+    what_happens: The utility's design, easement or work order started late
+    consequence: Temporary power or heat, delayed commissioning and occupancy
+    caught_by: [d33.agency-coordination]
+    source: industry_practice
+
+  - id: d33.fm.crossing-conflict
+    what_happens: A gravity line meets a water main, gas line or duct bank at the same elevation
+    consequence: Redesign in the open trench, lost slope on the sewer, or an unplanned relocation
+    caught_by: [d33.crossings]
+    source: industry_practice
+
+  - id: d33.fm.backfilled-untested
+    what_happens: A line backfilled before its test, then fails
+    consequence: Re-excavation to find the leak, often under new paving
+    caught_by: [d33.tests-before-cover]
+    source: industry_practice
+
+  - id: d33.fm.unlocatable
+    what_happens: Nonmetallic line buried without tracer wire, or with a broken tracer
+    consequence: Line cannot be located later and is damaged by the next excavation
+    caught_by: [d33.locatability]
+    source: industry_practice
+
+  - id: d33.fm.no-as-built
+    what_happens: No survey taken before backfill
+    consequence: Record drawings from memory; future conflicts and potholing on every later project
+    caught_by: [d33.as-built-survey]
+    source: industry_practice
+
+  - id: d33.fm.frames-wrong
+    what_happens: Structures left at an interim grade, or pedestrian-rated lids placed in a drive
+    consequence: Trip hazards, ponding, broken lids; reset after paving
+    caught_by: [d33.structure-tops]
+    source: industry_practice
+
+standards:
+  - id: d33.std.astm-d2321
+    name: ASTM D2321
+    title: Underground Installation of Thermoplastic Pipe for Sewers and Other Gravity-Flow Applications
+    verify: Bedding, haunching and backfill classes and deflection limits for thermoplastic gravity pipe (sanitary, storm and subdrain)
+
+regulatory_hooks:
+  - id: d33.rh.utility-standards
+    topic: utility-purveyor-standards
+    question: >
+      Which utility and public works standards govern each service on this
+      project (water purveyor, sewer authority, gas and electric utilities,
+      carriers), what inspections and acceptance do they perform, and what
+      do they require at the point of connection?
+    applies_when: Any service connected to a public or utility-owned system
+    source_families: [plumbing_code, electrical_code]
+    severity: high

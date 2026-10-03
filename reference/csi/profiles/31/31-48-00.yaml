@@ -1,0 +1,12 @@
+schema_version: 1
+kind: section
+id: "31 48 00"
+title: Underpinning
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Underpinning shares its knowledge (delegated design, monitoring, pit
+# sequence, load transfer) with excavation support in 31 50 00.
+same_as: "31 50 00"

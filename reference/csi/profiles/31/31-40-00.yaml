@@ -1,0 +1,12 @@
+schema_version: 1
+kind: section
+id: "31 40 00"
+title: Shoring and Underpinning
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Shoring and underpinning are commonly specified under 31 50 00 Excavation
+# Support and Protection; one profile holds the knowledge for both numbers.
+same_as: "31 50 00"

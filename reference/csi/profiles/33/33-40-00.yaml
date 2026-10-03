@@ -1,0 +1,123 @@
+schema_version: 1
+kind: section
+id: "33 40 00"
+title: Stormwater Utilities
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Storm drainage pipe, inlets, manholes, culverts and outfalls; subdrainage
+  and stormwater management inherit from here. Storm lines are large
+  gravity pipes that set the elevation of everything crossing them, and
+  their structures' rims have to land on the finished grading. Roof leaders
+  and overflow drains arrive from the building at inverts and locations set
+  by the plumbing drawings. A pipe material substitution changes bedding,
+  cover limits and joints, and the reviewing agency often restricts it.
+
+submittals:
+  - id: sw.sub.product-data
+    type: Product Data
+    must_show:
+      - Pipe material and class or stiffness for the cover depths shown, and joint type (watertight or soil-tight, as specified)
+      - Frames and grates rated for traffic, and bicycle-safe where required; outlet protection
+  - id: sw.sub.structures
+    type: Shop Drawings
+    must_show:
+      - Each precast structure with its number, depth, rim, every pipe opening with invert, size and angle, and any internal weir or sump
+
+review_checks:
+  - id: sw.pipe-substitution
+    kind: conformance
+    check: >
+      A substituted pipe material keeps the hydraulic capacity, joint type,
+      minimum and maximum cover and bedding the design assumed, and the
+      reviewing agency accepts it in the permitted or public system.
+    trace_to: [spec.part2, drawings.civil, report.stormwater]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: sw.structure-schedule
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Each precast structure on the shop drawings matches the civil
+      drawings in rim, depth, and the invert, size and angle of every pipe
+      that enters it, including roof leader and subdrain connections added
+      after the first civil issue.
+    trace_to: [drawings.civil, drawings.details]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: sw.construction-loads
+    kind: constructability
+    check: >
+      Flexible pipe with shallow cover is protected from construction
+      equipment before final grade and paving, with temporary cover or
+      haul-route limits where loaded trucks and scrapers cross it.
+    trace_to: [spec.part3, drawings.civil]
+    severity: medium
+    owner: gc
+
+reconciliations:
+  - id: sw.rc.building-storm
+    between: [drawings.civil, drawings.plumbing, drawings.roof_plan]
+    key: Each roof leader, overflow drain and building storm connection
+    fields: [location on the building, size, invert at the building line, where overflow drains discharge]
+    check: >
+      Every roof leader and building storm line on the plumbing drawings
+      has a civil pipe or structure to receive it at a matching location,
+      size and invert, and overflow drains discharge where the plumbing
+      design says (daylight, splash block or a separate line), not into the
+      primary system unless the design allows it.
+    severity: high
+    owner: design_team
+    gate: foundation_pour
+
+failure_modes:
+  - id: sw.fm.substituted-pipe
+    what_happens: Plastic pipe substituted for concrete without checking cover limits or agency acceptance
+    consequence: Agency rejects the line, or deflection failures under shallow cover
+    caught_by: [sw.pipe-substitution]
+    source: industry_practice
+
+  - id: sw.fm.crushed-in-construction
+    what_happens: Shallow storm pipe crushed by loaded equipment before paving
+    consequence: Dig up and replace; cracked pipe found only by video
+    caught_by: [sw.construction-loads]
+    source: industry_practice
+
+  - id: sw.fm.wrong-openings
+    what_happens: Precast structure delivered with openings at the wrong invert or angle
+    consequence: Field coring and grouting, with inverts and flow channels compromised
+    caught_by: [sw.structure-schedule]
+    source: industry_practice
+
+  - id: sw.fm.orphan-leader
+    what_happens: Roof leaders or overflow drains reach the building wall with no site pipe to receive them
+    consequence: Pipe added late through finished site work, or overflows discharging onto walks
+    caught_by: [sw.rc.building-storm]
+    source: industry_practice
+
+standards:
+  - id: sw.std.astm-c1479
+    name: ASTM C1479/C1479M
+    title: Installation of Precast Concrete Sewer, Storm Drain, and Culvert Pipe Using Standard Installations
+    verify: Bedding and backfill installation type for concrete pipe
+
+extract_fields:
+  - id: sw.xf.pipe
+    label: Pipe material and class or stiffness per run
+    type: list
+    per: package
+    reconcile_against: [drawings.civil, spec.part2]
+  - id: sw.xf.structures
+    label: Structure rims and inverts per structure number
+    type: list
+    per: item
+    reconcile_against: [drawings.civil]

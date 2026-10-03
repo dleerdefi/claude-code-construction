@@ -1,0 +1,142 @@
+schema_version: 1
+kind: section
+id: "31 10 00"
+title: Site Clearing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Clearing and grubbing, topsoil stripping and stockpiling, and selective
+  tree removal and protection of what stays. The decisions are irreversible:
+  a tree whose root zone is driven over, trenched or filled dies a few years
+  later, topsoil hauled off or mixed with subsoil has to be bought back as
+  planting soil, and clearing beyond the permitted limits is a permit
+  violation on day one. Stripping and grubbing depths under buildings and
+  pavements come from the geotechnical report, not from habit.
+
+submittals:
+  - id: sc.sub.clearing-plan
+    type: Shop Drawings
+    must_show:
+      - Limits of clearing against the permitted limits of disturbance
+      - Trees and plants to remain, their protection zones and fence locations
+      - Staging, stockpile, haul road and trailer locations outside the protection zones
+      - Topsoil stockpile location, its protection and stabilization
+  - id: sc.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Arborist credentials where the spec requires root pruning, crown work or tree protection by an arborist
+
+review_checks:
+  - id: sc.limits-of-disturbance
+    kind: conformance
+    check: >
+      Clearing limits, staging, stockpiles, haul roads and trailers fall
+      inside the limits of disturbance on the permitted erosion control
+      drawings; anything outside needs a permit modification first.
+    trace_to: [drawings.civil, report.stormwater, drawings.site]
+    severity: high
+    owner: gc
+    gate: excavation
+
+  - id: sc.tree-protection
+    kind: constructability
+    check: >
+      Trees to remain have protection fencing at the zone the drawings or
+      arborist define, installed before clearing and kept to completion, with
+      no parking, storage, washout or grade change inside it; any work the
+      drawings put inside a zone has the root pruning, hand digging or
+      boring method detailed.
+    trace_to: [drawings.landscape, drawings.demolition, spec.part3]
+    severity: high
+    owner: gc
+    gate: excavation
+
+  - id: sc.stripping-depth
+    kind: conformance
+    check: >
+      Stripping and grubbing depths under building pads, pavements and
+      structural fills follow the geotechnical report, with stumps, root
+      mats and organic soil removed to the depth and extent it requires, and
+      the geotechnical engineer observes the stripped surface before fill.
+    trace_to: [report.geotechnical, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: sc.topsoil-reuse
+    kind: coordination
+    check: >
+      Topsoil to be reused is stripped separately from subsoil and debris,
+      stockpiled where construction will not bury or contaminate it, and
+      tested against the planting soil spec early enough to order
+      amendments or import; the stockpile volume is compared with what the
+      planting areas need.
+    trace_to: [spec.part3, drawings.landscape]
+    severity: medium
+    owner: gc
+
+reconciliations:
+  - id: sc.rc.trees-vs-work
+    between: [drawings.landscape, drawings.civil, drawings.electrical]
+    key: Each tree to remain
+    fields: [protection zone, cut or fill inside the zone, utility or conduit trench inside the zone, new paving or footing inside the zone]
+    check: >
+      No grading, trench, footing or paving on the civil, site electrical or
+      landscape drawings falls inside the protection zone of a tree shown to
+      remain, unless a detail says how the roots are protected.
+    severity: high
+    owner: design_team
+    gate: excavation
+
+failure_modes:
+  - id: sc.fm.root-zone-damage
+    what_happens: Equipment, stockpiles or a utility trench in the root zone of a tree shown to remain
+    consequence: The tree declines after turnover; replacement at appraised value or a tree-ordinance penalty
+    caught_by: [sc.tree-protection, sc.rc.trees-vs-work]
+    source: industry_practice
+
+  - id: sc.fm.topsoil-lost
+    what_happens: Topsoil stripped together with subsoil, or hauled off as spoil
+    consequence: Planting soil imported, tested and paid for again late in the job
+    caught_by: [sc.topsoil-reuse, if.31-clearing-planting]
+    source: industry_practice
+
+  - id: sc.fm.over-clearing
+    what_happens: Clearing extended past the permitted limits for staging or a haul road
+    consequence: Permit violation, stop-work order, restoration and fines
+    caught_by: [sc.limits-of-disturbance]
+    source: industry_practice
+
+  - id: sc.fm.organics-buried
+    what_happens: Stumps, roots or organic topsoil left under fill or the building pad
+    consequence: Slab and pavement settlement as the organics decay
+    caught_by: [sc.stripping-depth]
+    source: industry_practice
+
+standards:
+  - id: sc.std.ansi-a300-5
+    name: ANSI A300 (Part 5)
+    title: Management of Trees and Shrubs During Site Planning, Site Development, and Construction
+    verify: Tree protection zone, root pruning and protection methods where the spec cites it
+
+regulatory_hooks:
+  - id: sc.rh.clearing-restrictions
+    topic: tree-removal-and-clearing-restrictions
+    question: >
+      Do local tree ordinances, wetland or buffer rules, or protected-species
+      and nesting-season restrictions limit what may be cleared or when, and
+      do the project's permits put conditions on clearing or tree removal?
+    applies_when: Clearing, grubbing or tree removal
+    source_families: [environmental]
+    severity: medium
+
+extract_fields:
+  - id: sc.xf.stripping-depth
+    label: Stripping and grubbing depth by area
+    type: string
+    per: package
+    reconcile_against: [report.geotechnical]

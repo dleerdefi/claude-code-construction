@@ -1,0 +1,159 @@
+schema_version: 1
+kind: section
+id: "32 31 00"
+title: Fences and Gates
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # automated gates and wind-loaded screen fences are often delegated
+
+scope_summary: >
+  Chain link, ornamental and security fences, gates and gate operators.
+  The field problems are underground and at the gates: post footings drilled
+  into utilities and conduit, fence lines on the wrong side of the property
+  line, slats and screens that turn an open fence into a sail, and gates
+  that cross exits or fire apparatus roads. Automated vehicle gates are
+  machinery with entrapment protection requirements, and they need power,
+  controls and fire department access from other divisions.
+
+submittals:
+  - id: fn.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Layout referenced to the property line and easements, with post spacing, footings and gate locations and swings
+      - Gate hardware, latches, locks, and panic or emergency-release hardware where gates are on an exit path
+      - Screens, slats or solid panels and the post and footing sizing for that wind area
+  - id: fn.sub.operators
+    type: Product Data
+    must_show:
+      - Gate operator with its entrapment protection devices and the standards the operator and gate are listed or built to
+      - Power, control, loop detector and access control requirements
+
+review_checks:
+  - id: fn.layout-property
+    kind: conformance
+    check: >
+      The fence line is set from the survey's property line, easements and
+      setbacks, and staked by a surveyor where it runs on or near the line.
+    trace_to: [drawings.site, drawings.civil]
+    severity: medium
+    owner: gc
+
+  - id: fn.footings-utilities
+    kind: constructability
+    check: >
+      Post footing locations are checked against utilities, irrigation and
+      site lighting conduit on the drawings and located in the field before
+      drilling; footings in landscape strips over utility corridors are
+      moved, not drilled through.
+    trace_to: [drawings.civil, drawings.electrical, drawings.landscape]
+    severity: high
+    owner: gc
+
+  - id: fn.wind-screens
+    kind: conformance
+    check: >
+      Where slats, windscreen or solid panels are on the fence, posts and
+      footings are sized for wind on the solid area; screens added late by
+      the owner or in value engineering are sent back for that check.
+    trace_to: [spec.part2, drawings.details]
+    severity: medium
+    owner: design_team
+
+  - id: fn.egress-gates
+    kind: absence
+    check: >
+      Gates on an exit path (courtyards, rooftop and play areas, pool
+      enclosures) swing and release as the egress plan requires, without a
+      key from the egress side, and gates across fire apparatus roads have
+      the fire department's access means.
+    trace_to: [drawings.life_safety, drawings.site]
+    severity: high
+    owner: design_team
+
+  - id: fn.automated-gates
+    kind: completeness
+    check: >
+      Automated vehicle gates have the entrapment protection their listing
+      requires, gate construction to the referenced standard, a separate
+      pedestrian gate, and power, controls, loops, access control and fire
+      department override coordinated with electrical and security.
+    trace_to: [spec.part2, drawings.electrical, drawings.security]
+    severity: high
+    owner: gc
+
+failure_modes:
+  - id: fn.fm.post-in-utility
+    what_happens: A post footing drilled through conduit, irrigation or a utility line
+    consequence: Damaged line or outage; repair and relocation
+    caught_by: [fn.footings-utilities]
+    source: industry_practice
+
+  - id: fn.fm.wrong-side
+    what_happens: Fence built on the neighbor's side of the property line
+    consequence: Removal and relocation at the contractor's cost
+    caught_by: [fn.layout-property]
+    source: industry_practice
+
+  - id: fn.fm.screen-blowdown
+    what_happens: Slats or windscreen added to a fence designed as open fabric
+    consequence: Posts bend or footings rotate in the first high wind
+    caught_by: [fn.wind-screens]
+    source: industry_practice
+
+  - id: fn.fm.locked-exit
+    what_happens: A courtyard or play-area gate on an exit path locks against egress
+    consequence: Fails final inspection; hardware replaced
+    caught_by: [fn.egress-gates]
+    source: industry_practice
+
+  - id: fn.fm.gate-entrapment
+    what_happens: Gate operator installed without the entrapment protection its listing requires, or without power and controls ready
+    consequence: Injury exposure, failed inspection, gate left manual at turnover
+    caught_by: [fn.automated-gates]
+    source: industry_practice
+
+standards:
+  - id: fn.std.astm-f567
+    name: ASTM F567
+    title: Installation of Chain-Link Fence
+    verify: Post spacing, footing and bracing practice where the spec cites it
+  - id: fn.std.astm-f2200
+    name: ASTM F2200
+    title: Automated Vehicular Gate Construction
+    verify: Gate construction for automated vehicular gates
+  - id: fn.std.ul-325
+    name: UL 325
+    title: Door, Drapery, Gate, Louver, and Window Operators and Systems
+    verify: Gate operator listing and its entrapment protection class
+
+regulatory_hooks:
+  - id: fn.rh.vehicular-gates
+    topic: automatic-vehicular-gates
+    question: >
+      Does the adopted building code require automatic vehicular gates to
+      meet gate construction and operator safety standards, and what fire
+      department access (key switch, siren or strobe override, key box)
+      does the fire code require for gates across access roads?
+    applies_when: Automated gates, or any gate across a fire apparatus access road
+    source_families: [building_code, fire_code]
+    severity: high
+
+  - id: fn.rh.pool-barrier
+    topic: pool-barrier-requirements
+    question: >
+      Where the fence is a pool or spa barrier, what does the adopted code
+      require of it (height, openings, climbability, self-closing and
+      self-latching gates, latch height, alarms)?
+    applies_when: Fences or gates that enclose a pool or spa
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: fn.xf.gates
+    label: Gates with location, swing, hardware and operator
+    type: list
+    per: package
+    reconcile_against: [drawings.site, drawings.life_safety]

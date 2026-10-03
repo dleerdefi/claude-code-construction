@@ -1,0 +1,148 @@
+schema_version: 1
+kind: section
+id: "32 17 00"
+title: Paving Specialties
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Pavement markings, detectable warning surfaces, wheel stops, speed bumps
+  and bollards. A small scope, but it is where accessible parking, curb
+  ramps and fire lanes become countable by an inspector: stalls and access
+  aisles against the accessibility standard and the site plan, detectable
+  warnings at every curb ramp and vehicular crossing, fire lane markings to
+  the fire department's rules. Cast-in detectable warnings must be on site
+  before the ramp is poured, and markings on new asphalt wait for it to cure.
+
+suppress:
+  - id: pv.rc.sections
+    reason: Markings and specialties go on finished pavement; the pavement section is reviewed under the paving sections
+  - id: pv.fm.wrong-section
+    reason: Follows pv.rc.sections, which is reviewed under the paving sections
+  - id: pv.base-acceptance
+    reason: Base course is reviewed under the paving sections
+  - id: pv.fm.thin-base
+    reason: Follows pv.base-acceptance, which is reviewed under the paving sections
+  - id: pv.xf.sections
+    reason: Pavement sections are extracted under the paving sections
+
+submittals:
+  - id: ps.sub.product-data
+    type: Product Data
+    must_show:
+      - Marking material for each surface (new asphalt, existing asphalt, concrete) and the cure time it needs before application
+      - Detectable warning product, its color contrast, and whether it is cast in, set in mortar or surface-applied
+      - Wheel stops, bollards and their anchorage
+  - id: ps.sub.layout
+    type: Shop Drawings
+    must_show:
+      - Striping layout with stall counts by type (standard, accessible, van-accessible, electric vehicle, compact), access aisles and signs
+      - Fire lane markings and signs, crosswalks and directional markings
+
+review_checks:
+  - id: ps.accessible-parking
+    kind: conformance
+    check: >
+      Accessible and van-accessible stalls are counted per parking facility
+      (not across the whole site), sized with their access aisles, placed on
+      the shortest accessible route to an accessible entrance, on a surface
+      within the slope limits, and signed as the hook requires.
+    trace_to: [drawings.site, drawings.civil]
+    severity: high
+    owner: design_team
+
+  - id: ps.dw-locations
+    kind: absence
+    check: >
+      Detectable warnings are shown at every curb ramp, blended transition
+      and hazardous vehicular crossing on the accessible route, including
+      at drive aisles that cross a walk without a curb.
+    trace_to: [drawings.site, drawings.details]
+    severity: high
+    owner: design_team
+
+  - id: ps.marking-timing
+    kind: constructability
+    check: >
+      Markings on new asphalt wait for the cure the marking manufacturer
+      requires, with temporary markings or a second coat planned where
+      opening the lot cannot wait.
+    trace_to: [spec.part3, schedule.master]
+    severity: medium
+    owner: subcontractor
+
+reconciliations:
+  - id: ps.rc.stall-counts
+    between: [drawings.site, drawings.civil]
+    key: Each parking facility or lot
+    fields: [total stalls, accessible stalls, van-accessible stalls, electric vehicle stalls, compact stalls]
+    check: >
+      Stall counts on the striping layout match the parking table on the
+      approved site plan and the counts the accessibility hook requires for
+      that facility.
+    severity: high
+    owner: design_team
+
+failure_modes:
+  - id: ps.fm.stall-on-slope
+    what_happens: Accessible stalls and aisles placed in a sloped part of the lot
+    consequence: Regrading and restriping after a failed accessibility inspection
+    caught_by: [ps.accessible-parking, pv.slope-tolerance]
+    source: industry_practice
+
+  - id: ps.fm.dw-missing
+    what_happens: Detectable warnings left out at a blended transition or a vehicular crossing without curb
+    consequence: Sawcut and retrofit before final inspection
+    caught_by: [ps.dw-locations]
+    source: industry_practice
+
+  - id: ps.fm.panels-late
+    what_happens: Cast-in detectable warning panels not on site when the curb ramp is poured
+    consequence: Ramp poured without them; sawcut and retrofit, or a surface-applied product the AHJ may not accept
+    caught_by: [if.32-detectable-warnings]
+    source: industry_practice
+
+  - id: ps.fm.striped-too-soon
+    what_happens: Paint applied to asphalt before it cured
+    consequence: Bleeding and early wear; restriping before turnover
+    caught_by: [ps.marking-timing]
+    source: industry_practice
+
+  - id: ps.fm.count-short
+    what_happens: Striped stall counts do not match the approved site plan or the accessible count required
+    consequence: Certificate of occupancy held; restriping and sign changes
+    caught_by: [ps.rc.stall-counts]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: ps.rh.accessible-parking
+    topic: accessible-parking
+    question: >
+      How many accessible and van-accessible spaces does the adopted
+      accessibility standard require for each parking facility here, with
+      what dimensions, access aisles, signs and location, and do state rules
+      add to them (signage text, electric vehicle charging spaces)?
+    applies_when: Any parking provided on the site
+    source_families: [accessibility]
+    severity: high
+
+  - id: ps.rh.detectable-warnings
+    topic: detectable-warnings
+    question: >
+      Where does the adopted accessibility standard, and the agency's
+      standard for the public way, require detectable warnings, and what
+      size, dome geometry, color contrast and placement do they require?
+    applies_when: Curb ramps, blended transitions or vehicular crossings on an accessible route
+    source_families: [accessibility]
+    severity: high
+
+extract_fields:
+  - id: ps.xf.stall-counts
+    label: Stall counts by type per parking facility
+    type: list
+    per: package
+    reconcile_against: [drawings.site]
