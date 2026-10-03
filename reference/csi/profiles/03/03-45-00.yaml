@@ -1,0 +1,93 @@
+schema_version: 1
+kind: section
+id: "03 45 00"
+title: Precast Architectural Concrete
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Precast cladding panels, spandrels, column covers and trim. Each panel is
+  a structure hung on the frame and an envelope component at once: its
+  connections have to land on structure designed for them and take the
+  frame's drift and deflection, and its joints, windows and the barrier
+  behind it have to form a continuous envelope. Color and finish are
+  approved on samples and a mockup, and every production piece is judged
+  against them.
+
+submittals:
+  - id: 03apc.sub.samples
+    type: Samples
+    must_show:
+      - Color, finish and texture samples, then a full-size mockup or first production panel, with agreed viewing criteria
+
+review_checks:
+  - id: 03apc.connections-to-frame
+    kind: coordination
+    check: >
+      Bearing and tie-back connections land on structure designed for them
+      (slab-edge embeds, spandrel beam plates, steel clips), with forces and
+      locations given to the engineer of record and to the steel or concrete
+      trade before their shop drawings are released. Connections let the
+      panel move with the story drift and slab-edge deflection on the
+      structural drawings, bearing at one level only.
+    trace_to: [drawings.structural, drawings.wall_sections, drawings.details]
+    severity: critical
+    owner: gc
+    gate: procurement_release
+
+  - id: 03apc.envelope-joints
+    kind: absence
+    check: >
+      Water and air control is defined at every panel joint (two-stage
+      joint, or sealant with backup), at windows set in or between panels
+      (opening tolerances, sill slopes, anchor embeds, sealant widths shown on
+      both the precast and the window shop drawings), and where the panel or
+      the barrier behind it meets adjacent walls and the roof.
+    trace_to: [drawings.wall_sections, drawings.details, drawings.exterior_elevations]
+    severity: high
+    owner: design_team
+
+  - id: 03apc.finish-acceptance
+    kind: conformance
+    submittal_types: [Samples]
+    check: >
+      Samples and the mockup are approved before production, and acceptance
+      criteria for production pieces (viewing distance, allowable color and
+      texture range, repair method) are agreed in writing.
+    trace_to: [spec.part1, spec.part2]
+    severity: medium
+    owner: subcontractor
+    gate: procurement_release
+
+failure_modes:
+  - id: 03apc.fm.frame-not-ready
+    what_happens: Panel shop drawings arrive after the steel or slab-edge shop drawings were released, so the connection embeds are missing
+    consequence: Field-welded retrofit clips and engineer redesign at the slab edge
+    caught_by: [03apc.connections-to-frame]
+    source: industry_practice
+
+  - id: 03apc.fm.drift-locked
+    what_happens: Panels connected rigidly at more than one level, or to columns and slab edges that move differently
+    consequence: Cracked panels and failed joints as the frame drifts, creeps or deflects
+    caught_by: [03apc.connections-to-frame]
+    source: industry_practice
+
+  - id: 03apc.fm.joint-leaks
+    what_happens: Single-stage sealant joints with no backup, and window perimeters detailed by neither the precaster nor the window installer
+    consequence: Leaks at panel joints and window perimeters that recur after each resealing
+    caught_by: [03apc.envelope-joints]
+    source: industry_practice
+
+  - id: 03apc.fm.color-dispute
+    what_happens: Production panels vary from the sample with no agreed acceptance criteria
+    consequence: Rejected panels, disputes and erection delay
+    caught_by: [03apc.finish-acceptance]
+    source: industry_practice
+
+standards:
+  - id: 03apc.std.pci-mnl-117
+    name: PCI MNL-117
+    title: Manual for Quality Control for Plants and Production of Architectural Precast Concrete Products
+    verify: Plant quality control and finish acceptance practice the spec adopts

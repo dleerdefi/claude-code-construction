@@ -1,0 +1,11 @@
+schema_version: 1
+kind: section
+id: "03 38 00"
+title: Post-Tensioned Concrete
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# The same post-tensioning scope, specified under the Cast-in-Place number.
+same_as: "03 23 00"

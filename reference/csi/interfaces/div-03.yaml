@@ -1,0 +1,366 @@
+schema_version: 1
+kind: interfaces
+id: div-03
+title: Interfaces involving Division 03
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Waterproofing <-> concrete and waterstops live in div-07 (if.waterproofing-concrete).
+
+edges:
+  # ── Structure ─────────────────────────────────────────────────
+  - id: if.03-steel-anchorage
+    a: ["03 30 00", "03 15 00", "03 60 00"]
+    a_trade: Cast-in-place concrete, cast-in anchors and grouting
+    b: ["05 12 00", "05 50 00", "05 05 19"]
+    b_trade: Structural steel, metal fabrications and post-installed anchors
+    a_provides: Anchor rods and embed plates set from the approved steel and metals layouts and surveyed before the pour; grout under base and bearing plates once the frame is plumbed and released
+    b_provides: Approved anchor rod and embed layouts (location, elevation, projection, rod size and pattern, plate size) and the fabricated items, delivered before forms close; any post-installed fix proposed with an evaluation report for the engineer's acceptance
+    responsibility:
+      - item: Anchor rods and embed plates
+        typical: {furnish: "05 12 00 or 05 50 00", install: "03 30 00"}
+        confirm_in: [spec.part1, drawings.structural]
+      - item: Grout under column base plates and bearing plates
+        typical: {furnish: "03 60 00 or 05 12 00", install: "03 60 00 or 05 12 00"}
+        confirm_in: [spec.part1, spec.part3]
+    gate:
+      milestone: foundation_pour
+      note: The steel anchor rod layout is approved before footing and pier forms close; the as-built survey is accepted before steel_erection
+    severity: critical
+
+  - id: if.03-composite-deck
+    a: ["03 30 00", "03 35 00"]
+    a_trade: Cast-in-place concrete and finishing on metal deck
+    b: ["05 31 00", "05 12 00"]
+    b_trade: Steel deck and structural steel framing
+    a_provides: Placement method (constant thickness or finished to elevation), the added concrete expected from deck and beam deflection, and finish tolerances an unshored deck can meet
+    b_provides: Deck profile and gauge, pour stops and closures at edges and openings, shear studs installed and inspected, beam camber and the deflection assumed in design
+    responsibility:
+      - item: Pour stops and edge forms at slab edges and deck openings
+        typical: {furnish: "05 31 00 or 05 12 00", install: "05 31 00"}
+        confirm_in: [spec.part1, drawings.structural]
+    gate: {milestone: slab_pour}
+    severity: medium
+    failure: Slab finished level on a deflecting deck adds unplanned concrete and dead load, or finished to constant thickness leaves a floor out of level for the flooring
+
+  - id: if.03-pile-caps
+    a: ["03 30 00"]
+    a_trade: Pile caps, grade beams and their reinforcing
+    b: ["31 62 00", "31 63 00", "31 66 00"]
+    b_trade: Driven, bored and special foundation piles
+    a_provides: Cap and grade beam dimensions and reinforcing, adjusted by the engineer to as-built pile positions before forming
+    b_provides: As-built pile location and cut-off elevation survey, and pile acceptance (load tests, integrity tests, driving or drilling records) before caps are formed
+    gate: {milestone: foundation_pour}
+    severity: high
+    failure: Piles out of position discovered after the cap is reinforced; cap redesign or added piles under schedule pressure
+
+  - id: if.03-masonry-dowels
+    a: ["03 20 00", "03 30 00"]
+    a_trade: Concrete reinforcing and foundations
+    b: ["04 20 00", "04 05 19"]
+    b_trade: Unit masonry and masonry reinforcing
+    a_provides: Dowels at the size, spacing and projection the masonry reinforcing requires, aligned with the cells to be grouted, and top-of-footing elevations that work with the masonry coursing
+    b_provides: Wall layout, openings, control joints, coursing start elevation and reinforced-cell locations before the footing pour
+    gate: {milestone: foundation_pour}
+    severity: high
+
+  - id: if.03-masonry-veneer
+    a: ["03 30 00", "03 15 00"]
+    a_trade: Foundations, concrete walls and cast-in anchors
+    b: ["04 05 19", "04 20 00"]
+    b_trade: Masonry anchorage and veneer
+    a_provides: Brick ledge at the elevation, width and slope the veneer, air space, continuous insulation and flashing need; dovetail slots or anchor channels cast wherever veneer laps concrete walls, columns and slab edges
+    b_provides: Coursing and the ledge elevation that suits it relative to finished grade, ledge width for the insulation thickness actually specified, anchor type and spacing at concrete backup, and the flashing and weeps at the ledge
+    gate:
+      milestone: foundation_pour
+      note: The ledge is formed with the foundation, often before the wall insulation thickness is final
+    severity: high
+    failure: Ledge formed to the bid-set width after the insulation grew, or too high for the coursing and flashing above grade; veneer overhangs or is notched, and anchors are drilled into concrete that had no slots
+
+  - id: if.03-wood-frame-anchorage
+    a: ["03 30 00"]
+    a_trade: Foundations and podium slabs
+    b: ["06 11 00", "06 05 23"]
+    b_trade: Wood framing and its tie-down hardware
+    a_provides: Anchor bolts, hold-down anchors and tie-down rod anchors cast at the approved shear wall and tie-down locations with the embedment and edge distance the design assumes, and a podium top flat enough for the wall plates
+    b_provides: Approved shear wall, hold-down and tie-down drawings with anchor types, locations and embedment before the pour, and the sill plate and sill sealer details at the podium
+    responsibility:
+      - item: Hold-down and tie-down rod anchors cast into the foundation or podium
+        typical: {furnish: "06 05 23 or 06 11 00", install: "03 30 00"}
+        confirm_in: [spec.part1, drawings.structural]
+    gate:
+      milestone: slab_pour
+      note: Where the wood frame starts on footings or a slab on ground, the same hand-off is due at foundation_pour
+    severity: high
+
+  - id: if.03-metal-building-anchorage
+    a: ["03 30 00"]
+    a_trade: Foundations and slab on ground
+    b: ["13 34 19"]
+    b_trade: Metal building systems
+    a_provides: Footings, piers and anchor rods built from the manufacturer's final anchor bolt plan as checked by the foundation engineer; tie rods or hairpins for frame thrust placed with the slab and not severed by slab joints; the slab-edge notch the wall panels and base trim need
+    b_provides: Sealed final anchor bolt plan with rod sizes, projections and column reactions by load case (including frame thrust and brace reactions), and the base trim detail, before the foundation pour
+    gate:
+      milestone: foundation_pour
+      note: The manufacturer's drawings usually follow the foundation design; hold the pour for the final plan
+    severity: high
+
+  - id: if.03-stair-pan-fill
+    a: ["03 30 00"]
+    a_trade: Cast-in-place concrete
+    b: ["05 51 00"]
+    b_trade: Metal stairs
+    a_provides: Concrete fill in pans and landings with the reinforcing, finish and nosing embedment the details show, placed in time for the stair to serve as construction access
+    b_provides: Pans and landing forms ready for fill, nosings and anchors in place, and the stair erected and accepted before the fill
+    responsibility:
+      - item: Concrete fill in metal pan stairs and landings
+        typical: {furnish: "03 30 00 or 05 51 00", install: "03 30 00 or 05 51 00"}
+        confirm_in: [spec.part1, drawings.details]
+    severity: medium
+
+  - id: if.03-cladding-embeds
+    a: ["03 30 00", "03 23 00"]
+    a_trade: Cast-in-place and post-tensioned slabs
+    b: ["08 44 00"]
+    b_trade: Curtain wall
+    a_provides: Slab-edge embeds or cast-in anchor channels at the curtain wall anchor locations, slab edge within the tolerance the anchors can absorb, clear of tendon anchorages
+    b_provides: Anchor layout, embed type and loads from the curtain wall engineer, before slab-edge forms are set
+    gate:
+      milestone: slab_pour
+      note: Curtain wall anchor design usually runs behind the structure; settle the embed approach before the first elevated slab
+    severity: high
+
+  # ── Floors ────────────────────────────────────────────────────
+  - id: if.03-flooring-substrate
+    a: ["03 30 00", "03 35 00", "03 54 00"]
+    a_trade: Concrete slabs, finishing and underlayment
+    b: ["09 05 61", "09 30 00", "09 60 00", "12 48 13"]
+    b_trade: Flooring preparation, tile, flooring and entrance mats
+    a_provides: Slab elevations and depressions at full assembly depth, flatness per flooring type measured on time, curing method and surface treatments by area, joint layout, and the mix and drying conditions behind the moisture schedule
+    b_provides: Floor assembly and thickness per room, each manufacturer's flatness and moisture limits and test methods, movement-joint requirements over slab joints, and written acceptance of the substrate before installation
+    responsibility:
+      - item: Floor preparation beyond normal flooring prep (grinding, patching, leveling)
+        typical: {furnish: "03 35 00 or 09 05 61", install: "03 35 00 or the flooring trade"}
+        confirm_in: [spec.part1, spec.part3]
+      - item: Moisture mitigation where the slab exceeds the flooring limit
+        typical: {furnish: "09 05 61", install: "09 05 61 or the flooring trade"}
+        confirm_in: [spec.part1, spec.part3]
+    gate:
+      milestone: slab_pour
+      note: Depressions, curing and tolerances are fixed at the pour; moisture and flatness acceptance comes again at floor_finish_install
+    severity: high
+
+  - id: if.03-floor-recesses
+    a: ["03 30 00", "03 35 00"]
+    a_trade: Slabs and floor finishing
+    b: ["08 41 00", "08 42 00", "08 71 00", "10 56 00", "11 71 00"]
+    b_trade: Entrances, door hardware, mobile storage and sterilizers
+    a_provides: Blockouts and recesses formed at the pour to the approved product (floor closer and pivot boxes, sliding-door floor tracks and recessed thresholds, mobile shelving rails, cart-loading sterilizer pits), with the flatness the product needs around them
+    b_provides: Approved recess sizes, locations and tolerances, and any drain, conduit or anchorage in the recess, before the pour; products that will be selected late are flagged so the recess is held open or deliberately omitted
+    gate: {milestone: slab_pour}
+    severity: medium
+
+  - id: if.03-cold-storage-floors
+    a: ["03 30 00"]
+    a_trade: Slabs on ground and depressed slabs
+    b: ["11 41 00", "13 21 26"]
+    b_trade: Walk-in coolers and freezers, cold storage rooms
+    a_provides: The floor the approved box needs, settled before forming (a depression for insulated floor panels, or an insulated slab with the vapor retarder on the warm side and underfloor heat below it), finished flush at the door
+    b_provides: Floor type and assembly depth from the approved box, the underfloor heat layout (cable in conduit or glycol piping) with power, control and monitoring, and floor drain locations
+    responsibility:
+      - item: Underfloor heat under freezers on grade
+        typical: {furnish: "11 41 00 or 13 21 26", install: "the electrical or refrigeration trade"}
+        confirm_in: [spec.part1, drawings.details, drawings.electrical]
+      - item: Insulation and vapor retarder within an insulated slab
+        typical: {furnish: "11 41 00, 13 21 26 or 03 30 00", install: "03 30 00"}
+        confirm_in: [spec.part1, drawings.details]
+    gate: {milestone: slab_pour}
+    severity: high
+
+  - id: if.03-dock-leveler-pits
+    a: ["03 30 00"]
+    a_trade: Dock walls, pits and slabs
+    b: ["11 13 00"]
+    b_trade: Loading dock equipment
+    a_provides: Pits formed to the approved leveler's pit drawing, curb angles and embed plates anchored as detailed, pit slope or drain, and dock-face embeds for bumpers and restraints
+    b_provides: Approved pit drawing per position (size, depth, curb angles, embeds, anchors, drainage), any pit form or curb-angle kit the manufacturer furnishes, and bumper and restraint embed locations, before the dock pour
+    responsibility:
+      - item: Curb angles and pit embeds
+        typical: {furnish: "11 13 00", install: "03 30 00"}
+        confirm_in: [spec.part1, drawings.details]
+    gate:
+      milestone: slab_pour
+      note: Dock pits are often poured with the dock walls; hold them for the approved leveler
+    severity: high
+
+  - id: if.03-underslab-vapor-retarder
+    a: ["03 30 00"]
+    a_trade: Slab on ground
+    b: ["07 26 00"]
+    b_trade: Vapor retarders
+    a_provides: Reinforcing supports with bases, placement without damage, and repair of damage done by the concrete and reinforcing crews before the pour
+    b_provides: Retarder class, laps and sealing, boots at every penetration, and an inspection release before reinforcing goes down
+    responsibility:
+      - item: Vapor retarder under slabs on ground
+        typical: {furnish: "03 30 00 or 07 26 00", install: "03 30 00 or 07 26 00"}
+        confirm_in: [spec.part1, spec.part2]
+      - item: Sealing and boots at underslab penetrations
+        typical: {install: "07 26 00, 03 30 00 or the penetrating trade"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: slab_pour}
+    severity: medium
+    failure: Retarder installed by one trade and penetrated by several; holes and tears are never sealed because no one owns the repair
+
+  - id: if.03-slab-insulation
+    a: ["03 30 00"]
+    a_trade: Slabs on ground and foundation walls
+    b: ["07 21 00"]
+    b_trade: Thermal insulation
+    a_provides: Slab-edge and foundation details that leave room for the insulation and a thermal break at slab edges and entrances, and a pour release after the insulation is inspected
+    b_provides: Under-slab and slab-edge insulation of the type, extent and orientation the energy compliance path assumes, rated for the soil and slab load, set before the pour
+    responsibility:
+      - item: Under-slab and slab-edge insulation
+        typical: {furnish: "07 21 00 or 03 30 00", install: "07 21 00 or 03 30 00"}
+        confirm_in: [spec.part1, drawings.details, report.energy_compliance]
+    gate: {milestone: slab_pour}
+    severity: medium
+    failure: Slab-edge or under-slab insulation left out, crushed or cut short at doors before the pour; a failed energy inspection and a cold, condensing slab edge
+
+  - id: if.03-subgrade
+    a: ["03 30 00"]
+    a_trade: Footings and slabs on ground
+    b: ["31 23 00", "31 31 16"]
+    b_trade: Excavation and fill; termite control
+    a_provides: Footing and slab bottom elevations, base course and retarder requirements, and a pour release that waits for subgrade acceptance
+    b_provides: Subgrade prepared and compacted to the geotechnical recommendations, base course to grade and tolerance, protected from rain and frost until the pour; soil treatment applied before the vapor retarder where required
+    responsibility:
+      - item: Granular base under slabs on ground
+        typical: {furnish: "31 23 00 or 03 30 00", install: "31 23 00 or 03 30 00"}
+        confirm_in: [spec.part1, drawings.structural, report.geotechnical]
+    gate:
+      milestone: slab_pour
+      note: Footing bearing is accepted at foundation_pour
+    severity: high
+
+  # ── MEP in and under the concrete ─────────────────────────────
+  - id: if.03-sleeves
+    a: ["03 30 00", "03 23 00"]
+    a_trade: Cast-in-place and post-tensioned concrete
+    b: ["21 05 00", "22 05 00", "23 05 00", "26 05 00", "27 05 00"]
+    b_trade: Penetrating trades (fire protection, plumbing, HVAC, electrical, communications)
+    a_provides: Sleeve and blockout locations surveyed before the pour, and the engineer's acceptance of penetrations through beams, footings, grade beams and post-tensioned slabs
+    b_provides: One coordinated sleeve layout across trades, sized for insulation and the firestop system's annular space, with sleeve types (waterstop collars below grade and in wet areas, cast-in firestop devices in rated floors), delivered before forms close
+    responsibility:
+      - item: Sleeves and cast-in firestop devices
+        typical: {furnish: "each penetrating trade", install: "each penetrating trade or 03 30 00"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: slab_pour}
+    severity: high
+
+  - id: if.03-underslab-plumbing
+    a: ["03 30 00"]
+    a_trade: Slabs on ground
+    b: ["22 13 00", "22 14 00", "22 11 00"]
+    b_trade: Sanitary, storm and water piping below the slab
+    a_provides: Slab elevations, depressions and slopes at drains, and sleeve details through grade beams and footings
+    b_provides: Underslab piping and drain bodies installed, tested and inspected at locations taken from current architectural layouts and approved fixtures and equipment, with drain bodies set to the finished floor and depression
+    gate: {milestone: underslab_rough_in}
+    severity: high
+
+  - id: if.03-underslab-electrical
+    a: ["03 30 00"]
+    a_trade: Slabs on ground and elevated slabs
+    b: ["26 05 33", "26 05 43", "27 05 28", "27 05 43"]
+    b_trade: Electrical and communications raceways, pathways and underground ducts
+    a_provides: The engineer's limits on conduit size, spacing and placement in the slab (and exclusion from tendon zones and beams), and a pour release after rough-in inspection
+    b_provides: In-slab and underslab conduit, floor boxes and stub-ups at locations from current furniture and equipment layouts, within those limits, inspected before the pour
+    gate: {milestone: slab_pour}
+    severity: medium
+    failure: Conduit bundles in thin slabs or tendon zones, or floor boxes in the wrong place; cracking, coring and poke-throughs after the fact
+
+  - id: if.03-grounding-electrode
+    a: ["03 30 00"]
+    a_trade: Footings and their reinforcing
+    b: ["26 05 26"]
+    b_trade: Grounding and bonding
+    a_provides: Footing reinforcing and a pour hold so the concrete-encased electrode can be installed, bonded and inspected
+    b_provides: Electrode location, conductor or bar extension and stub-up locations, and the electrical inspection before the pour
+    gate: {milestone: foundation_pour}
+    severity: medium
+    failure: Footings poured without the concrete-encased electrode or its stub-up; a substitute electrode system and an inspection finding
+
+  - id: if.03-housekeeping-pads
+    a: ["03 30 00"]
+    a_trade: Cast-in-place concrete
+    b: ["21 30 00", "22 30 00", "23 20 00", "23 50 00", "23 60 00", "23 70 00", "26 10 00", "26 20 00", "26 30 00", "11"]
+    b_trade: Floor-mounted fire pump, plumbing, HVAC, electrical and owner equipment
+    a_provides: Pads formed and doweled to the slab to the approved equipment dimensions, with the anchor embedment and edge distance the anchorage needs
+    b_provides: Approved footprint, weight, anchor pattern and anchorage design, pad height for traps and drains, and pad locations checked against service clearances, before the pad pour
+    responsibility:
+      - item: Pad dimensions and locations
+        typical: {furnish: "the equipment's trade", install: "03 30 00"}
+        confirm_in: [spec.part1, drawings.mechanical, drawings.electrical]
+      - item: Equipment anchors into pads
+        typical: {furnish: "the equipment's trade", install: "the equipment's trade or 03 30 00"}
+        confirm_in: [spec.part1, spec.part3]
+    gate:
+      milestone: slab_pour
+      note: Dowels go in with the slab; the pad waits for the approved equipment submittal
+    severity: high
+
+  - id: if.03-elevator-pit
+    a: ["03 30 00"]
+    a_trade: Elevator pit and hoistway concrete
+    b: ["14 20 00"]
+    b_trade: Elevators
+    a_provides: Pit floor and walls built to the approved elevator's pit depth, size and reactions, with sump, rail bracket inserts or embeds, sill and entrance embeds, and the jack-hole casing a hydraulic system needs
+    b_provides: Approved layout with pit depth, buffer and rail reactions, bracket spacing and anchorage method, sump size, jack hole location and casing, before the pit is formed
+    responsibility:
+      - item: Sump pit and pit drainage
+        typical: {furnish: "03 30 00 (sump) and 22 30 00 or 14 20 00 (pump or drain)", install: "03 30 00 and 22 30 00"}
+        confirm_in: [spec.part1, drawings.plumbing]
+      - item: Rail bracket inserts or embeds
+        typical: {furnish: "14 20 00", install: "03 30 00 or 14 20 00"}
+        confirm_in: [spec.part1, drawings.structural]
+    gate:
+      milestone: foundation_pour
+      note: The pit is usually formed before the elevator submittal is approved; get the layout first or hold the pit
+    severity: high
+    failure: Pit cast to the bid-set elevator; too shallow or without inserts, so the pit is chipped and re-poured or the elevator is re-engineered
+
+  - id: if.03-pool-shell
+    a: ["03 30 00"]
+    a_trade: Cast-in-place and shotcrete concrete
+    b: ["13 11 00"]
+    b_trade: Swimming pools
+    a_provides: Shell, gutter and deck concrete with waterstops at joints and every fitting, sleeve and niche cast at the approved locations, with the surface and tolerance the plaster or tile finish needs
+    b_provides: Approved shell, fitting and gutter layout (main drains, inlets, skimmers, light niches, ladder and rail anchors), the uplift and hydrostatic relief assumptions, and the bonding grid installed and inspected, before the shell pour
+    responsibility:
+      - item: Pool shell and deck concrete
+        typical: {install: "03 30 00 or 13 11 00"}
+        confirm_in: [spec.part1, drawings.structural]
+      - item: Fittings, niches and sleeves cast into the shell
+        typical: {furnish: "13 11 00", install: "13 11 00 or 03 30 00"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: foundation_pour}
+    severity: high
+    failure: Shell placed before the pool layout was approved or the fittings were set; fittings cored in later, with leaks at every retrofitted penetration
+
+  # ── Site ──────────────────────────────────────────────────────
+  - id: if.03-site-concrete
+    a: ["03 30 00"]
+    a_trade: Building slabs and foundations
+    b: ["32 13 13", "32 16 00"]
+    b_trade: Concrete paving, walks and curbs
+    a_provides: Finished floor elevation at every exterior door and the slab-edge ledge or recess that supports the exterior slab
+    b_provides: Exterior slab elevation flush with the threshold on the accessible route, slope away from the building, isolation joint and doweling at the building, and an air-entrained exterior mix
+    responsibility:
+      - item: Exterior stoops and slabs at building entrances
+        typical: {install: "03 30 00 or 32 13 13"}
+        confirm_in: [spec.part1, drawings.civil, drawings.details]
+    gate: {milestone: site_paving}
+    severity: medium
+    failure: Exterior slab settles or is placed low at the door; a step on the accessible route and water draining toward the building

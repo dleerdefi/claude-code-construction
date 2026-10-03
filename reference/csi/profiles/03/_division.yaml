@@ -1,0 +1,142 @@
+schema_version: 1
+kind: division
+id: "03"
+title: Concrete
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Concrete holds more points of no return than any other division: what is
+  cast in is fixed at the pour, and what is left out becomes coring,
+  post-installed anchors or demolition. Acceptance rests on records made at
+  placement (tickets, field tests, cylinders, inspection reports) that cannot
+  be recreated afterward, and the strength-based decisions that follow
+  (stripping, stressing, lifting, loading) are only as good as those records.
+  Whatever is left on the concrete surface becomes the substrate of the next
+  trade, and after placement nobody can drill or core the concrete blind.
+
+review_checks:
+  - id: d03.coring-scanning
+    kind: constructability
+    reflex: true
+    check: >
+      No coring, sawcutting or drilling of placed structural concrete (slabs,
+      beams, walls, post-tensioned slabs, precast and prestressed members)
+      without the location and size accepted by the engineer of record and the
+      area scanned for reinforcing, tendons, strands and embedded conduit
+      first. Penetrations added after the pour are routed this way even when
+      small, and the procedure is written into the MEP and tenant scopes.
+    trace_to: [spec.part3, spec.division_01, drawings.structural]
+    severity: critical
+    owner: gc
+
+  - id: d03.inspection-and-testing
+    kind: completeness
+    check: >
+      The testing agency, sampling frequency, field tests and specimen sets
+      per placement are defined, including field-cured or extra specimens (or
+      a calibrated maturity method) for every strength-based decision: form
+      and shore removal, stressing, panel lifting, precast erection, early
+      loading. The special inspections the statement of special inspections
+      lists for this scope are booked before each placement, and results reach
+      the contractor fast enough to change the next placement.
+    trace_to: [spec.part3, register.special_inspections]
+    severity: high
+    owner: gc
+    gate: foundation_pour
+
+  - id: d03.weather-limits
+    kind: constructability
+    check: >
+      Hot and cold weather procedures (temperature limits for the concrete,
+      grout or underlayment and the substrate, protection, heating or cooling,
+      curing, and the temperature and strength record that allows forms or
+      protection to come off) are submitted before the season they apply to,
+      and the placement schedule shows which pours fall in it.
+    trace_to: [spec.part3, schedule.master]
+    severity: medium
+    owner: gc
+
+  - id: d03.surface-compatibility
+    kind: coordination
+    check: >
+      Every product left on a concrete surface (form release agent, curing
+      compound, bond breaker, hardener, densifier, sealer) is accepted in
+      writing by the manufacturer of whatever is applied to or bonded against
+      that surface later: waterproofing, flooring adhesive, coating, topping,
+      sealant, applied finish. Where it is not, removal and who performs it are
+      in a scope before the product is used.
+    trace_to: [spec.part2, schedule.finish]
+    severity: high
+    owner: gc
+
+failure_modes:
+  - id: d03.fm.cored-blind
+    what_happens: A trade cores or drills placed concrete for a late penetration or anchor without scanning or the engineer's acceptance
+    consequence: Cut reinforcing, a released tendon or a severed live conduit; structural repair, shoring, or an outage
+    caught_by: [d03.coring-scanning]
+    source: industry_practice
+
+  - id: d03.fm.decision-without-strength
+    what_happens: Forms stripped, shores pulled, tendons stressed or panels lifted on the calendar, with no field-cured specimen or maturity data behind it
+    consequence: Cracking, excess deflection or anchorage failure; or the work stops while everyone waits for a test nobody scheduled
+    caught_by: [d03.inspection-and-testing]
+    source: industry_practice
+
+  - id: d03.fm.inspection-not-called
+    what_happens: Placement goes ahead before the special inspector has seen the reinforcing, embeds or tendons
+    consequence: The building official asks for cores, scanning or exposure of the work, or rejects it
+    caught_by: [d03.inspection-and-testing]
+    source: industry_practice
+
+  - id: d03.fm.unprotected-cold-placement
+    what_happens: Concrete or grout placed in cold weather without protection or temperature records, or allowed to freeze early
+    consequence: Strength loss and surface scaling found later; cores, repair or removal
+    caught_by: [d03.weather-limits]
+    source: industry_practice
+
+  - id: d03.fm.residue-blocks-bond
+    what_happens: Release agent, curing compound, bond breaker or sealer left on concrete that the later membrane, adhesive or coating manufacturer does not accept
+    consequence: Disbonded waterproofing, flooring or coating; surface removal by grinding or blasting and a fight over who pays
+    caught_by: [d03.surface-compatibility]
+    source: industry_practice
+
+standards:
+  - id: d03.std.aci-301
+    name: ACI 301 (ACI SPEC-301)
+    title: Specifications for Concrete Construction
+    verify: Which edition the project spec adopts by reference, and which of its optional requirements the spec invokes
+  - id: d03.std.weather
+    name: ACI 305.1 / ACI PRC-306
+    title: Specification for Hot Weather Concreting; Guide to Cold Weather Concreting
+    verify: Hot and cold weather procedures against what the spec adopts; the cold weather guide is not enforceable unless the spec makes it so
+  - id: d03.std.astm-field-testing
+    name: ASTM C172/C172M / ASTM C31/C31M / ASTM C39/C39M
+    title: Sampling freshly mixed concrete; making and curing test specimens in the field; compressive strength of cylindrical specimens
+    verify: Sampling, specimen curing (standard versus field-cured) and testing in the testing agency's procedure
+
+regulatory_hooks:
+  - id: d03.rh.special-inspection
+    topic: concrete-special-inspection
+    question: >
+      Which special inspections and tests does the adopted building code
+      require for this concrete work (reinforcing and embed placement, anchors
+      cast in concrete, sampling and placement, curing temperature,
+      post-tensioning, precast erection and connections, welding of
+      reinforcement), which are continuous or periodic, and which are waived?
+    applies_when: Any structural concrete, post-tensioning or precast
+    source_families: [building_code]
+    severity: high
+
+  - id: d03.rh.embodied-carbon
+    topic: concrete-embodied-carbon-limits
+    question: >
+      Does a state or local law, or an owner program the spec names, cap the
+      global warming potential of concrete or precast products or require
+      product-specific environmental product declarations, and do the
+      submitted mixes and products carry them?
+    applies_when: Public projects, and projects under a low-carbon concrete, buy-clean or green building requirement
+    source_families: [environmental]
+    severity: medium

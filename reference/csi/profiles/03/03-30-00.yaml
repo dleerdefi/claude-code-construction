@@ -1,0 +1,395 @@
+schema_version: 1
+kind: section
+id: "03 30 00"
+title: Cast-in-Place Concrete
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Concrete materials, mixes, placement, curing and testing for foundations,
+  structure and slabs (03 31 00 through 03 39 00 inherit from here). The mix
+  submittal is the cheapest place to fix problems: one mix per placement,
+  matched to exposure, finish and whatever goes on top. Slabs carry most of
+  the cross-trade risk, because floor finishes, equipment and underslab MEP
+  depend on the slab's depressions, joints, curing and moisture, and every
+  anchor bolt, embed and sleeve has to be in the forms, from approved shop
+  drawings, before the truck arrives.
+
+submittals:
+  - id: 03cip.sub.mix-designs
+    type: Design Data
+    must_show:
+      - The placements each mix is for (element, exposure class, finish), not a generic list of strengths
+      - Strength and test age, maximum water-cementitious ratio, air content, cementitious materials with SCM type and proportion
+      - Aggregate source, size and gradation, with alkali-silica reactivity data and mitigation where the spec requires it
+      - Admixtures with dosage ranges, slump or slump flow, and how much water (if any) may be added at the site
+      - Strength test record or trial batches supporting the required average strength
+  - id: 03cip.sub.product-data
+    type: Product Data
+    must_show:
+      - Vapor retarder with its classification, thickness, seam tape and penetration boots
+      - Curing method and products by area, joint fillers, bonding agents and repair materials
+  - id: 03cip.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Slab joint layout (contraction, construction and isolation joints) and placement sequence
+  - id: 03cip.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Field tests and strength results tied to placement location, with specimen curing method identified
+
+review_checks:
+  - id: 03cip.cast-in-before-pour
+    kind: coordination
+    reflex: true
+    check: >
+      Before each placement, every item cast into or passing through the
+      concrete (anchor rods, embed plates, sleeves, conduit, floor boxes,
+      inserts, dowels, waterstops, grounding electrodes, blockouts) is
+      located from the approved shop drawings of the trade that needs it, not
+      the bid drawings, and surveyed by every discipline. An item with no
+      approved shop drawing by the pour date is a hold point, not a field
+      decision.
+    trace_to: [drawings.structural, drawings.foundation, drawings.plumbing, drawings.electrical, drawings.mechanical,
+               submittals.approved]
+    severity: critical
+    owner: gc
+    gate: foundation_pour
+
+  - id: 03cip.mix-per-placement
+    kind: conformance
+    submittal_types: [Design Data]
+    check: >
+      Every placement type on the drawings maps to a submitted mix, and each
+      mix meets the exposure class the structural drawings assign (maximum
+      water-cementitious ratio, minimum strength, air, cementitious limits)
+      at the strength age the spec allows. Where the drawings assign no
+      exposure class but the geotechnical report finds sulfates or the element
+      sees deicers or freezing, that is an RFI. Mixes submitted with no
+      intended placement are returned.
+    trace_to: [drawings.structural, schedule.structural, spec.part2, report.geotechnical]
+    severity: high
+    owner: subcontractor
+    gate: foundation_pour
+
+  - id: 03cip.air-in-troweled-slab
+    kind: conformance
+    submittal_types: [Design Data]
+    check: >
+      Interior slabs that get a hard steel-trowel finish, a dry-shake
+      hardener or a polished finish use a mix without intentional air
+      entrainment, even when the supplier offers one exterior mix for the
+      whole job. Slabs that need air for freeze-thaw exposure get a finish
+      compatible with it.
+    trace_to: [spec.part2, spec.part3, schedule.finish]
+    severity: high
+    owner: subcontractor
+    gate: slab_pour
+
+  - id: 03cip.drying-before-flooring
+    kind: constructability
+    check: >
+      Where moisture-sensitive flooring or coatings go on the slab, the mix
+      (water-cementitious ratio, lightweight or normal-weight aggregate), the
+      deck below and the schedule (enclosure, conditioning, flooring date) let
+      the slab reach the flooring manufacturer's moisture limit in time.
+      Lightweight concrete and slabs on metal deck dry only from the top and
+      are the usual miss; a mitigation allowance decided late costs the most.
+    trace_to: [spec.part2, schedule.finish, schedule.master, drawings.structural]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 03cip.vapor-retarder
+    kind: conformance
+    check: >
+      Slabs on ground under moisture-sensitive flooring, coatings or
+      conditioned space have a vapor retarder of the class and thickness the
+      spec names, placed where the design says relative to the slab (directly
+      beneath it or under a fill layer), with laps sealed and every
+      penetration booted. Drawings silent on the location are an RFI; fill
+      left above the retarder needs a plan to keep it dry.
+    trace_to: [drawings.structural, drawings.details, spec.part2, report.geotechnical]
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+  - id: 03cip.curing-by-area
+    kind: constructability
+    check: >
+      The curing method is chosen per slab area for the finish that follows:
+      wet or sheet curing, or a compound the later manufacturer accepts,
+      wherever adhered flooring, coatings, toppings, sealers or a polished
+      finish follow. A single compound named for the whole slab, with no
+      removal assigned, is returned.
+    trace_to: [spec.part3, schedule.finish]
+    severity: high
+    owner: subcontractor
+    gate: slab_pour
+
+  - id: 03cip.slab-joints
+    kind: coordination
+    check: >
+      The slab joint layout (contraction, construction, isolation at columns
+      and walls) is submitted before the pour and coordinated with the
+      flooring: tile and stone get a movement joint above every slab joint,
+      joints under resilient and thin finishes are filled after shrinkage,
+      and sawcutting happens within the timing window the spec sets for the
+      saw type used.
+    trace_to: [drawings.structural, drawings.plans, schedule.finish, spec.part3]
+    severity: medium
+    owner: gc
+    gate: slab_pour
+
+  - id: 03cip.site-water
+    kind: constructability
+    check: >
+      The mix design states how much water may be added at the site, if any,
+      and delivery tickets record batch time and any water or admixture
+      added. Water beyond the allowance, or concrete past the discharge
+      limit, is rejected at the chute; the decision is not left to the
+      finisher.
+    trace_to: [spec.part2, spec.part3]
+    severity: medium
+    owner: gc
+
+  - id: 03cip.mass-placements
+    kind: absence
+    check: >
+      Thick placements (mats, large pile caps, transfer girders) are
+      identified, and where the spec or the element calls for it a thermal
+      control plan covers temperature limits, monitoring and protection.
+    trace_to: [drawings.foundation, drawings.structural, spec.part3]
+    severity: medium
+    owner: gc
+    gate: foundation_pour
+
+reconciliations:
+  - id: 03cip.rc.depressions
+    reflex: true
+    between: [schedule.finish, drawings.plans, drawings.enlarged_plans, drawings.structural]
+    key: Room or floor area whose finish assembly differs in thickness from the base floor
+    fields: [total assembly thickness (setting bed, membrane, mat, terrazzo, topping), depression depth, extent, slope to drains, transition at doors]
+    check: >
+      Every area with a thicker floor assembly (thick-set tile, tile over a
+      waterproofing or crack-isolation membrane, terrazzo, recessed entrance
+      mats, shower floors and sloped beds to floor drains, walk-in coolers)
+      has a structural depression equal to the full assembly depth over its
+      full extent, so the finish meets the adjacent floor flush.
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+  - id: 03cip.rc.embeds-anchor-rods
+    between: [drawings.foundation, drawings.structural, drawings.details, submittals.approved]
+    key: Column, base plate or embed mark
+    fields: [location, top of concrete and plate elevation, rod diameter, pattern and projection, plate size and orientation]
+    check: >
+      Anchor rods and embed plates on the foundation and slab plans agree
+      with the column and base plate schedule and with the approved steel,
+      miscellaneous metals and precast shop drawings, and the layout set in the
+      field comes from those approved drawings.
+    severity: critical
+    owner: gc
+    gate: foundation_pour
+
+  - id: 03cip.rc.sleeves
+    between: [drawings.structural, drawings.plumbing, drawings.mechanical, drawings.electrical, drawings.fire_protection]
+    key: Penetration through a slab, wall, grade beam or footing
+    fields: [location, size including insulation and firestop annular space, elevation in walls, sleeve type (waterstop collar, cast-in firestop device), structural acceptance through beams and footings]
+    check: >
+      Each MEP penetration of cast-in-place concrete is on a coordinated
+      sleeve drawing, sized for the pipe or duct plus insulation and the
+      annular space its firestop system needs, and those through beams,
+      grade beams, footings and post-tensioned slabs are accepted by the
+      engineer of record.
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 03cip.rc.housekeeping-pads
+    between: [schedule.mechanical_equipment, schedule.equipment, drawings.mechanical, drawings.electrical, drawings.structural,
+              submittals.approved]
+    key: Equipment tag
+    fields: [pad length and width against the approved equipment footprint, pad height for traps, drains or clearances, anchor locations and edge distance, doweling or reinforcing]
+    check: >
+      Every housekeeping pad is sized from the approved equipment submittal
+      (footprint, anchor pattern and the edge distance the anchorage design
+      needs, height for condensate traps or drains), not from the scheduled
+      basis of design, and is doweled to the slab as detailed.
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+failure_modes:
+  - id: 03cip.fm.cast-in-missed
+    what_happens: Anchor rods, embeds or sleeves not in the forms at the pour because the trade's shop drawings were not approved or never reached the concrete crew
+    consequence: Post-installed anchors needing the engineer's acceptance and special inspection, coring through reinforcing, or demolition
+    caught_by: [03cip.cast-in-before-pour, 03cip.rc.embeds-anchor-rods, 03cip.rc.sleeves, if.03-steel-anchorage, if.03-sleeves]
+    source: industry_practice
+
+  - id: 03cip.fm.air-in-troweled-slab
+    what_happens: Air-entrained concrete hard-troweled or given a dry-shake hardener on an interior slab
+    consequence: Blistering and delamination of the surface, found at grinding, polishing or after the flooring is down
+    caught_by: [03cip.air-in-troweled-slab]
+    source: industry_practice
+
+  - id: 03cip.fm.slab-never-dried
+    what_happens: Moisture-sensitive flooring scheduled on a slab that cannot dry in time (lightweight concrete on deck, missing or misplaced retarder, late dry-in)
+    consequence: Adhesive failure, bubbling and odor after occupancy; a moisture mitigation system added at the end of the job
+    caught_by: [03cip.drying-before-flooring, 03cip.vapor-retarder, if.03-flooring-substrate]
+    source: industry_practice
+
+  - id: 03cip.fm.one-curing-method
+    what_happens: One curing compound used across the whole slab, including areas scheduled for adhered flooring, coatings or a polished finish
+    consequence: Compound ground or blasted off before flooring, or bond failures after it
+    caught_by: [03cip.curing-by-area]
+    source: industry_practice
+
+  - id: 03cip.fm.retarder-punctured
+    what_happens: Vapor retarder punctured by stakes, supports and foot traffic, penetrations left unbooted, or fill above it saturated by rain before the pour
+    consequence: A moisture source under the slab that no surface treatment fully cures
+    caught_by: [03cip.vapor-retarder]
+    source: industry_practice
+
+  - id: 03cip.fm.depression-short
+    what_happens: Depression cast to the tile thickness without the membrane and setting bed, or left out where a recessed mat or terrazzo goes
+    consequence: Finish stands proud of the adjacent floor; trip edge at doors, grinding or leveling, threshold changes
+    caught_by: [03cip.rc.depressions, if.03-flooring-substrate]
+    source: industry_practice
+
+  - id: 03cip.fm.pad-from-schedule
+    what_happens: Pads formed from the scheduled equipment before the equipment submittal was approved
+    consequence: Pad too small for the anchors or equipment; chipped out and re-poured
+    caught_by: [03cip.rc.housekeeping-pads, if.03-housekeeping-pads]
+    source: industry_practice
+
+  - id: 03cip.fm.recess-left-out
+    what_happens: A product that sits in the slab (floor closer, sliding-door track, mobile shelving rail, cart-loading sterilizer) is selected after the pour, or its recess never reaches the concrete crew
+    consequence: A finished slab sawcut and chipped near reinforcing or tendons, or a raised deck and threshold on the accessible route
+    caught_by: [if.03-floor-recesses]
+    source: industry_practice
+
+  - id: 03cip.fm.late-sawcut
+    what_happens: Contraction joints sawn too late or too shallow, or laid out without the flooring in mind
+    consequence: Random cracks that telegraph through flooring, and tile cracking over joints with no movement joint above
+    caught_by: [03cip.slab-joints]
+    source: industry_practice
+
+  - id: 03cip.fm.water-at-the-truck
+    what_happens: Water added at the truck to ease placement or pumping
+    consequence: Low strength and durability, failed breaks, cores and a dispute over who pays
+    caught_by: [03cip.site-water, d03.inspection-and-testing]
+    source: industry_practice
+
+  - id: 03cip.fm.mass-cracking
+    what_happens: Thick foundation placed with no temperature control
+    consequence: Thermal cracking through the element, and an engineering evaluation before it can be accepted
+    caught_by: [03cip.mass-placements]
+    source: industry_practice
+
+standards:
+  - id: 03cip.std.astm-c94
+    name: ASTM C94/C94M
+    title: Standard Specification for Ready-Mixed Concrete
+    verify: Delivery ticket information, water addition and discharge limits the spec adopts
+  - id: 03cip.std.astm-e1745
+    name: ASTM E1745
+    title: Plastic Water Vapor Retarders Used in Contact with Soil or Granular Fill under Concrete Slabs
+    verify: Class claimed on the product data. It classifies performance; it does not set a thickness
+  - id: 03cip.std.astm-e1643
+    name: ASTM E1643
+    title: Selection, Design, Installation, and Inspection of Water Vapor Retarders Used in Contact with Earth or Granular Fill Under Concrete Slabs
+    verify: Lap sealing, penetration and repair practice
+  - id: 03cip.std.aci-302-1
+    name: ACI PRC-302.1
+    title: Guide to Concrete Floor and Slab Construction
+    verify: Vapor retarder location guidance, joint layout and finishing practice the design relies on
+  - id: 03cip.std.aci-302-2
+    name: ACI PRC-302.2
+    title: Concrete Slabs that Receive Moisture-Sensitive Flooring Materials — Guide
+    verify: Mix, retarder and drying provisions for slabs under moisture-sensitive flooring
+    note: Earlier edition titled "Guide for Concrete Slabs that Receive Moisture-Sensitive Flooring Materials"
+  - id: 03cip.std.aci-308-1
+    name: ACI 308.1 (ACI SPEC-308.1)
+    title: External Curing of Cast-in-Place Concrete — Specification
+    verify: Curing method and duration the spec adopts
+    note: Earlier edition titled "Specification for Curing Concrete"
+  - id: 03cip.std.astm-c309-c1315
+    name: ASTM C309 / ASTM C1315
+    title: Liquid membrane-forming compounds for curing concrete; and those with special properties for curing and sealing
+    verify: Curing compound type against the areas it is used in
+
+regulatory_hooks:
+  - id: 03cip.rh.strength-acceptance
+    topic: concrete-strength-testing-acceptance
+    question: >
+      What sampling frequency and strength acceptance criteria does the
+      concrete standard adopted by the building code require, and what does
+      it require when strength tests fall short (cores, load tests)?
+    applies_when: Structural concrete
+    source_families: [building_code]
+    severity: high
+
+  - id: 03cip.rh.exposure-durability
+    topic: concrete-exposure-durability-requirements
+    question: >
+      What exposure categories apply to each element (freezing and thawing,
+      sulfate, water contact, corrosion from chlorides) and what maximum
+      water-cementitious ratio, minimum strength, air content and
+      cementitious limits does the adopted code require for them?
+    applies_when: Footings, walls and slabs exposed to soil, weather, deicers or chlorides
+    source_families: [building_code]
+    severity: high
+
+  - id: 03cip.rh.slab-vapor-retarder
+    topic: slab-on-ground-vapor-retarder
+    question: >
+      Does the adopted building code require a vapor retarder under this
+      slab on ground, with what minimum material and lap requirements, and
+      which exceptions apply?
+    applies_when: Slabs on ground
+    source_families: [building_code]
+    severity: medium
+
+  - id: 03cip.rh.radon
+    topic: radon-resistant-construction
+    question: >
+      Does the jurisdiction require radon-resistant construction for this
+      building or occupancy (gas-permeable layer, sealed retarder, sub-slab
+      vent piping), and is it in the drawings?
+    applies_when: Slabs on ground in occupied buildings, especially schools and residential occupancies
+    source_families: [building_code, environmental]
+    severity: medium
+
+  - id: 03cip.rh.equipment-anchorage
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Where the adopted code requires seismic anchorage of floor-mounted
+      equipment, what does it require of the anchorage design, its
+      certification and its inspection, and does the pad design give the
+      anchors the embedment and edge distance that design assumes?
+    applies_when: Housekeeping pads under anchored equipment in seismic design categories that require it
+    source_families: [building_code_seismic]
+    severity: medium
+
+extract_fields:
+  - id: 03cip.xf.mixes
+    label: Mixes by placement (strength and age, water-cementitious ratio, air, SCMs, aggregate size, slump or flow)
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, spec.part2]
+  - id: 03cip.xf.vapor-retarder
+    label: Vapor retarder product, classification, thickness and location
+    type: string
+    per: package
+    reconcile_against: [spec.part2, drawings.details]
+  - id: 03cip.xf.curing
+    label: Curing method by slab area
+    type: list
+    per: package
+    reconcile_against: [schedule.finish, spec.part3]
