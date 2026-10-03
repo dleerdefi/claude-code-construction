@@ -1,0 +1,201 @@
+schema_version: 1
+kind: section
+id: "01 40 00"
+title: Quality Requirements
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Testing agencies, code-required special inspections, the contractor's
+  quality control, field samples and mock-ups. The statement of special
+  inspections is a permit document: an agency the code allows has to be
+  engaged for every inspection type on it, the contractor has to give notice
+  before each inspected activity, and work covered without its inspection
+  can be rejected however good it is. An approved mock-up becomes the
+  standard all later work is judged against, so it has to be approved
+  before production and its corrections carried into the shop drawings.
+
+submittals:
+  - id: 01qr.sub.agency
+    type: Qualification Statements
+    must_show:
+      - Agency and inspector qualifications and accreditation for each test and inspection they will perform, and AHJ acceptance where required
+      - Personnel certifications for the specific inspection types (welding, concrete, masonry, fireproofing, firestopping)
+  - id: 01qr.sub.reports
+    type: Test Reports
+    must_show:
+      - Location by grid and level, item tested, test method, the project acceptance criterion and pass or fail
+      - For a failure, the follow-up - retest, engineer's evaluation or removal
+  - id: 01qr.sub.mockups
+    type: Samples
+    must_show:
+      - Mock-up location and extent, with every system and transition the spec requires it to include
+      - The tests to be run on it, who performs and who witnesses them
+
+review_checks:
+  - id: 01qr.inspection-before-cover
+    kind: constructability
+    reflex: true
+    check: >
+      Work requiring special inspection or testing is not concealed
+      (concrete placed, cells grouted, steel fireproofed, walls boarded,
+      trenches backfilled) until the inspection is done and recorded. Ask
+      for the inspector's report for the area, not the trade's word that the
+      inspector was there.
+    trace_to: [register.special_inspections, spec.division_01]
+    severity: critical
+    owner: gc
+
+  - id: 01qr.discrepancy-closure
+    kind: completeness
+    check: >
+      Discrepancies the special inspector reports are tracked to closure with
+      the engineer of record's disposition, so the final special inspection
+      report the AHJ needs before occupancy can be issued with none open.
+    trace_to: [register.special_inspections]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+  - id: 01qr.who-engages-pays
+    kind: coordination
+    check: >
+      Who engages and pays for each kind of testing is stated once and
+      agrees across Division 01, the trade sections and the agreement:
+      owner's quality assurance, code-required special inspection, the
+      contractor's quality control, manufacturer field services, and
+      retesting after failures.
+    trace_to: [spec.division_01, spec.part1, spec.part3, contract.general_conditions]
+    severity: medium
+    owner: design_team
+
+  - id: 01qr.mockup-before-production
+    kind: constructability
+    check: >
+      Each mock-up the specs require is built, tested and approved before
+      production work of that kind starts, with its components' submittals
+      approved in time to build it. Production started ahead of approval is
+      a finding, not a convenience.
+    trace_to: [spec.part1, spec.division_01, schedule.master]
+    severity: high
+    owner: gc
+
+  - id: 01qr.mockup-standard
+    kind: conformance
+    check: >
+      The approved mock-up is documented (photos, approval comments, the
+      submittals it was built from), protected until the work it represents
+      is accepted, and its status as part of the finished work is stated.
+      Corrections made at the mock-up are carried into the production shop
+      drawings.
+    trace_to: [spec.part1, spec.division_01]
+    severity: medium
+    owner: gc
+
+  - id: 01qr.report-criteria
+    kind: conformance
+    submittal_types: [Test Reports]
+    check: >
+      Each test report compares the result with the acceptance criterion in
+      the project documents and states pass or fail. Values with no
+      criterion, or a criterion taken from another standard, are not
+      evidence of compliance.
+    trace_to: [spec.part2, spec.part3]
+    severity: medium
+    owner: gc
+
+reconciliations:
+  - id: 01qr.rc.special-inspections
+    between: [drawings.structural, register.special_inspections, schedule.master]
+    key: Inspection type and the work it covers
+    fields: [inspection required, continuous or periodic, agency engaged, schedule activity, notice procedure]
+    check: >
+      Every inspection in the statement of special inspections has an
+      engaged agency whose contract includes it, a schedule activity ahead of
+      the work it covers, and a notice procedure. Inspection types missing
+      from the agency's scope are raised before that work starts.
+    severity: critical
+    owner: gc
+    gate: foundation_pour
+
+failure_modes:
+  - id: 01qr.fm.covered-uninspected
+    what_happens: Concrete placed, steel fireproofed or walls boarded before the special inspector was called
+    consequence: Work rejected; destructive testing, an engineer's evaluation or removal, and the final special inspection report held
+    caught_by: [01qr.inspection-before-cover, 01qr.rc.special-inspections, if.01-special-inspection-structure,
+                if.01-special-inspection-fire-resistance]
+    source: industry_practice
+
+  - id: 01qr.fm.agency-scope-gap
+    what_happens: The agency's contract omits an inspection type on the statement (post-installed anchors, cold-formed framing, fire-resistant penetrations, smoke control)
+    consequence: The missing inspection is discovered after the work is concealed
+    caught_by: [01qr.rc.special-inspections]
+    source: industry_practice
+
+  - id: 01qr.fm.open-discrepancies
+    what_happens: Inspector's discrepancy reports left open with no engineer's disposition
+    consequence: Final special inspection report cannot be issued; certificate of occupancy held
+    caught_by: [01qr.discrepancy-closure]
+    source: industry_practice
+
+  - id: 01qr.fm.production-before-mockup
+    what_happens: Production work starts while the mock-up is still under review
+    consequence: Installed work rejected when the mock-up review changes the detail or finish
+    caught_by: [01qr.mockup-before-production, if.01-envelope-mockup]
+    source: industry_practice
+
+  - id: 01qr.fm.mockup-corrections-lost
+    what_happens: Corrections made on the mock-up never reach the production shop drawings
+    consequence: Production repeats the defect the mock-up review fixed
+    caught_by: [01qr.mockup-standard]
+    source: industry_practice
+
+  - id: 01qr.fm.retest-billing
+    what_happens: Retests after failed tests billed to the owner's testing budget
+    consequence: Testing budget exhausted early and a dispute over who pays for the rest
+    caught_by: [01qr.who-engages-pays]
+    source: industry_practice
+
+standards:
+  - id: 01qr.std.astm-e329
+    name: ASTM E329
+    title: Agencies Engaged in Construction Inspection, Testing, or Special Inspection
+    verify: Agency qualifications, supervision and accreditation the spec relies on
+
+regulatory_hooks:
+  - id: 01qr.rh.special-inspections
+    topic: statement-of-special-inspections
+    question: >
+      Which special inspections and tests does the adopted building code
+      require for this building, who must engage the agency (owner or
+      registered design professional rather than the contractor), what
+      qualifications must inspectors hold, must contractors of seismic- or
+      wind-resisting components file a statement of responsibility, and what
+      final report is required before occupancy?
+    applies_when: Any building with structural, foundation, fire-resistive or other work the code lists for special inspection
+    source_families: [building_code, building_code_seismic]
+    severity: high
+
+  - id: 01qr.rh.structural-observation
+    topic: structural-observation-requirements
+    question: >
+      Does the adopted code require structural observation by the registered
+      design professional for this building (risk category, height, seismic
+      or wind triggers), at which stages, and with what report?
+    applies_when: New structures and structural alterations
+    source_families: [building_code, building_code_seismic]
+    severity: medium
+
+extract_fields:
+  - id: 01qr.xf.inspections
+    label: Special inspections by type, with agency and frequency
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, register.special_inspections]
+  - id: 01qr.xf.mockups
+    label: Mock-ups required and their approval status
+    type: list
+    per: package
+    reconcile_against: [spec.part1]

@@ -1,0 +1,159 @@
+schema_version: 1
+kind: section
+id: "01 91 00"
+title: Commissioning
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  The construction phase of commissioning: checklists, start-up, functional
+  testing, the issues log, integrated life-safety testing and deferred
+  seasonal tests. Commissioning works only if each Division 21 through 28
+  section obliges its trade to complete checklists, perform the tests and
+  correct issues, and if the schedule finishes start-up, balancing and
+  controls checkout before functional testing begins. Most failures are
+  timing and scope gaps, not test procedures.
+
+submittals:
+  - id: 01cx.sub.startup
+    type: Manufacturer's Field Reports
+    must_show:
+      - Start-up report for each equipment item, signed by the manufacturer's technician where required, with settings and readings
+  - id: 01cx.sub.checklists
+    type: Test Reports
+    must_show:
+      - Completed construction checklists per equipment tag before functional testing of that system
+      - Final balancing report and controls point-to-point verification for the systems to be tested
+      - Responses to each open issue, with the retest result
+
+review_checks:
+  - id: 01cx.trade-obligations
+    kind: coordination
+    check: >
+      Each Division 21 through 28 section, and elevators, kitchen equipment
+      or envelope where the commissioning scope includes them, obliges its
+      trade to complete checklists, perform or attend functional tests and
+      correct issues. A trade whose section is silent will price commissioning
+      as extra work.
+    trace_to: [spec.part1, spec.part3, spec.division_01]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 01cx.functional-prerequisites
+    kind: constructability
+    check: >
+      Functional testing of a system starts only after its start-up,
+      construction checklists, final balancing, and controls point-to-point
+      checkout and programming are complete; the schedule shows that sequence
+      system by system.
+    trace_to: [schedule.master, report.commissioning]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+  - id: 01cx.issues-closure
+    kind: completeness
+    check: >
+      Commissioning issues are tracked to closure with the responsible
+      trade's response and a retest; issues open at substantial completion
+      carry a resolution date, and the cost of repeated failed retests is
+      assigned.
+    trace_to: [report.commissioning, spec.division_01]
+    severity: medium
+    owner: gc
+
+  - id: 01cx.integrated-testing
+    kind: coordination
+    check: >
+      Life-safety interfaces (fire alarm to elevator recall, fire and smoke
+      dampers, air handler shutdown, door release, smoke control, emergency
+      power transfer) are tested together as one planned test, after each
+      system passes on its own and before the AHJ's final.
+    trace_to: [drawings.fire_alarm, drawings.mechanical, drawings.electrical, spec.division_01]
+    severity: critical
+    owner: gc
+    gate: substantial_completion
+
+  - id: 01cx.seasonal-tests
+    kind: completeness
+    check: >
+      Tests that cannot be run in the season of completion (heating or
+      cooling near design conditions, economizer operation) are listed with
+      dates, the trades who must return, and how the obligation survives
+      final payment.
+    trace_to: [report.commissioning, spec.division_01]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: 01cx.fm.participation-not-in-subcontract
+    what_happens: The mechanical or controls subcontractor says commissioning participation is not in its contract
+    consequence: A change order for participation, or functional testing stalls before substantial completion
+    caught_by: [01cx.trade-obligations]
+    source: industry_practice
+
+  - id: 01cx.fm.testing-before-balancing
+    what_happens: Functional tests attempted before balancing and controls programming are finished
+    consequence: Failed tests, repeated sessions billed back, and substantial completion delayed
+    caught_by: [01cx.functional-prerequisites, if.01-cx-hvac]
+    source: industry_practice
+
+  - id: 01cx.fm.integration-first-tested-at-final
+    what_happens: Fire alarm, elevator, damper and smoke-control interfaces are first tested together at the AHJ's final inspection
+    consequence: Final inspection failed; occupancy delayed while trades are recalled
+    caught_by: [01cx.integrated-testing, if.01-integrated-life-safety-testing]
+    source: industry_practice
+
+  - id: 01cx.fm.transfer-untested
+    what_happens: Generator and transfer switches tested separately but never transferring the building's actual emergency loads
+    consequence: Transfer or load-shed failures found at the AHJ test or in the first outage
+    caught_by: [if.01-cx-electrical]
+    source: industry_practice
+
+  - id: 01cx.fm.seasonal-tests-lost
+    what_happens: Seasonal tests never scheduled before final payment
+    consequence: Heating or cooling problems appear in the first season with no contractual path to fix them
+    caught_by: [01cx.seasonal-tests]
+    source: industry_practice
+
+standards:
+  - id: 01cx.std.ashrae-202
+    name: ANSI/ASHRAE/IES Standard 202 / ASHRAE Guideline 0
+    title: Commissioning Process for Buildings and Systems; The Commissioning Process
+    verify: Commissioning process requirements the spec cites
+  - id: 01cx.std.nfpa-3-4
+    name: NFPA 3 / NFPA 4
+    title: Commissioning of Fire Protection and Life Safety Systems; Integrated Fire Protection and Life Safety System Testing
+    verify: Integrated test plan and report where the code or spec requires them
+
+regulatory_hooks:
+  - id: 01cx.rh.energy-code-commissioning
+    topic: energy-code-commissioning
+    question: >
+      Does the adopted energy code require commissioning or functional
+      acceptance testing of these systems, by whom (including any certified
+      acceptance technicians the jurisdiction requires), and which reports
+      must be delivered before the certificate of occupancy?
+    applies_when: Mechanical, service water heating, lighting control and electrical power systems
+    source_families: [energy]
+    severity: high
+
+  - id: 01cx.rh.integrated-testing
+    topic: integrated-fire-life-safety-testing
+    question: >
+      Does the adopted code require integrated testing of fire protection and
+      life safety systems for this building (high-rise, smoke control,
+      emergency responder systems), to which standard, and witnessed by whom?
+    applies_when: Buildings with interconnected fire protection and life safety systems
+    source_families: [fire_code, building_code]
+    severity: high
+
+extract_fields:
+  - id: 01cx.xf.open-issues
+    label: Open commissioning issues by system, with responsible trade
+    type: list
+    per: package
+    reconcile_against: [report.commissioning]

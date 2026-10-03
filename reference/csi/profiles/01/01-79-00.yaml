@@ -1,0 +1,80 @@
+schema_version: 1
+kind: section
+id: "01 79 00"
+title: Demonstration and Training
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Demonstration and training of the owner's operating and maintenance staff
+  on installed systems and equipment. Training is only useful when the
+  system is finished and tested, the O&M data is final, and the people who
+  will run the building attend; it is routinely held in the last days
+  before turnover when none of that is true. Recording the sessions lets the
+  owner train staff hired later.
+
+submittals:
+  - id: 01tr.sub.program
+    type: Schedule
+    must_show:
+      - Each system and equipment item the specifications require training on, with agenda, instructor and the owner's attendees
+      - Sessions dated after the system's functional testing and the review of its O&M data
+      - Recording format, and the attendance records to be turned over
+  - id: 01tr.sub.instructors
+    type: Qualification Statements
+    must_show:
+      - Instructor qualification the spec names (manufacturer's representative, factory-trained technician)
+
+review_checks:
+  - id: 01tr.after-testing
+    kind: constructability
+    check: >
+      Each session follows functional testing of that system and uses the
+      reviewed O&M data; training on a system still in start-up is
+      rescheduled, not counted.
+    trace_to: [schedule.master, spec.division_01]
+    severity: medium
+    owner: gc
+    gate: substantial_completion
+
+  - id: 01tr.coverage
+    kind: completeness
+    check: >
+      Every section that requires training has its sessions, with the
+      content and instructor qualification it names, including specialties
+      and equipment that are easy to miss (operable partitions, kitchen hood
+      suppression, overhead doors, generators, lighting controls).
+    trace_to: [spec.part1, spec.division_01]
+    severity: medium
+    owner: gc
+
+  - id: 01tr.owner-attendance
+    kind: coordination
+    check: >
+      The owner names the staff or service contractors who will operate each
+      system and confirms they will attend, and the sessions are recorded for
+      staff hired later.
+    trace_to: [spec.division_01]
+    severity: medium
+    owner: owner
+
+failure_modes:
+  - id: 01tr.fm.training-on-unfinished
+    what_happens: Training held while the system is still in start-up, with draft or no O&M data
+    consequence: Staff trained on settings that change; repeat sessions and early operating errors
+    caught_by: [01tr.after-testing]
+    source: industry_practice
+
+  - id: 01tr.fm.nobody-attends
+    what_happens: The owner's operators are not yet hired or were not invited
+    consequence: Training delivered to nobody who will run the building; manufacturers charge for repeat sessions
+    caught_by: [01tr.owner-attendance]
+    source: industry_practice
+
+  - id: 01tr.fm.section-missed
+    what_happens: A section's training requirement is never scheduled
+    consequence: Owner withholds acceptance of that system or of substantial completion
+    caught_by: [01tr.coverage]
+    source: industry_practice

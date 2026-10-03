@@ -1,0 +1,185 @@
+schema_version: 1
+kind: section
+id: "02 80 00"
+title: Facility Remediation
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Removal or control of hazardous building materials (asbestos, lead, PCBs,
+  mold and others; 02 81 00 through 02 87 00 inherit). The work plan,
+  licenses and agency notifications come before mobilization; a consultant
+  working for the owner, not the contractor, monitors and releases each work
+  area; and every load leaves with disposal records that follow the owner as
+  the generator. In an occupied building, containment also depends on
+  isolating the building's HVAC from the work area.
+
+submittals:
+  - id: 02rem.sub.work-plan
+    type: Shop Drawings
+    must_show:
+      - Work areas, containment type, negative-pressure arrangement, decontamination units and waste load-out route
+      - HVAC shutdown or isolation for each work area and protection of adjacent occupied areas
+      - Area sequence matched to the demolition and construction schedule
+      - Emergency procedures, and how fire protection and exits are maintained
+  - id: 02rem.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Contractor licenses, and worker and supervisor training or accreditation the jurisdiction requires
+      - Agency notifications filed, with dates
+  - id: 02rem.sub.closeout
+    type: Test Reports
+    must_show:
+      - Visual inspection and clearance results for each work area, by the owner's consultant
+      - Waste shipment records or manifests, and receiving-facility receipts, for every load
+
+review_checks:
+  - id: 02rem.independent-monitoring
+    kind: conformance
+    check: >
+      Area air monitoring, visual inspection and clearance are performed by a
+      consultant engaged by the owner and independent of the remediation
+      contractor; the contractor's personal exposure monitoring of its own
+      workers does not substitute.
+    trace_to: [spec.part1, spec.part3]
+    severity: high
+    owner: owner
+
+  - id: 02rem.containment-until-release
+    kind: constructability
+    check: >
+      Containment stays up and the work area stays closed to other trades
+      until the consultant's written, area-specific release; a verbal
+      release or a release covering the whole floor is not accepted.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: demolition_start
+
+  - id: 02rem.hvac-isolation
+    kind: coordination
+    check: >
+      Air handlers serving both the work area and occupied areas are shut
+      down or the work area is isolated from them (returns and ducts sealed),
+      coordinated with the temporary conditioning the rest of the building
+      needs.
+    trace_to: [drawings.mechanical, spec.part3]
+    severity: high
+    owner: gc
+
+  - id: 02rem.disposal-chain
+    kind: completeness
+    check: >
+      Waste is characterized, packaged and labeled as the rules require,
+      hauled by a licensed transporter to a permitted facility, and every
+      load's shipment record or manifest comes back signed to the owner as
+      the generator.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 02rem.quantities
+    kind: conformance
+    check: >
+      The remediation scope and quantities match the survey and the
+      demolition extent, with unit prices or a defined procedure for
+      quantities found beyond them.
+    trace_to: [report.hazmat_survey, drawings.demolition]
+    severity: medium
+    owner: gc
+
+  - id: 02rem.left-in-place
+    kind: coordination
+    check: >
+      Materials left in place (encapsulated, enclosed, or assumed and not
+      disturbed) are identified to the later trades with their locations, so
+      anchors, cutting, sanding and MEP work avoid them or are planned as
+      remediation.
+    trace_to: [report.hazmat_survey, drawings.demolition]
+    severity: high
+    owner: gc
+
+  - id: 02rem.separate-contract
+    kind: coordination
+    check: >
+      Where the owner holds the remediation contract directly, schedule,
+      access, temporary power and water, and responsibility for damage to
+      existing-to-remain work are defined between that contractor and the
+      general contractor.
+    trace_to: [spec.division_01, spec.part1, contract.general_conditions]
+    severity: medium
+    owner: owner
+
+failure_modes:
+  - id: 02rem.fm.self-released
+    what_happens: The remediation contractor's own monitoring is used to release work areas
+    consequence: Clearance disputed; areas retested or re-cleaned after other trades have entered
+    caught_by: [02rem.independent-monitoring, 02rem.containment-until-release]
+    source: industry_practice
+
+  - id: 02rem.fm.hvac-spread
+    what_happens: A shared air handler left running during remediation
+    consequence: Contamination carried to occupied floors; building-wide cleaning and testing
+    caught_by: [02rem.hvac-isolation]
+    source: industry_practice
+
+  - id: 02rem.fm.missing-manifests
+    what_happens: Waste shipment records never returned, or incomplete
+    consequence: The owner cannot show lawful disposal and carries the regulatory exposure as generator
+    caught_by: [02rem.disposal-chain]
+    source: industry_practice
+
+  - id: 02rem.fm.left-in-place-disturbed
+    what_happens: Material left in place is later drilled, sanded or cut by finish or MEP trades
+    consequence: Uncontrolled disturbance, stop work and emergency remediation
+    caught_by: [02rem.left-in-place]
+    source: industry_practice
+
+  - id: 02rem.fm.quantity-dispute
+    what_happens: Quantities exceed the survey and there is no unit price
+    consequence: A change order negotiated with the work stopped
+    caught_by: [02rem.quantities]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 02rem.rh.notification-licensing
+    topic: abatement-notification-and-licensing
+    question: >
+      What notifications to environmental and occupational agencies are
+      required before remediation or demolition, how far in advance, and what
+      contractor licensing and worker, supervisor and consultant
+      accreditation applies in this jurisdiction?
+    applies_when: Any removal or disturbance of regulated hazardous building materials
+    source_families: [environmental, occupational_safety]
+    severity: critical
+
+  - id: 02rem.rh.waste-disposal
+    topic: hazardous-building-waste-disposal
+    question: >
+      How must asbestos, lead and PCB waste from this project be
+      characterized, packaged, labeled, transported and documented, and which
+      facilities may accept it?
+    applies_when: Any remediation waste, and demolition debris containing regulated materials
+    source_families: [environmental]
+    severity: high
+
+  - id: 02rem.rh.pcb-materials
+    topic: pcb-building-materials
+    question: >
+      Are PCB-containing building materials (caulk, paint, ballasts) likely
+      in a building of this age, must they be tested before removal, and what
+      removal and disposal rules apply?
+    applies_when: Alteration or demolition of buildings old enough to contain PCB materials
+    source_families: [environmental]
+    severity: medium
+
+extract_fields:
+  - id: 02rem.xf.work-areas
+    label: Work areas, containment type and release date
+    type: list
+    per: package
+    reconcile_against: [drawings.demolition]

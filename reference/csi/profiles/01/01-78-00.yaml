@@ -1,0 +1,156 @@
+schema_version: 1
+kind: section
+id: "01 78 00"
+title: Closeout Submittals
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Operation and maintenance data, warranties, record documents, spare parts
+  and extra stock. Each is cheap to collect while the work is installed and
+  expensive at the end: O&M data built from approved submittals as equipment
+  is set, record drawings kept current through the job, extra stock ordered
+  with the production run. Warranties fail on start date (shipment or
+  start-up instead of substantial completion), on missing signatures, and on
+  system warranties that need a manufacturer's final inspection nobody
+  requested.
+
+submittals:
+  - id: 01cs.sub.om
+    type: O&M Data
+    must_show:
+      - Data for each item as installed, matching the approved submittal and the nameplate, not the catalog family
+      - Start-up reports, final settings, balancing results and as-built control sequences
+      - Maintenance tasks and intervals, spare parts lists and service contacts
+  - id: 01cs.sub.warranties
+    type: Warranty
+    must_show:
+      - Each special warranty the specifications require, with its term, start date and the signatures required (manufacturer, installer, contractor)
+      - Conditions, exclusions and the maintenance the owner must perform to keep it in force
+  - id: 01cs.sub.record
+    type: Record Documents
+    must_show:
+      - Field changes, RFI responses, ASIs and change orders incorporated
+      - Concealed work located by dimension - underground and underslab utilities with inverts, valves, cleanouts, in-slab conduit, junction boxes and dampers above ceilings
+      - Products actually installed, including accepted substitutions
+
+review_checks:
+  - id: 01cs.om-as-installed
+    kind: conformance
+    submittal_types: [O&M Data]
+    check: >
+      O&M data covers each item as installed: model and serial numbers match
+      the nameplates and approved submittals, options are marked, generic
+      catalog pages are removed, and start-up and test reports are included.
+    trace_to: [schedule.equipment, schedule.mechanical_equipment, register.submittal_log]
+    severity: medium
+    owner: subcontractor
+
+  - id: 01cs.om-in-time
+    kind: completeness
+    check: >
+      Draft O&M data arrives early enough to be reviewed, used in training
+      and corrected before substantial completion, and the commissioning
+      authority's review of it is on the schedule.
+    trace_to: [spec.division_01, schedule.master]
+    severity: medium
+    owner: gc
+    gate: substantial_completion
+
+  - id: 01cs.warranty-start
+    kind: conformance
+    submittal_types: [Warranty]
+    check: >
+      Each warranty starts at substantial completion of the whole or of the
+      area the owner accepted, not at shipment, start-up or installation.
+      Where the manufacturer's standard terms start earlier, the submittal
+      shows the extension that covers the gap.
+    trace_to: [spec.division_01, spec.part1, contract.general_conditions]
+    severity: high
+    owner: subcontractor
+
+  - id: 01cs.record-current
+    kind: completeness
+    check: >
+      Record drawings are kept current on site and checked at each pay
+      application, and concealed work is recorded by dimension before it is
+      covered rather than reconstructed at the end of the job.
+    trace_to: [spec.division_01, register.rfi_log, register.asi_bulletin_log]
+    severity: high
+    owner: gc
+
+  - id: 01cs.extra-stock
+    kind: coordination
+    check: >
+      Extra stock and spare parts quantities per section are ordered with the
+      main production run, delivered labeled to the owner's storage against
+      a signed receipt, and kept out of punch-list repairs.
+    trace_to: [spec.part1, spec.division_01]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+  - id: 01cs.asset-data
+    kind: completeness
+    check: >
+      Where the owner requires equipment data in a set format for its
+      maintenance system, tag, model, serial number and location are
+      captured as equipment is installed, while nameplates are still
+      accessible.
+    trace_to: [spec.division_01, schedule.equipment]
+    severity: low
+    owner: gc
+
+reconciliations:
+  - id: 01cs.rc.warranties
+    between: [spec.part1, register.submittal_log]
+    key: Special warranty by spec section
+    fields: [term, start date, signatories, manufacturer final inspection]
+    check: >
+      Every special warranty the specifications require has a warranty
+      document with the specified term, signatories and start date, and each
+      system warranty that requires the manufacturer's final inspection has
+      that inspection on record.
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+failure_modes:
+  - id: 01cs.fm.warranty-from-shipment
+    what_happens: Equipment warranty dated from shipment or start-up long before substantial completion
+    consequence: Owner's coverage ends early; failures in the gap fall on the contractor or the owner
+    caught_by: [01cs.warranty-start]
+    source: industry_practice
+
+  - id: 01cs.fm.system-warranty-missing
+    what_happens: A roofing, glazing or waterproofing system warranty is never issued because the manufacturer's final inspection was not requested
+    consequence: Retainage held at closeout; remedial work for the manufacturer after the installer has demobilized
+    caught_by: [01cs.rc.warranties]
+    source: industry_practice
+
+  - id: 01cs.fm.record-from-memory
+    what_happens: Record drawings assembled at the end of the job from memory
+    consequence: Concealed utilities and in-slab conduit mislocated; later coring and excavation hit them
+    caught_by: [01cs.record-current]
+    source: industry_practice
+
+  - id: 01cs.fm.extra-stock-mismatch
+    what_happens: Extra stock ordered at closeout from a later production run, or used up on punch-list repairs
+    consequence: Owner's replacement material does not match the installed finish
+    caught_by: [01cs.extra-stock, if.01-extra-stock-finishes]
+    source: industry_practice
+
+  - id: 01cs.fm.catalog-manuals
+    what_happens: O&M manuals made of catalog pages for the whole product family
+    consequence: Maintenance staff cannot find the installed model's settings or parts, and training uses the wrong data
+    caught_by: [01cs.om-as-installed]
+    source: industry_practice
+
+extract_fields:
+  - id: 01cs.xf.warranties
+    label: Warranty term, start date and signatories per warranty
+    type: list
+    per: package
+    reconcile_against: [spec.part1]

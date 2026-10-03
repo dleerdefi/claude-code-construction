@@ -1,0 +1,103 @@
+schema_version: 1
+kind: division
+id: "02"
+title: Existing Conditions
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Surveys and assessments of existing conditions, demolition, and
+  remediation of hazardous materials. The drawings of an existing building
+  show the original design intent, not what was built or what later work
+  changed, so every dimension, member and service shown as existing is
+  provisional until it is exposed or surveyed. Hazardous materials turn up
+  where the survey did not look: inside walls, under newer flooring, in
+  roofing and in concealed mastics. Survey and abatement come first; general
+  demolition follows clearance.
+
+review_checks:
+  - id: d02.hazmat-survey-scope
+    kind: absence
+    reflex: true
+    check: >
+      A hazardous materials survey covers the full extent of disturbance
+      (every area of demolition, cutting, coring and MEP removal, including
+      roofing, flooring layers and concealed spaces), lists the materials it
+      assumed rather than sampled and the areas it could not reach, and
+      post-dates the last change to the demolition scope. Gaps are sampled
+      before the work, not discovered during it.
+    trace_to: [report.hazmat_survey, drawings.demolition]
+    severity: critical
+    owner: owner
+    gate: demolition_start
+
+  - id: d02.existing-verified
+    kind: absence
+    check: >
+      Where new work ties into existing construction (structural
+      connections, MEP tie-ins, new openings, matching floor elevations), the
+      existing condition is exposed or surveyed before the connecting work
+      is detailed or fabricated, and exploratory openings are scheduled early
+      enough to change the design.
+    trace_to: [report.existing_conditions, drawings.demolition, drawings.structural]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: d02.unexpected-materials
+    kind: completeness
+    check: >
+      A procedure exists for suspect materials found during the work: stop
+      in the area, notify the owner and its consultant, sample, and decide
+      who pays and what schedule relief applies; crews are told what suspect
+      materials look like.
+    trace_to: [spec.part1, report.hazmat_survey]
+    severity: high
+    owner: gc
+    gate: demolition_start
+
+failure_modes:
+  - id: d02.fm.survey-gap
+    what_happens: Asbestos-containing mastic, pipe insulation or roofing found in an area the survey excluded or never sampled
+    consequence: Work stopped in the area, notifications and abatement added mid-job, and possible exposure of workers and occupants
+    caught_by: [d02.hazmat-survey-scope, d02.unexpected-materials]
+    source: industry_practice
+
+  - id: d02.fm.stale-survey
+    what_happens: The survey was done for an earlier scope, and areas were added to the demolition later
+    consequence: Disturbance of unsurveyed material and a regulatory violation for demolishing without an inspection
+    caught_by: [d02.hazmat-survey-scope]
+    source: industry_practice
+
+  - id: d02.fm.as-drawn-assumed
+    what_happens: New steel connections or MEP tie-ins fabricated to the original drawings of the existing building
+    consequence: Field modification or refabrication when the existing member, elevation or service differs
+    caught_by: [d02.existing-verified]
+    source: industry_practice
+
+standards:
+  - id: d02.std.astm-e2356
+    name: ASTM E2356
+    title: Comprehensive Building Asbestos Surveys
+    verify: Survey type (baseline or pre-construction) and the sampling, assumptions and exclusions the survey reports
+
+regulatory_hooks:
+  - id: d02.rh.pre-demolition-survey
+    topic: hazardous-materials-survey-before-demolition
+    question: >
+      Do environmental and occupational rules require an asbestos inspection
+      (and a survey of other regulated materials) by an accredited inspector
+      before renovation or demolition, how thorough must it be, and must it
+      be kept on site or filed with the permit or notification?
+    applies_when: Any demolition, renovation or alteration of existing construction
+    source_families: [environmental, occupational_safety]
+    severity: critical
+
+extract_fields:
+  - id: d02.xf.survey-exclusions
+    label: Areas and materials the hazardous materials survey excluded or assumed
+    type: list
+    per: package
+    reconcile_against: [drawings.demolition]

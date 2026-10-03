@@ -1,0 +1,122 @@
+schema_version: 1
+kind: section
+id: "02 83 00"
+title: Lead Remediation
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Lead-based paint and other lead-containing materials: removal, enclosure
+  and encapsulation, and the more common case of lead paint disturbed by
+  ordinary renovation and demolition. The hazard comes from how the
+  material is disturbed (torch cutting, welding, abrasive blasting, sanding,
+  dry scraping), so the review asks which components carry lead and which
+  trades will cut, sand or demolish them, not only what the remediation
+  contractor removes.
+
+review_checks:
+  - id: 02pb.disturbance-by-trade
+    kind: coordination
+    check: >
+      Lead-painted components that other trades will cut, drill, sand, weld
+      or demolish (structural and miscellaneous steel, doors and frames,
+      windows, masonry coatings) are identified to those trades with the work
+      practices required, instead of being left to the remediation scope.
+    trace_to: [report.hazmat_survey, drawings.demolition]
+    severity: high
+    owner: gc
+    gate: demolition_start
+
+  - id: 02pb.hot-work-on-coatings
+    kind: constructability
+    check: >
+      Torch cutting, welding or abrasive blasting of painted steel during
+      demolition or alteration (including preparation for new fireproofing
+      or coatings) is preceded by paint testing and by stripping or exposure
+      controls at those locations.
+    trace_to: [report.hazmat_survey, spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: demolition_start
+
+  - id: 02pb.encapsulation-suitability
+    kind: conformance
+    check: >
+      Where lead paint is encapsulated rather than removed, the existing
+      paint is shown suitable by adhesion and condition testing before the
+      encapsulant goes on, and the encapsulant is compatible with the finish
+      coat specified over it.
+    trace_to: [spec.part2, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: 02pb.dust-clearance
+    kind: completeness
+    check: >
+      Where lead work is in or next to occupied space, cleaning verification
+      or dust-wipe clearance by the method the rules and spec require is done
+      before reoccupancy, by someone other than the crew that did the work
+      where the rules require it.
+    trace_to: [spec.part3]
+    severity: high
+    owner: owner
+
+failure_modes:
+  - id: 02pb.fm.torch-cut-painted-steel
+    what_happens: Demolition crew torch-cuts lead-painted steel with no paint testing or exposure controls
+    consequence: Worker lead exposure; stop work, medical surveillance and citations
+    caught_by: [02pb.hot-work-on-coatings, if.02-lead-paint-hot-work]
+    source: industry_practice
+
+  - id: 02pb.fm.renovation-dust
+    what_happens: Doors, frames and windows with lead paint sanded or cut by trades unaware of the survey
+    consequence: Lead dust in occupied areas; cleaning and clearance testing before reoccupancy
+    caught_by: [02pb.disturbance-by-trade, 02pb.dust-clearance]
+    source: industry_practice
+
+  - id: 02pb.fm.encapsulant-peels
+    what_happens: Encapsulant applied over poorly bonded old paint
+    consequence: The encapsulant peels with the paint beneath it, and removal becomes necessary anyway
+    caught_by: [02pb.encapsulation-suitability]
+    source: industry_practice
+
+standards:
+  - id: 02pb.std.astm-e1728
+    name: ASTM E1728/E1728M
+    title: Collection of Settled Dust Samples Using Wipe Sampling Methods for Subsequent Lead Determination
+    verify: Dust-wipe sampling method used for clearance
+  - id: 02pb.std.astm-e1795-e1796
+    name: ASTM E1795 / ASTM E1796
+    title: Non-Reinforced Liquid Coating Encapsulation Products for Leaded Paint in Buildings; Selection and Use of Liquid Coating Encapsulation Products for Leaded Paint in Buildings
+    verify: Encapsulant product claims, and how the painted surface was judged suitable
+
+regulatory_hooks:
+  - id: 02pb.rh.renovation-work-practices
+    topic: lead-renovation-work-practices
+    question: >
+      Do lead-safe renovation rules apply to this work (housing, child-
+      occupied facilities, public buildings), and what firm certification,
+      work practices, and cleaning verification or clearance testing do they
+      require?
+    applies_when: Renovation or demolition disturbing paint in buildings old enough to contain lead paint
+    source_families: [environmental, occupational_safety]
+    severity: high
+
+  - id: 02pb.rh.occupational-exposure
+    topic: lead-occupational-exposure
+    question: >
+      What exposure assessment, controls, and medical surveillance apply to
+      workers who disturb lead-containing coatings by cutting, welding,
+      blasting or sanding?
+    applies_when: Any trade work on lead-containing coatings
+    source_families: [occupational_safety]
+    severity: high
+
+extract_fields:
+  - id: 02pb.xf.components
+    label: Lead-containing components and the treatment for each (remove, enclose, encapsulate, leave)
+    type: list
+    per: package
+    reconcile_against: [report.hazmat_survey]

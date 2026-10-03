@@ -1,0 +1,83 @@
+schema_version: 1
+kind: division
+id: "01"
+title: General Requirements
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  The project's rulebook: procedures, temporary work, quality control,
+  scheduling and closeout that every trade section points back to. Division
+  01 submittals are plans, schedules, reports and closeout records rather
+  than products, so the review asks whether the document is specific to this
+  project, gives every task an owner, and lands each activity before the
+  milestone it protects. Division 01 obligations are routinely left out of
+  subcontracts or contradicted by a trade section, and the gap surfaces at
+  closeout as a dispute over who pays.
+
+suppress:
+  - id: g.basis-of-design
+    reason: Division 01 submittals are plans, schedules, reports and records, not products; 01 25 00 reviews the substitution request itself
+  - id: g.lead-time
+    reason: Nothing is procured under Division 01; 01 32 00 checks procurement chains in the schedule logic
+
+review_checks:
+  - id: d01.project-specific
+    kind: completeness
+    check: >
+      Plans submitted under Division 01 (quality control, logistics and
+      temporary facilities, phasing, indoor air quality, waste management,
+      commissioning, training) name this project's areas, phases, dates and
+      responsible people. A company template with no project content is
+      returned: nobody in the field can execute it, and it protects no one
+      when an inspection fails.
+    trace_to: [spec.division_01]
+    severity: medium
+    owner: gc
+
+  - id: d01.flow-down
+    kind: coordination
+    check: >
+      Division 01 obligations that fall on the trades (record drawings, O&M
+      data, warranties, extra stock, training, cleaning, protection of their
+      own work, participation in testing and commissioning) are carried into
+      each subcontract. A subcontract written to the trade's own section, or
+      to Divisions 02 through 49, leaves them with the general contractor.
+    trace_to: [spec.division_01, spec.part1]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: d01.trade-section-conflicts
+    kind: absence
+    check: >
+      Where a trade section restates a Division 01 requirement differently
+      (warranty term or start, extra stock quantity, training content,
+      submittal format, cleaning, protection), both requirements are cited
+      and the conflict is raised; neither is assumed to govern.
+    trace_to: [spec.division_01, spec.part1, contract.general_conditions]
+    severity: medium
+    owner: design_team
+
+failure_modes:
+  - id: d01.fm.template-plan
+    what_happens: A quality-control, phasing or IAQ plan is approved as a company template with no project content
+    consequence: The plan is on file but nobody follows it; when an inspection fails or a claim arrives it shows no project-specific control
+    caught_by: [d01.project-specific]
+    source: industry_practice
+
+  - id: d01.fm.not-flowed-down
+    what_happens: Subcontracts written to the trade's own section omit Division 01 deliverables
+    consequence: Record drawings, O&M data, extra stock and training missing at substantial completion; the general contractor buys them or retainage is held
+    caught_by: [d01.flow-down]
+    source: industry_practice
+
+  - id: d01.fm.conflicting-requirements
+    what_happens: Division 01 and a trade section state different warranty terms, extra stock quantities or training requirements
+    consequence: The trade prices the lesser one; the owner enforces the greater one at closeout
+    caught_by: [d01.trade-section-conflicts]
+    source: industry_practice
