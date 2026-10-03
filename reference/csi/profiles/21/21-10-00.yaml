@@ -44,7 +44,6 @@ submittals:
 review_checks:
   - id: 21wb.water-supply-test
     kind: conformance
-    reflex: true
     submittal_types: [Design Data]
     check: >
       The calculations use a water supply test that meets the AHJ's and the

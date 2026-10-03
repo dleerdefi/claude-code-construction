@@ -23,6 +23,28 @@ scope_summary: >
   so sequence, pan fill and protection of nosings are part of the review.
 
 suppress:
+  - id: if.04-wall-top-anchorage
+    reason: Masonry wall-top anchorage to the frame; no stair or railing component
+  - id: if.05-cladding-anchorage
+    reason: Cladding support steel; no stair or railing component
+  - id: if.05-overhead-door-supports
+    reason: Door support steel; no stair or railing component
+  - id: if.05-elevator-supports
+    reason: Hoistway support steel; no stair or railing component
+  - id: if.05-escalator-supports
+    reason: Escalator wellway and truss supports; no stair or railing component
+  - id: if.05-equipment-support-steel
+    reason: MEP equipment dunnage; no stair or railing component
+  - id: if.05-suspended-equipment-supports
+    reason: Hung equipment supports; no stair or railing component
+  - id: if.04-shelf-angles
+    reason: Masonry shelf angles are misc-metals items, not stair or railing scope
+  - id: if.04-loose-lintels
+    reason: Loose lintels are misc-metals items, not stair or railing scope
+  - id: if.roof-equipment-curbs
+    reason: Roof equipment support; no stair or railing component
+  - id: if.casework-backing
+    reason: Casework support steel; no stair or railing component
   - id: 05mf.scope-coverage
     reason: Miscellaneous-item buyout check; stair scope gaps are covered by the stair checks
   - id: 05mf.fm.support-steel-orphan
@@ -69,10 +91,14 @@ review_checks:
   - id: 05ms.field-verify
     kind: constructability
     check: >
-      Floor-to-floor heights are measured on the built slabs before the stair
-      is released for fabrication, and the risers are laid out for the
+      Floor-to-floor heights are measured on the built structure before the
+      stair is released for fabrication, and the risers are laid out for the
       as-built heights so riser and tread variation stays within the adopted
-      code's tolerance.
+      code's tolerance. Where the stair has to be fabricated ahead of the
+      slabs to serve as access, it is detailed from surveyed top-of-steel or
+      slab-edge elevations plus the slab and finish thicknesses, with the
+      point where the difference is taken up (a landing or a field-set
+      connection) shown on the shop drawings.
     trace_to: [drawings.building_sections, schedule.master]
     severity: high
     owner: gc
@@ -178,6 +204,16 @@ failure_modes:
     consequence: Flights hand-set in pieces, temporary access kept longer, schedule loss
     caught_by: [05ms.construction-use]
     source: industry_practice
+
+standards:
+  - id: 05ms.std.naamm-amp-510
+    name: NAAMM AMP 510
+    title: Metal Stairs Manual (National Association of Architectural Metal Manufacturers)
+    verify: Stair class the spec designates (service, commercial, architectural or industrial) and the fabrication, welding and finish quality that class sets for exposed work
+  - id: 05ms.std.aisc-dg11
+    name: AISC Design Guide 11
+    title: Vibrations of Steel-Framed Structural Systems Due to Human Activity
+    verify: Vibration criterion and analysis method behind the delegated design of long-span and feature stairs, where the spec or the EOR names it
 
 regulatory_hooks:
   - id: 05ms.rh.geometry

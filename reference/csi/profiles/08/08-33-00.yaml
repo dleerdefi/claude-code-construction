@@ -11,8 +11,8 @@ contractor_designed: sometimes   # wind-load design and operator selection are o
 
 scope_summary: >
   Overhead and counter coiling doors and grilles, including rated coiling
-  fire doors and counter shutters (08 33 13 through 08 33 26 inherit from
-  here). The door is fixed early by its headroom, side room and supports:
+  fire doors and counter shutters (08 33 13 through 08 33 44, including
+  coiling smoke and fire curtains, inherit from here). The door is fixed early by its headroom, side room and supports:
   the coil and hood grow with door height and wind rating, the guides need
   structure that can take wind and operating loads, and the space above the
   opening is wanted by ducts, sprinklers and lights. Rated doors add an
@@ -148,6 +148,10 @@ standards:
     name: UL 10B / NFPA 252
     title: Standard for Fire Tests of Door Assemblies; Standard Methods of Fire Tests of Door Assemblies
     verify: Listing of rolling fire doors and counter shutters
+  - id: 08cd.std.ul-10d
+    name: UL 10D
+    title: Standard for Fire Tests of Fire-Protective Curtain Assemblies
+    verify: Listing of coiling fire curtains, which are tested to their own standard rather than as rolling fire doors, and whether the code accepts a curtain at that opening
 
 regulatory_hooks:
   - id: 08cd.rh.fire-door-testing

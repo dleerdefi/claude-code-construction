@@ -140,7 +140,7 @@ failure_modes:
   - id: 05jst.fm.point-loads-missing
     what_happens: Rooftop units, hung air handlers, unit heaters, fire-protection mains or solar racks never given to the joist manufacturer as loads
     consequence: Overloaded joists reinforced to a manufacturer's repair after installation, often over finished roofing or above ceilings
-    caught_by: [05jst.loads-defined, 05jst.rc.concentrated-loads, if.05-sprinkler-main-loads, if.05-suspended-equipment-supports]
+    caught_by: [05jst.loads-defined, 05jst.rc.concentrated-loads, if.05-sprinkler-main-loads]
     source: industry_practice
 
   - id: 05jst.fm.heavier-substitute
@@ -170,7 +170,7 @@ failure_modes:
   - id: 05jst.fm.bearing-elevation
     what_happens: Bearing plates embedded in masonry or concrete at the wrong elevation
     consequence: Shimmed or cut seats, a roof out of slope, ponding
-    caught_by: [05jst.bearing]
+    caught_by: [05jst.bearing, if.04-wall-top-anchorage]
     source: industry_practice
 
 standards:
@@ -178,6 +178,10 @@ standards:
     name: ANSI/SJI 100
     title: Standard Specification for K-Series, LH-Series, and DLH-Series Open Web Steel Joists and for Joist Girders
     verify: Load designations, special-joist provisions, bridging and bracing requirements, and what the specifying professional must define
+  - id: 05jst.std.sji-200
+    name: ANSI/SJI 200
+    title: Standard Specification for CJ-Series Composite Steel Joists
+    verify: Composite joist design basis, shear connection to the slab and erection stability where composite joists are used
 
 extract_fields:
   - id: 05jst.xf.design-loads

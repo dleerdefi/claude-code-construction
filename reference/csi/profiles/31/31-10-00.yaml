@@ -119,9 +119,10 @@ failure_modes:
 
 standards:
   - id: sc.std.ansi-a300-5
-    name: ANSI A300 (Part 5)
-    title: Management of Trees and Shrubs During Site Planning, Site Development, and Construction
+    name: ANSI A300
+    title: Tree Care Standards (management of trees during site development and construction)
     verify: Tree protection zone, root pruning and protection methods where the spec cites it
+    note: The separate parts were consolidated into one standard with the 2023 edition; older specs cite ANSI A300 (Part 5), Management of Trees and Shrubs During Site Planning, Site Development, and Construction
 
 regulatory_hooks:
   - id: sc.rh.clearing-restrictions

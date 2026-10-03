@@ -33,7 +33,6 @@ review_checks:
 
   - id: d07.transition-ownership
     kind: coordination
-    reflex: true
     check: >
       Where layers installed by different trades meet (below-grade
       waterproofing to wall air barrier, wall air barrier to roofing, air

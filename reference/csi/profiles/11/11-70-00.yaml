@@ -61,7 +61,7 @@ review_checks:
     trace_to: [report.radiation_shielding, drawings.plans, drawings.details]
     severity: critical
     owner: design_team
-    gate: wall_close_in
+    gate: procurement_release
 
   - id: 11hc.room-conditions
     kind: conformance
@@ -152,7 +152,7 @@ regulatory_hooks:
       radiation control program before installation or use, and does a change
       of equipment after plan approval require a revised shielding submission?
     applies_when: X-ray, CT, fluoroscopy, nuclear medicine or radiation therapy equipment
-    source_families: [health_facility_licensing, occupational_safety]
+    source_families: [radiation_control]
     severity: high
 
   - id: 11hc.rh.essential-electrical

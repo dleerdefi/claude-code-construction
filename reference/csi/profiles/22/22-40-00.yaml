@@ -101,7 +101,6 @@ review_checks:
 
 reconciliations:
   - id: 22fx.rc.fixtures-vs-arch
-    reflex: true
     between: [schedule.plumbing_fixture, drawings.plumbing, drawings.enlarged_plans]
     key: Fixture tag and room
     fields: [count by type, location, accessible designation, mounting height]

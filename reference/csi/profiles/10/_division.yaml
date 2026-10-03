@@ -34,7 +34,6 @@ review_checks:
 
   - id: d10.recess-in-rated-walls
     kind: conformance
-    reflex: true
     check: >
       Each recessed or semi-recessed specialty (extinguisher and valve
       cabinets, recessed dispensers and waste receptacles, hand dryers) that

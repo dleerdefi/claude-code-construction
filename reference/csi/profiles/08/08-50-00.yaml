@@ -135,9 +135,13 @@ standards:
     title: North American Fenestration Standard/Specification for windows, doors, and skylights
     verify: Performance class, grade and design pressure claimed, and the tested size
   - id: 08wn.std.field-tests
-    name: ASTM E1105
-    title: Standard Test Method for Field Determination of Water Penetration of Installed Exterior Windows, Skylights, Doors, and Curtain Walls, by Uniform or Cyclic Static Air Pressure Difference
-    verify: Field test method, test pressure and sampling
+    name: AAMA 502 / ASTM E1105 / ASTM E783
+    title: Voluntary Specification for Field Testing of Newly Installed Fenestration Products; field water penetration of installed exterior windows, skylights, doors and curtain walls by uniform or cyclic static air pressure difference; field air leakage through installed exterior windows and doors
+    verify: Field test method, test pressure (usually a reduced fraction of the laboratory rating), sampling, and whether the perimeter is included
+  - id: 08wn.std.thermal-ratings
+    name: NFRC 100 / NFRC 200
+    title: Procedure for Determining Fenestration Product U-factors; Procedure for Determining Fenestration Product Solar Heat Gain Coefficient and Visible Transmittance at Normal Incidence
+    verify: Certified whole-product U-factor, SHGC and VT for each window type with the glass submitted
   - id: 08wn.std.astm-e2112
     name: ASTM E2112
     title: Standard Practice for Installation of Exterior Windows, Doors and Skylights
@@ -171,7 +175,7 @@ regulatory_hooks:
       or forced-entry windows at this project, and are the window, its
       anchorage and the surrounding wall designed together to that level?
     applies_when: Government, institutional or owner-designated secure facilities
-    source_families: [building_code]
+    source_families: [federal_security_criteria, owner_insurer_standards]
     severity: high
 
 extract_fields:

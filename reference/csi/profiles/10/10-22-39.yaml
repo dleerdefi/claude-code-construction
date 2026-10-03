@@ -24,6 +24,24 @@ scope_summary: >
 review_mode: per_element
 element_types: [operable_partition]
 
+suppress:
+  - id: d10.recess-in-rated-walls
+    reason: No recessed units in this scope; the rated-wall recess check is for accessories, cabinets and lockers
+  - id: d10.fm.standard-unit-rated-wall
+    reason: Follows d10.recess-in-rated-walls
+  - id: d10.wall-depth
+    reason: No recessed units in this scope
+  - id: d10.fm.semi-recessed-swap
+    reason: Follows d10.wall-depth; no recessed unit to swap
+  - id: d10.rh.membrane-penetrations
+    reason: No recessed units in rated walls in this scope
+  - id: d10.protrusions
+    reason: Overhead track partitions; nothing wall-mounted projects into a circulation path
+  - id: d10.rh.protruding-objects
+    reason: Overhead track partitions; nothing wall-mounted projects into a circulation path
+  - id: d10.rh.reach-ranges
+    reason: Pass door hardware is covered by 10op.rh.divided-room-egress
+
 submittals:
   - id: 10op.sub.shop-drawings
     type: Shop Drawings
@@ -48,12 +66,13 @@ review_checks:
       The submitted panel weight and hanger loads are confirmed by the EOR
       against the support member, and the member's deflection under the
       partition and under live and snow load on the floor or roof above is
-      within the manufacturer's limit at the track. The support is shown and
-      installed before overhead MEP crowds the line.
+      within the manufacturer's limit at the track, before the support steel
+      is fabricated. The support is then installed before overhead MEP
+      crowds the line.
     trace_to: [drawings.structural, drawings.details, spec.part2]
     severity: critical
     owner: design_team
-    gate: overhead_rough_in
+    gate: procurement_release
 
   - id: 10op.acoustic-rating
     kind: conformance
@@ -135,7 +154,7 @@ reconciliations:
       partition load.
     severity: high
     owner: design_team
-    gate: overhead_rough_in
+    gate: procurement_release
 
 failure_modes:
   - id: 10op.fm.heavier-panel

@@ -38,7 +38,6 @@ review_checks:
 
   - id: d11.furnished-by
     kind: coordination
-    reflex: true
     check: >
       Each item is designated owner- or contractor-furnished, and for every
       owner-furnished item the contract names who receives, unloads, stores,
@@ -65,7 +64,6 @@ review_checks:
 
   - id: d11.substitution-cascade
     kind: coordination
-    reflex: true
     check: >
       A change of make, model, size or fuel from the basis of design is
       checked against every trade it touches (power, water and waste, gas,

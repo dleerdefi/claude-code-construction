@@ -104,9 +104,11 @@ review_checks:
   - id: 21fp.test-flow
     kind: constructability
     check: >
-      The test header or flow meter loop discharges where a full test flow
-      can go without flooding the site, the sidewalk or the building, so the
-      acceptance test and every later annual test can be run the same way.
+      The test header discharges where a full test flow can go without
+      flooding the site, the sidewalk or the building, so the acceptance test
+      and every later annual test can be run the same way. A flow meter loop
+      that returns to the pump suction does not test the water supply, so it
+      does not replace that discharge.
     trace_to: [drawings.site, drawings.fire_protection, drawings.civil]
     severity: medium
     owner: gc
@@ -192,6 +194,10 @@ standards:
     title: Standard for the Installation of Stationary Pumps for Fire Protection
     verify: Pump, driver, controller and transfer switch listings, suction arrangement and field acceptance test
     note: Confirm the edition the jurisdiction adopted
+  - id: 21fp.std.ul-218
+    name: UL 218
+    title: Fire Pump Controllers
+    verify: Controller listing for fire pump service and its short-circuit current rating
   - id: 21fp.std.nfpa-70
     name: NFPA 70
     title: National Electrical Code (NEC)

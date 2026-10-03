@@ -51,20 +51,6 @@ review_checks:
     owner: design_team
     gate: procurement_release
 
-  - id: hr.frame-shortening
-    kind: conformance
-    sections: ["05 5*", "07 84*", "08 4*", "09 2*", "14 2*", "21 1*", "22 1*", "23 2*"]
-    check: >
-      In a tall frame, movement accumulates over the height: differential
-      shortening and creep between core and perimeter columns, interstory
-      drift and slab-edge creep. Piping riser anchors and expansion joints,
-      elevator rails and entrances, stair slip connections, curtain wall stack
-      joints, and partition heads at the core are designed for the values the
-      structural engineer gives for this building, not generic allowances.
-    trace_to: [drawings.structural, drawings.details, spec.part2]
-    severity: high
-    owner: subcontractor
-
   - id: hr.wind-tunnel-pressures
     kind: conformance
     sections: ["05 5*", "07 4*", "07 5*", "08 4*", "08 5*", "08 9*", "23 7*"]
@@ -101,10 +87,14 @@ reconciliations:
     key: Movement at each interface (stack joint, slab edge, head of wall, stair, riser, elevator rail)
     fields: [interstory drift, slab-edge deflection, column shortening and creep, joint or anchor movement capacity]
     check: >
-      The movements on the structural drawings, the curtain wall and joint
-      performance criteria in the spec, and the joint and anchor details all
-      use the same values; a delegated designer working to its own
-      assumption is a finding.
+      In a tall frame movement accumulates over the height (differential
+      shortening and creep between core and perimeter columns, interstory
+      drift, slab-edge creep). The movements on the structural drawings, the
+      curtain wall and joint performance criteria in the spec, and the joint
+      and anchor details all use the same values, and each submittal for a
+      riser anchor, elevator rail or entrance, stair slip connection, stack
+      joint or partition head designs to them; a delegated designer working
+      to a generic allowance or its own assumption is a finding.
     severity: high
     owner: design_team
     gate: procurement_release
@@ -144,7 +134,7 @@ failure_modes:
     sections: ["05 5*", "07 84*", "08 4*", "09 2*", "14 2*", "21 1*", "22 1*", "23 2*"]
     what_happens: Stack joints, riser anchors and partition heads sized for thermal movement and live-load deflection only, without the frame's long-term shortening and creep
     consequence: Over the first years joints close, glass and mullions bind, riser anchors and guides fail; repairs floor after floor in an occupied tower
-    caught_by: [hr.frame-shortening, hr.rc.movement-criteria]
+    caught_by: [hr.rc.movement-criteria]
     source: field_experience
 
   - id: hr.fm.code-default-pressures

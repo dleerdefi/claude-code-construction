@@ -30,16 +30,6 @@ review_checks:
     severity: high
     owner: subcontractor
 
-  - id: d12.finish-selections
-    kind: conformance
-    submittal_types: [Samples, Product Data]
-    check: >
-      Colors, finishes and patterns match the finish schedule, material legend
-      and the architect's selections.
-    trace_to: [schedule.finish, drawings.material_legend]
-    severity: medium
-    owner: subcontractor
-
   - id: d12.furnished-by
     kind: coordination
     check: >

@@ -92,9 +92,12 @@ review_checks:
   - id: xs.anchor-testing
     kind: completeness
     check: >
-      Every production anchor is proof tested and the specified number
-      performance tested before excavation continues below it, and anchors
-      that fail are replaced or derated by the designer.
+      Anchors and nails are tested to the program the spec sets before
+      excavation continues below their level: for prestressed tiebacks,
+      usually a proof test of every production anchor and performance tests
+      on the specified number; for soil nails, verification tests before
+      production and proof tests on a sample. Anchors and nails that fail
+      are replaced or derated by the designer.
     trace_to: [spec.part3]
     severity: high
     owner: subcontractor

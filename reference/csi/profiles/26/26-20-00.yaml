@@ -11,8 +11,10 @@ contractor_designed: never
 
 scope_summary: >
   Service entrance, switchgear, switchboards, panelboards, transformers,
-  busway, overcurrent devices and surge protection (26 21 00 through
-  26 28 00 inherit from here). This equipment is released early and sized by
+  busway, overcurrent devices and controllers (26 21 00 through 26 29 00
+  inherit from here; wiring devices under 26 27 26 suppress what does not
+  apply, and surge protective devices are reviewed under 26 43 00). This
+  equipment is released early and sized by
   numbers that come from outside the submittal: the serving utility's
   available fault current, the power system study, the room it goes in and
   the path it travels to get there, and every other trade's approved
@@ -174,18 +176,6 @@ review_checks:
     owner: subcontractor
     scope: package
 
-  - id: 26ds.surge
-    kind: conformance
-    check: >
-      Surge protective devices are where the spec and code put them, rated
-      for the voltage and grounding of the system at that location (a device
-      built for a solidly grounded wye fails on delta or impedance-grounded
-      systems), with a short-circuit rating at least equal to the available
-      fault current, and mounted so their leads stay short.
-    trace_to: [drawings.single_line, spec.part2]
-    severity: medium
-    owner: subcontractor
-
   - id: 26ds.gfp-testing
     kind: completeness
     check: >
@@ -259,7 +249,7 @@ failure_modes:
   - id: 26ds.fm.utility-rejects
     what_happens: Service equipment built without the utility's metering and service requirements
     consequence: Utility refuses to energize; metering section rebuilt and permanent power delayed
-    caught_by: [26ds.utility-requirements, if.26-utility-service]
+    caught_by: [26ds.utility-requirements]
     source: industry_practice
 
   - id: 26ds.fm.no-path-in
@@ -280,12 +270,6 @@ failure_modes:
     caught_by: [26ds.stub-ups, if.03-housekeeping-pads]
     source: industry_practice
 
-  - id: 26ds.fm.spd-configuration
-    what_happens: A surge protective device rated for a solidly grounded wye system installed on an impedance-grounded or delta system
-    consequence: Device fails at energization or at the first ground fault; replacement and possible equipment damage
-    caught_by: [26ds.surge]
-    source: industry_practice
-
   - id: 26ds.fm.downstream-bond
     what_happens: Neutral bonded to ground in a downstream panel, or at a generator that feeds a transfer switch with a solid neutral
     consequence: Objectionable current on grounding paths, ground-fault protection misoperation, failed inspection
@@ -298,10 +282,6 @@ standards:
     title: Standard for Acceptance Testing Specifications for Electrical Power Equipment and Systems
     verify: Acceptance test scope and report content where the spec cites it
     note: Confirm the edition the spec cites
-  - id: 26ds.std.ul-1449
-    name: UL 1449
-    title: Surge Protective Devices
-    verify: Device type, nominal discharge current and short-circuit current rating claimed
 
 regulatory_hooks:
   - id: 26ds.rh.working-space
@@ -347,13 +327,15 @@ regulatory_hooks:
     source_families: [electrical_code, occupational_safety]
     severity: medium
 
-  - id: 26ds.rh.surge
-    topic: surge-protection-requirements
+  - id: 26ds.rh.arc-energy-reduction
+    topic: arc-energy-reduction-requirements
     question: >
-      Does the adopted electrical code require surge protection at this
-      service or for specific systems (emergency systems, dwelling units,
-      critical operations, specific equipment), and of which type?
-    applies_when: New or replaced services, and emergency or critical systems
+      Does the adopted electrical code require an arc energy reduction method
+      on circuit breakers or fuses above a rating threshold, which methods
+      qualify (maintenance switching, zone-selective interlocking,
+      differential relaying, energy-reducing active arc-flash mitigation), and
+      must the method be performance-tested at installation?
+    applies_when: Switchgear, switchboards and other equipment with large circuit breakers or fused switches
     source_families: [electrical_code]
     severity: medium
 

@@ -56,12 +56,14 @@ review_checks:
     kind: absence
     reflex: true
     check: >
-      Every wet area (showers, tub surrounds, wet rooms, commercial kitchens,
-      locker, toilet and pool areas with floor drains) has a waterproof
-      membrane under the tile, turned up walls and curbs, carried into the
-      drain's clamping ring or bonding flange, and flood tested before tile.
-      The section that furnishes and installs it (this one or Division 07) is
-      named.
+      Showers, tub surrounds and wet rooms, and tiled floors that are hosed
+      down or drained above occupied or finished space (commercial kitchens,
+      locker and toilet rooms with floor drains, pool decks on elevated
+      slabs), have a waterproof membrane under the tile, turned up walls and
+      curbs, carried into the drain's clamping ring or bonding flange, and
+      flood tested before tile. Where none is shown at those locations the
+      design team confirms the intent, and the section that furnishes and
+      installs it (this one or Division 07) is named.
     trace_to: [drawings.enlarged_plans, drawings.details, schedule.finish, spec.part2]
     severity: critical
     owner: design_team
@@ -214,15 +216,15 @@ standards:
     verify: Method cited for each area and movement joint layout; confirm the edition the spec cites
   - id: 09ti.std.ansi-a108
     name: ANSI A108 / A118 / A136.1
-    title: American National Specifications for the Installation of Ceramic Tile
+    title: American National Standards for the Installation of Ceramic Tile
     verify: Installation requirements (A108.01 and A108.02 general requirements, lippage) and setting material classifications (A118)
   - id: 09ti.std.ansi-a118-10
     name: ANSI A118.10
-    title: Load-bearing, bonded, waterproof membranes for thin-set tile and dimension stone
+    title: Load Bearing, Bonded, Waterproof Membranes for Thin-Set Ceramic Tile and Dimension Stone Installation
     verify: Waterproof membrane claims where the membrane is under tile in wet areas
   - id: 09ti.std.ansi-a118-12
     name: ANSI A118.12
-    title: Crack isolation membranes for thin-set tile and dimension stone
+    title: Crack Isolation Membranes for Thin-Set Ceramic Tile and Dimension Stone Installation
     verify: Crack isolation rating claimed for the membrane
   - id: 09ti.std.ansi-a118-mortars
     name: ANSI A118.4 / ANSI A118.15

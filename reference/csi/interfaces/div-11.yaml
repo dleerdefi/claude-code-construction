@@ -35,16 +35,15 @@ edges:
 
   # ── Foodservice ───────────────────────────────────────────────
   - id: if.11-hood-suppression
-    reflex: true
-    a: ["11 44 00"]
-    a_trade: Food cooking equipment and hoods (often specified in 11 40 00)
+    a: ["11 44 00", "23 38 13"]
+    a_trade: Food cooking equipment and kitchen hoods (often specified in 11 40 00, hoods sometimes in 23 38 13)
     b: ["21 23 00"]
     b_trade: Wet-chemical fire-extinguishing systems
     a_provides: Final appliance line-up under each hood (type, position, fuel), hood plenum and duct collar locations
     b_provides: Listed system design with nozzle coverage of every appliance, plenum and duct; fuel and power shutoff interlocks; manual release location
     responsibility:
       - item: Hood fire suppression system
-        typical: {furnish: "11 40 00 or 21 23 00", install: "11 40 00 or 21 23 00"}
+        typical: {furnish: "11 40 00, 23 38 13 or 21 23 00", install: "11 40 00, 23 38 13 or 21 23 00"}
         confirm_in: [spec.part1, drawings.foodservice]
       - item: Gas shutoff valve closed by the suppression system
         typical: {furnish: "11 40 00 or 21 23 00", install: "23 11 23"}
@@ -59,8 +58,8 @@ edges:
     failure: Grease hood installed without a listed suppression system, or with one designed for an earlier appliance line-up
 
   - id: if.11-hood-fire-alarm
-    a: ["11 44 00"]
-    a_trade: Food cooking equipment and hood suppression (often specified in 11 40 00)
+    a: ["11 44 00", "23 38 13"]
+    a_trade: Food cooking equipment, kitchen hoods and hood suppression (often specified in 11 40 00, hoods sometimes in 23 38 13)
     b: ["28 46 00"]
     b_trade: Fire detection and alarm
     a_provides: Suppression system alarm and supervisory contacts, and the fans, make-up air and appliances that must respond on discharge
@@ -134,20 +133,22 @@ edges:
     severity: high
 
   - id: if.11-walk-in-refrigeration
-    a: ["11 41 00"]
-    a_trade: Walk-in coolers and freezers
+    a: ["11 41 00", "13 21 26"]
+    a_trade: Walk-in coolers and freezers, and cold storage rooms
     b: ["23 23 00", "23 62 00"]
     b_trade: Refrigerant piping and condensing units
-    a_provides: Refrigeration selection, component locations, line sizes and route limits, electrical data and control diagram
-    b_provides: Refrigerant piping, condensing unit setting, supports, and roof or wall penetrations where the mechanical trade carries them
+    a_provides: Refrigeration selection and loads, evaporator and controller locations, line sizes and route limits, panel penetrations for the lines, electrical data and control diagram
+    b_provides: Condensing unit location and support, refrigerant piping, charging and start-up, and roof or wall penetrations, where the refrigeration is not in the box or room vendor's scope
     responsibility:
-      - item: Walk-in refrigeration system (condensing units, evaporators, controls)
-        typical: {furnish: "11 41 00 or 23 62 00", install: "11 41 00 or 23 62 00"}
+      - item: Refrigeration system design and equipment (condensing units, evaporators, controls)
+        typical: {furnish: "11 41 00, 13 21 26 or 23 62 00", install: "11 41 00, 13 21 26 or 23 62 00"}
         confirm_in: [spec.part1, schedule.mechanical_equipment]
-      - item: Refrigerant piping between condensing unit and evaporator
-        typical: {install: "11 41 00 or 23 23 00"}
+      - item: Refrigerant piping between condensing unit and evaporator, charge and start-up
+        typical: {install: "11 41 00, 13 21 26 or 23 23 00"}
         confirm_in: [spec.part1, spec.part3]
-    gate: {milestone: overhead_rough_in}
+    gate:
+      milestone: procurement_release
+      note: Settle who designs and furnishes the refrigeration before either is bought; line routes and penetrations before overhead rough-in
     severity: high
 
   # ── Laboratory ────────────────────────────────────────────────

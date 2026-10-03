@@ -65,7 +65,7 @@ failure_modes:
   - id: 03apc.fm.frame-not-ready
     what_happens: Panel shop drawings arrive after the steel or slab-edge shop drawings were released, so the connection embeds are missing
     consequence: Field-welded retrofit clips and engineer redesign at the slab edge
-    caught_by: [03apc.connections-to-frame]
+    caught_by: [03apc.connections-to-frame, if.03-precast-frame-connections]
     source: industry_practice
 
   - id: 03apc.fm.drift-locked

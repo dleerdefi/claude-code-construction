@@ -167,11 +167,13 @@ reconciliations:
   - id: ef.rc.fill-zones
     between: [report.geotechnical, spec.part3]
     key: Fill zone (building pad, under slabs, under footings, wall backfill, pavement subgrade, utility trench, landscape)
-    fields: [allowed material, compaction method and minimum, moisture range, lift thickness, test frequency]
+    fields: [allowed material, compaction method and minimum, moisture range, lift thickness, test frequency, extent beyond the building line]
     check: >
       The report and the spec give the same criteria for each fill zone;
       specs often use a different compaction method or drop the moisture
-      range the report requires.
+      range the report requires. The building pad preparation extends past
+      the footprint as far as the report requires and under the stoops,
+      entrance slabs and canopy footings attached to the building.
     severity: high
     owner: design_team
     gate: procurement_release
@@ -230,6 +232,12 @@ failure_modes:
     what_happens: Over-excavation under a footing dug only to the footing width
     consequence: Footing edges bear on the unsuitable soil; differential settlement
     caught_by: [ef.bearing-surfaces]
+    source: industry_practice
+
+  - id: ef.fm.pad-stops-at-wall
+    what_happens: Building pad preparation stops at the building line, leaving stoops, entrance slabs and canopy footings on unimproved site soil
+    consequence: Entrance slabs heave or settle against the building; a step forms at the door and slabs are replaced
+    caught_by: [ef.rc.fill-zones]
     source: industry_practice
 
   - id: ef.fm.wall-backfilled-early

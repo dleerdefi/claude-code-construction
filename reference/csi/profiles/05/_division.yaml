@@ -152,13 +152,14 @@ standards:
     title: Standard Practice for Repair of Damaged and Uncoated Areas of Hot-Dip Galvanized Coatings
     verify: Field repair method for galvanizing damaged by welding, cutting or handling
   - id: d05.std.astm-d6386
-    name: ASTM D6386
-    title: Standard Practice for Preparation of Zinc (Hot-Dip Galvanized) Coated Iron and Steel Product and Hardware Surfaces for Painting
-    verify: Surface preparation for paint over galvanizing
+    name: ASTM D6386 / ASTM D7803
+    title: Standard Practice for Preparation of Zinc (Hot-Dip Galvanized) Coated Iron and Steel Product and Hardware Surfaces for Painting; and for Powder Coating
+    verify: Surface preparation for paint (D6386) or powder coat (D7803) over galvanizing
   - id: d05.std.aci-355
-    name: ACI 355.2 / ACI 355.4
-    title: Qualification of Post-Installed Mechanical Anchors in Concrete; Qualification of Post-Installed Adhesive Anchors in Concrete
+    name: ACI CODE-355.2 / ACI CODE-355.4
+    title: Post-Installed Mechanical Anchors in Concrete — Qualification Requirements; Post-Installed Adhesive Anchors in Concrete — Qualification Requirements
     verify: Qualification behind the evaluation report cited for each post-installed anchor
+    note: Editions before the current ones are titled "Qualification of Post-Installed Mechanical (or Adhesive) Anchors in Concrete"
 
 regulatory_hooks:
   - id: d05.rh.steel-special-inspection

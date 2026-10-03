@@ -62,8 +62,8 @@ edges:
     severity: high
 
   - id: if.02-site-utility-abandonment
-    a: ["02 41 00"]
-    a_trade: Demolition (selective site demolition)
+    a: ["02 41 13", "02 41 16"]
+    a_trade: Selective site demolition and structure demolition
     b: ["33"]
     b_trade: Site utilities
     a_provides: Site demolition extent and the utilities to be removed or abandoned
@@ -72,6 +72,7 @@ edges:
       milestone: demolition_start
       note: Utility-company disconnects precede demolition; abandoned lines are capped and recorded before excavation reaches them
     severity: high
+    failure: Site utilities abandoned without capping, filling or recording, or disconnected at the building instead of at the main; live gas or water hit during excavation, voids under paving, and conflicts with new utility routing
 
   # ── Structure ─────────────────────────────────────────────────
   - id: if.02-structural-removal
@@ -89,9 +90,11 @@ edges:
     a_trade: Asbestos remediation
     b: ["07 81 00"]
     b_trade: Applied fireproofing
-    a_provides: Removal extent, the steel surface left after removal, and any lockdown sealer or encapsulant applied
-    b_provides: The surface condition and bond data the replacement fireproofing listing needs over that sealer, and the reapplication sequence
-    gate: {milestone: fireproofing_application}
+    a_provides: Removal extent, the steel surface left after removal, and the lockdown sealer or encapsulant proposed, before it is applied
+    b_provides: Whether the replacement fireproofing's listing and manufacturer accept that sealer as the substrate (some listings name accepted encapsulants), the bond testing they require over it, and the reapplication sequence
+    gate:
+      milestone: procurement_release
+      note: Settle the sealer before abatement applies it; once it is on the steel, the remedy is bond testing, a bonding agent or removal
     severity: high
 
   - id: if.02-lead-paint-hot-work

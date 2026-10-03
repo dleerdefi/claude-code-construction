@@ -98,7 +98,7 @@ standards:
     verify: Sensor coverage, breakout, signage and speeds for full-energy doors
   - id: 08ae.std.bhma-a156-19
     name: ANSI/BHMA A156.19
-    title: Power Assist and Low Energy Power Operated Swinging Doors
+    title: Power Assist and Low Energy Power Operated Doors
     verify: Low-energy swinging operators, forces and speeds
   - id: 08ae.std.bhma-a156-38
     name: ANSI/BHMA A156.38

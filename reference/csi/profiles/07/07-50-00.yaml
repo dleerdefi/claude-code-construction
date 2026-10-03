@@ -37,7 +37,6 @@ submittals:
 review_checks:
   - id: rf.drainage
     kind: conformance
-    reflex: true
     submittal_types: [Shop Drawings]
     check: >
       Tapered insulation and structural slope together drain every area to a
@@ -106,9 +105,9 @@ review_checks:
   - id: rf.roof-vapor-retarder
     kind: absence
     check: >
-      Where the space below is humid (pools, kitchens, wet processes, cold
-      storage) or the design calls for one, a roof vapor retarder is shown and
-      tied to the wall air and vapor layers.
+      Where the space below is humid (pools, laundries, washdown dish rooms,
+      wet-process plants, cold storage) or the design calls for one, a roof
+      vapor retarder is shown and tied to the wall air and vapor layers.
     trace_to: [drawings.wall_sections, drawings.details]
     severity: medium
     owner: design_team
@@ -158,7 +157,6 @@ review_checks:
 
 reconciliations:
   - id: rf.rc.drains
-    reflex: true
     between: [drawings.roof_plan, drawings.plumbing]
     key: Drain or scupper location
     fields: [count, location, size, primary or overflow, discharge route]

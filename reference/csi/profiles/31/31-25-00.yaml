@@ -7,18 +7,30 @@ maintainers: [dleerdefi]
 reviewed_by: []
 last_reviewed: null
 
+equivalents: ["01 57 13", "01 57 23"]
 contractor_designed: sometimes   # the contractor often prepares or completes the SWPPP as an operator
 
 scope_summary: >
   Temporary erosion and sediment control under the construction stormwater
   permit: the SWPPP, perimeter controls, construction entrances, inlet
   protection, sediment basins, stabilization and the inspections the permit
-  requires. The permit, not the spec, sets most of the rules, and owner and
-  contractor are often both operators liable for violations. Controls go in
-  before any disturbance and have to move with the grading, so the SWPPP is
-  amended as the site changes. The permit stays open until final
-  stabilization, which ties this section to landscaping at the end of the
-  job.
+  requires (MasterFormat files the temporary work under 01 57 13 and
+  01 57 23, which resolve here). The permit, not the spec, sets most of the
+  rules, and owner and contractor are often both operators liable for
+  violations. Controls go in before any disturbance and have to move with
+  the grading, so the SWPPP is amended as the site changes. The permit
+  stays open until final stabilization, which ties this section to
+  landscaping at the end of the job.
+
+suppress:
+  - id: d31.differing-conditions
+    reason: Erosion controls are not measured or paid as unsuitable soil, rock or obstructions
+  - id: d31.fm.unmeasured-conditions
+    reason: Follows d31.differing-conditions, which does not apply to erosion controls
+  - id: d31.material-tracking
+    reason: Erosion controls import and export no fill; soil movement is reviewed under excavation and fill
+  - id: d31.fm.dirty-import
+    reason: Follows d31.material-tracking, which does not apply to erosion controls
 
 submittals:
   - id: es.sub.swppp

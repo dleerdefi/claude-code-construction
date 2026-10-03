@@ -109,7 +109,7 @@ standards:
 
 regulatory_hooks:
   - id: 06cp.rh.wall-cladding-class
-    topic: interior-finish-flame-spread-class
+    topic: interior-wall-finish-classification
     question: >
       Does solid-surface wall cladding used in corridors, exits or other
       rooms meet the flame spread and smoke-developed classification the

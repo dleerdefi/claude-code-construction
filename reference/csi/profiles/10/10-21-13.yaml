@@ -24,6 +24,22 @@ scope_summary: >
 review_mode: per_element
 element_types: [toilet_room]
 
+suppress:
+  - id: d10.recess-in-rated-walls
+    reason: No recessed units in this scope; the rated-wall recess check is for accessories, cabinets and lockers
+  - id: d10.fm.standard-unit-rated-wall
+    reason: Follows d10.recess-in-rated-walls
+  - id: d10.wall-depth
+    reason: No recessed units in this scope
+  - id: d10.fm.semi-recessed-swap
+    reason: Follows d10.wall-depth; no recessed unit to swap
+  - id: d10.rh.membrane-penetrations
+    reason: No recessed units in rated walls in this scope
+  - id: d10.protrusions
+    reason: Compartments stand inside the toilet room, not along a circulation path
+  - id: d10.rh.protruding-objects
+    reason: Compartments stand inside the toilet room, not along a circulation path
+
 submittals:
   - id: 10tc.sub.shop-drawings
     type: Shop Drawings
@@ -45,7 +61,6 @@ submittals:
 review_checks:
   - id: 10tc.accessible-layout
     kind: conformance
-    reflex: true
     check: >
       Each toilet room provides the accessible compartment, and the ambulatory
       compartment where the standard requires one, and the shop drawings keep

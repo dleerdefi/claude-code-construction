@@ -90,7 +90,6 @@ edges:
     severity: high
 
   - id: if.fireproofing-hangers
-    reflex: true
     a: ["07 81 00"]
     a_trade: Applied fireproofing
     b: ["21 05 29", "22 05 29", "23 05 29", "26 05 29", "23 31 00", "26 05 36", "09 50 00", "05 50 00"]

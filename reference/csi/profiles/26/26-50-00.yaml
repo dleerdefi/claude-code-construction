@@ -137,7 +137,7 @@ failure_modes:
 standards:
   - id: 26lt.std.ies-lm-63
     name: ANSI/IES LM-63
-    title: Standard File Format for the Electronic Transfer of Photometric Data and Related Information
+    title: "Approved Method: IES Standard File Format for the Electronic Transfer of Photometric Data and Related Information"
     verify: Photometric files supplied with substitutions are in a format the designer can calculate with
 
 regulatory_hooks:

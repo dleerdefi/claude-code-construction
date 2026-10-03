@@ -85,7 +85,9 @@ review_checks:
       Wherever the construction type limits combustible materials, the
       drawings and spec say which wood must be fire-retardant-treated
       (blocking, nailers, furring, backboards, roof framing and sheathing)
-      instead of leaving it to a general note.
+      instead of leaving it to a general note. The code permits some
+      untreated blocking even in noncombustible construction, so the answer
+      comes from the spec and the hook, not from habit in either direction.
     trace_to: [spec.part2, drawings.details, drawings.life_safety]
     severity: high
     owner: design_team

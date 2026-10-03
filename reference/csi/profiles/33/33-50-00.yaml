@@ -20,18 +20,18 @@ scope_summary: >
   leak detection, spill and fire code requirements the drawings rarely show.
 
 submittals:
-  - id: hc.sub.product-data
+  - id: 33hc.sub.product-data
     type: Product Data
     must_show:
       - Buried gas pipe and fittings (polyethylene with tracer wire, or coated and cathodically protected steel), risers and transition fittings
       - Fuel tanks with their listing, secondary containment, leak detection, overfill and spill protection, and anchorage
-  - id: hc.sub.test-reports
+  - id: 33hc.sub.test-reports
     type: Test Reports
     must_show:
       - Pressure tests of gas and fuel piping witnessed as the code and utility require
 
 review_checks:
-  - id: hc.meter-location
+  - id: 33hc.meter-location
     kind: coordination
     check: >
       The meter and regulator location meets the utility's and the code's
@@ -41,7 +41,7 @@ review_checks:
     severity: medium
     owner: design_team
 
-  - id: hc.buried-piping
+  - id: 33hc.buried-piping
     kind: conformance
     check: >
       Buried gas piping material, tracer wire, cathodic protection for steel
@@ -52,7 +52,7 @@ review_checks:
     severity: high
     owner: subcontractor
 
-  - id: hc.fuel-tanks
+  - id: 33hc.fuel-tanks
     kind: completeness
     check: >
       Fuel tanks show who furnishes them (generator supplier, site or
@@ -64,32 +64,32 @@ review_checks:
     owner: gc
 
 failure_modes:
-  - id: hc.fm.pressure-mismatch
+  - id: 33hc.fm.pressure-mismatch
     what_happens: The utility delivers a lower pressure than the building gas piping was sized for
     consequence: Piping resized or boosters added late; equipment fails to fire at start-up
     caught_by: [if.23-gas-service]
     source: industry_practice
 
-  - id: hc.fm.meter-refused
+  - id: 33hc.fm.meter-refused
     what_happens: Meter set location does not meet the clearances to openings or air intakes
     consequence: The utility refuses to set the meter; relocation and delayed gas service
-    caught_by: [hc.meter-location, if.23-gas-service]
+    caught_by: [33hc.meter-location, if.23-gas-service]
     source: industry_practice
 
-  - id: hc.fm.tank-not-registered
+  - id: 33hc.fm.tank-not-registered
     what_happens: Tank installed without the registration, leak detection or spill protection the rules require
     consequence: Tank cannot be filled or put into service; fines
-    caught_by: [hc.fuel-tanks]
+    caught_by: [33hc.fuel-tanks]
     source: industry_practice
 
 standards:
-  - id: hc.std.astm-d2513
+  - id: 33hc.std.astm-d2513
     name: ASTM D2513
     title: Polyethylene (PE) Gas Pressure Pipe, Tubing, and Fittings
     verify: Buried polyethylene gas pipe and fittings
 
 regulatory_hooks:
-  - id: hc.rh.fuel-gas
+  - id: 33hc.rh.fuel-gas
     topic: fuel-gas-service-installation
     question: >
       What do the adopted fuel gas code and the gas utility require for
@@ -99,7 +99,7 @@ regulatory_hooks:
     source_families: [fuel_gas_code, utility_service_rules]
     severity: high
 
-  - id: hc.rh.fuel-storage
+  - id: 33hc.rh.fuel-storage
     topic: fuel-storage-tank-requirements
     question: >
       What do the fire code and environmental rules require for fuel storage
@@ -111,7 +111,7 @@ regulatory_hooks:
     severity: high
 
 extract_fields:
-  - id: hc.xf.delivery-pressure
+  - id: 33hc.xf.delivery-pressure
     label: Gas delivery pressure confirmed by the utility
     type: string
     per: package

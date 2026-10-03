@@ -44,7 +44,6 @@ submittals:
 review_checks:
   - id: dp.foundation-type
     kind: conformance
-    reflex: true
     check: >
       The foundation type, bearing stratum, element type and capacities on
       the structural drawings match the recommendations of the current

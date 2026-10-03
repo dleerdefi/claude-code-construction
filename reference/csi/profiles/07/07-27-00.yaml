@@ -47,7 +47,6 @@ review_checks:
 
   - id: ab.opening-integration
     kind: coordination
-    reflex: true
     check: >
       At every punched opening, storefront and curtain wall the sequence is
       defined: rough opening wrapped, sill pan installed where the system uses

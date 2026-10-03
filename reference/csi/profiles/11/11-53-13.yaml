@@ -166,9 +166,9 @@ standards:
 
   - id: 11fh.std.sefa-1
     name: SEFA 1
-    title: Laboratory Fume Hoods (recent editions titled Laboratory Fume Hoods and Ventilated Enclosures)
+    title: Laboratory Fume Hood Standard
     verify: Construction and performance claims
-    note: Confirm the edition the spec cites
+    note: Older editions were published as recommended practices; confirm the edition the spec cites
 
   - id: 11fh.std.nfpa-45
     name: NFPA 45

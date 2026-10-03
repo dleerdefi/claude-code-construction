@@ -1,0 +1,79 @@
+schema_version: 1
+kind: section
+id: "26 05 19"
+title: Low-Voltage Electrical Power Conductors and Cables
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Building wire and cable assemblies up to the low-voltage limit. The product
+  data is routine; the decisions are the wiring method and the conductor
+  material, and the contractor's preferred method (cable assemblies instead
+  of raceway, aluminum instead of copper, shared neutrals instead of
+  dedicated ones) is the usual change. Each of those is a substitution that
+  moves voltage drop, ampacity, fill and terminations, and a local amendment
+  may forbid it outright.
+
+submittals:
+  - id: 26cw.sub.product-data
+    type: Product Data
+    must_show:
+      - Conductor material and insulation type for each use (feeders, branch circuits, wet and underground)
+      - Any cable assemblies, with the uses and locations the spec allows them in
+  - id: 26cw.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Feeder insulation resistance results where specified
+
+review_checks:
+  - id: 26cw.wiring-methods
+    kind: conformance
+    check: >
+      Proposed wiring methods (cable assemblies, flexible cords and
+      connections, aluminum conductors) are ones the spec's wiring-method
+      table allows for that use and location. A contractor-preferred method
+      (cable assemblies for conduit, aluminum feeders for copper) is a
+      substitution, and a local amendment may forbid it outright.
+    trace_to: [spec.part2, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 26cw.conductor-changes
+    kind: conformance
+    check: >
+      Changes to conductors (aluminum for copper, shared neutrals on
+      multiwire branch circuits, combined homeruns, rerouted feeders) come
+      with recalculated voltage drop, ampacity adjustment for bundling and
+      ambient, and raceway fill, and are ones the spec permits.
+    trace_to: [spec.part2, schedule.electrical_panel, drawings.single_line]
+    severity: high
+    owner: subcontractor
+
+failure_modes:
+  - id: 26cw.fm.unapproved-wiring-method
+    what_happens: Cable assemblies or aluminum feeders installed where the spec or a local amendment requires raceway or copper
+    consequence: Rejected at rough-in inspection; rewired at the contractor's cost and schedule
+    caught_by: [26cw.wiring-methods]
+    source: industry_practice
+
+  - id: 26cw.fm.shared-neutral
+    what_happens: Homeruns combined onto shared neutrals serving GFCI or AFCI breakers, dimmers or electronic loads
+    consequence: Nuisance tripping and overheated neutrals; circuits rewired after trim-out
+    caught_by: [26cw.conductor-changes]
+    source: industry_practice
+
+extract_fields:
+  - id: 26cw.xf.wiring-methods
+    label: Wiring method by location and use
+    type: list
+    per: package
+    reconcile_against: [spec.part2]
+  - id: 26cw.xf.conductor-material
+    label: Conductor material for feeders and branch circuits
+    type: string
+    per: package
+    reconcile_against: [spec.part2, drawings.single_line]

@@ -13,7 +13,10 @@ scope_summary: >
   are zoned around how the owner occupies and arms the building, and they
   share door devices with access control. The misses are position switches
   furnished twice or not at all, sensors placed where they false-alarm, and
-  monitoring that nobody contracted for.
+  monitoring that nobody contracted for. Numbering trap: before MasterFormat
+  2016, 28 31 00 was Fire Detection and Alarm. If the project's 28 31 00 (or
+  a 28 31 xx section) is fire alarm, this context is the wrong one: resolve
+  28 46 00 instead.
 
 review_checks:
   - id: 28id.shared-devices

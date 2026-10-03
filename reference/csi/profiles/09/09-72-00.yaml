@@ -59,7 +59,7 @@ failure_modes:
 standards:
   - id: 09wc.std.astm-f793
     name: ASTM F793/F793M
-    title: Classification of Wall Coverings and Ceiling Coverings by Use Characteristics
+    title: Standard Classification of Wall Coverings by Use Characteristics
     verify: Category claimed for durability and cleanability
 
 extract_fields:

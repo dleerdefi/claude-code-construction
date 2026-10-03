@@ -104,6 +104,10 @@ standards:
     name: ANSI/WDMA I.S.1A
     title: Industry Standard for Interior Architectural Wood Flush Doors
     verify: Grade, construction, tolerances and warp limits the spec relies on
+  - id: 08wd.std.bhma-a156-115w
+    name: ANSI/BHMA A156.115W
+    title: Hardware Preparation in Wood Doors with Wood or Steel Frames
+    verify: Factory machining dimensions the door shop drawings use for each hardware item
 
 regulatory_hooks:
   - id: 08wd.rh.formaldehyde

@@ -122,7 +122,6 @@ review_checks:
 
 reconciliations:
   - id: 09fl.rc.transitions
-    reflex: true
     between: [schedule.finish, drawings.plans, drawings.structural, drawings.details, schedule.door]
     key: Each change of floor finish (room to room, at doors, within rooms)
     fields: [finish on each side and its total thickness with setting bed or underlayment, slab depression or recess, transition profile, threshold and door undercut]

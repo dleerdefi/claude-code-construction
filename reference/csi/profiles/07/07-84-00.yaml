@@ -41,7 +41,6 @@ submittals:
 review_checks:
   - id: fs.installer-named
     kind: absence
-    reflex: true
     check: >
       The installing trade for firestopping is named in the contract documents
       (this section, Division 01, or the MEP sections). If no section names
@@ -99,7 +98,6 @@ review_checks:
 
   - id: fs.perimeter-containment
     kind: conformance
-    reflex: true
     check: >
       Where curtain wall or other exterior walls meet rated floors, a listed
       perimeter fire containment system is selected and the curtain wall's
@@ -141,7 +139,6 @@ review_checks:
 
 reconciliations:
   - id: fs.rc.rated-assemblies
-    reflex: true
     between: [drawings.life_safety, schedule.partition_type, drawings.plans]
     key: Wall or floor segment
     fields: [fire rating, smoke rating, extends to structure]

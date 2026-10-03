@@ -44,13 +44,14 @@ review_checks:
 
   - id: park.vehicle-barriers
     kind: conformance
-    sections: ["03 31*", "03 38*", "03 41*", "05 52*", "34 71*"]
+    sections: ["03 31*", "03 38*", "03 41*", "05 52*", "34 71 13*"]
     check: >
       Vehicle barriers at deck edges, ramps and the ends of drive aisles
       (cable systems, precast spandrels, walls, steel rails) are designed for
-      the code impact load at the required height, with anchorage into an
-      element checked for that load, and cable anchors and embeds placed
-      before post-tensioned or precast elements are cast.
+      the code impact load at the required height, with anchorage into a
+      column, beam or spandrel the structural engineer has checked for that
+      load. Anchor and embed placement before casting is confirmed on the
+      barrier anchorage interface.
     trace_to: [drawings.structural, drawings.details, spec.part2]
     severity: critical
     owner: subcontractor
@@ -100,7 +101,7 @@ review_checks:
 
   - id: park.ev-readiness
     kind: coordination
-    sections: ["03 31*", "03 38*", "26 0*", "26 2*"]
+    sections: ["03 31*", "03 38*", "11 11 36*", "26 0*", "26 2*"]
     check: >
       The charging scope the project must deliver (installed chargers, ready
       and capable spaces, accessible charging spaces) is carried into service
@@ -143,7 +144,7 @@ failure_modes:
     source: field_experience
 
   - id: park.fm.barrier-anchorage
-    sections: ["03 31*", "03 38*", "03 41*", "05 52*", "34 71*"]
+    sections: ["03 31*", "03 38*", "03 41*", "05 52*", "34 71 13*"]
     what_happens: Barrier designed for the impact load but anchored to a column, beam or spandrel never checked for it, or anchors left out of the pour
     consequence: Barrier that passes on paper but pulls out on impact; post-installed retrofit in stressed or prestressed concrete
     caught_by: [park.vehicle-barriers, if.park-barrier-anchorage]
@@ -178,7 +179,7 @@ failure_modes:
     source: field_experience
 
   - id: park.fm.cored-for-charging
-    sections: ["03 31*", "03 38*", "26 0*", "26 2*"]
+    sections: ["03 31*", "03 38*", "11 11 36*", "26 0*", "26 2*"]
     what_happens: Charging raceways added later by coring post-tensioned or precast decks
     consequence: Scanning and engineering for every core with tendon or strand strikes at risk, or surface raceway exposed to traffic
     caught_by: [park.ev-readiness]
@@ -248,7 +249,7 @@ regulatory_hooks:
 
   - id: park.rh.vehicle-barriers
     topic: vehicle-barrier-design
-    sections: ["03 31*", "03 38*", "03 41*", "05 52*", "34 71*"]
+    sections: ["03 31*", "03 38*", "03 41*", "05 52*", "34 71 13*"]
     question: >
       What vehicle barrier design load, application height and locations does
       the adopted code require for this garage, and where does a pedestrian
@@ -258,7 +259,7 @@ regulatory_hooks:
     severity: critical
 
   - id: park.rh.accessible-parking
-    topic: accessible-parking-van-clearance
+    topic: accessible-parking
     sections: ["10 14*", "21 1*", "22 1*", "23 3*", "26 5*"]
     question: >
       How many accessible and van-accessible spaces are required and how are
@@ -271,7 +272,7 @@ regulatory_hooks:
 
   - id: park.rh.ev-charging
     topic: ev-charging-requirements
-    sections: ["26 0*", "26 2*"]
+    sections: ["11 11 36*", "26 0*", "26 2*"]
     question: >
       What electric vehicle charging requirements apply under the adopted
       building, energy or green code and local ordinances (installed, ready

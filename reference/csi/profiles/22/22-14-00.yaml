@@ -108,6 +108,13 @@ failure_modes:
     caught_by: [22sd.below-grade-drainage]
     source: industry_practice
 
+standards:
+  - id: 22sd.std.aspe-45
+    name: ASPE/ANSI 45
+    title: Siphonic Roof Drainage
+    verify: The design method behind the manufacturer's siphonic calculations, where the plumbing code or spec cites it
+    note: Confirm the edition the plumbing code or spec cites
+
 regulatory_hooks:
   - id: 22sd.rh.secondary
     topic: roof-secondary-drainage

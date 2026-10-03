@@ -23,6 +23,14 @@ scope_summary: >
 review_mode: per_element
 element_types: [casework_elevation, casework_section_detail, countertop_run]
 
+suppress:
+  - id: d12.anchorage
+    reason: cw.in-wall-support checks support and backing per elevation; engineered anchorage is cw.rh.seismic-anchorage
+  - id: d12.power-data
+    reason: cw.electrical-in-casework and cw.rc.devices check devices per elevation
+  - id: d12.fm.outlets-vs-layout
+    reason: Follows d12.power-data; if.casework-electrical carries the casework version
+
 submittals:
   - id: cw.sub.shop-drawings
     type: Shop Drawings
@@ -195,6 +203,29 @@ review_checks:
     severity: medium
     owner: subcontractor
 
+  - id: cw.panel-cores
+    kind: conformance
+    check: >
+      Panel cores suit their location: moisture-resistant cores at sinks,
+      dishwashers and other wet areas, fire-rated cores where a flame spread
+      class is required, and no-added-formaldehyde or certified products where
+      the spec requires them.
+    trace_to: [spec.part2, drawings.interior_elevations, schedule.plumbing_fixture]
+    severity: medium
+    owner: subcontractor
+
+  - id: cw.site-conditions
+    kind: constructability
+    scope: package
+    check: >
+      Casework is delivered only after the room is enclosed and dry, the HVAC
+      is holding the humidity range the AWI standard sets for the project's
+      region, and walls are finished and primed behind it; units acclimate in
+      the room before they are scribed and installed.
+    trace_to: [spec.part1, spec.part3, schedule.master]
+    severity: high
+    owner: gc
+
 reconciliations:
   - id: cw.rc.sinks
     between: [drawings.interior_elevations, schedule.plumbing_fixture, drawings.plumbing]
@@ -225,7 +256,7 @@ failure_modes:
   - id: cw.fm.in-wall-brackets-missed
     what_happens: In-wall brackets and backing for wall-hung counters were never identified or never reached the framer before drywall
     consequence: Finished walls opened, patched and repainted; casework install slips behind finishes
-    caught_by: [cw.in-wall-support]
+    caught_by: [cw.in-wall-support, if.casework-backing]
     source: field_experience
 
   - id: cw.fm.elevations-only
@@ -251,6 +282,18 @@ failure_modes:
     consequence: Short shipment discovered at install; punch list drags
     caught_by: [cw.hardware]
     source: field_experience
+
+  - id: cw.fm.warped-doors
+    what_happens: Casework installed while the HVAC is off or the room is still wet
+    consequence: Doors warp, veneer and laminate delaminate and joints open; doors and panels replaced
+    caught_by: [cw.site-conditions, if.01-temporary-conditions-woodwork]
+    source: industry_practice
+
+  - id: cw.fm.swollen-sink-base
+    what_happens: Standard particleboard cores used at sinks and dishwashers
+    consequence: Swollen tops and bases after the first leak or wet cleaning
+    caught_by: [cw.panel-cores]
+    source: industry_practice
 
 standards:
   - id: cw.std.awi

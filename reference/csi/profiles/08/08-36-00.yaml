@@ -57,6 +57,17 @@ review_checks:
     severity: medium
     owner: subcontractor
 
+  - id: 08pd.spring-cycles
+    kind: conformance
+    check: >
+      Counterbalance springs carry the cycle rating the spec sets for each
+      door's use. Dock, service-bay and parking doors cycle many times a day,
+      and a submittal offering the manufacturer's standard springs where
+      high-cycle springs are specified is a deviation, often unmarked.
+    trace_to: [spec.part2, schedule.door]
+    severity: medium
+    owner: subcontractor
+
   - id: 08pd.operator-interlocks
     kind: conformance
     check: >
@@ -73,6 +84,12 @@ failure_modes:
     consequence: MEP relocated after installation, or a door that cannot open fully
     caught_by: [08pd.track-envelope, if.08-overhead-door-clearances]
     source: field_experience
+
+  - id: 08pd.fm.springs-break
+    what_happens: Standard-cycle springs installed on high-use dock or service doors
+    consequence: Springs break early in service; the door is out of use at a busy dock while springs are replaced, often outside warranty
+    caught_by: [08pd.spring-cycles]
+    source: industry_practice
 
   - id: 08pd.fm.section-r-value
     what_happens: Door submitted on the insulation value of its sections instead of a whole-door rating

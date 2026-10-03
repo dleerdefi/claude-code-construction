@@ -19,6 +19,20 @@ scope_summary: >
   most often missed. The owner's protection depends on a treatment record
   and a warranty or service agreement in the owner's name.
 
+suppress:
+  - id: d31.differing-conditions
+    reason: Soil treatment excavates nothing that is measured or paid as unsuitable soil, rock or obstructions
+  - id: d31.fm.unmeasured-conditions
+    reason: Follows d31.differing-conditions, which does not apply to soil treatment
+  - id: d31.existing-utilities
+    reason: Soil treatment is applied to graded and backfilled soil; utility locating is reviewed with the excavation that precedes it
+  - id: d31.fm.private-line-hit
+    reason: Follows d31.existing-utilities, which does not apply to soil treatment
+  - id: d31.material-tracking
+    reason: Soil treatment imports and exports no fill
+  - id: d31.fm.dirty-import
+    reason: Follows d31.material-tracking, which does not apply to soil treatment
+
 submittals:
   - id: st.sub.product-data
     type: Product Data

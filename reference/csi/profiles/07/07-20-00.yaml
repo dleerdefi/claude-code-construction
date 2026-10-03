@@ -40,7 +40,7 @@ failure_modes:
 
 regulatory_hooks:
   - id: tp.rh.nfpa-285
-    topic: exterior-wall-nfpa-285
+    topic: exterior-wall-fire-propagation-testing
     question: >
       Does the adopted code require NFPA 285 compliance for this exterior wall
       (construction type, height, combustible weather barrier, foam plastic

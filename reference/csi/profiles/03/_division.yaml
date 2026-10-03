@@ -109,9 +109,10 @@ standards:
     title: Specifications for Concrete Construction
     verify: Which edition the project spec adopts by reference, and which of its optional requirements the spec invokes
   - id: d03.std.weather
-    name: ACI 305.1 / ACI PRC-306
+    name: ACI 305.1 (ACI SPEC-305.1) / ACI PRC-306
     title: Specification for Hot Weather Concreting; Guide to Cold Weather Concreting
     verify: Hot and cold weather procedures against what the spec adopts; the cold weather guide is not enforceable unless the spec makes it so
+    note: ACI lists the cold weather specification ACI 306.1 (1990) as historical; a project spec that still cites it adopts it, so check which document the spec names
   - id: d03.std.astm-field-testing
     name: ASTM C172/C172M / ASTM C31/C31M / ASTM C39/C39M
     title: Sampling freshly mixed concrete; making and curing test specimens in the field; compressive strength of cylindrical specimens

@@ -25,7 +25,6 @@ edges:
         confirm_in: [spec.part1, drawings.details]
     gate: {milestone: wall_close_in, note: Before second-side gypsum board}
     severity: critical
-    failure: Backing or brackets missed; finished walls opened after drywall
 
   - id: if.casework-plumbing
     a: ["12 30 00", "06 41 00"]
@@ -75,7 +74,6 @@ edges:
     b_provides: Hood dimensions, service locations, sash clearance, weight
     gate: {milestone: procurement_release, note: Review hood and casework shops together}
     severity: high
-    failure: Hood size changed; base cabinets and tops built to the old size
 
   - id: if.lab-casework-services
     a: ["12 35 53"]
@@ -90,7 +88,6 @@ edges:
         confirm_in: [spec.part1, drawings.lab_gas]
     gate: {milestone: in_wall_rough_in}
     severity: high
-    failure: Fixtures furnished twice or not at all; final connections missed
 
   - id: if.lab-casework-exhaust
     a: ["12 35 53"]
@@ -101,7 +98,6 @@ edges:
     b_provides: Exhaust connection or confirmation that cabinets stay unvented
     gate: {milestone: above_ceiling_close_in}
     severity: high
-    failure: Vented cabinets with no exhaust path
 
   - id: if.lab-casework-eyewash
     a: ["12 35 53"]

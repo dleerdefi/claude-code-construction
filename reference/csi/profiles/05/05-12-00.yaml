@@ -38,7 +38,6 @@ submittals:
 review_checks:
   - id: 05st.connection-responsibility
     kind: absence
-    reflex: true
     check: >
       The contract documents say who designs the connections: the engineer of
       record on the drawings, the detailer completing them from tables the

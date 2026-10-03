@@ -1,0 +1,14 @@
+schema_version: 1
+kind: section
+id: "01 57 13"
+title: Temporary Erosion and Sediment Control
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# MasterFormat puts temporary erosion and sediment control here and keeps
+# 31 25 00 for permanent controls, but projects use either number for the
+# same SWPPP scope. One profile holds the knowledge; without this alias the
+# section would inherit only the temporary-facilities profile (01 50 00).
+same_as: "31 25 00"

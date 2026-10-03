@@ -1,0 +1,45 @@
+schema_version: 1
+kind: section
+id: "26 05 43"
+title: Underground Ducts and Raceways for Electrical Systems
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Site duct banks, direct-buried conduit, manholes and handholes for power,
+  including the primary and secondary service ducts the serving utility
+  specifies. Duct banks cross every other site utility and are backfilled
+  and paved over early, so routing and elevations against storm, sanitary,
+  water and gas lines, the utility's own construction standards, and an
+  as-built record taken before backfill decide whether the site work holds.
+
+submittals:
+  - id: 26cw.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Duct bank routing and profile with crossings of other utilities, sections, encasement and reinforcing, and manholes or handholes, where the spec requires drawings
+      - Utility-owned duct and structures built to the serving utility's standards, marked as such
+
+review_checks:
+  - id: 26cw.underground-ducts
+    kind: constructability
+    check: >
+      Underground duct banks show routing, depth, encasement, separation from
+      other utilities, spare ducts and pull points as the spec and the utility
+      require, and they are inspected and their as-built location recorded
+      before backfill.
+    trace_to: [drawings.electrical, drawings.civil, drawings.site, report.utility_requirements]
+    severity: high
+    owner: subcontractor
+    gate: trench_backfill
+
+failure_modes:
+  - id: 26cw.fm.duct-bank-conflict
+    what_happens: Electrical duct banks cross storm, water or sanitary lines at the same elevation, found in the trench
+    consequence: Duct banks re-profiled in the field, separation lost, extra bends that exceed pulling tension
+    caught_by: [26cw.underground-ducts, if.26-site-duct-banks]
+    source: industry_practice

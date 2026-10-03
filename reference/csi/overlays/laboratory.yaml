@@ -72,6 +72,7 @@ review_checks:
     trace_to: [drawings.mechanical, drawings.life_safety, spec.part2]
     severity: critical
     owner: design_team
+    gate: overhead_rough_in
 
   - id: lab.pressurization
     kind: conformance
@@ -196,7 +197,7 @@ review_checks:
 
 reconciliations:
   - id: lab.rc.room-airflow
-    sections: ["23", "12 35*"]
+    sections: ["23", "11 53*", "12 35*"]
     between: [schedule.mechanical_equipment, schedule.equipment, drawings.mechanical]
     key: Laboratory room
     fields: [fume hoods and design exhaust at the sash basis, snorkels and canopy hoods, vented storage cabinets, ducted biosafety cabinets, supply, offset, minimum air change rate, occupied and setback modes]
@@ -263,7 +264,7 @@ failure_modes:
     source: field_experience
 
   - id: lab.fm.exhaust-device-added
-    sections: ["23", "12 35*"]
+    sections: ["23", "11 53*", "12 35*"]
     what_happens: Snorkels, vented cabinets or a larger hood added in casework or equipment submittals but never added to the room airflow schedule
     consequence: Lab runs positive or hood face velocity drops; terminal units and controls resized
     caught_by: [lab.rc.room-airflow]
@@ -391,7 +392,7 @@ regulatory_hooks:
     severity: high
 
   - id: lab.rh.standby-power
-    topic: laboratory-emergency-power
+    topic: emergency-standby-load-classification
     sections: ["26", "23 09*"]
     question: >
       Which laboratory loads must be on emergency or legally required standby

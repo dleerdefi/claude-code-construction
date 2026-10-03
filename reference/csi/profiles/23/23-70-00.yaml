@@ -116,7 +116,6 @@ review_checks:
 
 reconciliations:
   - id: 23ah.rc.duct-detectors
-    reflex: true
     between: [schedule.mechanical_equipment, drawings.fire_alarm, drawings.mechanical]
     key: Air-handling unit tag
     fields: [design supply airflow, supply or return detector required, detector shown on fire alarm drawings, duct location, shutdown action]

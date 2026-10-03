@@ -50,19 +50,6 @@ review_checks:
     severity: critical
     owner: design_team
 
-  - id: dc.containment-sprinklers
-    kind: coordination
-    sections: ["21 1*", "28 46*", "27 1*"]
-    check: >
-      Hot- or cold-aisle containment, often furnished late by the owner or IT
-      vendor, is coordinated with fire protection: sprinkler discharge is not
-      obstructed, roof panels that drop or retract on alarm are listed for it,
-      detection covers the inside of contained aisles, and the preaction type
-      and its release detection match the design and the owner's insurer.
-    trace_to: [drawings.fire_protection, drawings.fire_alarm, drawings.plans]
-    severity: high
-    owner: gc
-
   - id: dc.agent-in-it-spaces
     kind: coordination
     sections: ["21 2*", "07 84*", "09 69*", "27 1*"]
@@ -109,7 +96,7 @@ review_checks:
 
   - id: dc.equipment-testing
     kind: completeness
-    sections: ["26 1*", "26 2*", "26 3*", "26 05*", "26 08*"]
+    sections: ["26 1*", "26 2*", "26 3*", "26 05 73*", "26 08*"]
     check: >
       Acceptance testing of switchgear, UPS, generators and transfer equipment
       follows the standard the spec cites (ANSI/NETA ATS or equal): factory
@@ -143,9 +130,9 @@ review_checks:
     check: >
       In the white space, perforated panels sit where the cooling design and
       the current rack layout put them, cable cutouts have brush or gasket seals
-      against bypass air, pedestals are bonded to the computer room bonding
-      network, and panel ratings cover cabinets at the build-out density the
-      basis of design states, not only the day-one load.
+      against bypass air, and panel ratings cover cabinets at the build-out
+      density the basis of design states, not only the day-one load. Pedestal
+      bonding is confirmed on the access floor bonding interface.
     trace_to: [report.basis_of_design, drawings.plans, spec.part2]
     severity: high
     owner: subcontractor
@@ -163,19 +150,18 @@ review_checks:
     trace_to: [drawings.plumbing, drawings.mechanical, drawings.plans]
     severity: high
     owner: design_team
+    gate: overhead_rough_in
 
   - id: dc.bonding
     kind: conformance
-    sections: ["26 05*", "27 05*", "09 69*", "26 3*"]
+    sections: ["26 05*", "27 05*"]
     check: >
-      Bonding and grounding of the IT spaces is complete end to end: the
-      telecommunications bonding backbone and busbars per the ANSI/TIA-607
-      edition the spec cites, a mesh or common bonding network in the computer
-      room, bonding of racks, tray and access floor, and a neutral-to-ground
-      arrangement at generators, transfer switches and UPS that matches the
-      single-line (switched or solid neutral, separately derived or not) so
-      ground-fault sensing works.
-    trace_to: [drawings.electrical, drawings.single_line, drawings.technology]
+      Bonding of the IT spaces is complete end to end: the telecommunications
+      bonding backbone and busbars per the ANSI/TIA-607 edition the spec
+      cites, tied to the electrical grounding system at the point the design
+      shows, a mesh or common bonding network in the computer room, and
+      bonding of racks, cabinets, cable tray and containment to it.
+    trace_to: [drawings.electrical, drawings.technology, spec.part2]
     severity: high
     owner: gc
 
@@ -262,7 +248,7 @@ failure_modes:
     sections: ["21 13*", "28 46*", "27 11*"]
     what_happens: Containment installed by the IT vendor after fire protection is complete blocks sprinkler discharge or detection
     consequence: The space fails inspection; drop-away panels or added heads and detectors before move-in
-    caught_by: [dc.containment-sprinklers, if.dc-containment-fire]
+    caught_by: [if.dc-containment-fire]
     source: field_experience
 
   - id: dc.fm.integrity-lost-in-fit-out
@@ -294,7 +280,7 @@ failure_modes:
     source: industry_practice
 
   - id: dc.fm.default-settings
-    sections: ["26 1*", "26 2*", "26 3*", "26 05*", "26 08*"]
+    sections: ["26 1*", "26 2*", "26 3*", "26 05 73*", "26 08*"]
     what_happens: Breakers energized at factory settings because the coordination study was late
     consequence: A branch fault trips upstream equipment and drops loads the topology was meant to protect
     caught_by: [dc.equipment-testing]
@@ -313,13 +299,6 @@ failure_modes:
     consequence: A leak lands on live equipment; piping rerouted in an operating room
     caught_by: [dc.water-in-white-space]
     source: field_experience
-
-  - id: dc.fm.neutral-bonding
-    sections: ["26 05*", "27 05*", "09 69*", "26 3*"]
-    what_happens: Generator neutral bonded with solid-neutral transfer switches, or switched-neutral transfer switches with no bond at the generator
-    consequence: Objectionable neutral current, nuisance or failed ground-fault tripping; transfer switches or bonding reworked
-    caught_by: [dc.bonding]
-    source: industry_practice
 
   - id: dc.fm.dual-cord-same-source
     sections: ["26"]

@@ -67,7 +67,6 @@ review_checks:
 
   - id: js.drainage-paths
     kind: absence
-    reflex: true
     check: >
       Weeps, sill pan and end dam outlets, flashing drips and curtain wall
       drainage are identified as do-not-seal on the drawings or shop drawings,

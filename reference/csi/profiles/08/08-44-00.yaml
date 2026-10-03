@@ -139,6 +139,10 @@ standards:
     name: ASTM C1184
     title: Standard Specification for Structural Silicone Sealants
     verify: Structural sealant claimed for structurally glazed units, with the manufacturer's project-specific adhesion and compatibility results
+  - id: 08cw.std.ssg-practice
+    name: ASTM C1401 / ASTM C1087
+    title: Standard Guide for Structural Sealant Glazing; Determining Compatibility of Liquid-Applied Sealants with Accessories Used in Structural Glazing Systems
+    verify: Design, fabrication quality-control and compatibility testing practice behind the structural silicone review, and that every accessory touching the sealant was tested
 
 regulatory_hooks:
   - id: 08cw.rh.facade-access

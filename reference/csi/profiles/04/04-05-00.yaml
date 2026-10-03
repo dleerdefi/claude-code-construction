@@ -136,6 +136,10 @@ standards:
     name: ASTM C1314
     title: Standard Test Method for Compressive Strength of Masonry Prisms
     verify: Prism testing where the prism method shows masonry strength
+  - id: 04cm.std.astm-c1384
+    name: ASTM C1384
+    title: Standard Specification for Admixtures for Masonry Mortars
+    verify: Classification claimed for each mortar admixture, including the water-repellent admixture matched to integral water-repellent units
   - id: 04cm.std.astm-a951
     name: ASTM A951/A951M
     title: Standard Specification for Steel Wire for Masonry Joint Reinforcement

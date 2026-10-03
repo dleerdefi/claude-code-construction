@@ -1,7 +1,7 @@
 schema_version: 1
 kind: section
 id: "07 81 00"
-title: Applied Fireproofing
+title: Applied Fire Protection
 status: draft
 maintainers: [dleerdefi]
 reviewed_by: []
@@ -38,7 +38,6 @@ submittals:
 review_checks:
   - id: fp.ul-designs
     kind: conformance
-    reflex: true
     check: >
       Each rating on the structural and life safety drawings maps to a listed
       design cited in the submittal, for each member type (beams, columns,

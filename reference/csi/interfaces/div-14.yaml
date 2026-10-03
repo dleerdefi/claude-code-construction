@@ -13,7 +13,7 @@ last_reviewed: null
 edges:
   # ── All conveying equipment ───────────────────────────────────
   - id: if.14-conveying-power
-    a: ["14"]
+    a: ["14 10 00", "14 20 00", "14 30 00", "14 40 00", "14 92 00"]
     a_trade: Conveying equipment (all Division 14)
     b: ["26 05 19", "26 24 00", "26 28 16", "26 36 00"]
     b_trade: Electrical feeders, distribution, disconnects and transfer switches
@@ -34,7 +34,6 @@ edges:
 
   # ── Elevators ─────────────────────────────────────────────────
   - id: if.14-elevator-fire-alarm
-    reflex: true
     a: ["14 20 00"]
     a_trade: Elevators
     b: ["28 46 00"]
@@ -56,7 +55,7 @@ edges:
     b: ["21 13 00", "26 28 16", "28 46 00"]
     b_trade: Sprinklers, shunt-trip disconnect and heat detection
     a_provides: Hoistway, pit and machine room or control space locations, and the mainline disconnect location and rating
-    b_provides: Sprinklers where required, a heat detector beside each, a shunt-trip disconnect that opens before water flows, and monitoring of its control power
+    b_provides: Sprinklers where required, a heat detector beside each sprinkler that the elevator code ties to shunt trip, a shunt-trip disconnect that opens before water flows, and monitoring of its control power
     responsibility:
       - item: Shunt-trip mainline disconnect
         typical: {furnish: "26 28 16", install: "Division 26"}

@@ -18,7 +18,7 @@ edges:
     a_trade: Structural steel, metal fabrications and cold-formed framing
     b: ["08 44 00", "08 41 00", "08 50 00"]
     b_trade: Curtain wall, storefront and windows
-    a_provides: Slab-edge plates and angles, spandrel beams, kickers, girts and stud framing at openings designed for the anchor reactions, and the slab-edge and head deflection the frames must absorb (not a stair or railing item)
+    a_provides: Slab-edge plates and angles, spandrel beams, kickers, girts and stud framing at openings designed for the anchor reactions, and the slab-edge and head deflection the frames must absorb
     b_provides: Anchor locations, types and reactions (dead, wind, seismic) from the system engineer, the movement each anchor and head receptor allows, and the slab-edge tolerance the anchors can take
     responsibility:
       - item: Steel supports, kickers and girts behind curtain wall and storefront where the structure does not reach the anchor line
@@ -34,7 +34,7 @@ edges:
     a_trade: Metal fabrications and structural steel
     b: ["08 33 00", "08 36 00"]
     b_trade: Coiling and sectional overhead doors
-    a_provides: Jamb, head and hood support steel at each door, designed for the door's wind and operating loads (not a stair or railing item)
+    a_provides: Jamb, head and hood support steel at each door, designed for the door's wind and operating loads
     b_provides: Approved door size, weight, wind load reactions, mounting and hood or counterbalance support requirements for each opening
     responsibility:
       - item: Jamb and header steel at overhead door openings
@@ -103,7 +103,7 @@ edges:
     a_trade: Structural steel and metal fabrications
     b: ["14 20 00"]
     b_trade: Elevators
-    a_provides: Hoist beams, machine beams, divider beams between adjacent cars, intermediate rail bracket supports, sill and entrance supports, and pit ladder, built to the approved elevator layout (not a stair or railing item)
+    a_provides: Hoist beams, machine beams, divider beams between adjacent cars, intermediate rail bracket supports, sill and entrance supports, and pit ladder, built to the approved elevator layout
     b_provides: Approved layout with rail forces and bracket spacing, machine and hoist beam loads and locations, sill and entrance support needs, and pit ladder location
     responsibility:
       - item: Hoist and machine beams, divider beams and intermediate rail bracket supports
@@ -125,7 +125,7 @@ edges:
     a_trade: Structural steel and metal fabrications
     b: ["14 30 00"]
     b_trade: Escalators and moving walks
-    a_provides: Wellway framing, and truss bearing supports at each landing and at any intermediate support, at the elevations, spacing and tolerance the approved unit requires (not a stair or railing item)
+    a_provides: Wellway framing, and truss bearing supports at each landing and at any intermediate support, at the elevations, spacing and tolerance the approved unit requires
     b_provides: Approved truss length, rise and support points, reactions at each support, bearing plate and isolation details, and wellway dimensions and tolerances
     responsibility:
       - item: Truss bearing angles or plates at landings and intermediate supports
@@ -155,7 +155,7 @@ edges:
     a_trade: Structural framing and metal fabrications
     b: ["23 60 00", "23 70 00", "22 30 00", "26 30 00", "23 05 48", "23 80 00"]
     b_trade: Mechanical, plumbing and electrical equipment, and vibration isolation and seismic restraint
-    a_provides: Support framing and dunnage as scheduled, and the engineer of record's acceptance of each equipment load and support point (not a stair or railing item)
+    a_provides: Support framing and dunnage as scheduled, and the engineer of record's acceptance of each equipment load and support point
     b_provides: Approved equipment weights, footprints, support points, isolation rails or bases, and which frames and supports each trade furnishes
     responsibility:
       - item: Support steel and dunnage for floor-, roof- and platform-mounted equipment
@@ -189,7 +189,7 @@ edges:
     a_trade: Structural framing and metal fabrications
     b: ["10 21 13", "10 22 00", "11 52 00", "11 61 00", "11 66 00", "11 70 00"]
     b_trade: Overhead-braced toilet compartments, operable partitions, audio-visual, stage rigging, athletic and ceiling-mounted medical equipment
-    a_provides: Support members and above-ceiling support frames at each hang point, designed for the stated loads and the equipment's deflection or stiffness limit, on joists only where the joist design carries them (not a stair or railing item)
+    a_provides: Support members and above-ceiling support frames at each hang point, designed for the stated loads and the equipment's deflection or stiffness limit, on joists only where the joist design carries them
     b_provides: Weights, hang point locations, vertical and lateral reactions including dynamic loads from rigging, retracting backstops and divider curtains, and the deflection or stiffness limit the equipment needs at its supports (booms, surgical lights, partition tracks)
     gate:
       milestone: procurement_release

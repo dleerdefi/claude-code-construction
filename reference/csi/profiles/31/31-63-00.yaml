@@ -130,7 +130,7 @@ standards:
     name: ASTM D5882 / ASTM D6760
     title: Low strain impact integrity testing; ultrasonic crosshole integrity testing of concrete deep foundations
     verify: Whether the spec still cites these as the test method and acceptance basis
-    note: Both were withdrawn in 2025 with no replacement; the procedure and acceptance criteria then have to be stated in the spec
+    note: Both were withdrawn in 2025 with no replacement, and ASTM has reinstatement work items open; until a method is reinstated, the procedure and acceptance criteria have to be stated in the spec
 
 extract_fields:
   - id: bp.xf.volume-ratio

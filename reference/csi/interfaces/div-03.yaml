@@ -120,6 +120,22 @@ edges:
         confirm_in: [spec.part1, drawings.details]
     severity: medium
 
+  - id: if.03-precast-frame-connections
+    a: ["03 40 00"]
+    a_trade: Structural, architectural and tilt-up precast
+    b: ["05 12 00", "05 21 00"]
+    b_trade: Structural steel and steel joists
+    a_provides: Bearing and tie-back connection locations, types and reactions from the precast or panel engineer, the movement each connection allows, and the plates, seats and ledgers cast into the pieces for the steel and joists that bear on or tie to them
+    b_provides: Spandrel beams, columns, clips and kickers designed for those reactions (including spandrel torsion), joist and girder seat elevations and bearing details at each panel, and the frame erection tolerance the precast connections can absorb
+    responsibility:
+      - item: Connection hardware between the precast and the steel frame (clips, angles and plates welded or bolted to the steel)
+        typical: {furnish: "03 40 00 or 05 12 00", install: "03 40 00 or 05 12 00"}
+        confirm_in: [spec.part1, drawings.details]
+    gate:
+      milestone: procurement_release
+      note: Precast and steel are detailed in parallel and whichever is released first fixes the connection for the other; tilt-up panels are cast before most joist submittals are approved
+    severity: high
+
   - id: if.03-cladding-embeds
     a: ["03 30 00", "03 23 00"]
     a_trade: Cast-in-place and post-tensioned slabs
@@ -248,7 +264,7 @@ edges:
   - id: if.03-sleeves
     a: ["03 30 00", "03 23 00"]
     a_trade: Cast-in-place and post-tensioned concrete
-    b: ["21 05 00", "22 05 00", "23 05 00", "26 05 00", "27 05 00"]
+    b: ["21 10 00", "22 10 00", "23 20 00", "23 30 00", "26 05 33", "27 05 28", "21 05 17", "22 05 17", "23 05 17", "26 05 44", "27 05 44"]
     b_trade: Penetrating trades (fire protection, plumbing, HVAC, electrical, communications)
     a_provides: Sleeve and blockout locations surveyed before the pour, and the engineer's acceptance of penetrations through beams, footings, grade beams and post-tensioned slabs
     b_provides: One coordinated sleeve layout across trades, sized for insulation and the firestop system's annular space, with sleeve types (waterstop collars below grade and in wet areas, cast-in firestop devices in rated floors), delivered before forms close
@@ -256,6 +272,28 @@ edges:
       - item: Sleeves and cast-in firestop devices
         typical: {furnish: "each penetrating trade", install: "each penetrating trade or 03 30 00"}
         confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: slab_pour}
+    severity: high
+
+  - id: if.03-precast-mep-cast-in
+    a: ["03 40 00"]
+    a_trade: Precast and tilt-up concrete
+    b: ["21 10 00", "22 10 00", "23 20 00", "23 30 00", "26 05 33", "27 05 28", "21 05 17", "22 05 17", "23 05 17", "26 05 44", "27 05 44"]
+    b_trade: Penetrating trades (fire protection, plumbing, HVAC, electrical, communications)
+    a_provides: The zones where openings and cores are allowed in each prestressed piece (between strands, through hollow cores, away from bearing), and the casting date by which every opening, sleeve, box and conduit stub must be on the piece or panel drawings
+    b_provides: A coordinated layout of floor and roof drains, toilet and shower drains, risers, duct and louver openings, and boxes and conduit cast into panels, with sizes, before the piece or panel drawings are released for casting
+    gate:
+      milestone: procurement_release
+      note: Openings and cast-in items are fixed when each piece is cast; anything added later is cored or surface-mounted, and coring a prestressed piece needs the precaster's engineer
+    severity: high
+
+  - id: if.03-hanger-inserts
+    a: ["03 30 00", "03 23 00"]
+    a_trade: Cast-in-place and post-tensioned slabs
+    b: ["21 05 29", "22 05 29", "23 05 29", "26 05 29"]
+    b_trade: Hangers and supports for fire protection, plumbing, HVAC and electrical
+    a_provides: The engineer's rules for hanging from the slab (cast-in inserts or post-installed anchors, zones clear of tendons and beams, loads that need review), and a pour hold until inserts are set and checked
+    b_provides: Cast-in insert layouts by trade, with loads, from coordinated routing, set on the deck or forms before the pour
     gate: {milestone: slab_pour}
     severity: high
 
@@ -294,7 +332,7 @@ edges:
   - id: if.03-housekeeping-pads
     a: ["03 30 00"]
     a_trade: Cast-in-place concrete
-    b: ["21 30 00", "22 30 00", "23 20 00", "23 50 00", "23 60 00", "23 70 00", "26 10 00", "26 20 00", "26 30 00", "11"]
+    b: ["21 30 00", "22 30 00", "23 20 00", "23 50 00", "23 60 00", "23 70 00", "26 10 00", "26 22 00", "26 24 00", "26 30 00", "11 40 00", "11 53 00", "11 70 00"]
     b_trade: Floor-mounted fire pump, plumbing, HVAC, electrical and owner equipment
     a_provides: Pads formed and doweled to the slab to the approved equipment dimensions, with the anchor embedment and edge distance the anchorage needs
     b_provides: Approved footprint, weight, anchor pattern and anchorage design, pad height for traps and drains, and pad locations checked against service clearances, before the pad pour

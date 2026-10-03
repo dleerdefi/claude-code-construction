@@ -15,9 +15,11 @@ scope_summary: >
   drilled for connections in the shop, so any later hole for MEP or
   attachments needs the engineer's approval. Exposed glulam is judged on
   appearance grade and finish and is easily damaged by weather and handling
-  before the building is closed in. The fire resistance of exposed timber
-  comes from member size or a char calculation and protected connections,
-  not from protection added later.
+  before the building is closed in. The fire resistance of timber comes from
+  member size, a char calculation or the noncombustible protection the
+  construction type requires, and the connections need the same rating,
+  so a member left exposed where the design counted on protection, or an
+  unprotected steel connector, is the expensive miss.
 
 suppress:
   - id: 06rc.blocking-master-list
@@ -83,10 +85,11 @@ review_checks:
   - id: 06gl.fire-resistance
     kind: conformance
     check: >
-      Where exposed members are part of rated construction, the design shows
-      how each member achieves its rating (heavy timber sizes or a calculated
-      char depth) and how connections and concealed steel are protected, and
-      the submitted sizes and connections match that basis.
+      Where members are part of rated construction, the design shows how each
+      member achieves its rating (heavy timber sizes, a calculated char depth,
+      or the noncombustible protection the construction type requires over
+      it) and how connections and concealed steel are protected, and the
+      submitted sizes, exposed faces and connections match that basis.
     trace_to: [drawings.structural, drawings.life_safety]
     severity: high
     owner: design_team
@@ -132,7 +135,8 @@ regulatory_hooks:
     question: >
       For this construction type, does the adopted code permit exposed
       structural timber, under which minimum sizes or calculated fire
-      resistance, and how must connections and concealed spaces be protected?
+      resistance, which surfaces must instead be covered by noncombustible
+      protection, and how must connections and concealed spaces be protected?
     applies_when: Exposed glulam or mass timber in rated construction
     source_families: [building_code]
     severity: high

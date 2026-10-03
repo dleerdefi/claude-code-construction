@@ -92,7 +92,6 @@ review_checks:
 
   - id: wp.pits-and-sumps
     kind: absence
-    reflex: true
     check: >
       Elevator pits, sumps, tunnels and other below-grade depressions are
       inside the waterproofing scope, with details, wherever the groundwater

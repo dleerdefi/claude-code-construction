@@ -51,9 +51,22 @@ review_checks:
     owner: design_team
     gate: overhead_rough_in
 
+  - id: 22pp.freeze-protection
+    kind: absence
+    check: >
+      Water piping, and traps and drains that hold water, routed through
+      spaces that can freeze (open parking levels, canopies and soffits,
+      vestibules, loading docks, attics, exterior walls) are moved inside the
+      heated envelope or carry the insulation and heat tracing the design
+      calls for, and the plumbing drawings and architectural sections agree
+      on which spaces are unheated.
+    trace_to: [drawings.plumbing, drawings.building_sections, drawings.wall_sections, drawings.mechanical]
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
 reconciliations:
   - id: 22pp.rc.building-line
-    reflex: true
     between: [drawings.civil, drawings.plumbing]
     key: Each utility at the building line (domestic water, sanitary, storm, gas)
     fields: [size, material, invert or elevation, exit location, cleanout, backwater valve, meter and backflow location]
@@ -64,7 +77,7 @@ reconciliations:
       to reach it at slope.
     severity: critical
     owner: design_team
-    gate: underslab_rough_in
+    gate: foundation_pour
 
   - id: 22pp.rc.chases
     between: [drawings.riser_diagrams, drawings.plumbing, drawings.plans]
@@ -127,6 +140,12 @@ failure_modes:
     what_happens: Owner or process equipment arrives needing water, waste or gas connections no drawing showed
     consequence: Late rough-ins through finished walls and slabs
     caught_by: [22pp.rc.equipment-connections]
+    source: industry_practice
+
+  - id: 22pp.fm.frozen-piping
+    what_happens: Domestic water or a trapped drain routed through an open parking level, soffit or exterior wall with no freeze protection
+    consequence: Burst pipe and water damage in the first hard freeze; heat tracing added or piping rerouted through finished ceilings
+    caught_by: [22pp.freeze-protection]
     source: industry_practice
 
 extract_fields:

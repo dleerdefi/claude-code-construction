@@ -213,7 +213,7 @@ edges:
   - id: if.08-access-doors-mep
     a: ["08 31 00"]
     a_trade: Access doors and panels
-    b: ["21 05 00", "21 13 00", "22 05 00", "22 10 00", "23 21 00", "23 33 00", "23 36 00", "26 05 00", "09 21 00", "23 81 00"]
+    b: ["21 13 00", "22 05 23", "22 10 00", "23 05 23", "23 21 00", "23 33 00", "23 36 00", "23 81 00", "26 05 33", "09 21 00"]
     b_trade: Sprinkler, plumbing, hydronic and air-side trades with concealed valves, dampers and terminal units; electrical junction boxes; the board installer
     a_provides: Door sizes, ratings and frame types for each substrate
     b_provides: Location and required size of every concealed device that needs service, taken from approved MEP submittals; framed openings in board walls and ceilings
@@ -229,7 +229,7 @@ edges:
     reflex: true
     a: ["08 71 00", "08 42 29"]
     a_trade: Electrified door hardware and automatic entrances
-    b: ["26 05 00", "28 10 00", "28 30 00"]
+    b: ["26 05 19", "26 05 33", "28 10 00", "28 30 00"]
     b_trade: Electrical raceway and wiring, access control and intrusion detection
     a_provides: Each electrified opening's devices, voltage, load, fail-safe or fail-secure, power supply location and the frame and header boxes its wiring needs, issued before in-wall rough-in
     b_provides: Circuits to power supplies and operators; conduit and boxes from each frame and header to an accessible ceiling, in place before the wall is closed; readers, request-to-exit and position switches where security furnishes them; the cable, terminations and programming
@@ -254,7 +254,7 @@ edges:
   - id: if.08-motorized-door-power
     a: ["08 33 00", "08 36 00"]
     a_trade: Coiling and sectional door operators
-    b: ["26 05 00", "26 28 00"]
+    b: ["26 05 19", "26 05 83", "26 28 00"]
     b_trade: Electrical raceway, wiring and disconnects
     a_provides: Operator voltage, phase and load, control station and safety device locations, and the control wiring diagram
     b_provides: Circuit and disconnect at each operator, and conduit to control stations, photo eyes and edges

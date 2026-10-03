@@ -7,9 +7,18 @@ maintainers: [dleerdefi]
 reviewed_by: []
 last_reviewed: null
 
-# The study is reviewed with the distribution equipment it rates, not with
-# raceway and conductors: compile 26 20 00's lineage, then the items below.
-same_as: "26 20 00"
+# Own lineage, not an alias of 26 20 00: as an alias it inherited the
+# switchboard checks and every 26 2x interface (wiring devices to casework,
+# furniture, toilet accessories). The equipment it rates is reached through
+# if.26-study-equipment; the utility's fault data through if.26-utility-service.
+contractor_designed: sometimes   # often prepared by the equipment manufacturer or an independent engineer under the contractor
+
+suppress:
+  - {id: d26.ratings-for-location, reason: "A study has no enclosure or device to rate for its location"}
+  - {id: d26.fm.wrong-enclosure, reason: "Suppressed with its check"}
+  - {id: d26.rh.seismic, reason: "Anchorage is answered in the equipment reviews, not the study"}
+  - {id: d26.rh.seismic-certification, reason: "Certification is answered in the equipment reviews, not the study"}
+  - {id: d26.rh.classified-locations, reason: "Classified locations are answered in the equipment and wiring reviews"}
 
 scope_summary: >
   Short-circuit, protective device coordination and arc-flash studies. The
@@ -71,8 +80,10 @@ review_checks:
     kind: conformance
     check: >
       Coordination curves show selectivity wherever the code or spec
-      requires it, and the device types, frames and trip units that achieve
-      it are fed back into the equipment submittals before release.
+      requires it, including between levels of ground-fault protection where
+      more than one is installed, and the device types, frames and trip units
+      that achieve it are fed back into the equipment submittals before
+      release.
     trace_to: [drawings.single_line, spec.part2]
     severity: high
     owner: subcontractor
@@ -111,7 +122,7 @@ failure_modes:
   - id: 26ps.fm.selectivity-unachievable
     what_happens: Selective coordination for emergency or elevator circuits cannot be met with the breakers already submitted
     consequence: Breaker frames, trip units or fuses changed after release; panel re-fabrication
-    caught_by: [26ps.selectivity, 26ds.study-before-release]
+    caught_by: [26ps.selectivity, if.26-study-equipment]
     source: industry_practice
 
   - id: 26ps.fm.defaults-left
@@ -129,6 +140,30 @@ standards:
     name: NFPA 70E
     title: Standard for Electrical Safety in the Workplace
     verify: Label content and the owner's electrical safety program the labels serve
+
+regulatory_hooks:
+  - id: 26ps.rh.selectivity-scope
+    topic: selective-coordination-requirements
+    question: >
+      For this study, which circuits does the adopted electrical code require
+      to be proven selective (emergency, legally required standby, critical
+      operations, elevators, fire pumps), to what clearing time or fault
+      range, and must a licensed engineer select the devices and the
+      documentation be kept for the AHJ?
+    applies_when: Studies for projects with emergency or legally required standby systems, multiple elevators or a fire pump
+    source_families: [electrical_code]
+    severity: high
+
+  - id: 26ps.rh.labels
+    topic: available-fault-current-and-arc-flash-marking
+    question: >
+      Which labels must the study's results produce on the equipment here
+      (available fault current with its calculation date, arc-flash warning
+      or incident energy), what the owner's safety program adds, and what
+      change in the system obliges a relabel?
+    applies_when: Arc-flash and short-circuit studies for service and distribution equipment
+    source_families: [electrical_code, occupational_safety]
+    severity: medium
 
 extract_fields:
   - id: 26ps.xf.shortfalls

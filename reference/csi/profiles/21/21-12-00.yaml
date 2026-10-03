@@ -86,7 +86,7 @@ reconciliations:
       swing.
     severity: medium
     owner: gc
-    gate: in_wall_rough_in
+    gate: procurement_release   # the riser rises with the floors, long before stair finishes
 
 failure_modes:
   - id: 21st.fm.valve-in-egress

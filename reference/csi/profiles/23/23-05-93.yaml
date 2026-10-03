@@ -135,7 +135,7 @@ standards:
     title: Measurement, Testing, Adjusting, and Balancing of Building HVAC Systems
     verify: Measurement methods and instrument requirements where the spec cites it
   - id: 23tb.std.procedural
-    name: AABC National Standards for Total System Balance / NEBB Procedural Standard for Testing, Adjusting and Balancing of Environmental Systems / TABB-endorsed SMACNA procedures
+    name: AABC National Standards for Total System Balance / NEBB Procedural Standards for Testing, Adjusting and Balancing of Environmental Systems / TABB-endorsed SMACNA procedures
     title: Certifying-body procedural standards
     verify: The report format and procedures follow the standard of the body the spec requires
 

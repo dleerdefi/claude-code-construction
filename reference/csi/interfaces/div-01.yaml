@@ -15,13 +15,13 @@ edges:
   - id: if.01-special-inspection-structure
     a: ["01 40 00"]
     a_trade: Quality requirements (testing agency and special inspection)
-    b: ["03 20 00", "03 30 00", "04 20 00", "05 05 19", "05 12 00", "05 40 00", "31 23 00", "31 60 00"]
+    b: ["03 20 00", "03 30 00", "04 20 00", "05 05 19", "05 12 00", "05 40 00", "31 23 00", "31 60 00", "03 40 00", "05 21 00", "05 31 00"]
     b_trade: Structural and foundation trades (reinforcing, concrete, masonry, post-installed anchors, steel, cold-formed framing, fill, deep foundations)
     a_provides: Engaged agency, inspection scope and frequency from the statement of special inspections, and the notice procedure
     b_provides: Notice ahead of each inspected activity, access for the inspector, and work kept uncovered until the inspection is recorded
     gate:
       milestone: foundation_pour
-      note: The first cover point; masonry grout, steel erection, fireproofing and wall close-in each hold for their own inspections
+      note: The first cover point on new construction; fill and deep foundations are inspected as they are placed, before it, and renovation work holds at the slab, wall or ceiling closure that covers it. Masonry grout, steel erection, fireproofing and wall close-in each hold for their own inspections
     severity: critical
 
   - id: if.01-special-inspection-fire-resistance
@@ -85,7 +85,7 @@ edges:
   - id: if.01-cutting-patching-mep
     a: ["01 73 00"]
     a_trade: Cutting and patching
-    b: ["21 10 00", "22 10 00", "23 20 00", "23 30 00", "26 05 00", "27 05 00", "27 10 00", "28 05 00", "28 46 00"]
+    b: ["21 10 00", "22 10 00", "23 20 00", "23 30 00", "26 05 33", "27 05 28", "27 10 00", "28 46 00"]
     b_trade: Penetrating trades (sprinkler, plumbing, HVAC piping and duct, electrical raceway, low voltage, fire alarm)
     a_provides: Who cuts, who patches the substrate, who finishes the patch, and the standard the patch must meet
     b_provides: Openings needed in existing or finished construction, located and sized before cutting, and kept within what the patch and firestop system allow
@@ -101,7 +101,7 @@ edges:
   - id: if.01-structural-cutting
     a: ["01 73 00"]
     a_trade: Cutting and patching
-    b: ["03 30 00", "03 38 00", "03 80 00", "05 12 00"]
+    b: ["03 30 00", "03 38 00", "03 80 00", "05 12 00", "03 23 00", "03 41 00"]
     b_trade: Concrete, post-tensioned concrete, concrete cutting and boring, structural steel
     a_provides: Cutting proposal with locations, sizes, scan results and the engineer's acceptance
     b_provides: Limits on openings and coring (reinforcing, tendons, beam webs and flanges) and the reinforcement new openings need

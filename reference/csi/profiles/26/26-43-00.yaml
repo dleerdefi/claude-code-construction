@@ -7,17 +7,20 @@ maintainers: [dleerdefi]
 reviewed_by: []
 last_reviewed: null
 
-# Surge protection is reviewed with the distribution equipment it is mounted in
-# or beside: compile 26 20 00's lineage (location, fault rating, code hook),
-# then the items below.
-same_as: "26 20 00"
+# Own lineage, not an alias of 26 20 00: as an alias it inherited the
+# switchboard checks and every 26 2x interface. Integral devices also appear
+# on the switchboard and panelboard shop drawings (26ds.sub.shop-drawings).
+contractor_designed: never
 
 scope_summary: >
-  Surge protective devices for low-voltage power circuits, whether integral
-  to switchboards and panelboards or mounted beside them. A device has to suit the system it is connected to (voltage,
-  wye or delta, solidly or impedance grounded), survive the available fault
-  current at its terminals, and be close enough to the bus that its leads
-  don't undo its protection.
+  Surge protective devices for low-voltage power circuits (26 43 13 inherits
+  from here), whether integral to switchboards and panelboards or mounted
+  beside them. A device has to suit the system it is connected to (voltage,
+  wye or delta, solidly or impedance grounded), withstand the available fault
+  current at its terminals, sit where the code and spec put it, and be close
+  enough to the bus that its leads don't undo its protection. Integral
+  devices arrive in the board submittal, so this section and the board
+  sections have to agree on who furnishes each one.
 
 submittals:
   - id: 26sp.sub.product-data
@@ -27,6 +30,73 @@ submittals:
       - Voltage rating and protection modes for the system configuration at each location
       - Integral or external mounting, with the location and lead routing at each board
       - Status indication and any remote alarm contacts
+
+review_checks:
+  - id: 26sp.configuration
+    kind: conformance
+    check: >
+      Each device's voltage rating and protection modes match the system at
+      its location (a device built for a solidly grounded wye fails on a
+      delta or impedance-grounded system), and its short-circuit current
+      rating is at least the available fault current there.
+    trace_to: [drawings.single_line, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 26sp.location-and-leads
+    kind: conformance
+    check: >
+      Devices are of the type and at the locations the spec and code require
+      (service entrance, distribution, branch panels, emergency system
+      equipment), integral or mounted so their leads stay short and straight,
+      with the overcurrent device or disconnect the manufacturer requires
+      shown on the board schedule.
+    trace_to: [drawings.single_line, schedule.electrical_panel, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26sp.integral-or-separate
+    kind: coordination
+    check: >
+      Whether each device is integral to its board (furnished by the board
+      manufacturer) or separately mounted (furnished under this section) is
+      the same in this submittal and in the switchboard and panelboard
+      submittals, so no board gets two devices or none.
+    trace_to: [spec.part2, drawings.single_line, submittals.approved]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+failure_modes:
+  - id: 26sp.fm.configuration
+    what_happens: A surge protective device rated for a solidly grounded wye system installed on an impedance-grounded or delta system
+    consequence: Device fails at energization or at the first ground fault; replacement and possible equipment damage
+    caught_by: [26sp.configuration]
+    source: industry_practice
+
+  - id: 26sp.fm.double-or-none
+    what_happens: The board manufacturer ships integral devices while separate devices are also bought under this section, or each assumes the other furnishes them
+    consequence: Duplicate devices and cost, or boards energized without the surge protection the code or spec requires
+    caught_by: [26sp.integral-or-separate]
+    source: industry_practice
+
+standards:
+  - id: 26sp.std.ul-1449
+    name: UL 1449
+    title: Surge Protective Devices
+    verify: Device type, nominal discharge current and short-circuit current rating claimed
+
+regulatory_hooks:
+  - id: 26sp.rh.required
+    topic: surge-protection-requirements
+    question: >
+      Does the adopted electrical code require surge protection at this
+      service or for specific systems (emergency systems, dwelling units,
+      critical operations, specific equipment), and of which type?
+    applies_when: New or replaced services, and emergency or critical systems
+    source_families: [electrical_code]
+    severity: medium
 
 extract_fields:
   - id: 26sp.xf.ratings

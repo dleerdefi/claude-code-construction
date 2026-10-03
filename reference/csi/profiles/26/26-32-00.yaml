@@ -54,6 +54,7 @@ review_checks:
     trace_to: [drawings.single_line, schedule.electrical_panel, spec.part2]
     severity: high
     owner: subcontractor
+    gate: procurement_release
 
   - id: 26gn.load-steps
     kind: coordination
@@ -75,6 +76,7 @@ review_checks:
     trace_to: [spec.part2, drawings.site, drawings.electrical]
     severity: high
     owner: subcontractor
+    gate: procurement_release
 
   - id: 26gn.exhaust-and-air
     kind: coordination
@@ -173,6 +175,11 @@ standards:
     name: UL 2200
     title: Stationary Engine Generator Assemblies
     verify: Listing of the assembly as submitted
+  - id: 26gn.std.ul-142
+    name: UL 142
+    title: Steel Aboveground Tanks for Flammable and Combustible Liquids
+    verify: Listing of sub-base and day tanks as submitted
+    note: Some fire codes and AHJs require protected tanks listed to UL 2085 (Protected Aboveground Tanks for Flammable and Combustible Liquids) for some locations; confirm which listing the project needs
 
 regulatory_hooks:
   - id: 26gn.rh.fuel-runtime

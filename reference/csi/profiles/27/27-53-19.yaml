@@ -84,8 +84,9 @@ review_checks:
   - id: 27rc.licensee-consent
     kind: completeness
     check: >
-      The radio licensee's written consent to retransmit and its frequency
-      list are obtained before amplifiers are ordered.
+      The radio licensee's written consent to retransmit, its frequency
+      list, and any signal booster registration the radio regulator requires
+      are obtained before amplifiers are ordered.
     trace_to: [spec.part1]
     severity: high
     owner: gc
