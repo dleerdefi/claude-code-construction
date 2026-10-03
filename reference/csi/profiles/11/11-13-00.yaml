@@ -1,0 +1,168 @@
+schema_version: 1
+kind: section
+id: "11 13 00"
+title: Loading Dock Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+review_mode: per_element
+element_types: [dock_position]
+contractor_designed: never
+
+scope_summary: >
+  Dock levelers, bumpers, seals and shelters, truck restraints, dock lifts and
+  dock lights at each door position (11 13 13 through 11 13 26 inherit from
+  here). The equipment is catalog product, but its pits, curb angles and
+  embeds are cast by the concrete trade months earlier, and its fit depends on
+  the door, the approach drive and the trailers the owner actually receives.
+  Most misses are dimensional: a pit formed for another leveler, a dock face
+  that cannot anchor a restraint, or seals and bumpers that do not work
+  together.
+
+submittals:
+  - id: 11ld.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Pit plan and section per leveler with curb angles, embeds, anchors and pit drainage if any
+      - Dock face elevation at each door with bumpers, seal or shelter, restraint, door guides and lights
+      - Power, controls and interlock wiring per position
+  - id: 11ld.sub.product-data
+    type: Product Data
+    must_show:
+      - Leveler capacity, length, lip, and working range above and below dock
+      - Restraint type and the trailer conditions it engages
+
+review_checks:
+  - id: 11ld.pit-embeds
+    kind: constructability
+    check: >
+      Pit size and depth, curb angles, embed plates and anchors at each
+      leveler position match the approved leveler's pit drawing, and the
+      concrete trade forms from that drawing. Pits formed from a generic
+      detail before approval are field-checked against the approved unit
+      before the levelers ship.
+    trace_to: [drawings.structural, drawings.details]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 11ld.service-range
+    kind: conformance
+    check: >
+      Leveler length and working range suit the dock height and the trailer
+      heights the owner's operation receives, with the approach drive grade at
+      the dock face accounted for.
+    trace_to: [drawings.civil, drawings.details, spec.part2]
+    severity: medium
+    owner: design_team
+    gate: procurement_release
+
+  - id: 11ld.face-stack-up
+    kind: coordination
+    check: >
+      At each door, bumper projection, leveler lip, seal or shelter
+      projection, restraint mounting and door guides work together: the
+      trailer compresses the seal before it reaches the bumpers, the restraint
+      clears the bumpers and seal frame, and the door clears the leveler.
+    trace_to: [drawings.exterior_elevations, drawings.details]
+    severity: medium
+    owner: subcontractor
+
+  - id: 11ld.dock-face-anchorage
+    kind: constructability
+    check: >
+      Bumpers, restraints and seal or shelter frames anchor into embed plates,
+      solid concrete or grouted masonry at the locations the equipment needs;
+      hollow units, veneer or insulated panels at the dock face cannot take
+      restraint and bumper loads.
+    trace_to: [drawings.structural, drawings.exterior_elevations, drawings.details]
+    severity: high
+    owner: gc
+    gate: foundation_pour
+
+  - id: 11ld.power-interlocks
+    kind: coordination
+    check: >
+      Each powered leveler, restraint, light, fan and door has power and a
+      disconnect at its position, and the interlocks the spec requires (door
+      to restraint, restraint to leveler, inside and outside signal lights)
+      have their control wiring assigned among the door, dock equipment and
+      electrical trades.
+    trace_to: [drawings.electrical, spec.part2]
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
+reconciliations:
+  - id: 11ld.rc.dock-positions
+    between: [drawings.plans, drawings.structural, drawings.electrical]
+    key: Dock door position
+    fields: [leveler pit size and depth, embeds, door size, equipment power, interlock wiring]
+    check: >
+      Every dock door on the architectural plans has a leveler pit on the
+      structural drawings sized for the approved unit and power at that
+      position on the electrical drawings.
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+failure_modes:
+  - id: 11ld.fm.pit-wrong-size
+    what_happens: Pits formed to a generic detail or another manufacturer's dimensions before the leveler was approved
+    consequence: Saw-cut pit edges, or shimmed and grouted frames that crack under traffic
+    caught_by: [11ld.pit-embeds, 11ld.rc.dock-positions]
+    source: field_experience
+
+  - id: 11ld.fm.restraint-no-mount
+    what_happens: Truck restraints specified where the dock face has no embed or solid backing
+    consequence: Field-added plates and post-installed anchors in a face that cannot hold the load
+    caught_by: [11ld.dock-face-anchorage]
+    source: field_experience
+
+  - id: 11ld.fm.service-range
+    what_happens: Leveler range chosen without the approach grade or the owner's trailer heights
+    consequence: Grades too steep for forklifts at low or high trailers; levelers replaced
+    caught_by: [11ld.service-range]
+    source: industry_practice
+
+  - id: 11ld.fm.interlock-unwired
+    what_happens: Door-to-restraint interlock specified but the control wiring between door operator and dock controls assigned to no one
+    consequence: Interlocks bypassed at turnover and the safety function lost
+    caught_by: [11ld.power-interlocks]
+    source: industry_practice
+
+standards:
+  - id: 11ld.std.mh30-1
+    name: ANSI MH30.1
+    title: Performance and Testing Requirements for Dock Leveling Devices
+    verify: Leveler capacity rating and test claims
+    note: Earlier editions carried different titles; confirm the edition the spec cites
+
+  - id: 11ld.std.mh30-3
+    name: ANSI MH30.3
+    title: Performance and Testing of Vehicle Restraining Devices
+    verify: Restraint performance claims
+
+regulatory_hooks:
+  - id: 11ld.rh.dock-weatherseals
+    topic: loading-dock-weatherseals
+    question: >
+      Does the adopted energy code require weatherseals at loading dock doors
+      in this climate zone, and do the submitted seals or shelters meet it?
+    applies_when: Loading docks serving conditioned or refrigerated space
+    source_families: [energy]
+    severity: medium
+
+extract_fields:
+  - id: 11ld.xf.leveler
+    label: Leveler capacity, length, and working range above and below dock
+    type: list
+    per: element
+    reconcile_against: [spec.part2, drawings.details]
+  - id: 11ld.xf.pit
+    label: Pit length, width and depth required by the approved leveler
+    type: list
+    per: element
+    reconcile_against: [drawings.structural]

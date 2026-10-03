@@ -1,0 +1,306 @@
+schema_version: 1
+kind: interfaces
+id: div-11
+title: Interfaces involving Division 11 equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with lower divisions (03, 05, 07, 08, 09) live in those divisions' files.
+
+edges:
+  # ── All Division 11 ───────────────────────────────────────────
+  - id: if.11-equipment-power
+    a: ["11"]
+    a_trade: Equipment (all Division 11)
+    b: ["26 05 83", "26 24 00", "26 27 26", "26 28 16"]
+    b_trade: Electrical equipment connections, panelboard circuits, receptacles and disconnects
+    a_provides: Nameplate electrical data per item, plug configuration or hardwired connection point, integral disconnects, and the control wiring diagram between remote components of an item
+    b_provides: Circuits, receptacles and disconnects matching each approved item, final connections, and the standby branch for items the owner designates
+    responsibility:
+      - item: Final electrical connection to hardwired equipment
+        typical: {connect: "26 05 83"}
+        confirm_in: [spec.part1, drawings.electrical]
+      - item: Disconnect switches at equipment
+        typical: {furnish: "26 28 16 or integral to the equipment", install: "Division 26"}
+        confirm_in: [spec.part2, drawings.electrical]
+      - item: Control wiring between remote components of one item (condensing unit to evaporator, hood panel to fans, controller to motorized equipment)
+        typical: {furnish: "Division 11", install: "Division 11 or Division 26"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: in_wall_rough_in}
+    severity: high
+    failure: Control wiring between components of one item claimed by neither the equipment vendor nor the electrician; equipment cannot start at turnover
+
+  # ── Foodservice ───────────────────────────────────────────────
+  - id: if.11-hood-suppression
+    reflex: true
+    a: ["11 44 00"]
+    a_trade: Food cooking equipment and hoods (often specified in 11 40 00)
+    b: ["21 23 00"]
+    b_trade: Wet-chemical fire-extinguishing systems
+    a_provides: Final appliance line-up under each hood (type, position, fuel), hood plenum and duct collar locations
+    b_provides: Listed system design with nozzle coverage of every appliance, plenum and duct; fuel and power shutoff interlocks; manual release location
+    responsibility:
+      - item: Hood fire suppression system
+        typical: {furnish: "11 40 00 or 21 23 00", install: "11 40 00 or 21 23 00"}
+        confirm_in: [spec.part1, drawings.foodservice]
+      - item: Gas shutoff valve closed by the suppression system
+        typical: {furnish: "11 40 00 or 21 23 00", install: "23 11 23"}
+        confirm_in: [spec.part2, drawings.plumbing]
+      - item: Shutoff of electric appliances under the hood on discharge (shunt trip or contactor)
+        typical: {furnish: "26 28 16", install: "Division 26", connect: "21 23 00"}
+        confirm_in: [drawings.electrical, spec.part2]
+    gate:
+      milestone: procurement_release
+      note: Design the system from the approved appliance line-up, and redo it if the line-up changes
+    severity: critical
+    failure: Grease hood installed without a listed suppression system, or with one designed for an earlier appliance line-up
+
+  - id: if.11-hood-fire-alarm
+    a: ["11 44 00"]
+    a_trade: Food cooking equipment and hood suppression (often specified in 11 40 00)
+    b: ["28 46 00"]
+    b_trade: Fire detection and alarm
+    a_provides: Suppression system alarm and supervisory contacts, and the fans, make-up air and appliances that must respond on discharge
+    b_provides: Monitoring of the suppression system and control relays for the shutdowns the design requires
+    responsibility:
+      - item: Wiring from the suppression control head to the fire alarm system
+        typical: {install: "28 46 00", connect: "28 46 00"}
+        confirm_in: [drawings.fire_alarm, spec.part3]
+    gate:
+      milestone: above_ceiling_close_in
+      inspect_before: [Hood suppression acceptance test witnessed by the fire authority]
+    severity: high
+
+  - id: if.11-foodservice-plumbing
+    a: ["11 40 00"]
+    a_trade: Foodservice equipment
+    b: ["22 11 00", "22 13 00", "22 33 00"]
+    b_trade: Plumbing (water, sanitary and grease waste, water heaters)
+    a_provides: Rough-in plans by item number with connection sizes, heights and indirect-waste outlets; faucets and fittings on fabricated sinks
+    b_provides: Rough-in to the dimensioned points, floor sinks and trench drains at the approved locations, grease interceptor, and final connections
+    responsibility:
+      - item: Indirect waste piping from equipment outlets to floor sinks
+        typical: {install: "11 40 00 or 22 13 00"}
+        confirm_in: [spec.part1, spec.part3]
+      - item: Faucets, pre-rinse units and drain fittings on fabricated sinks
+        typical: {furnish: "11 40 00", install: "11 40 00", connect: "22 11 00"}
+        confirm_in: [spec.part2, drawings.foodservice]
+      - item: Booster heater for high-temperature dish machines
+        typical: {furnish: "11 40 00 or 22 33 00", install: "11 40 00 or 22 33 00", connect: "22 11 00 and Division 26"}
+        confirm_in: [schedule.foodservice_equipment, schedule.plumbing_fixture]
+      - item: Backflow preventers and filters for beverage, ice and chemical dispensers
+        typical: {furnish: "11 40 00 or 22 11 00", install: "22 11 00"}
+        confirm_in: [spec.part2, drawings.plumbing]
+    gate: {milestone: underslab_rough_in}
+    severity: high
+
+  - id: if.11-foodservice-gas-exhaust
+    a: ["11 44 00", "11 48 00"]
+    a_trade: Food cooking, dishwashing and hood equipment (often specified in 11 40 00)
+    b: ["23 11 23", "23 38 13", "23 31 00", "23 34 00", "23 74 00"]
+    b_trade: Gas piping, kitchen hoods, grease and exhaust duct, exhaust fans and make-up air units
+    a_provides: Gas input, connection size and pressure per appliance; hood airflow, static pressure and collar locations; hood control panel functions
+    b_provides: Gas piping and shutoff valve to each appliance; grease and exhaust duct to the hood collars; fans and make-up air sized to the approved hoods, with interlocks
+    responsibility:
+      - item: Kitchen hoods
+        typical: {furnish: "11 40 00 or 23 38 13", install: "11 40 00 or 23 38 13"}
+        confirm_in: [spec.part1, schedule.mechanical_equipment]
+      - item: Final gas connection to each appliance (flexible connector, restraint, quick-disconnect)
+        typical: {furnish: "11 40 00", install: "23 11 23"}
+        confirm_in: [spec.part2, drawings.plumbing]
+      - item: Hood control panel and its interlock wiring to fans and make-up air
+        typical: {furnish: "11 40 00", install: "Division 26", connect: "23 09 00 or Division 26"}
+        confirm_in: [spec.part1, drawings.electrical]
+    gate: {milestone: procurement_release}
+    severity: high
+    failure: Hoods bought twice or not at all because both the equipment and mechanical sections specify them
+
+  # ── Walk-ins ──────────────────────────────────────────────────
+  - id: if.11-walk-in-sprinklers
+    a: ["11 41 00"]
+    a_trade: Walk-in coolers and freezers
+    b: ["21 13 00"]
+    b_trade: Fire-suppression sprinkler systems
+    a_provides: Box dimensions, ceiling panel construction, which boxes are freezers, and penetration details
+    b_provides: Heads inside each box where required (dry type in freezers) and above the box, located before panels are cut
+    responsibility:
+      - item: Sealing sprinkler penetrations through walk-in panels
+        typical: {install: "11 41 00 or 21 13 00"}
+        confirm_in: [spec.part3]
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+
+  - id: if.11-walk-in-refrigeration
+    a: ["11 41 00"]
+    a_trade: Walk-in coolers and freezers
+    b: ["23 23 00", "23 62 00"]
+    b_trade: Refrigerant piping and condensing units
+    a_provides: Refrigeration selection, component locations, line sizes and route limits, electrical data and control diagram
+    b_provides: Refrigerant piping, condensing unit setting, supports, and roof or wall penetrations where the mechanical trade carries them
+    responsibility:
+      - item: Walk-in refrigeration system (condensing units, evaporators, controls)
+        typical: {furnish: "11 41 00 or 23 62 00", install: "11 41 00 or 23 62 00"}
+        confirm_in: [spec.part1, schedule.mechanical_equipment]
+      - item: Refrigerant piping between condensing unit and evaporator
+        typical: {install: "11 41 00 or 23 23 00"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: overhead_rough_in}
+    severity: high
+
+  # ── Laboratory ────────────────────────────────────────────────
+  - id: if.11-lab-equipment-services
+    a: ["11 53 00"]
+    a_trade: Laboratory equipment and fume hoods
+    b: ["22 11 00", "22 13 00", "22 63 00", "22 66 00", "22 67 00", "23 22 00"]
+    b_trade: Plumbing, lab gases, chemical waste, purified water and steam
+    a_provides: Service types, grades, pressures and connection points per item, and service fittings mounted on equipment and hoods
+    b_provides: Piping to each connection point at the required grade and pressure, final connections, and drains to the waste system each discharge needs
+    responsibility:
+      - item: Service fittings mounted on fume hoods and equipment
+        typical: {furnish: "11 53 00", install: "11 53 00", connect: "22 63 00 or 22 11 00"}
+        confirm_in: [spec.part1, drawings.lab_gas]
+      - item: Steam and condensate connections to sterilizers and washers
+        typical: {connect: "23 22 00"}
+        confirm_in: [spec.part1, drawings.mechanical]
+      - item: Cooling or tempering of hot equipment discharge
+        typical: {furnish: "11 53 00 or 22 13 00", install: "22 13 00"}
+        confirm_in: [spec.part2, drawings.plumbing]
+    gate: {milestone: in_wall_rough_in}
+    severity: high
+    failure: Hood and equipment service fittings furnished twice or not at all, or final connections left out of every scope
+
+  - id: if.11-fume-hood-exhaust-controls
+    a: ["11 53 13"]
+    a_trade: Laboratory fume hoods
+    b: ["23 09 00", "23 36 00", "23 31 00"]
+    b_trade: Lab exhaust duct, air valves and controls
+    a_provides: Design and minimum exhaust airflow, collar size and static pressure per hood; sash sensor type and monitor interface
+    b_provides: Exhaust valve and duct sized to that airflow, and controls integrating sash position, monitor and alarm with room pressurization
+    responsibility:
+      - item: Sash position or face velocity sensor
+        typical: {furnish: "11 53 13 or 23 09 00", install: "11 53 13", connect: "23 09 00"}
+        confirm_in: [spec.part2]
+      - item: Hood airflow monitor and alarm
+        typical: {furnish: "11 53 13 or 23 09 00", install: "11 53 13 or 23 09 00", connect: "23 09 00"}
+        confirm_in: [spec.part2, drawings.mechanical]
+      - item: Duct connection at the hood collar
+        typical: {install: "23 31 00"}
+        confirm_in: [spec.part3]
+    gate: {milestone: procurement_release}
+    severity: high
+
+  # ── Healthcare ────────────────────────────────────────────────
+  - id: if.11-medical-equipment-shielding
+    a: ["11 70 00"]
+    a_trade: Healthcare equipment
+    b: ["13 49 00"]
+    b_trade: Radiation protection
+    a_provides: Final equipment model, tube and detector positions, and room layout for the shielding design
+    b_provides: Shielding extent and lead equivalence for walls, doors, frames, windows, floor and ceiling, with treatment of penetrations and boxes
+    responsibility:
+      - item: Shielding design report
+        typical: {furnish: "owner's qualified expert or the design team"}
+        confirm_in: [report.radiation_shielding, spec.part1]
+    gate:
+      milestone: wall_close_in
+      inspect_before: [Shielding inspection before cover where the radiation control program requires it]
+    severity: critical
+
+  - id: if.11-medical-equipment-plumbing
+    a: ["11 70 00"]
+    a_trade: Healthcare equipment
+    b: ["22 63 00", "22 11 00", "22 13 00"]
+    b_trade: Medical gas, water and drainage
+    a_provides: Outlet types and counts on booms and equipment, water quality and drain needs of sterilizers, washers and imaging equipment
+    b_provides: Medical gas piping to boom connection points above the ceiling, water and drains at the vendor's locations
+    responsibility:
+      - item: Medical gas connection from boom to the piping system
+        typical: {furnish: "11 70 00", install: "11 70 00 or 22 63 00", connect: "22 63 00"}
+        confirm_in: [spec.part1, drawings.lab_gas]
+    gate: {milestone: overhead_rough_in}
+    severity: high
+    failure: Boom gas connections unassigned; medical gas certification delayed at turnover
+
+  - id: if.11-medical-equipment-power-data
+    a: ["11 70 00"]
+    a_trade: Healthcare equipment
+    b: ["26 05 33", "26 05 39", "26 05 83", "26 24 00", "27 05 28", "27 52 00"]
+    b_trade: Electrical connections, branch panels, raceways and underfloor ducts, communications pathways and healthcare communications
+    a_provides: Power per item with branch and receptacle type, vendor disconnects and emergency-off, data and nurse call needs, cable pathways and trenches
+    b_provides: Circuits on the required branches, pathways and floor trenches to the vendor's locations, data outlets and nurse call integration
+    responsibility:
+      - item: Interconnecting cables between imaging components
+        typical: {furnish: "11 70 00", install: "11 70 00 or Division 26"}
+        confirm_in: [spec.part1]
+      - item: Pathways, trenches and floor ducts for vendor cabling
+        typical: {furnish: "26 05 33 or 26 05 39", install: "26 05 33 or 26 05 39"}
+        confirm_in: [drawings.electrical, drawings.equipment]
+    gate: {milestone: underslab_rough_in}
+    severity: high
+    failure: Imaging cable trenches and pathways missing at slab pour; slabs saw-cut for the vendor's cabling
+
+  - id: if.11-medical-equipment-casework
+    a: ["11 70 00"]
+    a_trade: Healthcare equipment built into casework
+    b: ["12 35 70"]
+    b_trade: Healthcare casework
+    a_provides: Current model per built-in item (medication dispensing cabinets, warmers, monitored refrigerators, ice dispensers) with dimensions, ventilation clearance, power, emergency power, data and plumbing, and the selection date for items the planner has not chosen
+    b_provides: Openings, top and toe-kick cutouts, ventilation paths, access panels and backing sized to those models, with the elevations held open until the models are fixed
+    responsibility:
+      - item: Built-in medical equipment set into casework openings
+        typical: {furnish: "owner or 11 70 00", install: "11 70 00 or 12 35 70"}
+        confirm_in: [spec.part1, schedule.equipment]
+    gate:
+      milestone: procurement_release
+      note: Casework is usually released before the equipment planner fixes these models; hold those openings or get the models first
+    severity: high
+
+  # ── Stage, athletic, residential ──────────────────────────────
+  - id: if.11-stage-fly-space
+    a: ["11 61 00"]
+    a_trade: Stage rigging
+    b: ["21 13 00", "23 31 00", "26 05 33", "26 05 36"]
+    b_trade: Sprinkler, duct, raceway and cable tray routing above the stage
+    a_provides: Batten travel envelopes, loft wells, curtain tracks and hoist locations
+    b_provides: Routing that stays outside those envelopes, and sprinkler coverage that battens do not obstruct
+    gate: {milestone: overhead_rough_in}
+    severity: high
+
+  - id: if.11-stage-fire-curtain
+    a: ["11 61 00"]
+    a_trade: Stage equipment (fire curtain and smoke vents, where provided)
+    b: ["28 46 00", "21 13 00"]
+    b_trade: Fire alarm and sprinkler systems
+    a_provides: Fire curtain or water curtain release devices and stage smoke vent operators, with their release and reset requirements
+    b_provides: Detection and release signals, deluge or water curtain piping where used, and monitoring
+    gate: {milestone: procurement_release}
+    severity: high
+    failure: Fire curtain or stage vents installed with no release signal from detection; fails the fire authority's acceptance test
+
+  - id: if.11-scoreboard-pathways
+    a: ["11 66 00"]
+    a_trade: Athletic equipment (scoreboards and displays)
+    b: ["27 05 28", "27 05 33"]
+    b_trade: Communications pathways, conduits and backboxes
+    a_provides: Controller location, cable types and connection points for scoreboards and displays
+    b_provides: Pathways and floor boxes from the scorer's table and control room to each board
+    gate: {milestone: underslab_rough_in}
+    severity: medium
+    failure: No pathway from the scorer's table to the boards; cable surface-run across finished walls or the sports floor
+
+  - id: if.11-residential-appliance-exhaust
+    a: ["11 30 00"]
+    a_trade: Residential appliances
+    b: ["23 31 00", "23 34 00"]
+    b_trade: Dryer and range hood exhaust, and make-up air
+    a_provides: Exhaust connection size, location and airflow, and the maximum exhaust length for the fittings used
+    b_provides: Exhaust ducts and terminations within those limits, booster fans and make-up air where required
+    responsibility:
+      - item: Dryer exhaust duct and termination
+        typical: {furnish: "23 31 00", install: "23 31 00"}
+        confirm_in: [spec.part1, drawings.mechanical]
+    gate: {milestone: in_wall_rough_in}
+    severity: medium

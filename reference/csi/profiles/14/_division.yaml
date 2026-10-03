@@ -1,0 +1,161 @@
+schema_version: 1
+kind: division
+id: "14"
+title: Conveying Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+legacy_scope_file: reference/pe_expertise/scope-14-conveying.md
+
+review_mode: per_element
+contractor_designed: typical   # the conveying contractor engineers the equipment to a performance spec
+
+scope_summary: >
+  Elevators, escalators and moving walks, platform lifts and dumbwaiters. The
+  conveying contractor engineers and installs the equipment, but its
+  hoistway, pit, overhead, supports, power, fire alarm, sprinkler and
+  communication interfaces are built by other trades first, and the elevator
+  authority will not accept a unit until every one of them works. Units are
+  usually on the critical path to occupancy, so interface work that is late
+  or wrong delays the certificate of occupancy, not just the elevator.
+
+review_checks:
+  - id: d14.acceptance-readiness
+    kind: completeness
+    check: >
+      Everything by other trades that the elevator inspector tests at
+      acceptance (fire alarm recall and status signals, shunt trip, standby
+      power transfer, emergency communication line, machine room or control
+      space conditions, pit lighting, ladder and drainage) is scheduled to be
+      finished and pre-tested before the acceptance inspection is booked.
+    trace_to: [schedule.master, spec.part3]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+  - id: d14.permit-filing
+    kind: completeness
+    check: >
+      Who files the conveying permit and installation application, when it
+      must be filed relative to installation, and whether the elevator
+      authority reviews drawings separately from the building permit are
+      settled, so installation does not start unpermitted or wait on review.
+    trace_to: [spec.part1, spec.division_01]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+  - id: d14.temporary-use
+    kind: constructability
+    check: >
+      If a unit will carry workers or material during construction, the spec's
+      terms are met: the authority's temporary-use permit or inspection,
+      protection of the cab and entrances, maintenance during use, and when the
+      warranty and maintenance periods start.
+    trace_to: [spec.part1, spec.division_01]
+    severity: medium
+    owner: gc
+
+  - id: d14.non-proprietary
+    kind: conformance
+    check: >
+      Controllers, diagnostic tools and software are non-proprietary or come
+      with the tools, licenses and documentation the spec requires, so the
+      owner can contract maintenance with others after the warranty.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+    gate: procurement_release
+
+reconciliations:
+  - id: d14.rc.reactions
+    between: [drawings.structural, drawings.building_sections, spec.part2]
+    key: Support point (pit floor, rail bracket level, machine or hoist beam, truss bearing)
+    fields: [location, load and direction, supporting member, embed or connection]
+    check: >
+      Reactions on the conveying shop drawings (buffer and pit loads, rail
+      bracket forces at each support level, machine and hoist beam loads,
+      escalator truss bearing loads) land on members the structural drawings
+      design for them, with the embeds or connections detailed.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: d14.fm.acceptance-blocked
+    what_happens: Acceptance inspection booked before recall, shunt trip, standby power, phone line or pit work by other trades is finished and tested
+    consequence: Failed acceptance, a wait for re-inspection, and a delayed certificate of occupancy
+    caught_by: [d14.acceptance-readiness]
+    source: field_experience
+
+  - id: d14.fm.temporary-use-damage
+    what_happens: Unit used for construction without protection or an agreed warranty start
+    consequence: Cab and entrances replaced before turnover; warranty and maintenance dispute
+    caught_by: [d14.temporary-use]
+    source: industry_practice
+
+  - id: d14.fm.proprietary-controls
+    what_happens: Controller with proprietary diagnostics accepted without the tools the spec required
+    consequence: Owner tied to one maintenance provider for the life of the equipment
+    caught_by: [d14.non-proprietary]
+    source: industry_practice
+
+  - id: d14.fm.reaction-unsupported
+    what_happens: Reactions of the selected equipment fall where, or exceed what, the structure was designed for
+    consequence: Steel or reinforcing added after the hoistway or floor is built
+    caught_by: [d14.rc.reactions]
+    source: industry_practice
+
+standards:
+  - id: d14.std.asme-a17-1
+    name: ASME A17.1/CSA B44
+    title: Safety Code for Elevators and Escalators
+    verify: Equipment compliance claims, against the edition the authority enforces
+    note: The enforced edition is set by the jurisdiction and often lags the current one
+
+  - id: d14.std.asme-a17-3
+    name: ASME A17.3
+    title: Safety Code for Existing Elevators and Escalators
+    verify: Requirements triggered when existing equipment is altered or modernized
+
+regulatory_hooks:
+  - id: d14.rh.authority
+    topic: conveying-equipment-permit-inspection
+    question: >
+      Which authority (state elevator agency or local) has jurisdiction over
+      conveying equipment, which editions of ASME A17.1 and A18.1 it enforces,
+      what permits, licensed installer and acceptance inspection it requires,
+      and does it review plans separately from the building permit?
+    applies_when: Every elevator, escalator, platform lift and dumbwaiter
+    source_families: [elevator_code]
+    severity: high
+
+  - id: d14.rh.seismic
+    topic: elevator-seismic-requirements
+    question: >
+      Does the seismic design category trigger the elevator code's seismic
+      requirements (seismic switch, rail and bracket design, counterweight
+      displacement detection), and for escalators the seismic gap and support
+      requirements?
+    applies_when: Projects assigned to seismic design categories where the elevator code's seismic provisions apply
+    source_families: [elevator_code, building_code_seismic]
+    severity: high
+
+  - id: d14.rh.accessibility
+    topic: accessible-elevators-and-lifts
+    question: >
+      Do car size, door width, controls, signals and two-way communication of
+      elevators, and the permitted use and operation of platform lifts, meet
+      the adopted accessibility standard?
+    applies_when: Elevators and platform lifts on an accessible route
+    source_families: [accessibility]
+    severity: high
+
+extract_fields:
+  - id: d14.xf.reactions
+    label: Reactions per support point (location, load, direction)
+    type: list
+    per: element
+    reconcile_against: [drawings.structural]

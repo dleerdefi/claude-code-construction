@@ -1,0 +1,122 @@
+schema_version: 1
+kind: section
+id: "14 30 00"
+title: Escalators and Moving Walks
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+element_types: [escalator_unit]
+
+scope_summary: >
+  Escalators, moving walks and moving ramps (14 31 00 through 14 33 00
+  inherit from here). Each unit is a prefabricated truss that bears on the
+  structure at its ends, arrives in large sections that must be set while the
+  route is still open, and leaves a floor opening the code requires to be
+  protected. The misses are truss bearings that do not match the approved
+  truss, no route to set it, and wellway protection nobody drew.
+
+submittals:
+  - id: 14es.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Truss length, rise and inclination, with bearing points, reactions, seismic gap and sliding end
+      - Lower and upper pit dimensions and drainage
+      - Clearances at the floor opening, deck barricades and guards, and landing areas
+      - Delivery sections and the setting method
+
+review_checks:
+  - id: 14es.truss-supports
+    kind: coordination
+    check: >
+      Truss bearing points and any intermediate supports match the approved
+      truss length, rise and reactions, with the bearing angles or plates,
+      seismic gap and sliding end the supplier requires.
+    trace_to: [drawings.structural, drawings.building_sections, drawings.details]
+    severity: high
+    owner: design_team
+    gate: steel_erection
+
+  - id: 14es.setting-route
+    kind: constructability
+    check: >
+      How each truss gets into place (crane through the roof or a temporary
+      opening, rigging points, staging) is planned with the structural
+      sequence, and the route stays open until the trusses are set.
+    trace_to: [schedule.master, drawings.structural]
+    severity: high
+    owner: gc
+    gate: steel_erection
+
+  - id: 14es.pits
+    kind: absence
+    check: >
+      Pits at the landings are sized for the approved unit, with drainage
+      where the code requires it and waterproofing where below grade.
+    trace_to: [drawings.structural, drawings.plumbing, drawings.details]
+    severity: medium
+    owner: design_team
+    gate: slab_pour
+
+  - id: 14es.wellway-protection
+    kind: absence
+    check: >
+      Each floor opening is protected by a method the building code allows
+      (enclosure, sprinklers with draft curtains, or another permitted
+      method), shown on the architectural and fire protection drawings with
+      the draft curtain's construction and installer assigned.
+    trace_to: [drawings.life_safety, drawings.fire_protection, drawings.rcp]
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: 14es.clearances
+    kind: conformance
+    check: >
+      Headroom over the steps, guards and deck barricades where the
+      balustrade meets floors, ceilings or adjacent edges, and clear landing
+      areas meet the elevator code and are drawn with the adjacent finishes.
+    trace_to: [drawings.building_sections, drawings.details, drawings.plans]
+    severity: medium
+    owner: subcontractor
+
+  - id: 14es.truss-cladding
+    kind: coordination
+    check: >
+      Truss cladding, soffits and balustrade finishes are assigned to the
+      escalator supplier or the architectural trades, with access panels for
+      the truss and any fire rating the code requires for the enclosure.
+    trace_to: [spec.part1, drawings.details]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: 14es.fm.truss-misfit
+    what_happens: Bearing steel set to the bid-set truss; the approved truss has a different length or rise
+    consequence: Bearing steel cut and rewelded, or trusses modified on site
+    caught_by: [14es.truss-supports, d14.rc.reactions]
+    source: field_experience
+
+  - id: 14es.fm.no-route
+    what_happens: Truss delivery left until after the roof and floors close the setting route
+    consequence: Temporary openings cut in finished construction, or trusses split and spliced in place
+    caught_by: [14es.setting-route]
+    source: field_experience
+
+  - id: 14es.fm.wellway-unprotected
+    what_happens: Escalator opening left without enclosure or the sprinkler and draft curtain arrangement
+    consequence: Fails the fire inspection; draft curtain and sprinklers added around finished ceilings
+    caught_by: [14es.wellway-protection, if.14-escalator-openings]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 14es.rh.opening-protection
+    topic: escalator-floor-opening-protection
+    question: >
+      Which methods does the adopted building code allow to protect escalator
+      floor openings (shaft enclosure, sprinkler and draft curtain, or others),
+      and under what conditions?
+    applies_when: Escalators and moving walks that penetrate a floor
+    source_families: [building_code, fire_code]
+    severity: high

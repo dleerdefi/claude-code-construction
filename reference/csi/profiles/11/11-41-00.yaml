@@ -1,0 +1,268 @@
+schema_version: 1
+kind: section
+id: "11 41 00"
+title: Foodservice Storage Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["13 21 26"]   # walk-ins are sometimes specified as cold storage rooms
+element_types: [walk_in_box]
+
+scope_summary: >
+  Walk-in coolers and freezers, refrigerated storage cases and shelving
+  (11 41 23 and 11 41 26 inherit from here). A walk-in is a small building
+  inside the building: its floor, slab depression, vapor control, underfloor
+  heat, refrigeration, condensate, door heaters, sprinklers and lights are
+  split among the concrete, refrigeration, plumbing, electrical and fire
+  protection trades, and most of those decisions are fixed at the slab pour.
+  A freezer on grade without working underfloor heat heaves its own floor,
+  and the repair means removing the box.
+
+suppress:
+  - id: 11fs.hood-airflow
+    reason: Hood checks belong to cooking equipment, not storage equipment
+  - id: 11fs.hood-suppression
+    reason: Hood checks belong to cooking equipment, not storage equipment
+  - id: 11fs.type-ii-exhaust
+    reason: Exhaust of cooking and dish equipment does not arise for storage equipment
+  - id: 11fs.gas-connections
+    reason: Storage equipment has no gas connections
+  - id: 11fs.custom-fabrication
+    reason: Custom fabrication is reviewed under the fabrication item numbers in 11 40 00
+  - id: 11fs.rc.hood-exhaust
+    reason: Hood checks belong to cooking equipment, not storage equipment
+  - id: 11fs.rc.gas-load
+    reason: Storage equipment has no gas connections
+  - id: 11fs.fm.exhaust-fan-short
+    reason: Hood failure modes belong to cooking equipment
+  - id: 11fs.fm.suppression-line-up
+    reason: Hood failure modes belong to cooking equipment
+  - id: 11fs.fm.dish-vapor
+    reason: Exhaust of cooking and dish equipment does not arise for storage equipment
+  - id: 11fs.fm.cutout-mismatch
+    reason: Custom fabrication is reviewed under the fabrication item numbers in 11 40 00
+  - id: 11fs.walk-ins-included
+    reason: This profile is the walk-in review the pointer leads to
+  - id: 11fs.grease-waste
+    reason: Storage equipment produces no grease-laden waste
+  - id: 11fs.fm.interceptor-preliminary
+    reason: Storage equipment produces no grease-laden waste
+  - id: 11fs.fm.suppression-not-monitored
+    reason: Hood failure modes belong to cooking equipment
+  - id: 11fs.rh.hood-type
+    reason: Hood requirements belong to cooking equipment
+  - id: 11fs.rh.hood-suppression
+    reason: Hood requirements belong to cooking equipment
+  - id: 11fs.rh.makeup-air
+    reason: Hood requirements belong to cooking equipment
+  - id: 11fs.rh.grease-interceptor
+    reason: Storage equipment produces no grease-laden waste
+  - id: 11fs.rh.accessible-service
+    reason: Serving-line accessibility belongs to service equipment, not storage
+
+submittals:
+  - id: 11wi.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Box plan with panel layout, door locations and swings, heights, and clearance to the structure above
+      - Floor construction (insulated floor panels, or insulated slab with vapor retarder and underfloor heat) and the slab depression it needs
+      - Condensing unit and evaporator locations, refrigerant line routing, defrost type and condensate routing
+      - Junction box locations and electrical data for condensing units, evaporators, door heaters, pressure relief vents, lights and alarms
+  - id: 11wi.sub.product-data
+    type: Product Data
+    must_show:
+      - Panel insulation, facings and fire test data or listing
+      - Refrigerant type and charge for each system
+
+review_checks:
+  - id: 11wi.floor-depression
+    kind: constructability
+    check: >
+      The floor type is settled before the slab is formed: prefabricated
+      insulated floor panels set in a depression, or an insulated slab built
+      by the concrete trade. The depression depth matches the submitted floor
+      assembly so the box floor finishes flush with the kitchen floor at the
+      door.
+    trace_to: [drawings.structural, drawings.foodservice, drawings.details]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 11wi.freezer-underfloor
+    kind: absence
+    check: >
+      Freezers on grade have underfloor heat (heating cable or ventilated
+      conduits) with power, a control and monitoring, and the trade that
+      installs it under the slab is named. Freezers over occupied space show
+      how condensation below the box is prevented.
+    trace_to: [drawings.details, drawings.electrical, spec.part2]
+    severity: critical
+    owner: design_team
+    gate: slab_pour
+
+  - id: 11wi.vapor-control
+    kind: conformance
+    check: >
+      The vapor retarder is on the warm side of the floor insulation,
+      continuous under an insulated slab and sealed to the wall panels at the
+      perimeter; where a box abuts building walls or ceilings, the joint and
+      the finish behind the panels are detailed.
+    trace_to: [drawings.details, drawings.foodservice]
+    severity: medium
+    owner: subcontractor
+    gate: slab_pour
+
+  - id: 11wi.refrigeration-route
+    kind: coordination
+    check: >
+      Each condensing unit has a confirmed location (roof, yard or remote
+      rack) with its curb or pad, power and disconnect, and a refrigerant line
+      route within the manufacturer's length and lift limits; roof and wall
+      penetrations for the lines are located; heat rejected by self-contained
+      units into the kitchen is in the mechanical load.
+    trace_to: [drawings.roof_plan, drawings.mechanical, drawings.foodservice]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: 11wi.condensate
+    kind: conformance
+    check: >
+      Each evaporator's condensate line leaves the box to an indirect receptor
+      outside it and is trapped outside the box; inside freezers the line is
+      heat-traced and insulated, and the heat trace has power.
+    trace_to: [drawings.plumbing, drawings.electrical]
+    severity: high
+    owner: subcontractor
+
+  - id: 11wi.box-electrical
+    kind: coordination
+    check: >
+      Door frame heaters, freezer pressure relief vents, interior lights,
+      evaporator fans and defrost heaters, alarms and temperature monitoring
+      each have power where the shop drawings put their junction boxes, on
+      the circuits the manufacturer requires, not only the condensing unit.
+    trace_to: [drawings.electrical, schedule.electrical_panel]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: 11wi.box-top
+    kind: coordination
+    check: >
+      Clearance from the box top to the structure allows panel erection and
+      evaporator service; closure panels to walls and ceiling are assigned;
+      wide ceilings hang from building structure that was designed for them;
+      and sprinklers inside and above the box are located before the ceiling
+      panels are cut.
+    trace_to: [drawings.building_sections, drawings.fire_protection, drawings.structural]
+    severity: medium
+    owner: gc
+    gate: above_ceiling_close_in
+
+reconciliations:
+  - id: 11wi.rc.walk-in-services
+    between: [schedule.foodservice_equipment, drawings.electrical, drawings.plumbing, drawings.fire_protection]
+    key: Walk-in box and each of its refrigeration components
+    fields: [condensing unit voltage, phase, MCA and MOCP, evaporator and defrost power, door heater, light and alarm circuits, condensate receptor location, sprinklers inside the box]
+    check: >
+      Every powered component of each walk-in has a circuit on the electrical
+      drawings, each evaporator has a condensate receptor on the plumbing
+      drawings, and the fire protection drawings show heads inside every box
+      that needs them.
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 11wi.fm.frost-heave
+    what_happens: Freezer built on grade without underfloor heat, or with heating cable never energized or monitored
+    consequence: The slab and box heave over months; repair means removing the freezer and the floor under it
+    caught_by: [11wi.freezer-underfloor]
+    source: field_experience
+
+  - id: 11wi.fm.no-depression
+    what_happens: Slab poured flat where the walk-in needed a depression, or depressed for a different floor assembly
+    consequence: Ramps at the door, carts that will not roll in, or a topping slab added inside the box
+    caught_by: [11wi.floor-depression]
+    source: field_experience
+
+  - id: 11wi.fm.condensate-freezes
+    what_happens: Freezer condensate line run without heat trace, or trapped inside the box
+    consequence: Ice blocks the drain; water and ice on the freezer floor and a damaged evaporator
+    caught_by: [11wi.condensate]
+    source: industry_practice
+
+  - id: 11wi.fm.door-heater-unpowered
+    what_happens: Door frame heaters and pressure relief vents left without power because only the refrigeration was circuited
+    consequence: Doors freeze shut, gaskets tear, and panels distort from pressure differences
+    caught_by: [11wi.box-electrical, 11wi.rc.walk-in-services]
+    source: field_experience
+
+  - id: 11wi.fm.line-route
+    what_happens: Condensing unit location and refrigerant line route left to be worked out in the field
+    consequence: Lines beyond the manufacturer's limits, penetrations through finished roofing without curbs, or runs with no service access
+    caught_by: [11wi.refrigeration-route, if.11-walk-in-refrigeration]
+    source: industry_practice
+
+  - id: 11wi.fm.sprinklers-in-box
+    what_happens: Sprinklers omitted inside the box, or standard wet heads used inside a freezer
+    consequence: Failed fire inspection, or frozen and burst heads
+    caught_by: [if.11-walk-in-sprinklers, 11wi.rc.walk-in-services]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 11wi.rh.foam-panels
+    topic: walk-in-foam-plastic-panels
+    question: >
+      May the foam-plastic insulated panels of walk-in coolers and freezers be
+      used without a thermal barrier under the adopted building code, and what
+      flame spread, smoke-developed index or listing must the panels meet?
+    applies_when: Walk-in coolers and freezers with foam-plastic panels
+    source_families: [building_code]
+    severity: medium
+
+  - id: 11wi.rh.energy-standards
+    topic: walk-in-cooler-energy-standards
+    question: >
+      Do the walk-in panels, doors and refrigeration systems meet the federal
+      energy conservation standards for walk-in coolers and freezers, and any
+      energy code provisions for refrigerated spaces?
+    applies_when: Walk-in coolers and freezers
+    source_families: [energy]
+    severity: medium
+
+  - id: 11wi.rh.refrigerant-safety
+    topic: refrigerant-safety-requirements
+    question: >
+      Does the refrigerant type and charge of each system trigger refrigerant
+      safety requirements under the adopted mechanical code (machinery room,
+      leak detection, charge limits for occupied spaces), particularly for
+      flammable refrigerants or remote rack systems?
+    applies_when: Walk-in and remote refrigeration systems
+    source_families: [mechanical_code]
+    severity: medium
+
+  - id: 11wi.rh.refrigerant-gwp
+    topic: refrigerant-gwp-restrictions
+    question: >
+      Do federal or state high-GWP refrigerant restrictions limit the
+      refrigerant this walk-in, remote condensing unit or rack may use, given
+      when it is manufactured and installed?
+    applies_when: Walk-in and remote refrigeration systems
+    source_families: [environmental, mechanical_code]
+    severity: medium
+
+extract_fields:
+  - id: 11wi.xf.floor-type
+    label: Floor construction (insulated floor panels, insulated slab, or no floor)
+    type: enum
+    per: element
+    reconcile_against: [drawings.structural, drawings.details]
+  - id: 11wi.xf.refrigeration
+    label: Condensing unit location, refrigerant type, and electrical data per component
+    type: list
+    per: element
+    reconcile_against: [drawings.electrical, drawings.mechanical]

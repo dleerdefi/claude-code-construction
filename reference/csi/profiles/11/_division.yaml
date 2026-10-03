@@ -1,0 +1,202 @@
+schema_version: 1
+kind: division
+id: "11"
+title: Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+legacy_scope_file: reference/pe_expertise/scope-11-equipment.md
+
+scope_summary: >
+  Owner-program equipment set into the building: foodservice, laboratory,
+  healthcare, loading dock, residential, stage and athletic equipment. The
+  equipment contractor or the owner's vendor furnishes it, but the building
+  trades rough in for it months before it arrives, so the review is about
+  utility data per item, who furnishes what, and whether the rough-in was
+  built to the unit that will actually be delivered. One substituted item
+  can change the electrical, plumbing, gas, exhaust, fire suppression and
+  structural work at once.
+
+review_checks:
+  - id: d11.item-utilities
+    kind: conformance
+    scope: element
+    applies_if: {review_mode: per_element}
+    check: >
+      For each item, the submitted model's utility data (voltage, phase, load,
+      cord-and-plug configuration or hardwired connection, water sizes and
+      temperatures, direct or indirect waste, gas input and pressure, steam,
+      exhaust or venting) matches the equipment schedule and the MEP drawings
+      at that item's location. Read the manufacturer's nameplate data on the
+      cut sheet, not a schedule copied into the submittal.
+    trace_to: [schedule.equipment, drawings.electrical, drawings.plumbing, drawings.mechanical]
+    severity: high
+    owner: subcontractor
+    gate: in_wall_rough_in
+
+  - id: d11.furnished-by
+    kind: coordination
+    reflex: true
+    check: >
+      Each item is designated owner- or contractor-furnished, and for every
+      owner-furnished item the contract names who receives, unloads, stores,
+      sets, assembles, connects and starts it up, and the date the owner's
+      vendor must deliver final rough-in data. An OFCI note on the schedule
+      with no responsibility matrix behind it is a scope gap.
+    trace_to: [spec.division_01, spec.part1, schedule.equipment]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: d11.approved-model-rough-in
+    kind: constructability
+    check: >
+      Rough-ins are built from the approved unit's installation drawings (or
+      the owner vendor's final data), not from basis-of-design cut sheets or
+      the symbols on the MEP plans. Items whose approval or owner purchase
+      decision lags the rough-in schedule are listed with the date their data
+      is needed.
+    trace_to: [register.submittal_log, schedule.master, drawings.equipment]
+    severity: high
+    owner: gc
+    gate: underslab_rough_in
+
+  - id: d11.substitution-cascade
+    kind: coordination
+    reflex: true
+    check: >
+      A change of make, model, size or fuel from the basis of design is
+      checked against every trade it touches (power, water and waste, gas,
+      exhaust and make-up air, fire suppression, structure, casework cutouts)
+      before approval, and the revised data is issued to those trades in
+      writing rather than left inside the equipment submittal.
+    trace_to: [register.substitutions, schedule.equipment]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: d11.structural-support
+    kind: coordination
+    check: >
+      Weight, operating and dynamic loads, and anchorage of heavy, suspended,
+      wall-hung or vibrating items are on the submittal and match what the
+      structural design assumed: floor loads on elevated slabs, housekeeping
+      pads, support framing for ceiling-hung items, in-wall backing, and
+      vibration isolation. Loads on delegated-design joists have to reach the
+      joist supplier before joists are designed.
+    trace_to: [drawings.structural, drawings.details, schedule.equipment]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: d11.delivery-path
+    kind: constructability
+    check: >
+      Each large item has a route from the delivery point to its room (door
+      and corridor widths, elevator or hoist capacity, floor capacity along
+      the path) or an opening left until it is set. Items that only fit before
+      walls, roof or envelope close are ordered to arrive then.
+    trace_to: [drawings.plans, schedule.master]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+  - id: d11.service-clearance
+    kind: conformance
+    check: >
+      Manufacturer service and code clearances around each item (coil and
+      filter access, door swings, access to controls and disconnects,
+      clearance to combustibles for fuel-fired and cooking equipment) fit the
+      space shown on the plans with adjacent equipment in place.
+    trace_to: [drawings.enlarged_plans, drawings.plans]
+    severity: medium
+    owner: design_team
+
+reconciliations:
+  - id: d11.rc.electrical
+    between: [schedule.equipment, schedule.electrical_panel, drawings.electrical]
+    key: Equipment item number
+    fields: [voltage, phase, load (amps, kW or MCA and MOCP), receptacle configuration or hardwired, disconnect, circuit, normal or standby branch]
+    check: >
+      Every item with an electrical connection appears on the electrical plans
+      at its location with a circuit of matching voltage, phase and capacity,
+      the matching receptacle configuration or a hardwired connection, and its
+      disconnect; items the owner needs on standby power are on that branch.
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
+  - id: d11.rc.plumbing-mechanical
+    between: [schedule.equipment, drawings.plumbing, drawings.mechanical]
+    key: Equipment item number
+    fields: [water service and size, water temperature, waste size, direct or indirect waste, receptor location, gas input and pressure, steam and condensate, exhaust connection and airflow]
+    check: >
+      Every item with a water, waste, gas, steam or exhaust connection has
+      that connection on the plumbing and mechanical drawings at the item's
+      location, with matching sizes and an indirect-waste receptor wherever
+      the item discharges indirectly.
+    severity: high
+    owner: design_team
+    gate: underslab_rough_in
+
+failure_modes:
+  - id: d11.fm.substitution-cascade
+    what_happens: An item is substituted or changes fuel or size after MEP rough-in, and only the equipment submittal is revised
+    consequence: Wrong circuits, receptacles, gas sizing, waste and exhaust connections found at setting; rework across several trades
+    caught_by: [d11.substitution-cascade, d11.rc.electrical, d11.rc.plumbing-mechanical]
+    source: industry_practice
+
+  - id: d11.fm.owner-data-late
+    what_happens: Owner-furnished items are bought late and the vendor's rough-in data arrives after slabs and walls close
+    consequence: Cored slabs, opened walls and change orders charged against the owner's own late decision
+    caught_by: [d11.furnished-by, d11.approved-model-rough-in]
+    source: industry_practice
+
+  - id: d11.fm.nameplate-mismatch
+    what_happens: Receptacle configuration, voltage or phase on the electrical drawings differs from the delivered unit's plug or nameplate
+    consequence: Equipment cannot be connected at turnover; receptacles, breakers and sometimes feeders changed in the field
+    caught_by: [d11.rc.electrical]
+    source: industry_practice
+
+  - id: d11.fm.no-path-in
+    what_happens: Large equipment arrives after the envelope and interior openings are finished and does not fit through them
+    consequence: Finished openings demolished, crane picks, or disassembly and reassembly at extra cost
+    caught_by: [d11.delivery-path]
+    source: industry_practice
+
+  - id: d11.fm.unsupported-load
+    what_happens: Heavy or suspended equipment placed on a slab or hung from framing never designed for its load
+    consequence: Reinforcement after the fact, relocated equipment or a structural redesign during construction
+    caught_by: [d11.structural-support]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: d11.rh.seismic-anchorage
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Does the seismic design category require engineered anchorage or
+      bracing for floor-, wall- and ceiling-mounted equipment, who designs it,
+      and is special inspection of the anchorage required?
+    applies_when: Floor-, wall- or ceiling-mounted equipment in projects assigned to higher seismic design categories
+    source_families: [building_code_seismic]
+    severity: medium
+
+extract_fields:
+  - id: d11.xf.utilities
+    label: Utility data per item (voltage, phase, load, connection type, water, waste, gas, steam, exhaust)
+    type: list
+    per: element
+    reconcile_against: [schedule.equipment, schedule.electrical_panel, drawings.plumbing, drawings.mechanical]
+  - id: d11.xf.weight
+    label: Operating weight per item
+    type: number
+    unit: lb
+    per: element
+    reconcile_against: [drawings.structural]
+  - id: d11.xf.furnished-by
+    label: Furnished and installed by (OFOI, OFCI, CFCI)
+    type: enum
+    per: element
+    reconcile_against: [schedule.equipment, spec.part1]

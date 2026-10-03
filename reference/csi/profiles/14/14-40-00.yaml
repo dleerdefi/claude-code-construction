@@ -1,0 +1,132 @@
+schema_version: 1
+kind: section
+id: "14 40 00"
+title: Lifts
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+element_types: [lift_unit]
+contractor_designed: sometimes
+
+scope_summary: >
+  Vertical and inclined platform lifts, wheelchair lifts, stairway
+  chairlifts and material lifts (14 41 00 through 14 46 00 inherit from
+  here). A platform lift is a narrow exception in the accessibility rules, so
+  the first question is whether a lift is allowed at that location at all;
+  after that, the misses are the pit or ramp at the lower landing, key-only
+  controls, and inclined lifts that narrow an egress stair.
+
+submittals:
+  - id: 14lf.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Runway or enclosure plan and section, pit or ramp at each landing, doors and gates with their fire rating
+      - Controls at each landing and on the platform, and how the user operates them
+      - For inclined lifts, folded and deployed positions against the stair's required egress width
+
+review_checks:
+  - id: 14lf.allowed-location
+    kind: conformance
+    check: >
+      A platform lift is used only where the accessibility standard and
+      building code allow one in place of a ramp or elevator, and its type
+      (vertical, inclined, enclosed) suits that location.
+    trace_to: [drawings.plans, drawings.life_safety, spec.part2]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: 14lf.pit-or-ramp
+    kind: constructability
+    check: >
+      The pit or recess at the lower landing for the approved unit is in the
+      slab, or the approach ramp the lift needs is drawn.
+    trace_to: [drawings.structural, drawings.details]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 14lf.independent-operation
+    kind: conformance
+    check: >
+      Controls let the user operate the lift independently (no key or
+      attendant unless the standard allows it), with call and send stations
+      within reach at each landing.
+    trace_to: [spec.part2, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: 14lf.egress-width
+    kind: absence
+    check: >
+      Inclined lifts on stairs leave the required egress width with the
+      platform folded, and lift runways and gates do not obstruct a means of
+      egress.
+    trace_to: [drawings.life_safety, drawings.plans]
+    severity: high
+    owner: design_team
+
+  - id: 14lf.enclosure-rating
+    kind: conformance
+    check: >
+      Where the runway passes through a rated floor or forms a shaft, the
+      enclosure and doors carry the rating, and doors and gates have the
+      interlocks the lift standard requires.
+    trace_to: [drawings.life_safety, schedule.partition_type, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 14lf.fm.not-permitted
+    what_happens: Platform lift used where the accessibility rules require a ramp or elevator
+    consequence: Lift rejected at inspection; a ramp or elevator added late
+    caught_by: [14lf.allowed-location]
+    source: industry_practice
+
+  - id: 14lf.fm.no-pit
+    what_happens: Slab poured flat where the approved lift needs a pit at the lower landing
+    consequence: Saw-cut pit, or a ramp that does not fit the space
+    caught_by: [14lf.pit-or-ramp]
+    source: field_experience
+
+  - id: 14lf.fm.key-operated
+    what_happens: Lift delivered with key-operated controls
+    consequence: Accessibility finding; controls replaced or reprogrammed
+    caught_by: [14lf.independent-operation]
+    source: industry_practice
+
+  - id: 14lf.fm.egress-narrowed
+    what_happens: Inclined lift installed on an egress stair whose width did not allow for the folded platform
+    consequence: Fails egress review; lift relocated or replaced
+    caught_by: [14lf.egress-width]
+    source: industry_practice
+
+standards:
+  - id: 14lf.std.asme-a18-1
+    name: ASME A18.1
+    title: Safety Standard for Platform Lifts and Stairway Chairlifts
+    verify: Lift compliance claims against the edition the authority enforces
+
+regulatory_hooks:
+  - id: 14lf.rh.permitted-locations
+    topic: platform-lift-permitted-locations
+    question: >
+      Where do the adopted accessibility standard and building code permit a
+      platform lift as part of an accessible route, and what does the building
+      code require of lifts on an accessible means of egress (standby power,
+      operation)?
+    applies_when: Any platform lift or wheelchair lift
+    source_families: [accessibility, building_code]
+    severity: critical
+
+  - id: 14lf.rh.egress-width
+    topic: platform-lift-egress-width
+    question: >
+      How does the adopted building code treat an inclined platform lift or
+      stairway chairlift in an egress stair (required width with the
+      platform folded, permitted locations)?
+    applies_when: Inclined platform lifts and stairway chairlifts
+    source_families: [building_code]
+    severity: high

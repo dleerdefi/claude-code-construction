@@ -1,0 +1,376 @@
+schema_version: 1
+kind: section
+id: "14 20 00"
+title: Elevators
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+element_types: [elevator_car]
+
+scope_summary: >
+  Passenger, service and freight elevators of any drive type (14 21 00
+  traction and 14 24 00 hydraulic inherit from here). Pit depth and overhead
+  are fixed by structure long before the elevator submittal is approved, rail
+  brackets need structure at every support level, and the unit cannot pass
+  acceptance until fire alarm recall, sprinklers and shunt trip, standby
+  power, the emergency phone line and machine room cooling, all built by
+  other trades, work. Check the hoistway against the selected equipment
+  first; it is the one thing that cannot be fixed later.
+
+submittals:
+  - id: 14el.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Hoistway plan and section with clear inside dimensions, pit depth, overhead, and rail bracket levels and spacing
+      - Reactions at the pit, rail brackets, and machine or hoist supports
+      - Machine room or control space layout with equipment, clearances and heat release
+      - Entrance details with fire rating, sill supports and frame anchorage to the hoistway wall type
+      - Cab interior layout, finishes and finished cab weight against the allowance
+  - id: 14el.sub.product-data
+    type: Product Data
+    must_show:
+      - Electrical data per car (voltage, phase, full-load and starting current or kVA), and the standby power operation
+      - Signal fixtures, two-way communication equipment and firefighter's service features
+
+review_checks:
+  - id: 14el.hoistway-fit
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      The selected equipment's required hoistway size, pit depth and overhead
+      are within what the architectural and structural drawings provide, for
+      the capacity, speed, door type and openings specified. A shortfall is
+      solved by equipment selection or a design change, never in the field.
+    trace_to: [drawings.enlarged_plans, drawings.building_sections, drawings.structural, spec.part2]
+    severity: critical
+    owner: subcontractor
+    gate: foundation_pour
+
+  - id: 14el.rail-supports
+    kind: coordination
+    check: >
+      Rail brackets have structure at every support level: floor slabs or
+      beams, embed plates in concrete hoistways, and intermediate supports or
+      divider beams where floor-to-floor height or adjacent cars exceed the
+      bracket spacing. Shaft wall and masonry that cannot take bracket forces
+      get steel behind them.
+    trace_to: [drawings.structural, drawings.building_sections, schedule.partition_type]
+    severity: high
+    owner: design_team
+    gate: hoistway_turnover
+
+  - id: 14el.pit
+    kind: absence
+    reflex: true
+    check: >
+      Each pit shows a drain or sump as the code requires, pit ladder, pit
+      light and receptacle, waterproofing where the groundwater condition
+      calls for it, and a floor designed for buffer impact.
+    trace_to: [drawings.structural, drawings.plumbing, drawings.electrical, drawings.details]
+    severity: high
+    owner: design_team
+    gate: foundation_pour
+
+  - id: 14el.space-below-pit
+    kind: absence
+    check: >
+      Where occupiable space, a passage or a basement lies below the pit or
+      counterweight runway, the design provides what the elevator code
+      requires there (counterweight safeties, or structure carried to solid
+      ground and designed for impact).
+    trace_to: [drawings.structural, drawings.building_sections, drawings.plans]
+    severity: high
+    owner: design_team
+    gate: foundation_pour
+
+  - id: 14el.machine-room
+    kind: conformance
+    check: >
+      The machine room or control space matches the shop drawings in size and
+      clearances, has cooling or ventilation sized to the equipment heat and
+      the controller's temperature range, lighting, a receptacle, the fire
+      rating and self-closing locked door the code requires; neither it nor
+      the hoistway carries pipes, ducts or conduit that do not serve the
+      elevator.
+    trace_to: [drawings.enlarged_plans, drawings.mechanical, drawings.electrical, drawings.plumbing]
+    severity: high
+    owner: design_team
+    gate: above_ceiling_close_in
+
+  - id: 14el.standby-operation
+    kind: coordination
+    check: >
+      Where cars run on standby power, the design shows which cars run at once,
+      the selector switch at the designated location, and the pre-transfer
+      signal from the transfer switch to the controller; the generator was
+      sized with the elevators' starting demand.
+    trace_to: [drawings.single_line, spec.part2]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 14el.fire-service
+    kind: coordination
+    check: >
+      The controller is configured for the inputs the fire alarm design
+      provides: designated and alternate recall landings, the detectors that
+      drive each, and the machine room and hoistway detectors that drive the
+      firefighter's hat; Phase II switches and keys are at each car.
+    trace_to: [drawings.fire_alarm, spec.part2]
+    severity: critical
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 14el.communication
+    kind: coordination
+    check: >
+      Each car has the two-way emergency communication the enforced code
+      edition requires (including visual or text capability where required),
+      the line or monitored connection is provided by a named party, and
+      landing or refuge-area stations required by the building code are
+      wired.
+    trace_to: [spec.part2, drawings.technology, spec.division_01]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 14el.cab-and-car
+    kind: conformance
+    check: >
+      Finished cab weight with the designer's interior finishes is within the
+      manufacturer's allowance, finishes meet the cab's fire requirements, and
+      car size suits its use: stretcher accommodation where required,
+      protective pads for service cars, and the freight loading class matched
+      to how the owner will load the car.
+    trace_to: [spec.part2, drawings.interior_elevations, drawings.enlarged_plans]
+    severity: medium
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 14el.entrances
+    kind: conformance
+    check: >
+      Hoistway entrances carry labels for the hoistway's fire rating, sill
+      supports are assigned between the elevator and metals trades, frames
+      anchor to the hoistway wall type with that wall system's tested detail,
+      and the hoistway opening protection the code requires (enclosed lobby,
+      additional doors or pressurization) is shown.
+    trace_to: [drawings.details, drawings.life_safety, schedule.partition_type]
+    severity: high
+    owner: subcontractor
+    gate: hoistway_turnover
+
+reconciliations:
+  - id: 14el.rc.hoistway
+    reflex: true
+    between: [drawings.enlarged_plans, drawings.building_sections, drawings.structural, spec.part2]
+    key: Elevator car designation
+    fields: [clear hoistway width and depth, pit depth, overhead, machine room or control space, capacity and car size, door type and width, front or rear openings, stops]
+    check: >
+      Hoistway size, pit depth and overhead agree among the architectural
+      plans and sections, the structural drawings and the spec's capacity,
+      speed and door type. The structural pit and top-of-hoistway framing are
+      what will be built, so check them first.
+    severity: critical
+    owner: design_team
+    gate: foundation_pour
+
+  - id: 14el.rc.electrical
+    between: [spec.part2, drawings.single_line, schedule.electrical_panel]
+    key: Elevator car designation
+    fields: [voltage, phase, full-load and starting current or kVA, feeder and disconnect size, shunt trip, cab lighting circuit, standby power]
+    check: >
+      The elevator's electrical data matches the feeder, mainline disconnect
+      and standby power shown for it, with a separate cab lighting and
+      ventilation circuit and a shunt-trip disconnect wherever sprinklers
+      protect the hoistway or machine room.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 14el.rc.fire-protection
+    between: [drawings.fire_protection, drawings.fire_alarm, drawings.electrical]
+    key: Hoistway, pit, machine room or control space, and each elevator lobby
+    fields: [sprinkler heads, heat detector beside each sprinkler, smoke detectors, shunt-trip disconnect, recall and hat relays]
+    check: >
+      Wherever sprinklers are shown in the hoistway, pit or machine room, the
+      fire alarm drawings show a heat detector beside each and the electrical
+      drawings show the shunt trip; lobby, machine room and hoistway smoke
+      detectors are on the fire alarm drawings at every landing the recall
+      design needs.
+    severity: critical
+    owner: design_team
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 14el.fm.pit-too-shallow
+    what_happens: Pit formed to the bid-set depth; the selected equipment needs a deeper pit
+    consequence: Pit demolished and re-excavated, or a reduced-pit variance and different equipment
+    caught_by: [14el.hoistway-fit, 14el.rc.hoistway]
+    source: field_experience
+
+  - id: 14el.fm.overhead-short
+    what_happens: Top-of-hoistway framing or the hoist beam set lower than the selected equipment needs
+    consequence: Roof framing modified or equipment reselected, delaying installation
+    caught_by: [14el.hoistway-fit, 14el.rc.hoistway, if.05-elevator-supports]
+    source: field_experience
+
+  - id: 14el.fm.rail-brackets-no-structure
+    what_happens: Shaft wall hoistway with floor-to-floor heights beyond bracket spacing and no intermediate supports detailed
+    consequence: Steel added inside a finished hoistway, or shaft walls opened
+    caught_by: [14el.rail-supports, d14.rc.reactions, if.05-elevator-supports]
+    source: field_experience
+
+  - id: 14el.fm.pit-no-drain
+    what_happens: Pit built with no drain or sump where the code requires one
+    consequence: Water in the pit, failed inspection, and a sump cored in after the fact
+    caught_by: [14el.pit, if.14-elevator-pit-drainage]
+    source: industry_practice
+
+  - id: 14el.fm.below-pit-occupied
+    what_happens: Space below the pit is occupied or accessible and the design gave it no counterweight safeties or pier
+    consequence: Equipment change or structure added below the pit late in the job
+    caught_by: [14el.space-below-pit]
+    source: industry_practice
+
+  - id: 14el.fm.machine-room-hot
+    what_happens: Machine room or control space without cooling sized for controller heat
+    consequence: Drive faults and shutdowns; cooling added after turnover
+    caught_by: [14el.machine-room, if.14-elevator-hvac]
+    source: field_experience
+
+  - id: 14el.fm.foreign-systems
+    what_happens: Sprinkler mains, drains, ducts or conduit unrelated to the elevator routed through the hoistway or machine room
+    consequence: Elevator inspector rejects the installation; rerouting through finished construction
+    caught_by: [14el.machine-room]
+    source: industry_practice
+
+  - id: 14el.fm.shunt-trip-missing
+    what_happens: Sprinklers installed in the hoistway or machine room without shunt trip and heat detectors
+    consequence: Failed acceptance test; disconnect replaced and detectors added under schedule pressure
+    caught_by: [14el.rc.fire-protection, 14el.rc.electrical, if.14-elevator-sprinkler-shunt-trip]
+    source: field_experience
+
+  - id: 14el.fm.recall-mismatch
+    what_happens: Fire alarm recall outputs do not match the controller's designated and alternate landing logic
+    consequence: Recall fails the acceptance test; reprogramming and re-inspection
+    caught_by: [14el.fire-service, if.14-elevator-fire-alarm]
+    source: industry_practice
+
+  - id: 14el.fm.phone-line-missing
+    what_happens: Emergency phone line or monitoring service not ordered by anyone before acceptance
+    consequence: Car cannot be accepted or put in service; occupancy delayed
+    caught_by: [14el.communication, if.14-elevator-communications]
+    source: field_experience
+
+  - id: 14el.fm.cab-overweight
+    what_happens: Designer-selected cab finishes exceed the manufacturer's weight allowance
+    consequence: Counterweight and rating rework, or finishes changed after fabrication
+    caught_by: [14el.cab-and-car]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 14el.rh.sprinklers-shunt-trip
+    topic: elevator-sprinklers-shunt-trip
+    question: >
+      Do the adopted building and fire codes and sprinkler standard require or
+      exempt sprinklers in the hoistway, pit and machine room or control
+      space, and where sprinklers are present, what shunt trip and heat
+      detection arrangement does the elevator code require?
+    applies_when: Every elevator in a sprinklered building
+    source_families: [fire_code, building_code, elevator_code, electrical_code]
+    severity: critical
+
+  - id: 14el.rh.hoistway-venting
+    topic: elevator-hoistway-venting
+    question: >
+      Does the adopted building code require hoistway venting, and if vents
+      are provided, does the energy code require them to be closed in normal
+      operation with controlled dampers?
+    applies_when: Every elevator hoistway
+    source_families: [building_code, energy]
+    severity: medium
+
+  - id: 14el.rh.pit-drainage
+    topic: elevator-pit-drainage
+    question: >
+      What do the adopted elevator and plumbing codes require for pit drains
+      or sump pumps (capacity, cover, discharge to sanitary, storm or indirect
+      waste, oil separation for hydraulic elevators)?
+    applies_when: Every elevator pit
+    source_families: [elevator_code, plumbing_code]
+    severity: high
+
+  - id: 14el.rh.opening-protection
+    topic: elevator-hoistway-opening-protection
+    question: >
+      Does the adopted building code require hoistway opening protection at
+      landings (enclosed elevator lobbies, additional doors, or hoistway
+      pressurization), and under which exceptions?
+    applies_when: Hoistways connecting more stories than the code's threshold
+    source_families: [building_code]
+    severity: high
+
+  - id: 14el.rh.stretcher
+    topic: elevator-stretcher-car
+    question: >
+      Does the building's height or occupancy require an elevator sized for an
+      ambulance stretcher, and with what car size and identification?
+    applies_when: Multistory buildings with elevators
+    source_families: [building_code]
+    severity: medium
+
+  - id: 14el.rh.standby-power
+    topic: elevator-standby-power
+    question: >
+      Do the adopted building and electrical codes require standby power for
+      elevators (accessible means of egress elevators, high-rise buildings,
+      fire service access or occupant evacuation elevators), for which cars,
+      and with what operation?
+    applies_when: Elevators serving an accessible means of egress, high-rise buildings or health care occupancies
+    source_families: [building_code, electrical_code]
+    severity: high
+
+  - id: 14el.rh.fire-service-access
+    topic: fire-service-access-occupant-evacuation-elevators
+    question: >
+      Does the building height trigger fire service access elevators or
+      permit occupant evacuation elevators, and what lobby, power, monitoring
+      and water-protection requirements follow?
+    applies_when: High-rise buildings
+    source_families: [building_code, fire_code]
+    severity: high
+
+  - id: 14el.rh.communication
+    topic: elevator-emergency-communication
+    question: >
+      Which two-way emergency communication capabilities (voice, visual, text)
+      does the enforced elevator code edition require in the car, and does the
+      building code require two-way communication at elevator landings?
+    applies_when: Every passenger elevator
+    source_families: [elevator_code, building_code, accessibility]
+    severity: high
+
+extract_fields:
+  - id: 14el.xf.hoistway
+    label: Required clear hoistway width and depth, pit depth and overhead
+    type: list
+    per: element
+    reconcile_against: [drawings.enlarged_plans, drawings.building_sections, drawings.structural]
+  - id: 14el.xf.electrical
+    label: Voltage, phase, full-load and starting current or kVA, and heat release
+    type: list
+    per: element
+    reconcile_against: [drawings.single_line, schedule.electrical_panel, drawings.mechanical]
+  - id: 14el.xf.car
+    label: Capacity, speed, stops and openings, door type and width, car inside dimensions
+    type: list
+    per: element
+    reconcile_against: [spec.part2, drawings.enlarged_plans]
+  - id: 14el.xf.cab-weight
+    label: Finished cab weight and the manufacturer's allowance
+    type: list
+    per: element
+    reconcile_against: [spec.part2]

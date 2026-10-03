@@ -1,0 +1,75 @@
+schema_version: 1
+kind: section
+id: "14 21 00"
+title: Electric Traction Elevators
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Traction elevators with or without a machine room (14 21 13 freight and
+  14 21 23 passenger inherit from here). Machine-room-less units put the
+  machine at the top of the hoistway and the controller in the hoistway or a
+  closet at a landing, so overhead reactions, controller access and its
+  cooling move into the structural and architectural design. On standby
+  power, a traction machine returns energy to the source when braking, which
+  a generator cannot always absorb.
+
+review_checks:
+  - id: 14et.overhead-supports
+    kind: coordination
+    check: >
+      Machine supports, hoist beams and rope hitch points at the top of the
+      hoistway carry the reactions of the selected machine on members the
+      structural drawings design for them; for machine-room-less units,
+      confirm whether the machine bears on the rails, the hoistway walls or
+      beams, because the hoistway wall type may not take it.
+    trace_to: [drawings.structural, drawings.building_sections]
+    severity: high
+    owner: design_team
+    gate: hoistway_turnover
+
+  - id: 14et.controller-space
+    kind: conformance
+    check: >
+      For machine-room-less units, the controller location (hoistway, closet
+      at a landing, or remote room), the inspection and test panel, their
+      clear working space, access, fire rating, lighting and cooling are on
+      the architectural, mechanical and electrical drawings, not left to the
+      shop drawings.
+    trace_to: [drawings.enlarged_plans, drawings.mechanical, drawings.electrical]
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
+  - id: 14et.regenerated-power
+    kind: coordination
+    check: >
+      Where traction cars run on a standby generator, regenerated power is
+      absorbed (other building loads on the generator, resistors in the
+      controller, or a load bank) by an arrangement the elevator and
+      generator suppliers both accept.
+    trace_to: [drawings.single_line, spec.part2]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 14et.fm.controller-closet
+    what_happens: Machine-room-less controller placed in a closet sized only for the cabinet, with no cooling or working clearance
+    consequence: Failed inspection or overheating drives; closet rebuilt next to a finished lobby
+    caught_by: [14et.controller-space]
+    source: field_experience
+
+  - id: 14et.fm.generator-trips
+    what_happens: Regenerated power from braking cars not addressed while running on the generator
+    consequence: Generator overvoltage trips during an outage, stranding passengers when standby power is needed most
+    caught_by: [14et.regenerated-power]
+    source: industry_practice
+
+  - id: 14et.fm.machine-on-shaft-wall
+    what_happens: Machine-room-less machine reactions assumed to bear on hoistway walls that are lightweight shaft wall
+    consequence: Steel frame added inside the hoistway, or equipment reselected
+    caught_by: [14et.overhead-supports]
+    source: industry_practice

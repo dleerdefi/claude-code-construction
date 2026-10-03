@@ -1,0 +1,178 @@
+schema_version: 1
+kind: section
+id: "11 70 00"
+title: Healthcare Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+review_mode: per_element
+element_types: [equipment_item]
+contractor_designed: never
+
+scope_summary: >
+  Medical equipment from imaging suites to ceiling-mounted booms and surgical
+  lights, sterilizers, patient lifts and pharmacy equipment (11 71 00
+  through 11 79 00 inherit from here). Most of it is owner-furnished through a
+  medical equipment planner, bought late, and defined by vendor site-planning
+  drawings that change with the final model. The trades need those drawings
+  at rough-in, the structure needs support loads before steel and ceilings,
+  and the radiation shielding design depends on the actual equipment and room
+  layout.
+
+review_checks:
+  - id: 11hc.vendor-drawings
+    kind: completeness
+    check: >
+      For each major item (imaging, booms, surgical lights, sterilizers,
+      pharmacy and lab automation) the vendor's installation drawings for the
+      purchased model are issued to the trades by the design team, through an
+      ASI or bulletin, rather than handed to them directly by the vendor.
+      Items still drawn from generic planning data are listed with the owner's
+      purchase decision date.
+    trace_to: [drawings.equipment, register.asi_bulletin_log, schedule.master]
+    severity: critical
+    owner: owner
+    gate: underslab_rough_in
+
+  - id: 11hc.ceiling-supports
+    kind: coordination
+    check: >
+      Ceiling-mounted booms, surgical lights, imaging ceiling rails, patient
+      lifts and monitor arms have support structure designed for the vendor's
+      loads and deflection limits, set level at the elevation the vendor needs
+      relative to the finished ceiling, and installed before ductwork and
+      piping take the space; who furnishes and installs each support is
+      named.
+    trace_to: [drawings.structural, drawings.rcp, drawings.equipment]
+    severity: critical
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: 11hc.shielding
+    kind: coordination
+    check: >
+      The shielding report for each x-ray room is based on the equipment being
+      purchased, its orientation in the room and the current adjacent uses.
+      When the equipment submittal changes vendor, model, tube or table
+      position, or the room layout moves, the qualified expert re-issues the
+      report and the shielding on the drawings is revised before walls close.
+    trace_to: [report.radiation_shielding, drawings.plans, drawings.details]
+    severity: critical
+    owner: design_team
+    gate: wall_close_in
+
+  - id: 11hc.room-conditions
+    kind: conformance
+    check: >
+      The vendor's site requirements for each imaging and procedure room
+      (floor flatness and vibration, floor loading, temperature and humidity
+      range, heat load, chilled water, vents, RF or magnetic shielding, cable
+      trenches) match the structural, mechanical and electrical design for
+      that room.
+    trace_to: [drawings.equipment, drawings.structural, drawings.mechanical, drawings.electrical]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 11hc.power-branch
+    kind: coordination
+    check: >
+      Each item connects to the essential electrical system branch and the
+      dedicated or isolated circuit the vendor and the health care electrical
+      rules require; imaging feeders are sized for the vendor's momentary
+      demand; and vendor disconnects and emergency-off stations are located.
+    trace_to: [drawings.single_line, schedule.electrical_panel, drawings.equipment]
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
+reconciliations:
+  - id: 11hc.rc.equipment-plan
+    between: [drawings.equipment, drawings.electrical, drawings.plumbing, drawings.mechanical, drawings.structural]
+    key: Medical equipment item code by room
+    fields: [power branch and circuit, data and nurse call, medical gas outlets, water and drain, exhaust, ceiling or floor support]
+    check: >
+      Each item on the medical equipment plans has its utilities and support
+      at its location on the MEP and structural drawings; items the planner
+      added after design development are the usual gap.
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
+failure_modes:
+  - id: 11hc.fm.generic-planning-data
+    what_happens: Rough-ins and supports built from generic planning drawings; the owner later buys another vendor or model
+    consequence: Booms and imaging supports re-engineered, conduit and trenches moved, ceilings reopened
+    caught_by: [11hc.vendor-drawings, 11hc.rc.equipment-plan]
+    source: field_experience
+
+  - id: 11hc.fm.vendor-drawing-direct
+    what_happens: Vendor drawings handed straight to the trades without being issued by the design team
+    consequence: Unpriced changes with no record of who approved them, disputed at closeout
+    caught_by: [11hc.vendor-drawings]
+    source: industry_practice
+
+  - id: 11hc.fm.support-missed
+    what_happens: Ceiling support structure for booms or lights not installed before overhead MEP fills the space
+    consequence: Ductwork and piping rerouted, or supports compromised to fit
+    caught_by: [11hc.ceiling-supports]
+    source: field_experience
+
+  - id: 11hc.fm.shielding-stale
+    what_happens: Imaging equipment or its orientation changed in the equipment submittal and nobody sent it back to the qualified expert
+    consequence: Shielding built to an obsolete report; failed radiation survey after finishes and lead added through finished walls
+    caught_by: [11hc.shielding, if.11-medical-equipment-shielding]
+    source: industry_practice
+
+  - id: 11hc.fm.room-conditions
+    what_happens: Imaging room cooling, vibration or floor flatness designed to a different vendor's requirements
+    consequence: Vendor declines to install or warrant until the room is modified
+    caught_by: [11hc.room-conditions]
+    source: industry_practice
+
+standards:
+  - id: 11hc.std.nfpa-99
+    name: NFPA 99
+    title: Health Care Facilities Code
+    verify: Essential electrical system and medical gas requirements that govern equipment connections
+    note: Confirm the edition adopted by the jurisdiction and the federal reimbursement authority
+
+  - id: 11hc.std.ncrp-147
+    name: NCRP Report No. 147
+    title: Structural Shielding Design for Medical X-Ray Imaging Facilities
+    verify: Design basis cited in the physicist's shielding report
+
+regulatory_hooks:
+  - id: 11hc.rh.equipment-registration
+    topic: radiation-shielding-review
+    question: >
+      Must radiation-producing equipment be registered with the state
+      radiation control program before installation or use, and does a change
+      of equipment after plan approval require a revised shielding submission?
+    applies_when: X-ray, CT, fluoroscopy, nuclear medicine or radiation therapy equipment
+    source_families: [health_facility_licensing, occupational_safety]
+    severity: high
+
+  - id: 11hc.rh.essential-electrical
+    topic: health-facility-essential-electrical-system
+    question: >
+      Which essential electrical system branch, receptacle type and circuit
+      arrangement does the adopted health care facility code require for each
+      equipment type and room category?
+    applies_when: Medical equipment in patient care spaces
+    source_families: [electrical_code, health_facility_licensing]
+    severity: high
+
+extract_fields:
+  - id: 11hc.xf.vendor-drawing
+    label: Vendor installation drawing number and revision for the purchased model
+    type: string
+    per: element
+    reconcile_against: [drawings.equipment, register.asi_bulletin_log]
+  - id: 11hc.xf.support-loads
+    label: Support loads and deflection limits for ceiling-mounted items
+    type: list
+    per: element
+    reconcile_against: [drawings.structural]
