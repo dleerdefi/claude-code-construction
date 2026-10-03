@@ -175,7 +175,7 @@ Deliverables go in the project's submittals folder (or the project root), never 
 Then:
 1. **Issues.** Each design-team-owned finding (an absence in the CDs, a conflict between documents, a question only the A/E can answer) goes to the issue registry with `issue_manager.py add --source-skill submittal-review`, so `rfi-drafter` can turn it into an RFI. Never draft or send the RFI from here.
 2. **Graph.** In AgentCM mode: `write_finding.py --type submittal_review` with counts and the output paths.
-3. **Tell the PE**, briefly: suggested disposition and why; critical and high findings; who has to coordinate what, by when; open compliance items; anything unverifiable; the confidence floor if it is draft. Then the file paths.
+3. **Tell the PE**, briefly: suggested disposition and why; the findings, each with its source and its action on the same line (never split a finding from its action); who has to coordinate what, by when; open compliance items, each named as needing code research with the topic to run `/construction:code-researcher` on; anything unverifiable; the confidence floor if it is draft. Then the file paths.
 4. Set `status: complete` in `state.yaml`.
 
 ### Learning loop

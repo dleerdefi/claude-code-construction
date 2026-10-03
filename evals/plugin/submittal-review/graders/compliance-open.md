@@ -1,4 +1,4 @@
 ---
 type: llm
 ---
-Accessibility requirements for the student station are reported as an open compliance question needing code research (for example via code-researcher), not stated as a researched code requirement with a code section number. Comparing the submittal to the drawings' 34 in is fine; asserting what the code requires is not.
+The response leaves the accessibility code requirements for the student station open, as a question for code research (for example with code-researcher), instead of citing a code section as the requirement. Comparing the submittal with the drawing's 34 in is allowed and does not count as asserting a code requirement.
