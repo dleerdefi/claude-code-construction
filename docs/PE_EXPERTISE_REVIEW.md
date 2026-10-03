@@ -3,12 +3,13 @@
 **Scope:** 25 files, 2,733 lines, ~39k tokens (`pe_behavior.md` 8.5k; 23 `scope-*.md` 0.5–3.5k each; `rfi_template.md`), plus the fork in `skills/pe-review/references/` (7 files, 358 lines).
 **Question:** does this corpus make Claude Code act like an expert PE on any project, at the lowest token cost?
 **Date:** 2026-10-03 · Branch: `feat/csi-knowledge-layer`
+**Status:** Approved. Phase 0, Phase 1 and the Division 07 migration are on this branch.
 
 ---
 
 ## 1. Verdict
 
-The corpus has real expertise in it, but roughly a fifth of it. The rest is MasterFormat listings Claude already knows, the same rule restated per division, and code numbers stated as facts with no edition or jurisdiction behind them. Structurally it is dead: nothing in the plugin loads it, and the live copy (`pe-review/references/`) is a fork that has already drifted in both directions.
+The corpus has real expertise in it, but roughly a fifth of it. The rest is MasterFormat listings Claude already knows, the same rule restated per division, and code numbers stated as facts with no edition or jurisdiction behind them. Structurally it is an archive: `.gitignore` marks it as retained for A/B testing, nothing in the plugin loads it, and the live copy (`pe-review/references/`) is a condensation that has drifted in both directions.
 
 Recommendation: do not revise the files in place. Harvest the ~600 lines of genuine knowledge into the CSI knowledge layer (`reference/csi/`), retire `pe_expertise/` and the `pe-review` duplicates, and fill the gaps the corpus never had: failure modes, facility-type overlays for every common building type, contractor-designed-system handling, schedule-to-schedule reconciliations, and inspection gates. Details and a phased plan follow.
 
@@ -29,12 +30,12 @@ Each line was sorted into one of four buckets:
 
 ## 3. Findings
 
-### F1 — Orphaned, and forked
+### F1 — Archived, and the live copy drifted
 
-- No `SKILL.md`, script, or doc references `reference/pe_expertise/` (only the bridge added in the CSI layer yesterday). `pe_behavior.md` says it is "always loaded"; nothing loads it.
-- `skills/pe-review/references/` is a condensed fork of `pe_behavior.md` §4–§7. It has **gained** items that never went back (STC box offset, fire-rated deflection track, VFD heat, NEC 700 vs 702, T-rated firestop, walk-in cooler, ICF embeds, PV flashing) and **lost** the most valuable column of §7, *Typical Split* (who usually furnishes / installs), keeping only the "common gap" question.
-- `rfi_template.md` exists in three places (`pe_expertise/`, `pe-review/references/`, `templates/`), and `rfi-drafter` has its own `rfi-format.md`.
-- Stale pointers: `scope-07` cites "the always-loaded CLAUDE.md" (replaced by `construction-guide`); `pe_behavior.md` §1/§8 point to a parent CLAUDE.md that no longer ships; §9 writes markdown to `.construction/agent_findings/`, which the current rules reserve for AgentCM's JSON findings; §8 is missing entirely (§7 → §9).
+- `.gitignore` lists `reference/pe_expertise/` as an archive "retained for A/B testing, not shipped". No `SKILL.md`, script, or doc loads it (only the bridge added in the CSI layer). The 24 files are still tracked, though, so a plugin install does carry them; the ignore rule only stops new files.
+- `skills/pe-review/references/` is the live condensation of `pe_behavior.md` §4–§7. It has **gained** items that never went back (STC box offset, fire-rated deflection track, VFD heat, NEC 700 vs 702, T-rated firestop, walk-in cooler, ICF embeds, PV flashing) and **lost** the most valuable column of §7, *Typical Split* (who usually furnishes / installs), keeping only the "common gap" question.
+- The live RFI template in `pe-review/references/` duplicates `rfi-drafter`'s `rfi-format.md`, and `construction-guide` pointed RFI drafting at the duplicate.
+- Inside the archive (left as is, since it is the A/B baseline): `scope-07` cites "the always-loaded CLAUDE.md"; `pe_behavior.md` §1/§8 point to a parent CLAUDE.md that no longer ships; §9 writes markdown to `.construction/agent_findings/`, which the current rules reserve for AgentCM; §8 is missing (§7 → §9). These matter only if anyone revives the archive.
 
 ### F2 — About half the volume is bucket C
 
@@ -217,29 +218,31 @@ regulatory_hooks:
     severity: medium
 
 failure_modes:
-  - id: fs.fm.closed-before-firestop
-    what_happens: Second-side gypsum board closes rated walls before firestopping is installed and inspected
-    consequence: Destructive investigation of finished walls to verify or install; one of the costliest rework patterns
-    caught_by: [fs.installer-named]
+  - id: fs.fm.penetrated-before-boarded
+    what_happens: MEP trades rough through rated walls before the walls are boarded to structure
+    consequence: Ragged, oversized openings cut around installed pipe and duct that fit no listed system
+    caught_by: [if.firestop-rated-walls, fs.annular-space]
     source: industry_practice
 ```
 
 and one edge in `interfaces/div-07.yaml`:
 
 ```yaml
-  - id: if.firestop-close-in
+  - id: if.firestop-rated-walls
+    reflex: true
     a: ["07 84 00"]
     a_trade: Firestopping
-    b: ["09 29 00", "09 22 16"]
-    b_trade: Gypsum board / framing
-    a_provides: Confirmation each rated-wall penetration is firestopped and inspected
-    b_provides: Close-in schedule by area; no second-side board until confirmed
-    gate: {milestone: wall_close_in, inspect_before: [firestop_inspection]}
+    b: ["09 21 16", "09 22 16", "09 29 00"]
+    b_trade: Gypsum board assemblies and framing
+    a_provides: Listed systems that assume clean openings in finished boards; installation and inspection area by area
+    b_provides: Rated walls boarded full height to structure before penetrating trades pass through them
+    gate: {milestone: overhead_rough_in}
     severity: critical
-    failure: Rated walls closed over unfirestopped penetrations
 ```
 
-What changed: the T-rating threshold became a question bound to the project's code edition instead of ">4 inch / >16 sq in" stated as fact; "who installs" became an interface responsibility the review routes to a sub; the failure mode is linked to the check that catches it; "check register" is gone because it is global; and a 07 84 00 review loads ~40 lines instead of 251.
+What changed: the T-rating threshold became a question bound to the project's code edition instead of ">4 inch / >16 sq in" stated as fact; "who installs" became an interface responsibility the review routes to a sub; the failure mode is linked to what catches it; "check register" is gone because it is global; and a 07 84 00 review loads its own slice instead of 251 lines of Division 07.
+
+It also corrected the archive. The archive's interior sequence puts firestopping before second-side board, but listed systems in gypsum walls are installed at both faces after boarding and are concealed when ceilings, shafts and chases close. The real sequencing miss is trades penetrating rated walls before they are boarded to structure. An independent review of the migrated division caught this, along with the NFPA 285 wall-assembly gap; both are fixed in the layer (`07-20-00.yaml`, `div-07.yaml`, `milestones.yaml`).
 
 ---
 
@@ -247,11 +250,11 @@ What changed: the T-rating threshold became a question bound to the project's co
 
 | Phase | Work | Acceptance |
 |---|---|---|
-| 0 | Retire the duplicates: delete two `rfi_template.md` copies; add `reference/pe_expertise/README.md` marking the directory deprecated in favor of `reference/csi/`; fix the three stale pointers | `grep` finds one RFI template |
+| 0 | Retire the live duplicate: delete `pe-review/references/rfi_template.md` and point `construction-guide` at `rfi-drafter`. Leave the archive untouched: it is the A/B baseline | One live RFI format |
 | 1 | Schema additions (§5): `reflex`, `milestones.yaml`, `reconciliations`, `contractor_designed`; resolver `reflexes`, `milestone`, `--only`, `dedupe`; `_global` gains the contractor-designed check | `validate` passes; `reflexes` emits the de-duplicated red-flag list |
 | 2 | Migrate divisions in risk order, one PR each: **07, 03, 08, 09**, then **22, 23, 26** (with reconciliations), then 05, 04, 06, 10, 11, 21, 28, 14, 27, 31/32/33, 01, 02, 13. Each: `_division.yaml`, 2–6 section profiles, interface edges, Critical rules → failure modes, every number → hook or cut. All at `status: draft` | `validate --strict` passes; zero bare numbers (lint); A/B eval per SOP §7 on the Holabird set: `pe-review` with the compiled context vs. with the old scope file |
 | 3 | Overlays (§6 #3), two or three per PR, starting with foodservice and laboratory | Each overlay's hooks resolve to `code-researcher` topics on a real project |
-| 4 | `pe-review` and the submittal-review skill read from the resolver; delete `pe_expertise/` and the four retired `pe-review` reference files | Nothing references the deleted paths; evals unchanged or better |
+| 4 | `pe-review` and the submittal-review skill read from the resolver; retire the four duplicated `pe-review` reference files. Untrack `pe_expertise/` once the A/B evals no longer need it (git history keeps it) | Nothing references the retired paths; evals unchanged or better |
 | 5 | PE review passes per division → `status: pe_reviewed`; real misses become `source: project_incident` failure modes and eval regression cases | Confidence floor on compiled output rises from `draft` |
 
 Rough effort: Phase 1 is a day; each division in Phase 2 is a few hours of migration plus PE review time; overlays are half a day each for a draft.
