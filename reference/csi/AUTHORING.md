@@ -53,13 +53,13 @@ Ids are global across the layer; `validate` rejects a repeat.
 | Interface edges | `if.NN-` + slug, NN = owning division | `if.08-electrified-hardware` |
 | Overlay items | facility mnemonic | `food.`, `lab.`, `edu.`, `mf.` |
 
-Division 07 and 12 use older short prefixes (`rf.`, `cw.`); leave them.
+Divisions 07, 12 and 31–33 use older short prefixes (`rf.`, `cw.`, `ef.`); leave them. A prefix belongs to one division or overlay family: `validate` lints a prefix used by two.
 
 ## 5. Interface ownership
 
 An edge between two divisions lives in the **lower-numbered** division's file (`div-03.yaml` holds 03↔22). Exceptions: the edges already in `div-07.yaml` and `div-12.yaml` stay where they are. Never duplicate an existing edge: list all edges first (`grep -h "  - id: if." reference/csi/interfaces/*.yaml`). If your division needs an edge with a lower division that doesn't exist, request it in your report rather than writing it in another division's file.
 
-Edge rules: `a` is your side. `responsibility.typical` is a prompt to confirm, never an answer. Leave `failure` off when a failure mode names the edge in `caught_by`.
+Edge rules: `a` is your side. `responsibility.typical` is a prompt to confirm, never an answer. Leave `failure` off when a failure mode names the edge in `caught_by`. An endpoint reaches its own lineage only: `26 05 00` reaches 26 05 xx reviews, not 26 24 16, so name the sections whose reviews should see the edge (or the division, for the whole trade). If an edge on a parent number reaches a child section where it never applies, the child profile suppresses it (SCHEMA M4).
 
 ## 6. Regulatory hooks and numbers
 

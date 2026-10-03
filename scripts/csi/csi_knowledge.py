@@ -382,7 +382,7 @@ def _find_alias(kb, sid):
     """(target, alias_node) for the nearest section-level alias at or above sid.
 
     An ancestor's alias is followed only when its target lies outside the ancestor's
-    own subtree: 26 43 00 → 26 20 00 carries 26 43 13 with it, but 31 20 00 → 31 23 00
+    own subtree: 06 41 00 → 12 30 00 carries 06 41 16 with it, but 31 20 00 → 31 23 00
     does not drag its other children (31 25 00) into excavation and fill.
     """
     for node in reversed(lineage(sid)):
@@ -409,7 +409,7 @@ def resolve(kb, section, facilities=(), project=None):
     reviewed_as, alias_node = _find_alias(kb, sid)
     if reviewed_as:
         # An alias: the same scope specified under another number (06 41 00 → 12 30 00).
-        # Sections under an aliased level-2 number follow it (26 43 13 under 26 43 00).
+        # Sections under an aliased level-2 number follow it (06 41 16 under 06 41 00).
         target_chain = lineage(reviewed_as)
         tail = chain[chain.index(alias_node):]
         chain = target_chain + [n for n in tail if n not in target_chain]
@@ -424,6 +424,7 @@ def resolve(kb, section, facilities=(), project=None):
     warnings = []
     compiled = {name: {} for name in KEYED_LISTS}
     suppressed, escalations = [], []
+    suppressed_edges = {}
     scalars = {"title": None, "scope_summary": None, "review_mode": None, "contractor_designed": None}
     unions = {"element_types": []}
     equivalents = []
@@ -455,6 +456,11 @@ def resolve(kb, section, facilities=(), project=None):
             sup_id = s.get("id")
             if not s.get("reason"):
                 raise ResolveError(f"{layer}: suppress of '{sup_id}' has no reason (M4)")
+            if str(sup_id).startswith("if."):
+                # An edge whose endpoint is a parent number but never applies here
+                # (a misc-metals edge on 05 50 00 reaching every stair review)
+                suppressed_edges[sup_id] = (layer, s["reason"])
+                continue
             list_name, item = _find(compiled, sup_id)
             if item is None:
                 raise ResolveError(f"{layer}: suppress of '{sup_id}', which is not inherited")
@@ -527,6 +533,11 @@ def resolve(kb, section, facilities=(), project=None):
                 this, other = "b", "a"
             else:
                 continue
+            if edge["id"] in suppressed_edges:
+                layer, reason = suppressed_edges.pop(edge["id"])
+                suppressed.append({"id": edge["id"], "list": "interfaces", "defined_by": f"interfaces:{doc.get('id')}",
+                                   "suppressed_by": layer, "reason": reason})
+                continue
             interfaces.append({
                 "id": edge["id"],
                 "this_trade": edge.get(f"{this}_trade"),
@@ -545,6 +556,9 @@ def resolve(kb, section, facilities=(), project=None):
                 "_status": status,
             })
             floor = status_min(floor, status)
+
+    for eid, (layer, _) in suppressed_edges.items():
+        raise ResolveError(f"{layer}: suppress of edge '{eid}', which does not reach this section")
 
     # applies_if: drop items whose condition on the compiled section facts is not met
     facts = {"contractor_designed": scalars["contractor_designed"] or "unknown",
@@ -1372,6 +1386,26 @@ def validate(kb):
             if iid in homes and homes[iid] != path:
                 err(path, f"{list_name} id {iid!r} is already defined in {homes[iid].relative_to(kb)} — ids are global")
             homes.setdefault(iid, path)
+
+    # One id prefix, one owner: `hc.` in a site-utility profile reads as healthcare in a finding
+    prefix_owners = {}
+    for path in files:
+        rel = path.relative_to(kb).parts
+        if rel[0] == "profiles" and len(rel) > 2:
+            owner = rel[1]
+        elif rel[0] == "overlays":
+            owner = "overlay " + rel[1].split(".")[0]
+        else:
+            continue
+        doc = load_yaml(path)
+        for list_name in KEYED_LISTS:
+            for item in doc.get(list_name, []) or []:
+                if item.get("override") or not item.get("id"):
+                    continue
+                prefix_owners.setdefault(str(item["id"]).split(".")[0], set()).add(owner)
+    for prefix, owners in sorted(prefix_owners.items()):
+        if len(owners) > 1:
+            lint.append(f"id prefix {prefix!r} is used by {', '.join(sorted(owners))} — one prefix, one owner (AUTHORING §4)")
 
     # An edge states its own failure only when no failure mode names it (SCHEMA, interface edges)
     named_by = {}

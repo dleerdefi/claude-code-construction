@@ -343,7 +343,7 @@ Missing ancestors are allowed. They are listed under `coverage.missing` so a gap
 
 **M3 — Override.** A section may restate an inherited item with `override: true`. Default `merge: patch`: the fields given replace the parent's, the rest are inherited. `merge: replace` swaps the whole item.
 
-**M4 — Suppress, with a reason.** A section may turn off an inherited item with `suppress: [{id, reason}]`. The reason is required, and suppressed items stay visible in the compiled output under `suppressed`, so the reviewer sees what was turned off and why.
+**M4 — Suppress, with a reason.** A section may turn off an inherited item with `suppress: [{id, reason}]`. The reason is required, and suppressed items stay visible in the compiled output under `suppressed`, so the reviewer sees what was turned off and why. The id may also be an interface edge that reaches the section through a parent number but never applies to it (an edge on `05 50 00` that no stair has); suppressing an edge that doesn't reach the section is an error. Suppress any failure mode that names the edge along with it.
 
 **M5 — Overlays only tighten.** Overlays add items and may `escalate` the severity of section items (upward only). They cannot override or suppress section items. A child overlay may override its parent overlay's items.
 

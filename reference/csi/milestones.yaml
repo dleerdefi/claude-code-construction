@@ -124,6 +124,13 @@ milestones:
     inspect_before:
       - Structural steel bolting and welding inspections complete where fireproofing will cover connections
 
+  - id: hoistway_turnover
+    title: Hoistway turnover to the elevator installer
+    covers:
+      - Hoistway walls, pit, sump, rail bracket supports, sill supports and overhead structure become fixed
+    inspect_before:
+      - Hoistway survey (plumb, clear dimensions, pit depth, overhead clearance) accepted by the elevator installer
+
   - id: overhead_rough_in
     title: Overhead MEP rough-in
     covers:
@@ -152,20 +159,6 @@ milestones:
     inspect_before:
       - Flashings at openings, shelf angles and base of wall inspected
 
-  - id: interior_finish_start
-    title: Moisture-sensitive interior work begins
-    covers:
-      - Wood doors, woodwork, casework, finish flooring and gypsum board finishing enter a building that must already be enclosed and conditioned
-    inspect_before:
-      - Enclosure and temperature and humidity conditions the specs and manufacturers require confirmed and recorded
-
-  - id: hoistway_turnover
-    title: Hoistway turnover to the elevator installer
-    covers:
-      - Hoistway walls, pit, sump, rail bracket supports, sill supports and overhead structure become fixed
-    inspect_before:
-      - Hoistway survey (plumb, clear dimensions, pit depth, overhead clearance) accepted by the elevator installer
-
   - id: overburden_placement
     title: Overburden placed on horizontal waterproofing
     covers:
@@ -189,6 +182,13 @@ milestones:
       - In-wall rough-in inspections by the AHJ
       - Blocking and backing checked against the master list
 
+  - id: interior_finish_start
+    title: Moisture-sensitive interior work begins
+    covers:
+      - Wood doors, woodwork, casework, finish flooring and gypsum board finishing enter a building that must already be enclosed and conditioned
+    inspect_before:
+      - Enclosure and temperature and humidity conditions the specs and manufacturers require confirmed and recorded
+
   - id: above_ceiling_close_in
     title: Ceiling closure
     covers:
@@ -199,14 +199,6 @@ milestones:
       - Above-ceiling inspection by the AHJ
       - Access confirmed to dampers, valves, terminal units and junction boxes
 
-  - id: floor_finish_install
-    title: Floor finish installation
-    covers:
-      - Slab surface, moisture condition and flatness
-    inspect_before:
-      - Slab moisture testing by the flooring manufacturer's method
-      - Flatness and depressions checked against the flooring requirements
-
   - id: energization
     title: Permanent power energization
     covers:
@@ -214,6 +206,14 @@ milestones:
     inspect_before:
       - Electrical inspection and utility release
       - Acceptance testing of switchgear and distribution equipment the spec requires
+
+  - id: floor_finish_install
+    title: Floor finish installation
+    covers:
+      - Slab surface, moisture condition and flatness
+    inspect_before:
+      - Slab moisture testing by the flooring manufacturer's method
+      - Flatness and depressions checked against the flooring requirements
 
   - id: equipment_set
     title: Equipment set in place
