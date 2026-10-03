@@ -1,0 +1,209 @@
+schema_version: 1
+kind: section
+id: "06 10 00"
+title: Rough Carpentry
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Lumber, blocking, backing, nailers, furring, bucks and plywood backboards
+  (06 10 53, and the framing, sheathing and structural wood sections, inherit
+  from here). In steel-framed and concrete buildings this scope is small and
+  almost all of it is hidden: blocking for every wall-mounted item, which no
+  single drawing shows and which second-side board conceals. Every piece of
+  wood carries a treatment question (preservative where it touches concrete,
+  masonry or weather; fire-retardant where the construction type limits
+  combustibles) and every fastener in treated wood a corrosion question.
+
+submittals:
+  - id: 06rc.sub.product-data
+    type: Product Data
+    must_show:
+      - Preservative treatment by use category and fire-retardant treatment by type (interior or exterior), with the treater's certification for each use
+      - Fasteners, connectors and anchors with their coatings, matched to the treatment they touch
+
+review_checks:
+  - id: 06rc.blocking-master-list
+    kind: absence
+    reflex: true
+    check: >
+      A blocking and backing master list is assembled by room and wall from
+      every source, because no single drawing shows it: toilet accessories
+      and grab bars, casework and countertop supports, wall-hung plumbing
+      fixtures, handrails and guards, door stops and wall-mounted hardware,
+      shelving, markerboards, displays, projectors and speakers, wall-hung
+      equipment, and owner-furnished items. Each entry has a backing type,
+      height and extent, and is checked in place before second-side board.
+    trace_to: [drawings.interior_elevations, drawings.enlarged_plans, drawings.details, schedule.toilet_accessories,
+               schedule.casework, schedule.equipment, drawings.technology]
+    severity: critical
+    owner: gc
+    gate: wall_close_in
+
+  - id: 06rc.backing-in-rated-walls
+    kind: conformance
+    check: >
+      Wood blocking inside fire-rated partitions is allowed by the
+      partition's listed design and is fire-retardant-treated where the
+      construction type requires; where it is not allowed, metal backing is
+      detailed instead.
+    trace_to: [schedule.partition_type, drawings.details]
+    severity: high
+    owner: design_team
+    gate: wall_close_in
+
+  - id: 06rc.treatment-by-exposure
+    kind: conformance
+    check: >
+      Each wood use has the preservative treatment its exposure needs: the
+      right use category for wood touching concrete, masonry or soil or
+      exposed to weather (sill plates, roof nailers, bucks at openings), with
+      field cuts and holes treated.
+    trace_to: [spec.part2, drawings.details, drawings.wall_sections]
+    severity: high
+    owner: subcontractor
+
+  - id: 06rc.fastener-compatibility
+    kind: conformance
+    check: >
+      Fasteners, connectors, hangers and anchors in preservative- or
+      fire-retardant-treated wood have the coating or stainless steel the
+      treatment chemical and exposure call for, per the treater's and the
+      connector manufacturer's recommendations, and metal flashings touching
+      treated wood are compatible or separated from it.
+    trace_to: [spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 06rc.frt-where-required
+    kind: absence
+    check: >
+      Wherever the construction type limits combustible materials, the
+      drawings and spec say which wood must be fire-retardant-treated
+      (blocking, nailers, furring, backboards, roof framing and sheathing)
+      instead of leaving it to a general note.
+    trace_to: [spec.part2, drawings.details, drawings.life_safety]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 06rc.moisture-before-enclosure
+    kind: constructability
+    check: >
+      Lumber and panels are kept off the ground and covered on site, and
+      framing, blocking and sheathing are at or below the moisture content the
+      spec sets before insulation, air barrier or board encloses them; wet
+      wood is dried and rechecked, not covered.
+    trace_to: [spec.part3, schedule.master]
+    severity: medium
+    owner: gc
+    gate: wall_close_in
+
+reconciliations:
+  - id: 06rc.rc.blocking-sources
+    between: [schedule.toilet_accessories, schedule.casework, schedule.equipment, schedule.plumbing_fixture,
+              submittals.approved, drawings.interior_elevations, drawings.details]
+    key: Each wall-mounted item by room and wall
+    fields: [item, mounting height, extent, load or mounting plate, backing type]
+    check: >
+      Every wall-mounted item on the accessory, casework, equipment and
+      plumbing fixture schedules and the interior elevations has a backing
+      detail at its height and extent; an item scheduled with no backing is a
+      gap before close-in, not a punch-list item.
+    severity: critical
+    owner: gc
+    gate: wall_close_in
+
+failure_modes:
+  - id: 06rc.fm.backing-missed
+    what_happens: Backing for an accessory, display, handrail or wall-hung fixture missed because it appeared on only one schedule or elevation
+    consequence: Finished walls opened, patched and repainted, or items hung on anchors the owner rejects
+    caught_by: [06rc.blocking-master-list, 06rc.rc.blocking-sources]
+    source: field_experience
+
+  - id: 06rc.fm.blocking-voids-listing
+    what_happens: Wood blocking installed inside a rated partition whose listed design does not allow it, or untreated where treatment is required
+    consequence: Blocking removed at the cover inspection; walls reopened
+    caught_by: [06rc.backing-in-rated-walls]
+    source: industry_practice
+
+  - id: 06rc.fm.untreated-on-concrete
+    what_happens: Untreated sills, nailers or bucks set against concrete or masonry or exposed to weather
+    consequence: Decay behind finishes and roofing edges; nailers replaced with the edge metal removed
+    caught_by: [06rc.treatment-by-exposure]
+    source: industry_practice
+
+  - id: 06rc.fm.fastener-corrosion
+    what_happens: Standard electroplated fasteners and connectors used with copper-based preservative treatment
+    consequence: Corrosion and loss of connection capacity, hidden inside the assembly
+    caught_by: [06rc.fastener-compatibility]
+    source: industry_practice
+
+  - id: 06rc.fm.combustible-wood
+    what_happens: Untreated blocking, nailers or backboards installed in a building whose construction type requires fire-retardant treatment
+    consequence: Wood removed and replaced at inspection, often after it is built in
+    caught_by: [06rc.frt-where-required]
+    source: industry_practice
+
+  - id: 06rc.fm.wet-enclosed
+    what_happens: Framing, blocking or sheathing enclosed while wet
+    consequence: Mold in the wall cavity, and shrinkage cracks and nail pops in finishes
+    caught_by: [06rc.moisture-before-enclosure]
+    source: industry_practice
+
+standards:
+  - id: 06rc.std.awpa-u1
+    name: AWPA U1
+    title: "Use Category System: User Specification for Treated Wood"
+    verify: Use category the treater certifies for each exposure
+  - id: 06rc.std.awpa-m4
+    name: AWPA M4
+    title: Standard for the Care of Preservative-Treated Wood Products
+    verify: Treatment of field cuts and holes
+  - id: 06rc.std.astm-a153
+    name: ASTM A153/A153M
+    title: Standard Specification for Zinc Coating (Hot-Dip) on Iron and Steel Hardware
+    verify: Fastener coating where the spec or code requires hot-dip galvanizing in treated wood
+  - id: 06rc.std.nds
+    name: ANSI/AWC NDS
+    title: National Design Specification for Wood Construction
+    verify: Design values and adjustments (treatment, moisture, fire design) the structural design relies on
+
+regulatory_hooks:
+  - id: 06rc.rh.frt-construction-type
+    topic: fire-retardant-treated-wood-construction-type
+    question: >
+      In this building's construction type, which wood elements (blocking,
+      nailers, furring, backboards, nonbearing partitions, roof framing and
+      sheathing, exterior wall framing) does the adopted code permit, and
+      which of them must be fire-retardant-treated?
+    applies_when: Any wood in a building whose construction type limits combustible materials
+    source_families: [building_code]
+    severity: high
+
+  - id: 06rc.rh.preservative-locations
+    topic: preservative-treated-wood-locations
+    question: >
+      Where does the adopted code require preservative-treated or naturally
+      durable wood (contact with concrete or masonry, proximity to grade,
+      exposure to weather), and what fastener and connector protection does it
+      require in treated wood?
+    applies_when: Wood in contact with concrete, masonry or soil, or exposed to weather
+    source_families: [building_code]
+    severity: medium
+
+extract_fields:
+  - id: 06rc.xf.treatments
+    label: Treatment type and use category per wood use
+    type: list
+    per: package
+    reconcile_against: [spec.part2]
+  - id: 06rc.xf.fasteners
+    label: Fastener and connector coating in treated wood
+    type: string
+    per: package
+    reconcile_against: [spec.part2]

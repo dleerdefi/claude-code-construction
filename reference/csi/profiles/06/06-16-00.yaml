@@ -1,0 +1,150 @@
+schema_version: 1
+kind: section
+id: "06 16 00"
+title: Sheathing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Wall, roof and floor sheathing: wood structural panels, fire-retardant-
+  treated plywood and gypsum sheathing. One sheet can be a shear wall or
+  diaphragm, the substrate the air barrier depends on, and a layer in the
+  fire-tested exterior wall at the same time, so swapping OSB for plywood or
+  wood for gypsum can break all three. The fastening that makes it structural
+  is covered by the barrier or the roofing soon after it goes on.
+
+suppress:
+  - id: 06rc.blocking-master-list
+    reason: Sheathing submittals do not carry blocking; the master list is reviewed under 06 10 00
+  - id: 06rc.backing-in-rated-walls
+    reason: Blocking inside partitions is reviewed under 06 10 00
+  - id: 06rc.rc.blocking-sources
+    reason: Blocking reconciliation is reviewed under 06 10 00
+  - id: 06rc.fm.backing-missed
+    reason: Its catching checks are reviewed under 06 10 00
+  - id: 06rc.fm.blocking-voids-listing
+    reason: Its catching check is reviewed under 06 10 00
+
+submittals:
+  - id: 06sh.sub.product-data
+    type: Product Data
+    must_show:
+      - Panel type, grade, exposure rating, span rating and thickness for each use
+      - For structural fire-retardant-treated panels, the treater's design-value adjustments
+      - For gypsum sheathing, its weather-exposure limit and the air barrier manufacturer's acceptance of it as a substrate
+
+review_checks:
+  - id: 06sh.panel-by-use
+    kind: conformance
+    check: >
+      Panel type, grade, exposure rating, span rating and thickness match
+      each use on the structural and architectural drawings (wall, roof,
+      floor, shear wall, diaphragm), and fire-retardant-treated panels are
+      used where the drawings or construction type call for them, with the
+      treater's strength adjustments applied in the structural design.
+    trace_to: [drawings.structural, drawings.wall_sections, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 06sh.fastening-schedule
+    kind: constructability
+    check: >
+      Shear wall, diaphragm and roof sheathing is fastened to the schedule on
+      the structural drawings (fastener type, edge and field spacing, denser
+      edge and corner zones on roofs, edge distance, blocked edges, panel
+      orientation), fasteners are not overdriven, and the fastening is
+      inspected before the air barrier, roofing underlayment or finish
+      covers it.
+    trace_to: [drawings.structural, register.special_inspections]
+    severity: critical
+    owner: gc
+    gate: sheathing_cover
+
+  - id: 06sh.barrier-substrate
+    kind: coordination
+    check: >
+      The air or water barrier manufacturer accepts the submitted sheathing as
+      a substrate, with the joint, fastener and opening treatment it requires,
+      and gypsum sheathing is scheduled to be covered within its
+      weather-exposure limit.
+    trace_to: [spec.part2, schedule.master]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 06sh.panel-spacing
+    kind: constructability
+    check: >
+      Wood panels are installed with the edge and end spacing the panel
+      manufacturer recommends and edge support or clips where the span
+      requires, so they do not buckle when they take on moisture.
+    trace_to: [spec.part3]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 06sh.fm.wood-for-gypsum
+    what_happens: Wood structural panels substituted for gypsum or fire-retardant-treated sheathing on a wall that relies on them
+    consequence: The wall no longer meets its construction type or tested assembly; sheathing replaced
+    caught_by: [06sh.panel-by-use, if.06-sheathing-wall-assembly]
+    source: industry_practice
+
+  - id: 06sh.fm.fastening-covered
+    what_happens: Shear wall or diaphragm fastening covered before inspection, or with missed and overdriven fasteners
+    consequence: Barrier or roofing opened to inspect; renailing and added fasteners
+    caught_by: [06sh.fastening-schedule]
+    source: industry_practice
+
+  - id: 06sh.fm.gypsum-exposed
+    what_happens: Gypsum sheathing left uncovered past its exposure limit while cladding is delayed
+    consequence: Degraded facers, barrier adhesion loss, and sheathing replaced
+    caught_by: [06sh.barrier-substrate]
+    source: industry_practice
+
+  - id: 06sh.fm.buckling
+    what_happens: Wood panels butted tight with no spacing
+    consequence: Buckled ridges that telegraph through roofing and cladding
+    caught_by: [06sh.panel-spacing]
+    source: industry_practice
+
+standards:
+  - id: 06sh.std.ps-1
+    name: DOC PS 1
+    title: Structural Plywood
+    verify: Plywood grade and exposure claims
+  - id: 06sh.std.ps-2
+    name: DOC PS 2
+    title: Performance Standard for Wood Structural Panels
+    verify: Span rating and exposure claims for OSB and other performance-rated panels
+  - id: 06sh.std.astm-c1177
+    name: ASTM C1177/C1177M
+    title: Standard Specification for Glass Mat Gypsum Substrate for Use as Sheathing
+    verify: Gypsum sheathing classification
+  - id: 06sh.std.sdpws
+    name: ANSI/AWC SDPWS
+    title: Special Design Provisions for Wind and Seismic
+    verify: Shear wall and diaphragm sheathing and fastening the structural design relies on
+
+regulatory_hooks:
+  - id: 06sh.rh.lateral-inspection
+    topic: wood-lateral-system-special-inspection
+    question: >
+      Does the adopted code require special inspection of wood shear wall and
+      diaphragm fastening, hold-downs and drag struts for this building's
+      seismic design category or wind exposure, and from which fastener
+      spacing does it apply?
+    applies_when: Wood structural panel shear walls or diaphragms
+    source_families: [building_code, building_code_seismic]
+    severity: high
+
+extract_fields:
+  - id: 06sh.xf.panels
+    label: Panel type, grade, exposure and thickness per use
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, spec.part2]

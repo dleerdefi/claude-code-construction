@@ -1,0 +1,182 @@
+schema_version: 1
+kind: section
+id: "06 40 00"
+title: Architectural Woodwork
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Interior and exterior architectural woodwork: paneling, millwork and trim,
+  wood stairs and railings, ornamental work, and casework and countertops
+  when they are specified here (06 40 23 often includes them; resolve
+  12 30 00 for the casework). The spec's citation sets the rules: the AWI
+  standard (AWS or the ANSI/AWI series) and the grade of each item. Wood moves
+  with humidity, so delivery waits for a conditioned building. Veneer
+  matching, the fire classification of panel products, and who finishes the
+  woodwork are the decisions that are expensive to change after fabrication.
+
+submittals:
+  - id: 06aw.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Elevations and sections for every item, keyed to the drawings, with the grade of each item
+      - Veneer species, cut, leaf match and panel match, with sequence-matched panels and matching doors identified
+      - Concealed attachments, cleats and in-wall supports, with what the framer must provide
+      - Fire-rated cores or treated veneers where a flame spread class is required
+  - id: 06aw.sub.samples
+    type: Samples
+    must_show:
+      - Each species and finish, and veneer flitch or matching samples where sequence matching is specified
+  - id: 06aw.sub.certificates
+    type: Certificates
+    must_show:
+      - AWI Quality Certification labels or certificates where the spec requires them
+
+review_checks:
+  - id: 06aw.standard-and-grade
+    kind: conformance
+    check: >
+      Shop drawings state the AWI standard and edition the spec cites (AWS or
+      the ANSI/AWI standard for that product) and the grade of each item;
+      where the spec mixes grades (premium at feature walls, custom
+      elsewhere), each elevation shows which applies.
+    trace_to: [spec.part2, drawings.interior_elevations]
+    severity: high
+    owner: subcontractor
+
+  - id: 06aw.veneer-matching
+    kind: conformance
+    check: >
+      Veneer species, cut, leaf match, panel match, and any sequence or
+      blueprint matching across panels, doors and casework faces are shown
+      and match the spec; where wood doors or casework must match the
+      paneling, they come from the same flitch or sequence and the samples
+      prove it.
+    trace_to: [spec.part2, drawings.interior_elevations]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 06aw.fire-classification
+    kind: conformance
+    check: >
+      Paneling and other woodwork used as wall or ceiling finish carries the
+      flame spread class the finish schedule or code requires at its location,
+      through fire-rated cores or treated veneers, with labels or
+      certificates.
+    trace_to: [schedule.finish, drawings.life_safety, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 06aw.finish-system
+    kind: conformance
+    check: >
+      The finish system (factory or field, the AWI finish system or the
+      spec's coating, sheen and stain) is defined and matches the approved
+      samples, and concealed and back faces are sealed or back-primed as the
+      standard requires so panels stay balanced.
+    trace_to: [spec.part2, schedule.finish]
+    severity: medium
+    owner: subcontractor
+
+  - id: 06aw.building-conditions
+    kind: constructability
+    check: >
+      Paneling, trim and millwork are not delivered until the building is
+      enclosed, wet work is dry and the HVAC holds the temperature and
+      humidity range the AWI standard or spec sets, and they acclimate in the
+      spaces where they will be installed.
+    trace_to: [spec.part1, spec.part3, schedule.master]
+    severity: high
+    owner: gc
+
+  - id: 06aw.stairs-and-guards
+    kind: conformance
+    check: >
+      Wood stairs, handrails and guards show geometry, infill openings and
+      post anchorage that meet the guard and handrail requirements, and post
+      anchorage into the framing is engineered or tested for the required
+      loads.
+    trace_to: [drawings.details, drawings.enlarged_plans]
+    severity: high
+    owner: subcontractor
+
+failure_modes:
+  - id: 06aw.fm.veneer-mismatch
+    what_happens: Doors and paneling bought from different flitches or matched in a different sequence
+    consequence: Visibly different walls and doors; one or the other replaced
+    caught_by: [06aw.veneer-matching, if.06-woodwork-doors]
+    source: industry_practice
+
+  - id: 06aw.fm.early-delivery
+    what_happens: Woodwork delivered into a building without running HVAC, or with wet plaster or concrete
+    consequence: Swelling, warping and open joints; pieces refabricated
+    caught_by: [06aw.building-conditions, if.01-temporary-conditions-woodwork]
+    source: industry_practice
+
+  - id: 06aw.fm.class-mismatch
+    what_happens: Wood paneling installed in a corridor or exit without the required flame spread class
+    consequence: Removal, or field treatment that ruins the finish
+    caught_by: [06aw.fire-classification]
+    source: industry_practice
+
+  - id: 06aw.fm.finish-gap
+    what_happens: Woodwork delivered unfinished on the assumption the painter finishes it, while the painting scope excludes it (or the reverse)
+    consequence: Finishing by change order, in place, at lower quality than a factory finish
+    caught_by: [if.06-woodwork-finishing, 06aw.finish-system]
+    source: industry_practice
+
+  - id: 06aw.fm.no-backing
+    what_happens: Panel cleats, railing brackets or heavy trim had no backing because they were never on the blocking list
+    consequence: Walls opened after board, or attachments into gypsum alone
+    caught_by: [if.06-woodwork-backing]
+    source: field_experience
+
+standards:
+  - id: 06aw.std.awi
+    name: AWI standards
+    title: AWS Edition 2, or ANSI/AWI 0620 (Finish Carpentry/Installation), 0622.0646 (Millwork and Wood Trim), 0642 (Wood Paneling), SMA 0643 (Wood Stair, Handrail, and Guard Systems), 0400 (Factory Finishing)
+    verify: Grade, construction, installation and finish claims per item
+    note: The ANSI/AWI series replaced parts of AWS Edition 2; review against the standard and edition the spec cites
+  - id: 06aw.std.hpva-hp-1
+    name: ANSI/HPVA HP-1
+    title: American National Standard for Hardwood and Decorative Plywood
+    verify: Veneer and panel grade claims
+
+regulatory_hooks:
+  - id: 06aw.rh.interior-finish
+    topic: interior-finish-flame-spread-class
+    question: >
+      What flame spread and smoke-developed classification does the adopted
+      code require for wall and ceiling finishes in each occupancy and
+      location (exits, corridors, rooms), and which panel products in the
+      woodwork achieve it?
+    applies_when: Wood paneling, wainscot or ceilings used as interior finish
+    source_families: [building_code]
+    severity: high
+
+  - id: 06aw.rh.guards
+    topic: guard-handrail-requirements
+    question: >
+      What guard and handrail heights, opening limits, graspability,
+      extensions and structural loads do the adopted building code and
+      accessibility standard require for these stairs and edges?
+    applies_when: Wood stairs, handrails or guards
+    source_families: [building_code, accessibility]
+    severity: high
+
+extract_fields:
+  - id: 06aw.xf.grades
+    label: AWI standard and grade per item
+    type: list
+    per: package
+    reconcile_against: [spec.part2]
+  - id: 06aw.xf.veneer
+    label: Veneer species, cut and matching
+    type: list
+    per: package
+    reconcile_against: [spec.part2, drawings.interior_elevations]

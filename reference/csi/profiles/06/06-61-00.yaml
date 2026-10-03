@@ -1,0 +1,126 @@
+schema_version: 1
+kind: section
+id: "06 61 00"
+title: Cast Polymer Fabrications
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["12 36 00"]
+contractor_designed: never
+
+scope_summary: >
+  Solid surfacing and cultured marble fabrications (06 61 16 Solid Surfacing
+  Fabrications inherits): vanity and countertops, window sills, shower and
+  wall surrounds. The material is seamed and shaped by the fabricator, partly
+  in the field, so its failures are fabrication details: cracks starting at
+  square inside corners of cutouts, heat from cooktops and dishwashers,
+  unsupported overhangs, and pieces fixed tight between walls. Countertops
+  may instead be specified in 12 36 00; check which section the project uses.
+
+submittals:
+  - id: 06cp.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Plan and section of every piece with seam locations, cutouts, overhang supports, and backsplash and edge profiles
+      - Undermount and integral bowl attachment, and the heat-isolation detail at cooktops and appliances
+  - id: 06cp.sub.product-data
+    type: Product Data
+    must_show:
+      - Material, seam adhesive and sealants, and the integral bowl models each cutout or bowl is for
+  - id: 06cp.sub.samples
+    type: Samples
+    must_show:
+      - Color and pattern, with a seam sample where the spec requires one
+
+review_checks:
+  - id: 06cp.cutout-corners
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Cutouts for sinks, cooktops and grommets have radiused inside corners
+      and the reinforcement the material manufacturer requires; square cuts
+      are rejected.
+    trace_to: [spec.part2, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: 06cp.heat-sources
+    kind: constructability
+    check: >
+      Tops next to or over cooktops, dishwashers, warming equipment and
+      other heat sources have the manufacturer's heat-isolation detail, and
+      the equipment schedule identifies where they occur.
+    trace_to: [schedule.equipment, drawings.interior_elevations]
+    severity: high
+    owner: subcontractor
+
+  - id: 06cp.support-and-movement
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Overhangs and open spans have the support the manufacturer requires,
+      and wall-to-wall pieces leave the expansion clearance at the walls that
+      the manufacturer requires instead of being bonded rigidly between them.
+    trace_to: [drawings.details, drawings.interior_elevations]
+    severity: medium
+    owner: subcontractor
+
+  - id: 06cp.wet-wall-substrate
+    kind: coordination
+    check: >
+      Solid-surface wall panels at showers and other wet areas go over the
+      substrate and waterproofing the manufacturer requires, with sealed
+      joints and transitions to the base, tub or receptor, and fixtures.
+    trace_to: [drawings.details, schedule.finish, schedule.partition_type]
+    severity: medium
+    owner: gc
+    gate: wall_close_in
+
+failure_modes:
+  - id: 06cp.fm.corner-crack
+    what_happens: Cutouts made with square inside corners
+    consequence: Cracks run from the corner in service; tops replaced
+    caught_by: [06cp.cutout-corners]
+    source: industry_practice
+
+  - id: 06cp.fm.heat-crack
+    what_happens: Top over a dishwasher or beside a cooktop with no heat isolation
+    consequence: Cracking or discoloration at the heat source
+    caught_by: [06cp.heat-sources]
+    source: industry_practice
+
+  - id: 06cp.fm.locked-between-walls
+    what_happens: Wall-to-wall tops bonded rigidly at both ends
+    consequence: Thermal movement cracks the top at seams or corners
+    caught_by: [06cp.support-and-movement]
+    source: industry_practice
+
+standards:
+  - id: 06cp.std.isfa-2-01
+    name: ISFA 2-01
+    title: Classification and Standards for Solid Surfacing Material
+    verify: Performance claims for the solid surfacing material
+  - id: 06cp.std.ansi-z124
+    name: ANSI Z124.3 / ANSI Z124.6
+    title: Plastic Lavatories; Plastic Sinks
+    verify: Integral bowls and sinks
+
+regulatory_hooks:
+  - id: 06cp.rh.wall-cladding-class
+    topic: interior-finish-flame-spread-class
+    question: >
+      Does solid-surface wall cladding used in corridors, exits or other
+      rooms meet the flame spread and smoke-developed classification the
+      adopted code requires for wall finish in that location?
+    applies_when: Solid-surface or cast polymer panels used as wall finish
+    source_families: [building_code]
+    severity: medium
+
+extract_fields:
+  - id: 06cp.xf.seams
+    label: Seam locations per piece
+    type: list
+    per: package
+    reconcile_against: [drawings.interior_elevations]

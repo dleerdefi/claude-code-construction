@@ -1,0 +1,154 @@
+schema_version: 1
+kind: section
+id: "04 05 00"
+title: Common Work Results for Masonry
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Mortar, grout, reinforcement, joint reinforcement, ties, anchors and masonry
+  accessories, whether specified here (04 05 13, 04 05 16, 04 05 19,
+  04 05 23 inherit) or inside the unit masonry section. The products are
+  routine; the misses are mismatches between a product and where it goes:
+  grout that cannot fill the space it is poured into, joint reinforcement that
+  blocks the cells, mortar that does not match the units, and test specimens
+  made the wrong way.
+
+submittals:
+  - id: 04cm.sub.product-data
+    type: Product Data
+    must_show:
+      - Mortar and grout materials, admixtures and premixed products, with the mortar type and grout type each is for
+      - Joint reinforcement configuration and corrosion protection for each wall type
+      - Ties and anchors for each backup type, with their corrosion protection
+      - Accessories (flashing, drip edges, end dams, weeps, cavity drainage material, movement joint fillers)
+  - id: 04cm.sub.mix-designs
+    type: Design Data
+    must_show:
+      - Mortar and grout proportions, or property test data where the property specification governs
+  - id: 04cm.sub.reinforcing
+    type: Shop Drawings
+    must_show:
+      - Bar sizes, laps, positioners, and bars at openings, corners, wall ends and bond beams, keyed to the wall elevations and cell layout
+
+review_checks:
+  - id: 04cm.grout-fit
+    kind: conformance
+    check: >
+      Grout type (fine or coarse, conventional or self-consolidating) suits
+      the smallest grout space and the pour height on the structural
+      drawings, and the grout mix meets the strength the masonry design
+      requires.
+    trace_to: [drawings.structural, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 04cm.reinforcing-details
+    kind: completeness
+    submittal_types: [Shop Drawings]
+    check: >
+      Reinforcing shop drawings show every wall's vertical bars in the cells
+      the layout grouts, the laps and positioners, bars at openings, corners,
+      wall ends and intersections, and bond beam bars continuous or stopped at
+      control joints as the structural details require.
+    trace_to: [drawings.structural, drawings.exterior_elevations]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 04cm.joint-reinforcement
+    kind: conformance
+    check: >
+      Joint reinforcement is the configuration each wall needs: ladder type
+      where vertical cells are reinforced and grouted, prefabricated corners
+      and tees, stopped at control joints, and the corrosion protection the
+      exposure requires. Where the seismic provisions require veneer anchors
+      to engage joint reinforcement, the two are compatible.
+    trace_to: [spec.part2, drawings.structural]
+    severity: medium
+    owner: subcontractor
+
+  - id: 04cm.admixtures
+    kind: conformance
+    check: >
+      Mortar for units with integral water repellent carries the matching
+      admixture from the same system; no antifreeze or chloride-bearing
+      admixture is used; and any grout admixture is one the spec allows.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 04cm.field-testing
+    kind: completeness
+    check: >
+      Field sampling and testing of mortar, grout and prisms that the spec or
+      the quality assurance program requires is assigned, with frequency and
+      the response to low results. Grout specimens are formed in the absorptive
+      unit molds the grout test method requires, not in cylinders.
+    trace_to: [spec.part3, register.special_inspections]
+    severity: high
+    owner: gc
+
+failure_modes:
+  - id: 04cm.fm.coarse-grout
+    what_happens: Coarse or stiff grout placed in narrow spaces or high lifts it cannot fill
+    consequence: Voids around the bars, found at a failed inspection or a later core; repair or rebuild
+    caught_by: [04cm.grout-fit]
+    source: industry_practice
+
+  - id: 04cm.fm.grout-in-cylinders
+    what_happens: Grout samples cast in nonabsorbent cylinders instead of unit molds
+    consequence: Falsely low strengths; disputes, cores from the wall and delay
+    caught_by: [04cm.field-testing]
+    source: industry_practice
+
+  - id: 04cm.fm.repellent-mortar
+    what_happens: Integral water-repellent units laid in mortar without the matching admixture
+    consequence: Water enters through the joints of a wall designed to shed it; efflorescence and leaks
+    caught_by: [04cm.admixtures]
+    source: industry_practice
+
+  - id: 04cm.fm.truss-type-in-grouted-cells
+    what_happens: Truss-type joint reinforcement used in walls with grouted, reinforced cells
+    consequence: Diagonals obstruct bars and grout; voids at the reinforcement
+    caught_by: [04cm.joint-reinforcement]
+    source: industry_practice
+
+standards:
+  - id: 04cm.std.astm-c476
+    name: ASTM C476
+    title: Standard Specification for Grout for Masonry
+    verify: Grout type, and proportions or strength
+  - id: 04cm.std.astm-c1019
+    name: ASTM C1019
+    title: Standard Test Method for Sampling and Testing Grout for Masonry
+    verify: Field grout specimens formed in absorptive unit molds
+  - id: 04cm.std.astm-c780
+    name: ASTM C780
+    title: Standard Test Method for Preconstruction and Construction Evaluation of Mortars for Plain and Reinforced Unit Masonry
+    verify: Field mortar testing where the spec requires it
+    note: Field results are for quality control; they are not compared with the laboratory property limits of ASTM C270
+  - id: 04cm.std.astm-c1314
+    name: ASTM C1314
+    title: Standard Test Method for Compressive Strength of Masonry Prisms
+    verify: Prism testing where the prism method shows masonry strength
+  - id: 04cm.std.astm-a951
+    name: ASTM A951/A951M
+    title: Standard Specification for Steel Wire for Masonry Joint Reinforcement
+    verify: Joint reinforcement material and configuration claims
+
+extract_fields:
+  - id: 04cm.xf.grout
+    label: Grout type and placement method
+    type: string
+    per: package
+    reconcile_against: [drawings.structural, spec.part2]
+  - id: 04cm.xf.joint-reinforcement
+    label: Joint reinforcement type per wall type
+    type: list
+    per: package
+    reconcile_against: [spec.part2]

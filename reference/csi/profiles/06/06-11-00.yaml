@@ -1,0 +1,186 @@
+schema_version: 1
+kind: section
+id: "06 11 00"
+title: Wood Framing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # continuous rod tie-down systems are usually delegated
+
+scope_summary: >
+  Light-frame wood walls, floors and roofs, including engineered lumber, in
+  wood-frame buildings and over concrete podiums. Multistory wood shrinks at
+  every plate and floor, and the problems are the things that do not shrink
+  with it: pipe risers, elevator hoistways, masonry veneer, storefront at the
+  podium, and tie-down rods that have to keep up. Framing is cut by every
+  trade that follows, engineered lumber has its own hole rules, and
+  fireblocking and draftstopping are covered by board before anyone looks for
+  them.
+
+submittals:
+  - id: 06wf.sub.product-data
+    type: Product Data
+    must_show:
+      - Engineered lumber, connectors and hold-downs with their evaluated capacities
+      - Continuous tie-down components, including the shrinkage take-up devices
+  - id: 06wf.sub.delegated-design
+    type: Delegated Design
+    must_show:
+      - Tie-down system design by run and level, with the loads from the structural drawings and the shrinkage it compensates for
+  - id: 06wf.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Engineered floor and roof framing layouts with hole zones, blocking, squash blocks and bearing details
+
+review_checks:
+  - id: 06wf.shrinkage
+    kind: coordination
+    check: >
+      The design accounts for cumulative shrinkage of plates and floor framing
+      over the building height, and the details for elements that do not
+      shrink accommodate it: pipe and duct risers, elevator hoistway walls and
+      rails, masonry veneer and the window sills above it, storefront and
+      cladding at the podium transition, stair connections, and tie-down
+      rods.
+    trace_to: [drawings.structural, drawings.wall_sections, drawings.details, drawings.plumbing]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 06wf.tie-downs
+    kind: conformance
+    submittal_types: [Delegated Design, Shop Drawings]
+    check: >
+      The tie-down system follows the shear wall and hold-down layout on the
+      structural drawings, carries the loads at each level, has take-up
+      devices where the design requires them, runs straight through the
+      plates, and is sealed and reviewed by the engineer of record.
+    trace_to: [drawings.structural]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 06wf.anchor-layout
+    kind: coordination
+    check: >
+      Anchor bolts and hold-down anchors cast into the foundation or podium
+      are located from the shear wall and hold-down layout and the approved
+      tie-down drawings before the pour.
+    trace_to: [drawings.structural, drawings.foundation]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 06wf.joist-routing
+    kind: coordination
+    check: >
+      Joist and rafter direction, depth and hole zones leave paths for the
+      duct mains, waste lines and sprinkler mains the MEP drawings route
+      through them; where they do not, the routing or the framing changes
+      before the framing layout is released.
+    trace_to: [drawings.structural, drawings.mechanical, drawings.plumbing, drawings.fire_protection]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+  - id: 06wf.notching-boring
+    kind: constructability
+    check: >
+      Holes and notches cut by later trades in studs, plates, joists and
+      rafters stay within the code limits for sawn lumber and the
+      manufacturer's hole charts for engineered lumber; cut top plates are
+      strapped, and anything beyond the limits gets the engineer's repair
+      detail before it is covered.
+    trace_to: [drawings.structural, spec.part3]
+    severity: high
+    owner: gc
+    gate: wall_close_in
+
+  - id: 06wf.fireblocking
+    kind: completeness
+    check: >
+      Fireblocking in concealed wall spaces at floor and ceiling lines, at
+      soffits, stair stringers and around penetrations, and draftstopping in
+      floor-ceiling and attic spaces, are detailed, built with permitted
+      materials, and inspected before the spaces are closed.
+    trace_to: [drawings.details, drawings.wall_sections, spec.part3]
+    severity: high
+    owner: gc
+    gate: wall_close_in
+
+failure_modes:
+  - id: 06wf.fm.riser-damage
+    what_happens: Rigid pipe risers anchored at every floor of a shrinking wood frame
+    consequence: Fittings crushed or pulled apart; leaks on floors above
+    caught_by: [06wf.shrinkage]
+    source: industry_practice
+
+  - id: 06wf.fm.sill-crush
+    what_happens: Windows in wood framing sit over a brick veneer sill with no gap for shrinkage
+    consequence: The frame settles onto the brick; cracked sills, racked windows and leaks
+    caught_by: [06wf.shrinkage]
+    source: industry_practice
+
+  - id: 06wf.fm.rods-slack
+    what_happens: Tie-down rods installed without take-up devices, or with devices skipped at some levels
+    consequence: Rods go slack as the frame shrinks and the shear walls lose their hold-down
+    caught_by: [06wf.tie-downs]
+    source: industry_practice
+
+  - id: 06wf.fm.anchors-missed
+    what_happens: Hold-down anchors missed or misplaced in the podium or foundation pour
+    consequence: Drilled anchors with engineering for each one, and framing held up
+    caught_by: [06wf.anchor-layout]
+    source: industry_practice
+
+  - id: 06wf.fm.overcut-framing
+    what_happens: A trade notches joists or cuts engineered-joist flanges for a drain or duct
+    consequence: Structural repair after the floor is loaded, or a sagging floor found at finishes
+    caught_by: [06wf.notching-boring, 06wf.joist-routing]
+    source: field_experience
+
+  - id: 06wf.fm.fireblocking-missed
+    what_happens: Fireblocking left out at floor lines, soffits or tub and stair enclosures
+    consequence: Board removed to install it after a failed cover inspection
+    caught_by: [06wf.fireblocking]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 06wf.rh.shrinkage
+    topic: wood-frame-shrinkage-analysis
+    question: >
+      Does the adopted code require an analysis of wood shrinkage where wood
+      walls support more floors than its threshold, and does the design
+      provide it?
+    applies_when: Multistory wood-frame buildings
+    source_families: [building_code]
+    severity: high
+
+  - id: 06wf.rh.notching
+    topic: wood-framing-notching-boring-limits
+    question: >
+      What limits does the adopted code set on notching and boring studs,
+      top plates, joists and rafters, and what reinforcement does it require
+      when plates are cut for piping?
+    applies_when: Light-frame wood construction
+    source_families: [building_code]
+    severity: medium
+
+  - id: 06wf.rh.fireblocking
+    topic: fireblocking-draftstopping-locations
+    question: >
+      Where does the adopted code require fireblocking and draftstopping for
+      this construction type and occupancy, with which materials, and does
+      the sprinkler system change where draftstopping is needed?
+    applies_when: Combustible concealed spaces in wood framing
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: 06wf.xf.tie-downs
+    label: Tie-down system and take-up device per run
+    type: list
+    per: package
+    reconcile_against: [drawings.structural]
