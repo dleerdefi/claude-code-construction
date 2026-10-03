@@ -13,6 +13,7 @@ claude plugin eval . --tag smoke --scaffold --allow-tools Bash Write Edit
 - `--scaffold` lets each case copy the sample project into its workspace and link the toolkit's Python environment.
 - `--allow-tools Bash Write Edit` lets the skills run their scripts and write files.
 - Add `--runs 1 --ablation none` for a quick single pass. By default each case runs 3 times with the plugin and 3 times without it, to show how much the plugin adds.
+- Add `--judge-model sonnet` for `submittal-review`. Its final message is a long findings table, and the default judge model sometimes fails findings that are plainly there.
 
 Results and an HTML report go to `evals/plugin/results/<timestamp>/`.
 
