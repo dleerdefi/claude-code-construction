@@ -1,0 +1,12 @@
+project:
+  name: RIVERSIDE HIGH SCHOOL CENTRAL KITCHEN
+  location:
+    city: Columbia
+    county: Howard County
+    state: MD
+building:
+  occupancy_type: E
+  building_use: High school central kitchen
+  facility_types:
+  - education.k12
+  - foodservice

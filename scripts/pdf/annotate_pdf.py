@@ -95,6 +95,8 @@ def annotate(pdf_path, items_json, output=None, author="Claude Code"):
         elif shape == "text" or shape == "label":
             # FreeText annotation — visible text directly on drawing
             fontsize = item.get("fontsize", 10)
+            # PyMuPDF only accepts border_color for rich-text FreeText; a plain one
+            # draws its border in the text color, which is what we want anyway.
             annot = page.add_freetext_annot(
                 rect,
                 label,
@@ -102,7 +104,7 @@ def annotate(pdf_path, items_json, output=None, author="Claude Code"):
                 fontname="helv",
                 text_color=color,
                 fill_color=(1, 1, 1),  # white background
-                border_color=color,
+                border_width=1,
             )
             annot.set_opacity(opacity)
 

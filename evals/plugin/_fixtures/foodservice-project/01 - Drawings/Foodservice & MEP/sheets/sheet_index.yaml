@@ -1,0 +1,16 @@
+sources:
+- Kitchen Set.pdf
+total_pages: 2
+pages:
+- filename: FS-601 - FOODSERVICE EQUIPMENT SCHEDULE.pdf
+  page_index: 0
+  page_size: 1224x792
+  source_pdf: Kitchen Set.pdf
+  sheet_number: FS-601
+  title: FOODSERVICE EQUIPMENT SCHEDULE
+- filename: E-601 - KITCHEN EQUIPMENT CONNECTION SCHEDULE.pdf
+  page_index: 1
+  page_size: 1224x792
+  source_pdf: Kitchen Set.pdf
+  sheet_number: E-601
+  title: KITCHEN EQUIPMENT CONNECTION SCHEDULE

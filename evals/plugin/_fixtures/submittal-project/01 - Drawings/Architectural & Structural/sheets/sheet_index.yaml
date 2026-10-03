@@ -1,0 +1,22 @@
+sources:
+- Arch Set.pdf
+total_pages: 3
+pages:
+- filename: A-501 - INTERIOR ELEVATIONS - SCIENCE LAB 104.pdf
+  page_index: 0
+  page_size: 1224x792
+  source_pdf: Arch Set.pdf
+  sheet_number: A-501
+  title: INTERIOR ELEVATIONS - SCIENCE LAB 104
+- filename: A-521 - CASEWORK DETAILS.pdf
+  page_index: 1
+  page_size: 1224x792
+  source_pdf: Arch Set.pdf
+  sheet_number: A-521
+  title: CASEWORK DETAILS
+- filename: P-601 - PLUMBING SCHEDULES.pdf
+  page_index: 2
+  page_size: 1224x792
+  source_pdf: Arch Set.pdf
+  sheet_number: P-601
+  title: PLUMBING SCHEDULES
