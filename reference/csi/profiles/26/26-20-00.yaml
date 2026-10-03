@@ -1,0 +1,381 @@
+schema_version: 1
+kind: section
+id: "26 20 00"
+title: Low-Voltage Electrical Distribution
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Service entrance, switchgear, switchboards, panelboards, transformers,
+  busway, overcurrent devices and surge protection (26 21 00 through
+  26 28 00 inherit from here). This equipment is released early and sized by
+  numbers that come from outside the submittal: the serving utility's
+  available fault current, the power system study, the room it goes in and
+  the path it travels to get there, and every other trade's approved
+  equipment lands on it as a circuit. The expensive misses are ratings below
+  the available fault current after a utility or transformer change,
+  equipment released before the study, utility requirements nobody obtained,
+  and a switchboard that does not fit its room or its door.
+
+submittals:
+  - id: 26ds.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - One-line matching the contract single-line, with bus, main and feeder ratings
+      - Short-circuit current rating of each assembly and interrupting rating of each device, with any series-rated combinations and their listing
+      - Plan footprint, elevations, shipping splits and weights, and conduit entry areas
+      - Utility metering and current-transformer compartments built to the serving utility's standards
+      - Neutral and grounding arrangement at the service and at each separately derived system
+      - Surge protective device location, type and short-circuit rating
+  - id: 26ds.sub.product-data
+    type: Product Data
+    must_show:
+      - Transformers with winding configuration, impedance, harmonic rating where specified, temperature rise and sound level
+      - Overcurrent devices with trip unit type and adjustable functions
+  - id: 26ds.sub.design-data
+    type: Design Data
+    must_show:
+      - Seismic certification or anchorage calculation where required
+  - id: 26ds.sub.utility-approval
+    type: Certificates
+    must_show:
+      - The serving utility's acceptance of the service equipment and metering drawings
+
+review_checks:
+  - id: 26ds.equipment-connections
+    kind: absence
+    check: >
+      Every item needing power on the mechanical, plumbing, fire protection,
+      conveying, foodservice and owner equipment schedules has a circuit,
+      disconnecting means and connection point on the electrical drawings,
+      and every electrical connection still serves equipment that exists in
+      the current design (ASIs and owner changes included).
+    trace_to: [schedule.mechanical_equipment, schedule.plumbing_fixture, schedule.equipment,
+               drawings.electrical, schedule.electrical_panel, register.asi_bulletin_log]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+    scope: package
+
+  - id: 26ds.disconnect-furnish
+    kind: coordination
+    check: >
+      For each motor and equipment connection, who furnishes the disconnect,
+      starter or variable-frequency drive (factory-mounted by the equipment
+      manufacturer or field-installed by electrical) is stated once. Items
+      furnished twice, or by nobody, are scope gaps.
+    trace_to: [schedule.mechanical_equipment, spec.part1, drawings.electrical]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+    scope: package
+
+  - id: 26ds.sccr-vs-fault
+    kind: conformance
+    reflex: true
+    check: >
+      Each assembly's short-circuit current rating and each device's
+      interrupting rating meets the available fault current at its line
+      terminals from the study or the utility's data; series ratings are used
+      only as listed combinations and only where the code permits them. The
+      comparison is redone whenever the utility transformer, the service size
+      or a building transformer's impedance changes.
+    trace_to: [drawings.single_line, report.utility_requirements]
+    severity: critical
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 26ds.study-before-release
+    kind: constructability
+    check: >
+      The short-circuit and coordination study, run on the submitted
+      equipment, is accepted before distribution equipment is released, and
+      the breaker types, frames and trip units it needs for selectivity are in
+      the released equipment.
+    trace_to: [spec.part1_submittals, drawings.single_line]
+    severity: critical
+    owner: gc
+    gate: procurement_release
+    scope: package
+
+  - id: 26ds.utility-requirements
+    kind: coordination
+    check: >
+      The serving utility's written requirements are in hand and the service
+      equipment follows them: metering and current-transformer compartments,
+      meter types and locations, transformer pad and clearances, service
+      conductors, and who furnishes and installs each piece.
+    trace_to: [report.utility_requirements, drawings.site, drawings.single_line]
+    severity: high
+    owner: gc
+    gate: procurement_release
+    scope: package
+
+  - id: 26ds.fits-room-and-path
+    kind: constructability
+    check: >
+      The submitted footprint, with working space in front and dedicated
+      space above, fits the electrical room as drawn; shipping sections and
+      transformers fit the delivery path (doors, corridors, elevators,
+      areaways), and that path is held open until they are set.
+    trace_to: [drawings.enlarged_plans, drawings.electrical, drawings.plans]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 26ds.dedicated-space
+    kind: coordination
+    check: >
+      Piping, ductwork and sprinkler lines foreign to the electrical
+      installation stay out of the dedicated space above switchboards and
+      panelboards on the coordination drawings, including drains and
+      sprinkler branches serving the electrical room itself.
+    trace_to: [drawings.mechanical, drawings.plumbing, drawings.fire_protection, drawings.enlarged_plans]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: 26ds.stub-ups
+    kind: constructability
+    check: >
+      Conduit stub-ups and housekeeping pads under floor-standing equipment
+      are laid out from the approved submittal's footprint and conduit entry
+      areas, not from the design drawings.
+    trace_to: [drawings.enlarged_plans, drawings.details]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 26ds.grounding-neutral
+    kind: conformance
+    check: >
+      The neutral is bonded to ground only at the service and at each
+      separately derived system; downstream panelboards have isolated
+      neutrals; transformer secondaries have their system bonding jumper and
+      grounding electrode conductor shown.
+    trace_to: [drawings.single_line, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: 26ds.transformers
+    kind: conformance
+    check: >
+      Transformers match the single-line voltages, winding configuration and
+      impedance (which drives downstream fault current), carry the harmonic
+      rating specified for nonlinear loads, suit the sound sensitivity of
+      adjacent rooms, and their losses are within what the room's ventilation
+      was sized for.
+    trace_to: [drawings.single_line, drawings.mechanical, spec.part2]
+    severity: medium
+    owner: subcontractor
+    scope: package
+
+  - id: 26ds.surge
+    kind: conformance
+    check: >
+      Surge protective devices are where the spec and code put them, rated
+      for the voltage and grounding of the system at that location (a device
+      built for a solidly grounded wye fails on delta or impedance-grounded
+      systems), with a short-circuit rating at least equal to the available
+      fault current, and mounted so their leads stay short.
+    trace_to: [drawings.single_line, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26ds.gfp-testing
+    kind: completeness
+    check: >
+      Ground-fault protection of equipment, where provided, is set to the
+      study's values and performance-tested in place before energization,
+      with the test record kept at the equipment.
+    trace_to: [spec.part3]
+    severity: medium
+    owner: subcontractor
+    gate: energization
+
+reconciliations:
+  - id: 26ds.rc.equipment-nameplate
+    between: [schedule.mechanical_equipment, schedule.plumbing_fixture, schedule.equipment, schedule.electrical_panel]
+    key: Equipment tag
+    fields: [voltage, phase, MCA or FLA, MOCP or fuse size, conductor size, disconnect type and furnished-by, normal or standby source]
+    check: >
+      Before panelboards and switchboards are released, every circuit that
+      serves another division's equipment (mechanical, plumbing, foodservice,
+      conveying, owner equipment) is checked against that equipment's
+      approved submittal rather than its design-stage schedule line, and
+      circuits whose equipment is not yet approved are listed as release
+      risks.
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 26ds.rc.single-line
+    between: [drawings.single_line, schedule.electrical_panel]
+    key: Switchboard, panel or transformer name
+    fields: [voltage and configuration, bus rating, main device type and rating, feeder device and conductor size, fed from, short-circuit rating, normal or standby source]
+    check: >
+      Every switchboard, panelboard and transformer on the single-line
+      matches its panel schedule and the submitted nameplate data, including
+      what feeds it and from which source.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 26ds.fm.substitution-not-carried
+    what_happens: Mechanical or owner equipment is substituted or re-selected after the electrical design, and the new MCA, MOCP or voltage never reaches the panel schedules
+    consequence: Wrong breakers, conductors or disconnects found at start-up; equipment cannot be energized until rework
+    caught_by: [26ds.rc.equipment-nameplate]
+    source: industry_practice
+
+  - id: 26ds.fm.orphan-equipment
+    what_happens: Equipment added by an ASI or owner change with no circuit, or a circuit left serving equipment that was deleted
+    consequence: Circuits added after panels are full and walls are closed; change orders and panel rework
+    caught_by: [26ds.equipment-connections]
+    source: industry_practice
+
+  - id: 26ds.fm.double-furnished
+    what_happens: Equipment arrives with a factory disconnect or drive and electrical installs a second one, or each side assumed the other furnished the drive
+    consequence: Duplicate cost, or no drive at start-up
+    caught_by: [26ds.disconnect-furnish]
+    source: industry_practice
+
+  - id: 26ds.fm.fault-rises
+    what_happens: The utility installs a larger or lower-impedance transformer, or a building transformer is substituted, after equipment ratings were set
+    consequence: Equipment rated below the available fault current; replacements, added current-limiting devices, or a failed inspection
+    caught_by: [26ds.sccr-vs-fault]
+    source: industry_practice
+
+  - id: 26ds.fm.released-before-study
+    what_happens: Switchboards and panelboards released on assumed fault levels; the study arrives after fabrication
+    consequence: Re-fabrication or field-replaced breakers, or selective coordination quietly abandoned
+    caught_by: [26ds.study-before-release]
+    source: industry_practice
+
+  - id: 26ds.fm.utility-rejects
+    what_happens: Service equipment built without the utility's metering and service requirements
+    consequence: Utility refuses to energize; metering section rebuilt and permanent power delayed
+    caught_by: [26ds.utility-requirements, if.26-utility-service]
+    source: industry_practice
+
+  - id: 26ds.fm.no-path-in
+    what_happens: Switchboard sections or a transformer cannot pass through the doors, corridors or elevator once walls are built
+    consequence: Walls, louvers or slabs opened, or equipment split in the field at the risk of its listing
+    caught_by: [26ds.fits-room-and-path]
+    source: industry_practice
+
+  - id: 26ds.fm.pipe-over-gear
+    what_happens: Sprinkler, domestic water or drain piping routed through the dedicated space above switchboards and panelboards
+    consequence: Rejected at inspection; piping rerouted after the room is built out
+    caught_by: [26ds.dedicated-space]
+    source: industry_practice
+
+  - id: 26ds.fm.stubs-misaligned
+    what_happens: Conduit stub-ups cast from the design drawings, then another manufacturer's switchboard is approved
+    consequence: Stubs land outside the conduit entry area; slab chipped or equipment modified
+    caught_by: [26ds.stub-ups, if.03-housekeeping-pads]
+    source: industry_practice
+
+  - id: 26ds.fm.spd-configuration
+    what_happens: A surge protective device rated for a solidly grounded wye system installed on an impedance-grounded or delta system
+    consequence: Device fails at energization or at the first ground fault; replacement and possible equipment damage
+    caught_by: [26ds.surge]
+    source: industry_practice
+
+  - id: 26ds.fm.downstream-bond
+    what_happens: Neutral bonded to ground in a downstream panel, or at a generator that feeds a transfer switch with a solid neutral
+    consequence: Objectionable current on grounding paths, ground-fault protection misoperation, failed inspection
+    caught_by: [26ds.grounding-neutral]
+    source: industry_practice
+
+standards:
+  - id: 26ds.std.neta-ats
+    name: ANSI/NETA ATS
+    title: Standard for Acceptance Testing Specifications for Electrical Power Equipment and Systems
+    verify: Acceptance test scope and report content where the spec cites it
+    note: Confirm the edition the spec cites
+  - id: 26ds.std.ul-1449
+    name: UL 1449
+    title: Surge Protective Devices
+    verify: Device type, nominal discharge current and short-circuit current rating claimed
+
+regulatory_hooks:
+  - id: 26ds.rh.working-space
+    topic: electrical-working-space
+    question: >
+      What working space depth, width and headroom, dedicated equipment
+      space, and entrance and egress from the working space (including
+      door hardware) does the adopted electrical code require for this
+      equipment, and does the room layout provide it?
+    applies_when: Switchboards, panelboards, transformers, transfer switches and other equipment likely to be examined or serviced while energized
+    source_families: [electrical_code]
+    severity: high
+
+  - id: 26ds.rh.selective-coordination
+    topic: selective-coordination-requirements
+    question: >
+      Which systems must be selectively coordinated under the adopted code
+      (emergency, legally required standby, elevator feeders, fire pumps,
+      critical operations power), over what range of fault current, and who
+      must select and document the devices?
+    applies_when: Projects with emergency or legally required standby systems, multiple elevators or a fire pump
+    source_families: [electrical_code]
+    severity: high
+
+  - id: 26ds.rh.ground-fault
+    topic: ground-fault-protection-of-equipment
+    question: >
+      Where does the adopted electrical code require ground-fault protection
+      of equipment (by service or feeder disconnect rating and voltage, and
+      additional levels in health care), and where does it prohibit it?
+    applies_when: Solidly grounded wye services and feeders above the code's threshold
+    source_families: [electrical_code]
+    severity: medium
+
+  - id: 26ds.rh.equipment-marking
+    topic: available-fault-current-and-arc-flash-marking
+    question: >
+      What must be field-marked on service and distribution equipment under
+      the adopted code (available fault current with the date it was
+      calculated, arc-flash warnings or incident energy labels), and when must
+      the marking be updated?
+    applies_when: Service equipment and distribution equipment in other than dwelling units
+    source_families: [electrical_code, occupational_safety]
+    severity: medium
+
+  - id: 26ds.rh.surge
+    topic: surge-protection-requirements
+    question: >
+      Does the adopted electrical code require surge protection at this
+      service or for specific systems (emergency systems, dwelling units,
+      critical operations, specific equipment), and of which type?
+    applies_when: New or replaced services, and emergency or critical systems
+    source_families: [electrical_code]
+    severity: medium
+
+  - id: 26ds.rh.utility
+    topic: utility-service-metering-requirements
+    question: >
+      What does the serving utility require for service equipment,
+      metering, current transformers, transformer pad, clearances and access,
+      and service-entrance conductors, and has it accepted the service
+      equipment drawings?
+    applies_when: New services, service upgrades and added metering
+    source_families: [electrical_code]
+    severity: high
+
+extract_fields:
+  - id: 26ds.xf.available-fault
+    label: Available fault current used for ratings, and its source
+    type: string
+    per: package
+    reconcile_against: [report.utility_requirements, drawings.single_line]
+  - id: 26ds.xf.footprint
+    label: Footprint, largest shipping section and weight per assembly
+    type: list
+    per: item
+    reconcile_against: [drawings.enlarged_plans]

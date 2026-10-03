@@ -1,0 +1,129 @@
+schema_version: 1
+kind: section
+id: "26 24 00"
+title: Switchboards and Panelboards
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Switchboards, panelboards and motor-control centers (26 24 13 through
+  26 24 19 inherit from here), reviewed one tagged assembly at a time against
+  its panel schedule and the single-line. Fault ratings, the study, utility
+  requirements and room fit are inherited from 26 20 00; here the review is
+  the content of each board (mains, devices, spares, options, lugs) and what
+  the board demands of the wall it is set in.
+
+review_mode: per_element
+element_types: [distribution_assembly]
+
+submittals:
+  - id: 26pb.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Each board by its tag, with voltage, bus rating, main device or main lugs, and short-circuit rating
+      - Every device with poles, trip, frame and type (GFCI, AFCI, shunt trip, lock-on, ground-fault)
+      - Spares and spaces, feed-through or sub-feed lugs, and lug sizes and quantities
+      - Mounting (surface or flush), enclosure type, and trim
+
+review_checks:
+  - id: 26pb.schedule-match
+    kind: conformance
+    check: >
+      The board's voltage, bus rating, main type and rating, feed-through or
+      sub-feed lugs, and every device (poles, trip and type: GFCI, AFCI,
+      shunt trip, lock-on for circuits that must not be switched off) match
+      its panel schedule as revised by ASIs.
+    trace_to: [schedule.electrical_panel, register.asi_bulletin_log]
+    severity: high
+    owner: subcontractor
+
+  - id: 26pb.spares
+    kind: conformance
+    check: >
+      Spare devices, spaces and bus capacity are what the spec and schedule
+      require, counted after circuits added by ASIs and change orders, not
+      against the bid-set schedule.
+    trace_to: [schedule.electrical_panel, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26pb.lugs-and-gutters
+    kind: constructability
+    check: >
+      Lug sizes and quantities fit the feeder conductors as designed or as
+      substituted (aluminum, parallel sets), and gutter space allows the
+      bending those conductors need.
+    trace_to: [drawings.single_line, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26pb.wall-mounting
+    kind: constructability
+    check: >
+      Recessed panelboards fit the wall depth shown, are not recessed into
+      rated walls without a listed protection method or a rated box-out
+      detail, and are not set back to back in acoustic walls; surface panels
+      in finished spaces are accepted by the architect.
+    trace_to: [schedule.partition_type, drawings.enlarged_plans, drawings.electrical]
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
+reconciliations:
+  - id: 26pb.rc.circuits
+    between: [schedule.electrical_panel, drawings.electrical]
+    key: Panel and circuit number
+    fields: [load served, poles and trip, room, normal or standby]
+    check: >
+      Every circuit on the power and lighting plans appears on its panel
+      schedule under the same panel and number, and no scheduled circuit is
+      missing from the plans.
+    severity: medium
+    owner: design_team
+
+failure_modes:
+  - id: 26pb.fm.spaces-used-up
+    what_happens: Panelboards released before ASIs added circuits; spares and spaces consumed before the building is occupied
+    consequence: Added panels or sub-feeds late, with no wall space left for them
+    caught_by: [26pb.spares]
+    source: industry_practice
+
+  - id: 26pb.fm.lugs-too-small
+    what_happens: Aluminum or paralleled feeders substituted without checking lug size and gutter space
+    consequence: Lugs replaced or enclosures enlarged in the field; energization delayed
+    caught_by: [26pb.lugs-and-gutters]
+    source: industry_practice
+
+  - id: 26pb.fm.recessed-in-rated-wall
+    what_happens: Recessed panelboard installed in a rated wall with no listed protection
+    consequence: Wall fails inspection; panel relocated or a rated box-out built around it
+    caught_by: [26pb.wall-mounting]
+    source: industry_practice
+
+  - id: 26pb.fm.wrong-device-type
+    what_happens: Board shipped with standard breakers where the schedule called for GFCI, AFCI, shunt-trip or lock-on devices
+    consequence: Field replacement and re-inspection
+    caught_by: [26pb.schedule-match]
+    source: industry_practice
+
+extract_fields:
+  - id: 26pb.xf.main
+    label: Main device type and rating, or main lugs
+    type: string
+    per: element
+    reconcile_against: [schedule.electrical_panel, drawings.single_line]
+  - id: 26pb.xf.sccr
+    label: Assembly short-circuit current rating
+    type: number
+    unit: kA
+    per: element
+    reconcile_against: [drawings.single_line]
+  - id: 26pb.xf.devices
+    label: Devices with poles, trip and type
+    type: list
+    per: element
+    reconcile_against: [schedule.electrical_panel]

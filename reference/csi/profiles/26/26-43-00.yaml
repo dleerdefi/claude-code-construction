@@ -1,0 +1,36 @@
+schema_version: 1
+kind: section
+id: "26 43 00"
+title: Surge Protective Devices
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Surge protection is reviewed with the distribution equipment it is mounted in
+# or beside: compile 26 20 00's lineage (location, fault rating, code hook),
+# then the items below.
+same_as: "26 20 00"
+
+scope_summary: >
+  Surge protective devices for low-voltage power circuits, whether integral
+  to switchboards and panelboards or mounted beside them. A device has to suit the system it is connected to (voltage,
+  wye or delta, solidly or impedance grounded), survive the available fault
+  current at its terminals, and be close enough to the bus that its leads
+  don't undo its protection.
+
+submittals:
+  - id: 26sp.sub.product-data
+    type: Product Data
+    must_show:
+      - Device type, nominal discharge current and short-circuit current rating
+      - Voltage rating and protection modes for the system configuration at each location
+      - Integral or external mounting, with the location and lead routing at each board
+      - Status indication and any remote alarm contacts
+
+extract_fields:
+  - id: 26sp.xf.ratings
+    label: Device type, short-circuit current rating and voltage rating by location
+    type: list
+    per: item
+    reconcile_against: [drawings.single_line]

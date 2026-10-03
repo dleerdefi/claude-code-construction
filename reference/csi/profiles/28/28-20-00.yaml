@@ -1,0 +1,107 @@
+schema_version: 1
+kind: section
+id: "28 20 00"
+title: Video Surveillance
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes
+
+scope_summary: >
+  Cameras, video management and storage (28 21 00 through 28 27 00 inherit
+  from here). The owner's security group decides what each camera must see
+  and how long video is kept, and the system is sized from that. The misses
+  are storage and network sized for fewer cameras or a shorter retention than
+  the owner requires, cameras whose view is blocked by luminaires, signs or
+  trees, exterior cameras without support, power or pathway, and cameras
+  pointed at spaces nobody cleared for recording.
+
+submittals:
+  - id: 28vs.sub.product-data
+    type: Product Data
+    must_show:
+      - Camera types with resolution, lens, power class and environmental rating
+      - Recorders, servers and storage with the capacity calculation
+  - id: 28vs.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Camera locations with fields of view drawn on the plans
+      - Mounting details for wall, ceiling, pole and parapet locations
+
+review_checks:
+  - id: 28vs.storage-retention
+    kind: conformance
+    check: >
+      Storage is calculated from the submitted camera count, resolution,
+      frame rate, compression and recording mode for the retention period the
+      owner requires, with the redundancy specified.
+    trace_to: [spec.part2, drawings.security]
+    severity: high
+    owner: subcontractor
+
+  - id: 28vs.poe-budget
+    kind: coordination
+    check: >
+      Each camera's power class and bandwidth fit the switch power budget and
+      uplinks, counting heaters and pan-tilt-zoom units at their full draw.
+    trace_to: [drawings.security, drawings.technology]
+    severity: medium
+    owner: gc
+
+  - id: 28vs.field-of-view
+    kind: conformance
+    check: >
+      Camera types, lenses and locations give the view and detail the
+      owner's coverage requirements call for, checked against luminaires,
+      signs, trees and ceiling features in the line of sight.
+    trace_to: [drawings.security, drawings.rcp, drawings.site]
+    severity: medium
+    owner: subcontractor
+
+  - id: 28vs.exterior-mounts
+    kind: constructability
+    check: >
+      Exterior and pole cameras have mounting, backing or pole capacity,
+      power and pathway, with sealed penetrations through the envelope,
+      coordinated before cladding and site work close.
+    trace_to: [drawings.security, drawings.exterior_elevations, drawings.site]
+    severity: medium
+    owner: gc
+    gate: envelope_close_in
+
+  - id: 28vs.privacy
+    kind: coordination
+    check: >
+      Cameras that could view private areas, and any audio capture, are
+      confirmed with the owner before installation.
+    trace_to: [spec.part1, drawings.security]
+    severity: medium
+    owner: owner
+
+failure_modes:
+  - id: 28vs.fm.storage-short
+    what_happens: Storage sized on the bid camera count and a shorter retention than the owner's policy
+    consequence: Storage expanded after turnover, or video lost before the retention period
+    caught_by: [28vs.storage-retention]
+    source: industry_practice
+
+  - id: 28vs.fm.poe-over-budget
+    what_happens: Heated exterior or pan-tilt-zoom cameras exceed the switch's power budget
+    consequence: Cameras reboot or stay dark in cold weather; switches replaced
+    caught_by: [28vs.poe-budget, if.27-security-network]
+    source: industry_practice
+
+  - id: 28vs.fm.blocked-view
+    what_happens: Camera installed where a sign, luminaire or tree blocks the required view
+    consequence: Relocation after the acceptance walk
+    caught_by: [28vs.field-of-view]
+    source: industry_practice
+
+extract_fields:
+  - id: 28vs.xf.storage
+    label: Camera count, retention period and storage capacity
+    type: string
+    per: package
+    reconcile_against: [spec.part2]

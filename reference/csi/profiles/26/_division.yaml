@@ -1,0 +1,117 @@
+schema_version: 1
+kind: division
+id: "26"
+title: Electrical
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Power distribution, emergency and standby power, lighting and their
+  controls. Electrical connects last but has to know first: every other
+  trade's equipment, every substitution and every utility decision changes a
+  circuit, breaker, conductor or rating that electrical has already designed.
+  Review here is reconciliation: equipment data against panel schedules, the
+  single-line against nameplates, the fixture schedule against the reflected
+  ceiling plans, and ratings against the utility data and study that size
+  them. Distribution equipment and generators are released early and are
+  expensive to change afterward.
+
+review_checks:
+  - id: d26.emergency-separation
+    kind: conformance
+    check: >
+      Emergency, legally required standby and optional standby wiring,
+      panels and transfer equipment are kept separate as the load
+      classification requires; no panel schedule mixes loads of different
+      classes, and emergency raceways and boxes carry the identification the
+      spec calls for.
+    trace_to: [drawings.single_line, schedule.electrical_panel, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: d26.ratings-for-location
+    kind: conformance
+    check: >
+      Enclosures, luminaires and devices carry ratings for where they go:
+      wet, damp or washdown locations, corrosive areas, classified
+      (hazardous) locations, air-handling spaces, and outdoor exposure.
+    trace_to: [spec.part2, drawings.electrical, drawings.plans]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: d26.fm.mixed-classes
+    what_happens: Optional standby loads put on an emergency panel, or emergency circuits run in raceway with normal circuits
+    consequence: Rejected at inspection; panels re-circuited and raceway rerun late in the job
+    caught_by: [d26.emergency-separation]
+    source: industry_practice
+
+  - id: d26.fm.wrong-enclosure
+    what_happens: Indoor-rated enclosure or damp-rated luminaire installed in a wet, washdown or outdoor location
+    consequence: Corrosion and failures after turnover; replacement under warranty dispute
+    caught_by: [d26.ratings-for-location]
+    source: industry_practice
+
+standards:
+  - id: d26.std.nfpa-70
+    name: NFPA 70
+    title: National Electrical Code
+    verify: Edition and local amendments the jurisdiction adopts; listing and labeling claims on product data
+regulatory_hooks:
+  - id: d26.rh.electrical-code-amendments
+    topic: electrical-code-edition-local-amendments
+    question: >
+      Which edition of the electrical code is adopted here, with what local
+      amendments, and does the jurisdiction restrict wiring methods or
+      conductor materials (cable assemblies, aluminum conductors, nonmetallic
+      raceway) beyond the model code?
+    applies_when: Every project with electrical work
+    source_families: [electrical_code]
+    severity: high
+
+  - id: d26.rh.load-classification
+    topic: emergency-standby-load-classification
+    question: >
+      Which loads must be on an emergency, legally required standby or
+      optional standby system (or on essential electrical system branches
+      where the facility type has them), under which codes and standards, and
+      what transfer time, wiring separation and testing does each class
+      require?
+    applies_when: Projects with a generator, central battery, inverter or other emergency or standby source
+    source_families: [electrical_code, building_code, fire_code]
+    severity: critical
+
+  - id: d26.rh.seismic
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Which electrical equipment, raceway, cable tray and luminaires need
+      seismic anchorage or bracing in this project's seismic design category,
+      which exemptions apply, and does the submittal include the anchorage
+      design?
+    applies_when: Floor-, wall- and ceiling-supported electrical equipment, raceway and luminaires in seismic design categories that require it
+    source_families: [building_code_seismic]
+    severity: medium
+
+  - id: d26.rh.seismic-certification
+    topic: seismic-equipment-certification
+    question: >
+      Are generators, transfer switches, distribution equipment, fire alarm
+      and emergency lighting equipment designated seismic systems here, and
+      must the manufacturer certify that they remain operable after the
+      design earthquake?
+    applies_when: Emergency and standby power and life-safety electrical equipment in seismic design categories where designated seismic systems apply
+    source_families: [building_code_seismic]
+    severity: medium
+
+  - id: d26.rh.classified-locations
+    topic: hazardous-location-classification
+    question: >
+      Are any areas classified as hazardous locations (fuel storage and
+      dispensing, spray finishing, battery rooms, repair garages, process
+      areas), and which equipment and wiring methods does the classification
+      require?
+    applies_when: Fuel, flammable liquid or gas, combustible dust or battery storage areas
+    source_families: [electrical_code, fire_code]
+    severity: medium

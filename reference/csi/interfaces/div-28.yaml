@@ -1,0 +1,48 @@
+schema_version: 1
+kind: interfaces
+id: div-28
+title: Interfaces owned by Division 28
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with lower divisions (07, 08, 09, 11, 14, 21, 23, 26, 27) live in those divisions' files.
+
+edges:
+  # ── Within Division 28 ────────────────────────────────────────
+  - id: if.28-fire-alarm-access-release
+    a: ["28 46 00"]
+    a_trade: Fire detection and alarm
+    b: ["28 10 00"]
+    b_trade: Access control
+    a_provides: Relay outputs that release fail-safe locks and unlock stair doors on alarm, by the zones the code requires
+    b_provides: Fail-safe locks and power supplies with fire alarm release inputs at each location, and the list of doors that must release
+    responsibility:
+      - item: Relay modules and wiring from the fire alarm to lock power supplies
+        typical: {furnish: "28 46 00", install: "28 46 00 or 28 10 00"}
+        confirm_in: [spec.part1, drawings.fire_alarm, drawings.security]
+    gate: {milestone: above_ceiling_close_in}
+    severity: critical
+
+  # ── Site ──────────────────────────────────────────────────────
+  - id: if.28-vehicle-gates
+    a: ["28 10 00"]
+    a_trade: Access control
+    b: ["32 31 00"]
+    b_trade: Fences and gates (gate operators)
+    a_provides: Readers, intercoms and controller connections at each vehicle gate, with their pedestals and conduit
+    b_provides: Gate operator, vehicle detection loops and safety devices, the operator's access control input, and the emergency access device the fire department requires
+    responsibility:
+      - item: Vehicle detection loops and conduit under the drive
+        typical: {furnish: "32 31 00 or 28 10 00", install: "32 31 00 or 28 10 00"}
+        confirm_in: [spec.part1, drawings.site]
+      - item: Power to the gate operator
+        typical: {install: "26 05 00"}
+        confirm_in: [drawings.electrical, drawings.site]
+    gate:
+      milestone: site_paving
+      note: Loops and conduit under the drive are cut in or placed before final paving
+    severity: medium
+    failure: Gate operators installed with no reader conduit or loops under the paving; saw-cutting new paving and a gate that can't be opened for responders

@@ -1,0 +1,122 @@
+schema_version: 1
+kind: section
+id: "26 41 00"
+title: Facility Lightning Protection
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # the installer designs to the cited standard and obtains the certification
+
+scope_summary: >
+  Lightning protection systems designed by the installer to the standard the
+  spec cites, with air terminals, conductors, down conductors, bonding and
+  grounding (26 41 13 inherits from here). Most of it disappears early: down
+  conductors inside columns or walls, ground terminations at the foundation,
+  roof attachments the roofer must accept. The misses are concealed work left
+  until the cladding is up, rooftop equipment never bonded, attachments that
+  void the roof warranty, and a certification that needs the inspector to
+  see concealed work.
+
+submittals:
+  - id: 26lp.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Roof plan with air terminals, conductors and bonds to rooftop equipment and metal
+      - Down conductor routes, concealed or exposed, and ground terminations
+      - Roof attachment details accepted by the roofing manufacturer
+      - Interconnection with the building grounding electrode system
+  - id: 26lp.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Installer listing or certification program the spec names
+  - id: 26lp.sub.certificate
+    type: Certificates
+    must_show:
+      - Third-party inspection certificate or listing the spec requires, at closeout
+
+review_checks:
+  - id: 26lp.concealed-sequence
+    kind: constructability
+    check: >
+      Concealed down conductors, through-wall and through-roof connections
+      and ground terminations are installed and inspected before cladding,
+      fireproofing, backfill or slabs hide them, with partial inspections
+      where the certification requires the inspector to see concealed work.
+    trace_to: [spec.part3, drawings.wall_sections]
+    severity: high
+    owner: gc
+    gate: envelope_close_in
+
+  - id: 26lp.bonding
+    kind: completeness
+    check: >
+      Rooftop equipment, metal copings and railings, antennas, photovoltaic
+      racking and other metal bodies the standard requires are bonded,
+      including equipment added after the lightning protection design.
+    trace_to: [drawings.roof_plan, drawings.mechanical]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26lp.grounding-interconnect
+    kind: conformance
+    check: >
+      The lightning protection grounding is interconnected with the
+      electrical, telecommunications and other building grounding electrodes
+      as the standard requires.
+    trace_to: [drawings.electrical, drawings.details]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26lp.certification
+    kind: completeness
+    check: >
+      The certification or inspection the spec requires is scheduled with
+      the certifying body, and the certificate is a listed closeout
+      deliverable.
+    trace_to: [spec.part1, spec.part3]
+    severity: medium
+    owner: gc
+    gate: substantial_completion
+
+failure_modes:
+  - id: 26lp.fm.concealed-after-cladding
+    what_happens: Down conductors are planned inside walls or columns, but the installer mobilizes after the cladding is up
+    consequence: Exposed conductors on the facade, or cladding removed; certification withheld for unseen work
+    caught_by: [26lp.concealed-sequence]
+    source: industry_practice
+
+  - id: 26lp.fm.membrane-attachments
+    what_happens: Air terminals and conductors fastened through the finished membrane without the roofing manufacturer's details
+    consequence: Roof warranty exclusions and leaks at attachments
+    caught_by: [if.roof-attachments-lp-pv]
+    source: industry_practice
+
+  - id: 26lp.fm.equipment-unbonded
+    what_happens: Rooftop units, antennas or photovoltaic arrays added after the lightning protection design are never bonded
+    consequence: Certification fails; return trips and roof work after the membrane is finished
+    caught_by: [26lp.bonding]
+    source: industry_practice
+
+standards:
+  - id: 26lp.std.nfpa-780
+    name: NFPA 780
+    title: Standard for the Installation of Lightning Protection Systems
+    verify: Design and material requirements the shop drawings claim
+    note: Confirm whether the spec cites this, UL 96A or both
+  - id: 26lp.std.ul-96a
+    name: UL 96A
+    title: Installation Requirements for Lightning Protection Systems
+    verify: Installation requirements and the certification tied to them
+
+regulatory_hooks:
+  - id: 26lp.rh.required
+    topic: lightning-protection-required
+    question: >
+      Is a lightning protection system required for this building by the
+      adopted code, the owner's insurer or a risk assessment the spec calls
+      for, and to which standard?
+    applies_when: Projects with lightning protection specified or tall, exposed or high-risk structures
+    source_families: [building_code, fire_code]
+    severity: medium

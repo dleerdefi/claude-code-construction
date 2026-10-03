@@ -1,0 +1,97 @@
+schema_version: 1
+kind: division
+id: "27"
+title: Communications
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes
+
+scope_summary: >
+  Structured cabling, communications pathways and spaces, audio-video, and
+  distributed systems such as paging, nurse call and in-building radio. Much
+  of it is performance-specified or design-build, and the cabling contractor
+  and the owner's IT group often arrive late, but the skeleton they need
+  (telecom rooms with power, cooling and grounding, backbone pathways,
+  entrance conduits) has to be in the base building design and built before
+  walls and ceilings close. Owner technology standards often govern over the
+  spec and are not in the contract documents unless someone puts them there.
+
+review_checks:
+  - id: d27.skeleton
+    kind: absence
+    reflex: true
+    check: >
+      The base building documents show every telecom room with its size,
+      door, backboard, power, dedicated cooling, bonding busbar and lighting,
+      the backbone pathways between rooms and floors, and the entrance
+      conduits from the property line, even when the cabling itself is
+      design-build or owner-furnished.
+    trace_to: [drawings.technology, drawings.enlarged_plans, drawings.mechanical, drawings.electrical]
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: d27.owner-standards
+    kind: coordination
+    check: >
+      The owner's technology standards (cable manufacturer and warranty
+      program, labeling scheme, rack layouts, jack colors, network
+      equipment) are identified, and any that are not in the contract
+      documents are raised before procurement instead of being enforced at
+      punch list.
+    trace_to: [spec.part1, spec.part2]
+    severity: high
+    owner: owner
+    gate: procurement_release
+
+  - id: d27.cable-ratings
+    kind: conformance
+    check: >
+      Cable jackets are listed for the spaces they pass through (plenum,
+      riser, general purpose, outdoor or wet underground), with plenum-rated
+      cable wherever open cable runs in a ceiling or floor cavity the
+      mechanical drawings use for return or supply air.
+    trace_to: [spec.part2, drawings.mechanical]
+    severity: high
+    owner: subcontractor
+
+failure_modes:
+  - id: d27.fm.skeleton-missing
+    what_happens: Because cabling is design-build, the base design leaves out telecom room cooling, power or backbone pathways
+    consequence: Rooms built without cooling or conduit; added late through finished ceilings and rated walls
+    caught_by: [d27.skeleton]
+    source: industry_practice
+
+  - id: d27.fm.owner-standards-late
+    what_happens: Owner IT standards surface after submittals are approved (different cable manufacturer, colors, labeling)
+    consequence: Recabling, relabeling or a change order at turnover
+    caught_by: [d27.owner-standards]
+    source: industry_practice
+
+  - id: d27.fm.non-plenum
+    what_happens: Riser or general-purpose cable run open in a return-air plenum
+    consequence: Cable replaced or enclosed in conduit after the above-ceiling inspection
+    caught_by: [d27.cable-ratings]
+    source: industry_practice
+
+standards:
+  - id: d27.std.tia-569
+    name: ANSI/TIA-569
+    title: Telecommunications Pathways and Spaces
+    verify: Room sizes, pathway capacity and pathway design rules the spec adopts
+    note: Confirm the edition the spec cites
+
+regulatory_hooks:
+  - id: d27.rh.cable-installation
+    topic: low-voltage-cable-installation-requirements
+    question: >
+      What does the adopted electrical code require of communications and
+      other low-voltage cables by installation space (plenum, riser, outdoor
+      entry, underfloor), and for their support independent of the ceiling
+      grid and its hangers?
+    applies_when: Any low-voltage cabling
+    source_families: [electrical_code]
+    severity: medium

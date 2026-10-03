@@ -1,0 +1,102 @@
+schema_version: 1
+kind: section
+id: "26 56 00"
+title: Exterior Lighting
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Building-mounted, pole-mounted and landscape lighting, with poles and bases
+  (26 56 13 and the source-type sections inherit from here). Exterior
+  lighting answers to rules interior lighting doesn't: exterior lighting
+  power and automatic controls, light trespass and dark-sky ordinances, and
+  wind load on poles. Pole bases and the conduit to them are buried under
+  paving early, so who designs, furnishes and sets the bases, and where they
+  sit against curbs and parking, are settled before site work closes over
+  them.
+
+submittals:
+  - id: 26xl.sub.poles
+    type: Shop Drawings
+    must_show:
+      - Pole, arm and bracket with the wind rating for the effective area actually mounted, and the anchor bolt pattern
+      - Base design, or the reference to the base detail it was checked against
+
+review_checks:
+  - id: 26xl.pole-bases
+    kind: coordination
+    check: >
+      Pole base design, who furnishes and installs it, and its location
+      against the final curbs, islands, parking stripes and utilities are
+      settled, and the base matches the approved pole's anchor bolt pattern.
+    trace_to: [drawings.site, drawings.civil, drawings.details]
+    severity: high
+    owner: gc
+    gate: site_paving
+    scope: package
+
+  - id: 26xl.pole-wind
+    kind: conformance
+    check: >
+      Pole and luminaire combinations, including banners, cameras, signs or
+      added heads, are rated for the site's design wind with the total
+      effective projected area mounted, with calculations where the spec
+      requires them.
+    trace_to: [spec.part2, drawings.structural]
+    severity: high
+    owner: subcontractor
+
+  - id: 26xl.trespass
+    kind: conformance
+    check: >
+      Luminaire distributions (backlight, uplight, glare and shielding) meet
+      the limits the site photometric plan or ordinance sets at property
+      lines, and house-side shields are included where the plan relies on
+      them.
+    trace_to: [drawings.site, schedule.lighting_fixture]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26xl.controls
+    kind: conformance
+    check: >
+      Exterior controls (photocell, astronomic time switch, after-hours
+      reduction) match the energy compliance documents and the owner's
+      operating hours.
+    trace_to: [report.energy_compliance, drawings.electrical]
+    severity: medium
+    owner: subcontractor
+    scope: package
+
+failure_modes:
+  - id: 26xl.fm.base-in-drive-aisle
+    what_happens: Pole bases laid out from the electrical site plan without the final civil curb geometry
+    consequence: Bases in drive aisles or under parking stripes; removed and recast after paving
+    caught_by: [26xl.pole-bases, if.26-light-pole-bases]
+    source: industry_practice
+
+  - id: 26xl.fm.added-attachments
+    what_happens: Cameras, banners or extra heads added to poles selected for the original luminaire
+    consequence: Overstressed poles; replacement
+    caught_by: [26xl.pole-wind]
+    source: industry_practice
+
+  - id: 26xl.fm.trespass
+    what_happens: Substituted luminaire with more backlight than the photometric plan assumed
+    consequence: Neighbor complaints or zoning enforcement; shields or replacement after occupancy
+    caught_by: [26xl.trespass]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 26xl.rh.exterior-limits
+    topic: exterior-lighting-limits
+    question: >
+      What exterior lighting power, automatic control and after-hours
+      reduction does the adopted energy code require, and does a zoning or
+      dark-sky ordinance limit light at property lines, uplight or luminaire
+      shielding here?
+    applies_when: Any exterior lighting
+    source_families: [energy, environmental]
+    severity: medium

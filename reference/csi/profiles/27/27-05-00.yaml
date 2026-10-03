@@ -1,0 +1,104 @@
+schema_version: 1
+kind: section
+id: "27 05 00"
+title: Common Work Results for Communications
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Pathways (conduit, cable tray, cable hooks, sleeves, surface raceway),
+  backboxes, grounding and bonding, and identification for low-voltage
+  systems (27 05 13 through 27 05 53 inherit from here). Pathways are the
+  part of communications that has to be built with the building: stubs to
+  an accessible ceiling, continuous conduit above hard ceilings, tray and
+  hooks before ceilings close, sleeves through rated walls and floors. The
+  misses are pathways never designed because the cabling was design-build,
+  sleeves with no room to grow, and bonding left for last.
+
+submittals:
+  - id: 27cw.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Cable tray and pathway routing with sizes, elevations and pull box locations
+      - Sleeve and core locations through rated assemblies, with spare capacity
+      - Bonding backbone, busbars and bonding conductor sizes
+
+review_checks:
+  - id: 27cw.pathway-capacity
+    kind: conformance
+    check: >
+      Conduit sizes, bends between pull points, sleeve counts and tray sizes
+      follow the pathway standard the spec adopts and the cable counts of all
+      systems that share them, with the spare capacity specified.
+    trace_to: [drawings.technology, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 27cw.backbox-stubs
+    kind: constructability
+    check: >
+      Every outlet, card reader, camera, speaker and display location has a
+      backbox and a stub to an accessible ceiling or tray, sized for its
+      cable count and bend radius, before the wall closes; locations below
+      hard ceilings get continuous conduit to an accessible point.
+    trace_to: [drawings.technology, drawings.security, drawings.rcp]
+    severity: high
+    owner: gc
+    gate: wall_close_in
+
+  - id: 27cw.supports
+    kind: constructability
+    check: >
+      Open cabling rides on its own hooks or tray supported from structure,
+      not on ceiling wires, ducts or pipes, and the support system is in
+      before ceilings close.
+    trace_to: [spec.part3, drawings.technology]
+    severity: medium
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+  - id: 27cw.bonding
+    kind: completeness
+    check: >
+      A bonding backbone with busbars in each telecom room bonds racks, tray,
+      entrance protectors and the panelboard serving the room, and connects
+      to the building grounding electrode system.
+    trace_to: [drawings.technology, drawings.electrical]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 27cw.fm.no-stub
+    what_happens: Low-voltage boxes installed with no conduit stub, or with stubs ending above a hard ceiling
+    consequence: Walls or ceilings opened to fish cable; access panels added in finished spaces
+    caught_by: [27cw.backbox-stubs]
+    source: industry_practice
+
+  - id: 27cw.fm.cable-on-grid
+    what_happens: Cable laid on ceiling tiles or tied to ceiling wires, ducts and sprinkler pipe
+    consequence: Rejected at above-ceiling inspection; recabled onto hooks or tray
+    caught_by: [27cw.supports]
+    source: industry_practice
+
+  - id: 27cw.fm.pathway-full
+    what_happens: Conduit and sleeves sized for the initial cable count only
+    consequence: No room for additions; new sleeves cored through rated floors after occupancy
+    caught_by: [27cw.pathway-capacity]
+    source: industry_practice
+
+  - id: 27cw.fm.unbonded-busbar
+    what_happens: Telecom busbars installed but never connected to the electrical grounding system
+    consequence: Found at cabling certification or by the owner's IT audit; conductor pulled through finished ceilings
+    caught_by: [27cw.bonding, if.26-telecom-grounding]
+    source: industry_practice
+
+standards:
+  - id: 27cw.std.tia-607
+    name: ANSI/TIA-607
+    title: Generic Telecommunications Bonding and Grounding (Earthing) for Customer Premises
+    verify: Busbar, bonding backbone and bonding conductor design
+    note: Confirm the edition the spec cites

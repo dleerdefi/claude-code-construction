@@ -1,0 +1,148 @@
+schema_version: 1
+kind: section
+id: "26 36 00"
+title: Transfer Switches
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Automatic and manual transfer switches (26 36 13 and 26 36 23 inherit from
+  here), reviewed one switch at a time. Each switch has to match its load
+  class (a switch listed for emergency use on emergency loads only), hold the
+  available fault current with the actual upstream protection, switch or not
+  switch the neutral as the grounding design requires, and send the signals
+  that the generator, elevators and fire alarm depend on.
+
+review_mode: per_element
+element_types: [transfer_switch]
+
+submittals:
+  - id: 26ts.sub.product-data
+    type: Product Data
+    must_show:
+      - Each switch by tag with load class, ampere rating, poles, and transition type (open, delayed, closed, bypass-isolation)
+      - Withstand and closing rating, with its basis (time-based or tested with specific upstream devices)
+      - Controller features (exerciser, in-phase monitor, load shed, elevator pre-transfer, remote annunciation)
+
+review_checks:
+  - id: 26ts.classification
+    kind: conformance
+    check: >
+      Each switch serves one load class as the single-line shows, is
+      automatic where the class requires it, and is listed for emergency use
+      where it serves emergency loads.
+    trace_to: [drawings.single_line, spec.part2]
+    severity: critical
+    owner: subcontractor
+
+  - id: 26ts.withstand
+    kind: conformance
+    check: >
+      The withstand and closing rating meets the available fault current at
+      the switch; a rating tied to a specific upstream breaker or fuse holds
+      only if that exact device is the one upstream in the released
+      distribution equipment.
+    trace_to: [drawings.single_line]
+    severity: high
+    owner: subcontractor
+
+  - id: 26ts.neutral-poles
+    kind: conformance
+    check: >
+      Switched or solid neutral matches the grounding design: a switched
+      neutral where the generator is grounded as a separately derived system
+      or service ground-fault protection would see neutral current through
+      the generator; a solid neutral where the generator neutral is bonded
+      only at the service.
+    trace_to: [drawings.single_line, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: 26ts.transition
+    kind: conformance
+    check: >
+      Transition type and bypass-isolation are as specified; closed
+      transition requires the serving utility's acceptance and the protective
+      relaying it asks for.
+    trace_to: [spec.part2, report.utility_requirements]
+    severity: medium
+    owner: subcontractor
+
+  - id: 26ts.control-signals
+    kind: coordination
+    check: >
+      Engine start, load shed, elevator pre-transfer and remote annunciation
+      signals are wired to the generator, elevator controllers and fire alarm
+      or building automation as the sequences require.
+    trace_to: [drawings.single_line, drawings.fire_alarm, spec.part2]
+    severity: high
+    owner: gc
+
+  - id: 26ts.time-delays
+    kind: completeness
+    check: >
+      Each switch's time delays (engine start, transfer, retransfer,
+      cool-down) are set to the sequence and recorded during the generator
+      acceptance test.
+    trace_to: [spec.part3]
+    severity: medium
+    owner: subcontractor
+    gate: substantial_completion
+
+failure_modes:
+  - id: 26ts.fm.mixed-classes
+    what_happens: Emergency and optional standby loads served by one transfer switch to save a switch
+    consequence: Rejected at inspection; a switch added and loads re-circuited
+    caught_by: [26ts.classification]
+    source: industry_practice
+
+  - id: 26ts.fm.specific-breaker-rating
+    what_happens: The switch's withstand rating depends on a specific breaker, and a different upstream breaker is supplied
+    consequence: Switch underrated for the fault; replacement or added current-limiting protection
+    caught_by: [26ts.withstand]
+    source: industry_practice
+
+  - id: 26ts.fm.neutral-wrong
+    what_happens: Three-pole switch with a separately derived generator, or a four-pole switch with the neutral bonded at both ends
+    consequence: Ground-fault protection trips on transfer, or objectionable neutral current
+    caught_by: [26ts.neutral-poles]
+    source: industry_practice
+
+  - id: 26ts.fm.no-pretransfer
+    what_happens: Elevators on standby power with no pre-transfer signal from the transfer switch
+    consequence: Cars stop between floors or drives fault at each transfer and retransfer
+    caught_by: [26ts.control-signals]
+    source: industry_practice
+
+standards:
+  - id: 26ts.std.ul-1008
+    name: UL 1008
+    title: Transfer Switch Equipment
+    verify: Listing, emergency-use marking, and the withstand and closing ratings with their test basis
+
+regulatory_hooks:
+  - id: 26ts.rh.utility-interconnection
+    topic: utility-interconnection-requirements
+    question: >
+      Does the serving utility permit closed-transition transfer or
+      paralleling with its system, and what protection, agreement and witness
+      testing does it require?
+    applies_when: Closed-transition or paralleling transfer equipment, or on-site generation that can parallel the utility
+    source_families: [electrical_code]
+    severity: medium
+
+extract_fields:
+  - id: 26ts.xf.withstand
+    label: Withstand and closing rating and its basis
+    type: string
+    per: element
+    reconcile_against: [drawings.single_line]
+  - id: 26ts.xf.neutral
+    label: Switched or solid neutral
+    type: string
+    per: element
+    reconcile_against: [drawings.single_line]

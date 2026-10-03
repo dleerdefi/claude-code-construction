@@ -1,0 +1,176 @@
+schema_version: 1
+kind: section
+id: "26 50 00"
+title: Lighting
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Luminaires, reviewed one fixture type at a time against the fixture
+  schedule, the reflected ceiling plans and the controls (26 51 00 interior
+  and the special-purpose sections inherit from here; 26 52 00 and 26 56 00
+  add their own). The misses are luminaires that don't fit the ceiling they
+  go in or the rated assembly they penetrate, drivers the controls can't
+  dim, substitutions that change the photometrics the design was calculated
+  on, and wattages that no longer match what the energy compliance claimed.
+
+review_mode: per_element
+element_types: [luminaire_type]
+
+submittals:
+  - id: 26lt.sub.product-data
+    type: Product Data
+    must_show:
+      - Each type by its tag with the full catalog string, not a family cut sheet
+      - Lumen output, input wattage, color temperature and rendering, distribution and voltage
+      - Driver model and dimming protocol and range
+      - Mounting and trim for each ceiling type the type is used in, and insulation-contact or rated-assembly suitability
+      - Emergency option, finish, and listing for the location
+  - id: 26lt.sub.photometrics
+    type: Design Data
+    must_show:
+      - Photometric data files for any substituted type, and recalculated layouts where the spec requires them
+  - id: 26lt.sub.samples
+    type: Samples
+    must_show:
+      - Decorative or finish-critical types where the spec requires samples
+
+review_checks:
+  - id: 26lt.type-match
+    kind: conformance
+    check: >
+      The submitted type matches its schedule line: lumen output, input
+      wattage, color temperature and rendering, distribution, voltage, driver
+      and dimming range, emergency option and finish.
+    trace_to: [schedule.lighting_fixture, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 26lt.ceiling-fit
+    kind: coordination
+    check: >
+      Mounting and trim suit the ceiling at every location of the type on
+      the reflected ceiling plans (lay-in grid and its module, gypsum with a
+      frame-in kit, plaster, wood or metal panel), the plenum depth clears
+      the housing below structure and duct, and luminaires in insulated
+      ceilings are rated for insulation contact or kept clear of it.
+    trace_to: [drawings.rcp, schedule.finish, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: 26lt.rated-ceilings
+    kind: conformance
+    check: >
+      Recessed luminaires in a fire-rated floor-ceiling or roof-ceiling
+      assembly are permitted by that assembly's listed design, or protected
+      by the listed enclosure or tenting method it allows.
+    trace_to: [drawings.rcp, drawings.life_safety, schedule.partition_type]
+    severity: high
+    owner: subcontractor
+
+  - id: 26lt.substitution-photometrics
+    kind: conformance
+    check: >
+      A substituted or value-engineered type is accepted only with
+      photometric files for the proposed product and recalculated light
+      levels, uniformity and lighting power; equal lumen output is not
+      equivalence.
+    trace_to: [schedule.lighting_fixture, report.energy_compliance, register.substitutions]
+    severity: high
+    owner: subcontractor
+
+  - id: 26lt.support
+    kind: constructability
+    check: >
+      Support for each type is defined: independent hangers or grid
+      attachment as the ceiling and seismic requirements call for,
+      structural attachment for pendants and heavy luminaires, and backing in
+      walls for wall-mounted types.
+    trace_to: [drawings.details, spec.part3]
+    severity: medium
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+reconciliations:
+  - id: 26lt.rc.schedule-vs-rcp
+    between: [schedule.lighting_fixture, drawings.rcp, drawings.electrical]
+    key: Fixture type tag by room
+    fields: [type, count, mounting, ceiling type, emergency designation, control zone]
+    check: >
+      Every tag on the lighting plans and reflected ceiling plans is a
+      scheduled type, counts agree between them, and each location's
+      ceiling type matches the type's mounting; tags that appear on one
+      drawing but not the other are listed.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 26lt.fm.wrong-trim
+    what_happens: Type ordered with a grid trim for a gypsum ceiling, or with a housing deeper than the plenum
+    consequence: Field modifications, reorders and ceiling patches
+    caught_by: [26lt.ceiling-fit, 26lt.rc.schedule-vs-rcp]
+    source: industry_practice
+
+  - id: 26lt.fm.recessed-in-rated-ceiling
+    what_happens: Recessed downlights installed in a rated ceiling assembly whose listing does not allow them
+    consequence: Assembly fails inspection; enclosures or tents added from above after the ceiling is closed
+    caught_by: [26lt.rated-ceilings]
+    source: industry_practice
+
+  - id: 26lt.fm.equal-not-equal
+    what_happens: Lower-output or different-distribution equal accepted to meet budget; nobody reruns the calculations
+    consequence: Under-lit spaces, or an energy compliance shortfall found at turnover
+    caught_by: [26lt.substitution-photometrics]
+    source: industry_practice
+
+  - id: 26lt.fm.count-mismatch
+    what_happens: Quantities taken from the lighting plans disagree with the reflected ceiling plans
+    consequence: Short orders and late reorders, with ceilings held open
+    caught_by: [26lt.rc.schedule-vs-rcp]
+    source: industry_practice
+
+standards:
+  - id: 26lt.std.ies-lm-63
+    name: ANSI/IES LM-63
+    title: Standard File Format for the Electronic Transfer of Photometric Data and Related Information
+    verify: Photometric files supplied with substitutions are in a format the designer can calculate with
+
+regulatory_hooks:
+  - id: 26lt.rh.lighting-power
+    topic: energy-code-interior-lighting-power
+    question: >
+      Which interior lighting power compliance path does the adopted energy
+      code allow here, and do the submitted luminaires' input wattages stay
+      within what the compliance documents claimed?
+    applies_when: New interior lighting and lighting alterations the energy code covers
+    source_families: [energy]
+    severity: medium
+
+extract_fields:
+  - id: 26lt.xf.lumens
+    label: Delivered lumen output
+    type: number
+    unit: lm
+    per: element
+    reconcile_against: [schedule.lighting_fixture]
+  - id: 26lt.xf.wattage
+    label: Input wattage
+    type: number
+    unit: W
+    per: element
+    reconcile_against: [schedule.lighting_fixture, report.energy_compliance]
+  - id: 26lt.xf.driver
+    label: Driver model and dimming protocol
+    type: string
+    per: element
+    reconcile_against: [schedule.lighting_fixture]
+  - id: 26lt.xf.mounting
+    label: Mounting and trim by ceiling type
+    type: string
+    per: element
+    reconcile_against: [drawings.rcp]

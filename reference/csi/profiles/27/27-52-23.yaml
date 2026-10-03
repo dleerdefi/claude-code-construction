@@ -1,0 +1,101 @@
+schema_version: 1
+kind: section
+id: "27 52 23"
+title: Nurse Call/Code Blue Systems
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes
+
+scope_summary: >
+  Nurse call and code blue systems in health care and residential care. The
+  call stations, call types and annunciation each room needs come from the
+  facility licensing rules and the guidelines the state adopts, not only
+  from the drawings, and the system must be listed for the use. It
+  integrates with staff phones, locating and clinical systems, and its
+  devices share the headwall with casework and medical gas at every bed.
+
+submittals:
+  - id: 27nc.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Device layout by room with call types, dome lights, annunciators and master stations
+      - Riser with integrations to phones, locating and other clinical systems
+  - id: 27nc.sub.product-data
+    type: Product Data
+    must_show:
+      - Stations and system components with their listing for hospital signaling and nurse call
+
+review_checks:
+  - id: 27nc.call-types
+    kind: conformance
+    check: >
+      Each room type has the stations the licensing rules and owner program
+      require (patient, toilet and bathing, staff and duty, code blue, dome
+      lights and annunciation), keyed to the room schedule.
+    trace_to: [drawings.technology, drawings.plans]
+    severity: high
+    owner: subcontractor
+
+  - id: 27nc.listing
+    kind: conformance
+    check: >
+      The system and its integration components are listed for hospital
+      signaling and nurse call, and wireless or software features used for
+      required calls are within that listing.
+    trace_to: [spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 27nc.headwall
+    kind: coordination
+    check: >
+      Station, pillow-speaker and code-button locations agree with headwall,
+      casework and medical gas layouts at every bed.
+    trace_to: [drawings.interior_elevations, drawings.technology]
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: 27nc.integration
+    kind: coordination
+    check: >
+      Integration with staff phones, locating, paging and the owner's
+      clinical systems is defined with who provides each interface and
+      license, and is tested end to end before occupancy.
+    trace_to: [spec.part2, drawings.technology]
+    severity: medium
+    owner: owner
+
+failure_modes:
+  - id: 27nc.fm.licensing-miss
+    what_happens: Stations laid out from the drawings only; the licensing rules required stations in additional rooms
+    consequence: Stations and pathways added after finishes; licensing survey delayed
+    caught_by: [27nc.call-types]
+    source: industry_practice
+
+  - id: 27nc.fm.headwall-conflict
+    what_happens: Pillow-speaker jack or code button placed behind casework or over a gas outlet
+    consequence: Relocation after headwall finishes
+    caught_by: [27nc.headwall]
+    source: industry_practice
+
+standards:
+  - id: 27nc.std.ul-1069
+    name: UL 1069
+    title: Hospital Signaling and Nurse Call Equipment
+    verify: Listing of the system and its components
+
+regulatory_hooks:
+  - id: 27nc.rh.requirements
+    topic: health-facility-nurse-call
+    question: >
+      Does the state agency licensing this facility (hospital, nursing,
+      assisted living or behavioral health) impose call system requirements
+      by room type beyond the drawings, through its own rules or the
+      guidelines edition it adopts?
+    applies_when: Any licensed care facility with nurse call or emergency call, whether or not the project is typed as health care
+    source_families: [health_facility_licensing, fgi_guidelines]
+    severity: critical
