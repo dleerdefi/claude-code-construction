@@ -1,0 +1,108 @@
+{
+  "company_name": "Sandbar Flooring Contractors",
+  "contact_name": "Tomas Reyes",
+  "contact_phone": "(239) 555-0116",
+  "contact_email": "office@sandbarflooring.example",
+  "bid_date": "February 18, 2024",
+  "bid_validity_period": "60 days",
+  "base_bid_amount": 418650.0,
+  "bond_included": true,
+  "schedule_duration": "13 weeks from notice to proceed",
+  "payment_terms": "Net 30",
+  "addenda_acknowledged": [],
+  "line_items": [
+    {
+      "spec_section": "09 30 00",
+      "description": "Porcelain floor tile, installed",
+      "qty": 4200,
+      "unit": "SF",
+      "unit_price": 20.5,
+      "extended_price": 86100.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 30 00",
+      "description": "Ceramic wall tile, installed",
+      "qty": 2600,
+      "unit": "SF",
+      "unit_price": 14.0,
+      "extended_price": 36400.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 65 13",
+      "description": "Rubber base, 4 inch, with accessories",
+      "qty": 6800,
+      "unit": "LF",
+      "unit_price": 3.1,
+      "extended_price": 21080.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 65 40",
+      "description": "Luxury vinyl tile, installed",
+      "qty": 9500,
+      "unit": "SF",
+      "unit_price": 8.9,
+      "extended_price": 84550.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 65 67",
+      "description": "Resilient athletic flooring, installed",
+      "qty": 3800,
+      "unit": "SF",
+      "unit_price": 26.5,
+      "extended_price": 100700.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 67 00",
+      "description": "Resinous flake flooring EPX-2",
+      "qty": 2900,
+      "unit": "SF",
+      "unit_price": 12.8,
+      "extended_price": 37120.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "09 67 10",
+      "description": "Resinous quartz flooring EPX-3 and EPX-4",
+      "qty": 3100,
+      "unit": "SF",
+      "unit_price": 17.0,
+      "extended_price": "[unclear: smudged on scan]",
+      "notes": ""
+    }
+  ],
+  "alternates": [
+    {
+      "name": "Alternate A",
+      "description": "Polished concrete in lieu of luxury vinyl tile (09 65 40)",
+      "amount": 36000
+    },
+    {
+      "name": "Alternate B",
+      "description": "Delete resilient athletic finishes (09 65 67)",
+      "amount": -95000
+    }
+  ],
+  "scope_inclusions": [
+    "Furnish and install all materials, labor and equipment for the priced sections",
+    "Moisture testing of concrete substrates per ASTM F 1869 and ASTM F 2170 before installation (09 65 40)"
+  ],
+  "scope_exclusions": [
+    "Patching of substrate beyond 1/8 inch",
+    "Overtime and premium time"
+  ],
+  "qualifications": [
+    "Pricing is based on the Construction Documents dated January 5, 2024"
+  ],
+  "allowances": [],
+  "insurance_confirmed": true,
+  "ground_truth_hidden": {
+    "spec_section": "09 67 10",
+    "field": "extended_price",
+    "value": 52700.0
+  }
+}
