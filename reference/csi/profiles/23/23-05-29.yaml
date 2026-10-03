@@ -1,0 +1,139 @@
+schema_version: 1
+kind: section
+id: "23 05 29"
+title: Hangers and Supports for HVAC Piping and Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # trapezes, racks and equipment supports are often left to the installer within spec criteria
+
+scope_summary: >
+  Pipe and duct hangers, trapezes, racks, equipment supports and their
+  attachment to the structure. The product data is routine; the review
+  turns on what the structure can take where: bar joists loaded between
+  panel points, heavy mains and racks the structural engineer never saw,
+  anchors drilled into post-tensioned slabs, decks used as hangers, and
+  supports added after fireproofing. Supports that also restrain for seismic
+  or wind follow 23 05 48.
+
+submittals:
+  - id: 23hs.sub.product-data
+    type: Product Data
+    must_show:
+      - Hanger, rod, attachment and anchor types by structure type (steel, bar joist, concrete, post-tensioned concrete, wood)
+      - Shields or inserts for insulated piping, by pipe size and insulation thickness
+  - id: 23hs.sub.support-design
+    type: Delegated Design
+    must_show:
+      - Trapeze, rack and equipment support designs with the loads they carry and the reactions they put on the structure
+
+review_checks:
+  - id: 23hs.structure-attachment
+    kind: conformance
+    check: >
+      Attachment to structure follows what the structural documents allow:
+      loads on bar joists at panel points or with the reinforcement the
+      structural engineer details, nothing hung from roof or floor deck
+      unless the deck is designed for it, and heavy mains, racks and
+      suspended equipment submitted to the structural engineer with their
+      point loads.
+    trace_to: [drawings.structural, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: overhead_rough_in
+
+  - id: 23hs.post-installed-anchors
+    kind: constructability
+    check: >
+      Post-installed anchors are a type qualified for the condition (cracked
+      concrete, overhead sustained tension, seismic), installed to the
+      manufacturer's embedment and edge distance, and drilled into
+      post-tensioned or heavily reinforced slabs only after tendons and bars
+      are located by scanning or from the tendon shop drawings.
+    trace_to: [drawings.structural, spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: overhead_rough_in
+
+  - id: 23hs.delegated-supports
+    kind: completeness
+    submittal_types: [Delegated Design, Shop Drawings]
+    check: >
+      Trapezes, multi-tier racks, floor stands and supports for suspended
+      equipment that the spec leaves to the contractor are designed for
+      everything they carry (water-filled pipe, insulation, other trades on
+      shared racks), and their reactions go to the structural engineer
+      before installation.
+    trace_to: [spec.part1_submittals, drawings.structural]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 23hs.shared-supports
+    kind: coordination
+    check: >
+      Each trade hangs from structure or from a support designed for it: no
+      duct or pipe hung from another trade's pipe, duct, conduit or ceiling
+      wires, and every shared rack has one designer and one installer named.
+    trace_to: [spec.part3, drawings.mechanical]
+    severity: medium
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: 23hs.roof-supports
+    kind: coordination
+    check: >
+      Rooftop pipe and duct supports are stands, rails or curbs that the
+      roofing system accepts, with a roofing detail for each type, protection
+      under loose stands, and room for the pipe to move without dragging on
+      the membrane.
+    trace_to: [drawings.roof_plan, drawings.details]
+    severity: medium
+    owner: gc
+    gate: roof_membrane
+
+failure_modes:
+  - id: 23hs.fm.joist-overload
+    what_happens: Heavy mains or racks hung from bar joists between panel points without the structural engineer's review
+    consequence: Field reinforcement of joists or rehanging after the structural engineer's site visit
+    caught_by: [23hs.structure-attachment, 23hs.delegated-supports]
+    source: industry_practice
+
+  - id: 23hs.fm.tendon-strike
+    what_happens: Anchor holes drilled into a post-tensioned slab without locating the tendons
+    consequence: Cut tendon, structural repair and a work stop on that floor
+    caught_by: [23hs.post-installed-anchors]
+    source: industry_practice
+
+  - id: 23hs.fm.hung-from-others
+    what_happens: Ducts and pipes hung from other trades' work or from ceiling wires to clear congestion
+    consequence: Sagging runs, failed above-ceiling inspection and rehanging
+    caught_by: [23hs.shared-supports]
+    source: industry_practice
+
+  - id: 23hs.fm.roof-drag
+    what_happens: Rooftop piping laid on blocking or unrated stands directly on the membrane
+    consequence: Membrane punctured or abraded by pipe movement; leaks outside the roofing warranty
+    caught_by: [23hs.roof-supports]
+    source: industry_practice
+
+standards:
+  - id: 23hs.std.mss-sp-58
+    name: ANSI/MSS SP-58
+    title: Pipe Hangers and Supports — Materials, Design, Manufacture, Selection, Application, and Installation
+    verify: Hanger types, spacing and rod sizes where the spec cites it
+    note: SP-58 now carries the selection and application content formerly in MSS SP-69
+
+regulatory_hooks:
+  - id: 23hs.rh.anchor-inspection
+    topic: post-installed-anchor-inspection
+    question: >
+      Does the adopted building code require special inspection or certified
+      installers for post-installed anchors (adhesive anchors in sustained
+      tension overhead, anchors resisting seismic loads), and is it on the
+      statement of special inspections?
+    applies_when: Post-installed anchors into concrete for piping, duct and equipment supports
+    source_families: [building_code]
+    severity: medium

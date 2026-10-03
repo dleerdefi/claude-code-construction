@@ -1,0 +1,249 @@
+schema_version: 1
+kind: interfaces
+id: div-23
+title: Interfaces involving Division 23
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with lower-numbered divisions live in their files (01, 03, 05, 07, 08,
+# 09, 11, 12, 14, 21, 22).
+
+edges:
+  # ── Electrical (26) ───────────────────────────────────────────
+  - id: if.23-equipment-power
+    a: ["23 05 13", "23 21 23", "23 34 00", "23 36 00", "23 50 00", "23 60 00", "23 70 00", "23 80 00"]
+    a_trade: HVAC equipment
+    b: ["26 05 83", "26 24 16", "26 24 19", "26 28 16", "26 29 13", "26 29 23"]
+    b_trade: Equipment wiring connections, panelboards, motor control centers, disconnects, motor controllers and drives
+    a_provides: Electrical data per tag from the approved submittal (voltage, phase, MCA, MOCP, number of connections), which disconnects, starters and drives come factory-mounted, and every change after a substitution or option change
+    b_provides: Circuit, overcurrent device, conductors, disconnect and starter or drive per tag sized to the approved data, emergency or standby power where scheduled, and the service receptacle and lighting at rooftop and attic equipment
+    responsibility:
+      - item: Variable-frequency drives
+        typical: {furnish: "23 (with the equipment) or 26 29 23", install: "26 or 23 for unit-mounted drives", connect: "26"}
+        confirm_in: [spec.part2, drawings.electrical, schedule.mechanical_equipment]
+      - item: Disconnect switches at equipment
+        typical: {furnish: "26 28 16 or 23 (factory-mounted)", install: "26"}
+        confirm_in: [spec.part2, drawings.electrical]
+      - item: Motor starters for equipment without factory controls
+        typical: {furnish: "26 29 13, 26 24 19 or 23", install: "26"}
+        confirm_in: [spec.part1, drawings.single_line]
+    gate:
+      milestone: procurement_release
+      note: Repeat the exchange after every substitution, alternate or option change, before the electrical gear is released
+    severity: high
+    failure: Equipment arrives with electrical data the circuits were not built for; breakers, wire and disconnects changed at startup
+
+  - id: if.23-controls-wiring
+    a: ["23 09 00"]
+    a_trade: HVAC controls
+    b: ["26 05 23", "26 05 33", "26 05 83"]
+    b_trade: Control-voltage cables, raceway and equipment wiring connections
+    a_provides: Power requirements and locations of controls panels, transformers and powered actuators; the controls riser; the list of interlock wiring between starters, drives and equipment
+    b_provides: Dedicated circuits to controls panels and powered actuators where Division 26 carries them, and raceway the spec assigns to Division 26
+    responsibility:
+      - item: Line-voltage power to controls panels and damper actuators
+        typical: {furnish: "26", install: "26 or 23 09 00 from a designated panel"}
+        confirm_in: [spec.part1, drawings.electrical]
+      - item: Low-voltage controls wiring and its raceway
+        typical: {install: "23 09 00 or 26"}
+        confirm_in: [spec.part1, spec.part3]
+      - item: Interlock wiring between starters, drives and equipment
+        typical: {install: "23 09 00 or 26"}
+        confirm_in: [spec.part3, drawings.electrical]
+    gate:
+      milestone: procurement_release
+      note: Settle in both subcontracts before buyout; the split is a pricing question before it is a field question
+    severity: high
+
+  - id: if.23-electrical-integration
+    a: ["23 09 00"]
+    a_trade: HVAC controls
+    b: ["26 09 13", "26 09 43", "26 27 13", "28 10 00"]
+    b_trade: Power monitoring, network lighting controls, metering and access control
+    a_provides: Points wanted from other systems (meter data, occupancy signals for ventilation and setback, after-hours access events, demand response), protocol and network connection
+    b_provides: Meters, lighting control and access control devices with the protocol and points the integration needs, and who maps them
+    responsibility:
+      - item: Occupancy signals shared from lighting controls to HVAC
+        typical: {connect: "23 09 00 or 26 09 43"}
+        confirm_in: [spec.part2, drawings.electrical]
+      - item: Energy meters reporting to the automation system
+        typical: {furnish: "26 27 13 or 23 09 00", connect: "23 09 00"}
+        confirm_in: [spec.part2, drawings.single_line]
+    gate: {milestone: procurement_release}
+    severity: medium
+    failure: Occupancy-based ventilation or metering the energy code requires has no integration path; added late or waived at inspection
+
+  # ── Fire alarm and refrigerant detection (28) ─────────────────
+  - id: if.23-duct-smoke-detectors
+    a: ["23 70 00", "23 80 00", "23 31 00", "23 33 00"]
+    a_trade: Air-handling units, ductwork and smoke dampers
+    b: ["28 46 00"]
+    b_trade: Fire detection and alarm
+    a_provides: Units and dampers that need duct detection, duct locations with the straight run and orientation the detector listing requires, and access doors at each detector
+    b_provides: Detectors, housings and sampling tubes, remote test and indicator stations, wiring and programming of the shutdown
+    responsibility:
+      - item: Duct detector housings and sampling tubes
+        typical: {furnish: "28 46 00", install: "23 31 00 or 28 46 00"}
+        confirm_in: [spec.part1, spec.part3]
+      - item: Remote test and indicator stations
+        typical: {furnish: "28 46 00", install: "28 46 00"}
+        confirm_in: [drawings.fire_alarm, spec.part3]
+    gate:
+      milestone: above_ceiling_close_in
+      note: Housings go in with the duct; the detector list has to be agreed when the fire alarm shop drawings are prepared
+    severity: high
+
+  - id: if.23-fire-alarm-hvac
+    a: ["23 09 00", "23 33 00"]
+    a_trade: HVAC controls and smoke dampers
+    b: ["28 46 00"]
+    b_trade: Fire detection and alarm
+    a_provides: The HVAC response matrix (which units stop, which dampers move, smoke control modes, restart), relay and module locations at starters, drives and damper actuators, and damper position switches
+    b_provides: Relays and monitor modules, their wiring, fire alarm programming and the acceptance test with HVAC operating
+    responsibility:
+      - item: Shutdown relays at fans and drives (working in drive bypass)
+        typical: {furnish: "28 46 00", connect: "28 46 00 or 23 09 00"}
+        confirm_in: [spec.part3, drawings.fire_alarm]
+      - item: Smoke damper control and position monitoring
+        typical: {install: "28 46 00 or 23 09 00"}
+        confirm_in: [drawings.fire_alarm, drawings.mechanical]
+      - item: Firefighter's smoke control panel
+        typical: {furnish: "28 46 00 or 23 09 00"}
+        confirm_in: [spec.part2, drawings.fire_alarm]
+    gate:
+      milestone: procurement_release
+      note: The fire alarm shop drawings need the HVAC response matrix
+    severity: critical
+
+  - id: if.23-refrigerant-detection
+    a: ["23 23 00", "23 60 00", "23 80 00"]
+    a_trade: Refrigerant systems
+    b: ["28 44 00"]
+    b_trade: Refrigerant detection and alarm
+    a_provides: Systems, refrigerant groups, charges and rooms where detection is required, and the responses each alarm must trigger (ventilation, shutoff valves, equipment shutdown)
+    b_provides: Detectors, alarm devices and monitoring, and the interlocks to ventilation and equipment
+    responsibility:
+      - item: Refrigerant detectors and alarms
+        typical: {furnish: "23 or 28 44 00", connect: "23 09 00 or 28 44 00"}
+        confirm_in: [spec.part2, drawings.mechanical]
+    gate: {milestone: procurement_release}
+    severity: high
+
+  # ── Communications (27) ───────────────────────────────────────
+  - id: if.23-telecom-room-cooling
+    a: ["23 80 00"]
+    a_trade: Decentralized cooling units
+    b: ["27 11 00"]
+    b_trade: Communications equipment rooms
+    a_provides: Dedicated cooling for each telecom room that runs independent of the building system's schedule, with condensate and refrigerant piping kept off the racks, and the unit's power circuit (on standby power where the owner requires it)
+    b_provides: Equipment heat load per room (racks, UPS, owner equipment), the allowed temperature and humidity range, and the rack layout with zones where units and piping may not go
+    responsibility:
+      - item: Telecom room cooling units
+        typical: {furnish: "23 81 00, or the owner for IT-grade units", install: "23 81 00"}
+        confirm_in: [drawings.mechanical, drawings.technology]
+    gate:
+      milestone: procurement_release
+      note: Room heat loads are often unknown at design; get an owner-confirmed load before the unit is selected
+    severity: high
+
+  - id: if.23-controls-network
+    a: ["23 09 00"]
+    a_trade: HVAC controls
+    b: ["27 05 28", "27 10 00", "27 21 00"]
+    b_trade: Communications pathways, structured cabling and network equipment
+    a_provides: Network architecture, count and location of IP devices, remote access needs
+    b_provides: Network drops, switch ports or a dedicated network, addressing and segmentation, and the owner's security requirements
+    responsibility:
+      - item: Cabling for the controls IP network
+        typical: {install: "23 09 00 or 27 10 00"}
+        confirm_in: [spec.part1, drawings.technology]
+      - item: Network switches for controls
+        typical: {furnish: "23 09 00 or owner"}
+        confirm_in: [spec.part2]
+    gate: {milestone: procurement_release}
+    severity: medium
+
+  # ── Utilities (33) ────────────────────────────────────────────
+  - id: if.23-gas-service
+    a: ["23 11 23", "23 50 00", "23 74 00"]
+    a_trade: Facility natural-gas piping and gas-fired equipment
+    b: ["33 52 16"]
+    b_trade: Gas service piping and the utility meter set
+    a_provides: Connected load and the inlet pressure each appliance needs at full fire, the building piping design pressure, and the meter and regulator location the building layout wants
+    b_provides: The utility's committed delivery pressure, meter and service regulator location and clearances, service line route and size, and the point where the utility's scope ends
+    responsibility:
+      - item: Service line, meter and service regulator
+        typical: {furnish: "gas utility or 33 52 16", install: "gas utility or 33 52 16"}
+        confirm_in: [drawings.civil, report.utility_requirements]
+      - item: Piping from the meter outlet to the appliances, with line regulators where the building runs at elevated pressure
+        typical: {furnish: "23 11 23", install: "23 11 23"}
+        confirm_in: [spec.part1, drawings.mechanical]
+    gate:
+      milestone: procurement_release
+      note: Get the utility's delivery pressure in writing before gas-fired equipment and regulators are released
+    severity: high
+
+  # ── Within Division 23 ────────────────────────────────────────
+  - id: if.23-terminal-unit-controls
+    a: ["23 36 00"]
+    a_trade: Air terminal units
+    b: ["23 09 00"]
+    b_trade: HVAC controls
+    a_provides: Unit sizes and handing, airflow sensor flow coefficients, and the factory mounting schedule
+    b_provides: Controllers, actuators and transformers shipped to the unit factory with mounting and wiring diagrams
+    responsibility:
+      - item: Terminal unit controllers and actuators
+        typical: {furnish: "23 09 00", install: "23 36 00 (factory-mounted)"}
+        confirm_in: [spec.part2]
+    gate: {milestone: procurement_release}
+    severity: medium
+
+  - id: if.23-packaged-controls
+    a: ["23 21 23", "23 50 00", "23 60 00", "23 70 00", "23 80 00"]
+    a_trade: Equipment with factory controls
+    b: ["23 09 00"]
+    b_trade: HVAC controls
+    a_provides: Factory controller, network interface and the points it exposes
+    b_provides: Points mapped into the automation system, the split of the sequence between factory controller and automation system, and who programs each part
+    responsibility:
+      - item: Protocol interface card or gateway
+        typical: {furnish: "the equipment section or 23 09 00"}
+        confirm_in: [spec.part2]
+    gate:
+      milestone: procurement_release
+      note: The interface card is ordered with the equipment
+    severity: medium
+    failure: Packaged equipment arrives without the interface the automation system needs; gateways added late, sequences split ad hoc
+
+  - id: if.23-tab-controls
+    a: ["23 05 93"]
+    a_trade: Testing, adjusting and balancing
+    b: ["23 09 00"]
+    b_trade: HVAC controls
+    a_provides: Final setpoints (duct static pressure, minimum outdoor air, pump differential pressure, terminal unit calibration, maximum drive speeds)
+    b_provides: Calibrated, operating controls and an operator during balancing, then the balanced setpoints programmed and documented
+    gate: {milestone: substantial_completion}
+    severity: medium
+
+  - id: if.23-vrf-piping
+    a: ["23 23 00"]
+    a_trade: Refrigerant piping
+    b: ["23 81 29", "23 62 46"]
+    b_trade: Variable refrigerant flow systems
+    a_provides: As-coordinated routing with lengths, rises and fittings, and any field change to it
+    b_provides: The manufacturer's piping design (line sizes, branch fittings, added charge) run on that routing, and its acceptance for warranty
+    gate: {milestone: overhead_rough_in}
+    severity: high
+
+  - id: if.23-test-before-insulation
+    a: ["23 07 00"]
+    a_trade: HVAC insulation
+    b: ["23 21 00", "23 23 00", "23 31 00"]
+    b_trade: Hydronic piping, refrigerant piping and ductwork
+    a_provides: Insulation sequence by area
+    b_provides: Pressure, evacuation and leakage test release by section before insulation starts there
+    gate: {milestone: above_ceiling_close_in}
+    severity: high

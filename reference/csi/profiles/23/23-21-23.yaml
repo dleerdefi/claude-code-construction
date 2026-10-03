@@ -1,0 +1,107 @@
+schema_version: 1
+kind: section
+id: "23 21 23"
+title: Hydronic Pumps
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+review_mode: per_element
+element_types: [equipment_item]
+
+scope_summary: >
+  In-line, base-mounted and vertical hydronic pumps, reviewed by tag. A
+  pump that meets its duty point can still fail in service: an impeller
+  trimmed to the maximum, a motor that overloads when the system runs off
+  the design point, suction conditions that cavitate an open condenser water
+  pump, seals that do not suit the fluid, and base-mounted pumps never
+  realigned after piping.
+
+submittals:
+  - id: 23pu.sub.product-data
+    type: Product Data
+    must_show:
+      - Pump curve per tag with the duty point, impeller diameter against the maximum for the casing, efficiency, and the motor power across the whole curve
+      - NPSH required at the duty point for pumps on open systems
+      - Seal type and materials, and the drive, speed control and motor data
+
+review_checks:
+  - id: 23pu.duty-point
+    kind: conformance
+    check: >
+      The duty point sits at the scheduled flow and head, near the pump's
+      best efficiency, with impeller trim that leaves room to increase, and
+      the motor does not overload anywhere on the curve, including when a
+      parallel pump is off or a variable-speed pump runs at full speed.
+    trace_to: [schedule.mechanical_equipment]
+    severity: high
+    owner: subcontractor
+
+  - id: 23pu.npsh
+    kind: conformance
+    check: >
+      On open systems (condenser water, cooling tower basins) the NPSH
+      available at the pump, from the actual basin elevation and suction
+      piping, exceeds the NPSH required with the margin the spec sets.
+    trace_to: [drawings.mechanical, drawings.details, schedule.mechanical_equipment]
+    severity: high
+    owner: design_team
+
+  - id: 23pu.seals
+    kind: conformance
+    check: >
+      Mechanical seals are rated for the fluid (glycol, treated water),
+      temperature and pressure of the service.
+    trace_to: [spec.part2, schedule.mechanical_equipment]
+    severity: medium
+    owner: subcontractor
+
+  - id: 23pu.installation
+    kind: constructability
+    check: >
+      Suction conditions follow the manufacturer (straight run or suction
+      diffuser, no elbow tight to the inlet), connections are flexible where
+      the pump is isolated, and base-mounted pumps are grouted and aligned
+      after the piping is connected, with the alignment recorded.
+    trace_to: [drawings.details, spec.part3]
+    severity: medium
+    owner: subcontractor
+    gate: final_connection
+
+failure_modes:
+  - id: 23pu.fm.overload
+    what_happens: Motor sized only at the duty point while the pump actually runs to the right of it
+    consequence: Motor trips or burns out; larger motor or drive limits added in the field
+    caught_by: [23pu.duty-point]
+    source: industry_practice
+
+  - id: 23pu.fm.cavitation
+    what_happens: Condenser water pump selected without checking NPSH against the basin elevation and suction piping
+    consequence: Cavitation noise, impeller erosion and lost flow at peak load
+    caught_by: [23pu.npsh]
+    source: industry_practice
+
+  - id: 23pu.fm.seal-failure
+    what_happens: Standard seals used on glycol or high-temperature service
+    consequence: Repeated seal leaks and pump downtime in the first year
+    caught_by: [23pu.seals]
+    source: industry_practice
+
+  - id: 23pu.fm.misalignment
+    what_happens: Base-mounted pump left at factory alignment, with pipe strain from the connections
+    consequence: Bearing and seal failures within months
+    caught_by: [23pu.installation]
+    source: industry_practice
+
+suppress:
+  - {id: d23.rc.intake-separation, reason: Pumps have no outdoor air intake or exhaust outlet}
+  - {id: d23.fm.re-entrainment, reason: Pumps have no outdoor air intake or exhaust outlet}
+  - {id: d23.rh.intake-separation, reason: Pumps have no outdoor air intake or exhaust outlet}
+
+standards:
+  - id: 23pu.std.hi-9-6-1
+    name: ANSI/HI 9.6.1
+    title: Rotodynamic Pumps — Guideline for NPSH Margin
+    verify: NPSH margin where the spec cites it

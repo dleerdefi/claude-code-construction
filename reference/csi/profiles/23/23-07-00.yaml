@@ -1,0 +1,142 @@
+schema_version: 1
+kind: section
+id: "23 07 00"
+title: HVAC Insulation
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Duct, piping and equipment insulation (23 07 13, 23 07 16 and 23 07 19
+  inherit from here). The submittal is a schedule by service and location,
+  and the misses are services left off it (outdoor air ducts, refrigerant
+  suction, condensate, cold equipment), vapor retarders broken at hangers,
+  valves and fittings on cold piping, jackets and adhesives not rated for the
+  plenum they sit in, and insulation that does not match what the firestop
+  listings at rated walls assume. Insulation covers the work, so it waits
+  for the pressure and leakage tests.
+
+submittals:
+  - id: 23in.sub.product-data
+    type: Product Data
+    must_show:
+      - A schedule of material, thickness, jacket and finish for each service and location (concealed, exposed, outdoor, plenum, unconditioned space)
+      - Flame-spread and smoke-developed ratings of the composite assembly, including jackets, adhesives, mastics and tapes
+      - Vapor retarder jacket, seal and joint method for cold services, and the hanger shield or insert used at supports
+
+review_checks:
+  - id: 23in.service-schedule
+    kind: completeness
+    check: >
+      Every service and location in the spec's insulation schedule is
+      covered, including the ones usually missed: outdoor air ducts and
+      plenums, supply ducts in unconditioned spaces, refrigerant suction (and
+      both lines on heat pumps), condensate drains, cold pumps, air
+      separators and valves, and weatherproof jacketing for outdoor runs.
+    trace_to: [spec.part2, spec.part3, drawings.mechanical]
+    severity: medium
+    owner: subcontractor
+
+  - id: 23in.vapor-retarder
+    kind: constructability
+    check: >
+      Cold services (chilled water, refrigerant suction, cold ducts in humid
+      spaces) carry a continuous sealed vapor retarder through hangers
+      (shields or load-bearing inserts, not clamps on the pipe), valves,
+      strainers, fittings and penetrations, with removable insulated covers
+      where valves and strainers need service.
+    trace_to: [spec.part3, drawings.details]
+    severity: high
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+  - id: 23in.surface-burning
+    kind: conformance
+    check: >
+      Insulation in plenums and exposed in occupied spaces meets the
+      flame-spread and smoke-developed ratings as the installed composite
+      (insulation, facing, jacket, adhesive, mastic, tape), not the
+      insulation alone.
+    trace_to: [spec.part2, drawings.mechanical]
+    severity: high
+    owner: subcontractor
+
+  - id: 23in.firestop-match
+    kind: coordination
+    check: >
+      Insulation type and thickness where insulated pipe and duct cross rated
+      assemblies match what the selected firestop systems are listed for, or
+      the insulation is interrupted the way the listing requires; duct wrap
+      does not cover fire damper access doors or sleeves.
+    trace_to: [schedule.partition_type, drawings.life_safety, spec.part3]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+failure_modes:
+  - id: 23in.fm.condensation
+    what_happens: Vapor retarder left open at hangers, valves and fittings on chilled water and refrigerant piping
+    consequence: Wet insulation, corrosion, mold and stained ceilings after the first cooling season; insulation removed and replaced
+    caught_by: [23in.vapor-retarder]
+    source: industry_practice
+
+  - id: 23in.fm.unrated-jacket
+    what_happens: Insulation is plenum-rated but the jacket, adhesive or tape used with it is not
+    consequence: Above-ceiling inspection failure; jacket or tape replaced throughout the plenum
+    caught_by: [23in.surface-burning]
+    source: industry_practice
+
+  - id: 23in.fm.missed-services
+    what_happens: Outdoor air ducts, refrigerant suction lines or condensate drains left uninsulated because the schedule skipped them
+    consequence: Sweating and drips over ceilings, and an energy inspection finding
+    caught_by: [23in.service-schedule]
+    source: industry_practice
+
+  - id: 23in.fm.firestop-mismatch
+    what_happens: Insulated pipe passes through a rated wall with insulation the firestop listing does not cover
+    consequence: Firestop rejected at inspection; insulation cut back and penetrations redone
+    caught_by: [23in.firestop-match]
+    source: industry_practice
+
+  - id: 23in.fm.covered-before-test
+    what_happens: Insulation installed on piping or ductwork before its pressure or leakage test
+    consequence: Leaks hidden until they show through; insulation stripped to find them
+    caught_by: [if.23-test-before-insulation]
+    source: industry_practice
+
+standards:
+  - id: 23in.std.surface-burning
+    name: ASTM E84 / UL 723
+    title: Surface Burning Characteristics of Building Materials
+    verify: Flame-spread and smoke-developed indices claimed for the composite as installed
+
+regulatory_hooks:
+  - id: 23in.rh.energy-insulation
+    topic: hvac-insulation-energy-code
+    question: >
+      What minimum duct and pipe insulation does the adopted energy code
+      require by fluid temperature, pipe size, duct location and climate zone,
+      and does the submitted schedule meet it everywhere?
+    applies_when: Every insulation submittal
+    source_families: [energy]
+    severity: medium
+
+  - id: 23in.rh.flame-smoke
+    topic: insulation-flame-smoke-ratings
+    question: >
+      What flame-spread and smoke-developed limits does the adopted mechanical
+      code set for duct and pipe insulation, coverings and linings inside the
+      building and in plenums, and are any locations held to a stricter rule?
+    applies_when: Insulation inside the building
+    source_families: [mechanical_code]
+    severity: medium
+
+extract_fields:
+  - id: 23in.xf.schedule
+    label: Material, thickness and jacket by service and location
+    type: list
+    per: package
+    reconcile_against: [spec.part2, report.energy_compliance]

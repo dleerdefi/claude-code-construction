@@ -1,0 +1,176 @@
+schema_version: 1
+kind: section
+id: "23 60 00"
+title: Central Cooling Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+review_mode: per_element
+element_types: [equipment_item]
+
+scope_summary: >
+  Chillers, cooling towers, condensers and compressor units (23 61 00
+  through 23 65 00 inherit from here), reviewed by tag. The large refrigerant
+  charge makes the room a code question: a refrigeration machinery room
+  brings ventilation, detection, alarms and shutdowns that touch three other
+  trades. The rest is how the chiller meets the plant (flow limits against
+  the pumping scheme, part-load efficiency at the project's conditions), and
+  how heat rejection equipment sits on the site (recirculation, freeze
+  protection, water treatment and Legionella control).
+
+submittals:
+  - id: 23cc.sub.product-data
+    type: Product Data
+    must_show:
+      - Full- and part-load performance at the scheduled conditions and fouling factors, with evaporator and condenser flows, pressure drops and their allowed minimums and maximums
+      - Refrigerant type, charge per circuit, and relief valve sizes and connections
+      - For cooling towers, certified thermal performance at the design wet bulb, basin heater and freeze protection, makeup, blowdown and drift data
+  - id: 23cc.sub.startup
+    type: Manufacturer's Field Reports
+    must_show:
+      - Factory startup report with refrigerant charge, oil and safety settings
+
+review_checks:
+  - id: 23cc.machinery-room
+    kind: absence
+    scope: package
+    check: >
+      Where the chiller's refrigerant group and charge make its room a
+      refrigeration machinery room, the drawings show what that requires:
+      emergency and normal ventilation, refrigerant detection and alarm,
+      remote shutdown, relief valve discharge to the outdoors, room
+      tightness and the restrictions on open flames.
+    trace_to: [drawings.mechanical, drawings.electrical, drawings.fire_alarm, drawings.enlarged_plans]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: 23cc.flow-limits
+    kind: conformance
+    check: >
+      Evaporator and condenser flows and pressure drops match the pump
+      schedule, the chiller's minimum flow and its allowed rate of flow
+      change suit the pumping scheme (variable primary in particular), and
+      part-load efficiency is stated at the project's conditions as well as
+      at the rating standard's.
+    trace_to: [schedule.mechanical_equipment, drawings.riser_diagrams]
+    severity: high
+    owner: subcontractor
+
+  - id: 23cc.heat-rejection-siting
+    kind: constructability
+    check: >
+      Air-cooled chillers, condensers and cooling towers keep the
+      manufacturer's clearances to walls, screens and each other so
+      discharge air is not drawn back into the intakes, and any derate for
+      screen walls or enclosures is in the selection.
+    trace_to: [drawings.roof_plan, drawings.site, drawings.enlarged_plans]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 23cc.tower-operations
+    kind: completeness
+    check: >
+      Cooling towers have freeze protection for basins and makeup, water
+      treatment with blowdown control, drift eliminators to the spec's
+      rating, and a water management plan for Legionella before the tower is
+      filled, plus platforms and ladders for service.
+    trace_to: [spec.part2, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 23cc.refrigerant-relief
+    kind: coordination
+    check: >
+      Relief valve discharge from chillers and receivers is piped to the
+      outdoors at a location the code allows, sized for the combined relief
+      of every device connected to it.
+    trace_to: [drawings.mechanical, drawings.roof_plan]
+    severity: high
+    owner: subcontractor
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 23cc.fm.machinery-room-missed
+    what_happens: Chiller room not treated as a refrigeration machinery room in the design
+    consequence: Detection, ventilation, alarms and shutdowns added late across mechanical, electrical and fire alarm scopes
+    caught_by: [23cc.machinery-room, if.23-refrigerant-detection]
+    source: industry_practice
+
+  - id: 23cc.fm.below-min-flow
+    what_happens: Variable primary pumping turns flow below the chiller's minimum, or changes it faster than the chiller allows
+    consequence: Nuisance trips and freeze-protection shutdowns; bypass and controls changes after startup
+    caught_by: [23cc.flow-limits]
+    source: industry_practice
+
+  - id: 23cc.fm.recirculation
+    what_happens: Air-cooled equipment boxed in by screen walls or set too close together
+    consequence: High-pressure trips and lost capacity on design days
+    caught_by: [23cc.heat-rejection-siting]
+    source: industry_practice
+
+  - id: 23cc.fm.tower-unmanaged
+    what_happens: Tower filled and run without treatment or a water management plan, or basins left unprotected in winter
+    consequence: Legionella risk, scale and corrosion, or freeze damage; shutdown and remediation
+    caught_by: [23cc.tower-operations]
+    source: industry_practice
+
+standards:
+  - id: 23cc.std.ahri-550-590
+    name: AHRI 550/590
+    title: Performance Rating of Water-chilling and Heat Pump Water-heating Packages Using the Vapor Compression Cycle
+    verify: Full- and part-load ratings are certified, and the rating basis matches the energy code's metric
+  - id: 23cc.std.cti-201
+    name: CTI STD-201
+    title: Standard for Thermal Performance Certification of Evaporative Heat Rejection Equipment
+    verify: Tower thermal performance is certified for the model and conditions submitted
+  - id: 23cc.std.ashrae-15
+    name: ANSI/ASHRAE 15
+    title: Safety Standard for Refrigeration Systems
+    verify: Machinery room requirements where the adopted code references it
+  - id: 23cc.std.ashrae-188
+    name: ANSI/ASHRAE 188
+    title: "Legionellosis: Risk Management for Building Water Systems"
+    verify: Water management program for cooling towers where the spec or jurisdiction requires it
+
+regulatory_hooks:
+  - id: 23cc.rh.machinery-room
+    topic: refrigerant-safety-requirements
+    question: >
+      Does the chiller's refrigerant group and charge require a refrigeration
+      machinery room under the adopted mechanical code, and what ventilation,
+      detection, alarm, shutdown and relief discharge requirements apply?
+    applies_when: Chillers and large refrigeration systems installed indoors
+    source_families: [mechanical_code]
+    severity: critical
+
+  - id: 23cc.rh.legionella
+    topic: cooling-tower-water-management
+    question: >
+      Does the jurisdiction require cooling tower registration, a Legionella
+      water management plan, or periodic testing and reporting?
+    applies_when: Open- and closed-circuit cooling towers and evaporative condensers
+    source_families: [public_health, environmental]
+    severity: high
+
+  - id: 23cc.rh.refrigerant-gwp
+    topic: refrigerant-gwp-restrictions
+    question: >
+      Under the federal and state rules phasing down high-GWP refrigerants,
+      which refrigerants may chillers of this type use when installed on this
+      project's schedule, and would a slipped installation date change the
+      answer?
+    applies_when: Chillers and other central refrigeration equipment
+    source_families: [environmental]
+    severity: high
+
+extract_fields:
+  - id: 23cc.xf.refrigerant
+    label: Refrigerant, safety group, charge per circuit and total charge in the room
+    type: string
+    per: element
+    reconcile_against: [drawings.mechanical, drawings.enlarged_plans]

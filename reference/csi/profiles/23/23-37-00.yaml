@@ -1,0 +1,85 @@
+schema_version: 1
+kind: section
+id: "23 37 00"
+title: Air Outlets and Inlets
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Diffusers, registers, grilles, slot and fabric outlets and gravity
+  ventilators, reviewed as one package against the air outlet schedule.
+  The misses are frames that do not fit the ceiling they go in, outlets moved
+  to suit the reflected ceiling plan without the engineer, and selections at
+  neck velocities that exceed the room's sound criteria.
+
+submittals:
+  - id: 23ao.sub.product-data
+    type: Product Data
+    must_show:
+      - Each outlet type on the schedule with frame or border, mounting for each ceiling type it occurs in, neck size, pattern, finish and dampers
+      - Throw, pressure drop and sound rating at the scheduled airflow for each type and size
+
+review_checks:
+  - id: 23ao.frame-vs-ceiling
+    kind: conformance
+    check: >
+      Each outlet type's frame, border and mounting match every ceiling type
+      it appears in (lay-in grid and its module, tegular edge, gypsum board,
+      specialty or exposed structure), per the reflected ceiling plans and
+      finish schedule.
+    trace_to: [drawings.rcp, schedule.finish]
+    severity: medium
+    owner: subcontractor
+
+  - id: 23ao.performance
+    kind: conformance
+    check: >
+      For each type and size, the throw, pattern and sound rating at the
+      scheduled airflow meet the spec, the pattern matches the arrows on the
+      drawings, and perimeter outlets wash the glazing where the design
+      intends.
+    trace_to: [schedule.mechanical_equipment, drawings.mechanical]
+    severity: medium
+    owner: subcontractor
+
+reconciliations:
+  - id: 23ao.rc.outlets-vs-rcp
+    between: [drawings.mechanical, drawings.rcp]
+    key: Each air outlet and inlet
+    fields: [count, location, type, size, ceiling module]
+    check: >
+      Outlets and inlets on the mechanical plans appear on the reflected
+      ceiling plans at the same locations and fit the grid without
+      conflicting with lights, sprinklers or speakers. Moves made for the
+      ceiling layout go back to the engineer, because they change throw and
+      can short-circuit supply to return.
+    severity: medium
+    owner: design_team
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 23ao.fm.wrong-frame
+    what_happens: Lay-in diffusers delivered for areas that have gypsum board or specialty ceilings
+    consequence: Reorders and a schedule hit at ceiling close-in
+    caught_by: [23ao.frame-vs-ceiling]
+    source: industry_practice
+
+  - id: 23ao.fm.moved-in-field
+    what_happens: Outlets relocated in the field to suit the ceiling layout without the engineer
+    consequence: Drafts, dead spots and supply air short-circuiting to returns; outlets moved again
+    caught_by: [23ao.rc.outlets-vs-rcp]
+    source: industry_practice
+
+  - id: 23ao.fm.noisy-outlets
+    what_happens: Outlets selected one size small at high neck velocity
+    consequence: Rooms exceed their sound criteria; outlets replaced after ceilings are finished
+    caught_by: [23ao.performance]
+    source: industry_practice
+
+standards:
+  - id: 23ao.std.ashrae-70
+    name: ANSI/ASHRAE 70
+    title: Method of Testing the Performance of Air Outlets and Air Inlets
+    verify: Throw, pressure and sound data are from this test method where the spec requires it

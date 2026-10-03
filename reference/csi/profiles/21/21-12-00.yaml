@@ -1,0 +1,179 @@
+schema_version: 1
+kind: section
+id: "21 12 00"
+title: Fire-Suppression Standpipes
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Standpipe systems for fire department hose use, alone or combined with
+  sprinklers. The review is about where the hose connections sit relative to
+  the stairs and the floor area they must reach, the pressure at each one,
+  and whether the fire department can actually use them: coupling type,
+  pressure-regulating devices set and flow-tested, and a drain riser to test
+  them with. In a building under construction the standpipe has to work as
+  the floors go up.
+
+submittals:
+  - id: 21st.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Hose connection locations on each stair plan by landing, with roof outlets and any added outlets for travel distance
+      - Riser diagram with pressure zones, pressure-regulating devices and their settings, the drain riser, and the fire department connection serving each zone
+  - id: 21st.sub.design-data
+    type: Design Data
+    must_show:
+      - Calculations to the hydraulically most remote outlets at the flow and pressure the standpipe class requires
+  - id: 21st.sub.product-data
+    type: Product Data
+    must_show:
+      - Hose valves and pressure-regulating devices with coupling type and field-adjustable settings
+
+review_checks:
+  - id: 21st.hose-locations
+    kind: conformance
+    check: >
+      Hose connections are at the stair landings the adopted code and the
+      fire department require (main floor or intermediate landings), at the
+      roof where required, at horizontal exits, and wherever travel distance
+      from the stair connections leaves floor area uncovered.
+    trace_to: [drawings.fire_protection, drawings.plans, drawings.life_safety]
+    severity: high
+    owner: design_team
+
+  - id: 21st.pressure-devices
+    kind: conformance
+    check: >
+      Where outlet pressure would exceed what the code or the fire department
+      allows, pressure-regulating devices are shown at those outlets with
+      their settings; each one is flow-tested and set at acceptance, and a
+      drain riser beside the standpipe lets them be tested then and later.
+    trace_to: [drawings.riser_diagrams, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 21st.during-construction
+    kind: constructability
+    check: >
+      In a multistory building the standpipe is extended and kept usable as
+      construction rises, with a fire department connection and outlets the
+      fire department can reach at each stage.
+    trace_to: [spec.division_01, schedule.master]
+    severity: high
+    owner: gc
+
+  - id: 21st.manual-dry
+    kind: conformance
+    check: >
+      Manual or dry standpipes, and standpipes in unheated stairs or
+      enclosures, are a type the adopted code allows for this building, with
+      freeze protection and drains at the low points.
+    trace_to: [drawings.fire_protection, spec.part2]
+    severity: medium
+    owner: design_team
+
+reconciliations:
+  - id: 21st.rc.stair-outlets
+    between: [drawings.fire_protection, drawings.enlarged_plans]
+    key: Stair and landing
+    fields: [hose connection location, landing level, valve and handle projection, riser location, door swing and handrail]
+    check: >
+      Every hose connection on the fire protection drawings appears on the
+      stair enlarged plans at the same landing, and neither the riser nor the
+      valve and its handle sit in the required egress width or behind a door
+      swing.
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
+failure_modes:
+  - id: 21st.fm.valve-in-egress
+    what_happens: Hose valves and risers set in the stair without checking the stair enlarged plans
+    consequence: Valve handles reduce the required stair width; risers relocated after the stair is built
+    caught_by: [21st.rc.stair-outlets]
+    source: industry_practice
+
+  - id: 21st.fm.prv-unset
+    what_happens: Pressure-regulating hose valves left at their factory settings and never flow-tested
+    consequence: Firefighters get the wrong nozzle pressure; acceptance fails, or the problem shows at a fire
+    caught_by: [21st.pressure-devices]
+    source: industry_practice
+
+  - id: 21st.fm.no-drain-riser
+    what_happens: No drain riser beside the standpipe
+    consequence: Every acceptance and periodic test of the pressure-regulating devices means hoses run down the stair, so the tests get skipped
+    caught_by: [21st.pressure-devices]
+    source: industry_practice
+
+  - id: 21st.fm.lagging-standpipe
+    what_happens: The standpipe falls floors behind the structure during construction
+    consequence: Stop-work order from the fire department; the building is unprotected at its most vulnerable stage
+    caught_by: [21st.during-construction]
+    source: industry_practice
+
+  - id: 21st.fm.travel-distance
+    what_happens: Outlets placed only in the stairs where the floor plate needs added outlets for travel distance
+    consequence: Risers or outlets added after plan review
+    caught_by: [21st.hose-locations]
+    source: industry_practice
+
+standards:
+  - id: 21st.std.nfpa-14
+    name: NFPA 14
+    title: Standard for the Installation of Standpipe and Hose Systems
+    verify: Standpipe class, outlet locations, pressure limits and pressure-regulating device testing
+    note: Confirm the edition the jurisdiction adopted
+
+regulatory_hooks:
+  - id: 21st.rh.locations
+    topic: standpipe-outlet-locations
+    question: >
+      Which buildings need standpipes and of which class under the adopted
+      code, and where must hose connections be (main or intermediate stair
+      landings, roof, horizontal exits, travel-distance limits)?
+    applies_when: Buildings with standpipes
+    source_families: [building_code, fire_code]
+    severity: high
+
+  - id: 21st.rh.pressure
+    topic: standpipe-pressure-regulation
+    question: >
+      What maximum and minimum outlet pressures does the fire department
+      accept at standpipe hose connections, and must each pressure-regulating
+      device be flow-tested at acceptance?
+    applies_when: Standpipes where outlet pressure can exceed the allowed limit
+    source_families: [fire_code]
+    severity: high
+
+  - id: 21st.rh.construction
+    topic: construction-fire-safety
+    question: >
+      How far behind construction may the standpipe lag, and what temporary
+      fire department connection and water supply must be in service while
+      the building rises?
+    applies_when: Multistory buildings under construction
+    source_families: [fire_code]
+    severity: high
+
+  - id: 21st.rh.couplings
+    topic: fire-department-connection-requirements
+    question: >
+      Which hose coupling and cap does the fire department require at
+      standpipe hose connections and at the fire department connection?
+    applies_when: Every standpipe system
+    source_families: [fire_code]
+    severity: medium
+
+extract_fields:
+  - id: 21st.xf.class
+    label: Standpipe class and type (automatic or manual, wet or dry)
+    type: string
+    per: package
+    reconcile_against: [spec.part2]
+  - id: 21st.xf.prv
+    label: Pressure-regulating device locations and settings
+    type: list
+    per: package
+    reconcile_against: [drawings.riser_diagrams]

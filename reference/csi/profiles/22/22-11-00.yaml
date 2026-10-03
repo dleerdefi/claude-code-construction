@@ -1,0 +1,248 @@
+schema_version: 1
+kind: section
+id: "22 11 00"
+title: Facility Water Distribution
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Domestic cold, hot, tempered and recirculated water from the service entry
+  to the fixtures and equipment, with its pumps and specialties. The
+  engineer's design sets pressure, temperature and protection; review checks
+  that backflow protection matches every cross-connection, that the hot water
+  system holds temperature in storage and recirculation while delivering safe
+  temperatures at fixtures, that expansion is controlled, and that the water
+  is safe on the day the building opens, not only on the day it was
+  disinfected.
+
+submittals:
+  - id: 22wd.sub.product-data
+    type: Product Data
+    must_show:
+      - Backflow assemblies by location and hazard, with listing, size and relief discharge
+      - Master mixing valves with their flow range, and balancing valves on each recirculation branch
+      - Expansion tanks, pressure-reducing valves, and booster and recirculation pumps with their controls
+  - id: 22wd.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Disinfection and bacteriological results, dated relative to occupancy
+      - Backflow assembly tests by a certified tester
+
+review_checks:
+  - id: 22wd.backflow-coverage
+    kind: absence
+    check: >
+      Every cross-connection has the backflow protection its hazard requires:
+      boiler and hydronic fill, cooling tower and humidifier makeup, chemical
+      dispensers at janitor sinks, laboratory, medical and process equipment,
+      hose bibbs and wall hydrants, irrigation, and any connection to
+      non-potable or reclaimed water, in addition to containment at the
+      service where the purveyor requires it.
+    trace_to: [drawings.plumbing, drawings.riser_diagrams, schedule.equipment]
+    severity: high
+    owner: design_team
+
+  - id: 22wd.rpz-installation
+    kind: constructability
+    check: >
+      Reduced-pressure assemblies are installed where they can be tested and
+      serviced (not above ceilings or in pits that flood), and each relief
+      discharge goes through an air gap to a drain or outlet able to take its
+      full discharge.
+    trace_to: [drawings.plumbing, drawings.details]
+    severity: high
+    owner: gc
+    gate: underslab_rough_in
+
+  - id: 22wd.thermal-expansion
+    kind: conformance
+    check: >
+      Where a backflow assembly, check valve or pressure-reducing valve makes
+      the system closed, thermal expansion is controlled with tanks sized for
+      the heated volume and located on the cold supply to the heaters.
+    trace_to: [drawings.plumbing, drawings.riser_diagrams]
+    severity: medium
+    owner: subcontractor
+
+  - id: 22wd.temperature-design
+    kind: conformance
+    check: >
+      Hot water is stored and recirculated at the temperatures the design sets
+      for Legionella control and delivered to fixtures through temperature
+      control where required. Master mixing valves are sized for the low
+      flows they will mostly see, and the recirculation return is piped to
+      the valve and heater as the valve manufacturer requires, so the loop
+      neither overheats nor goes cold.
+    trace_to: [drawings.riser_diagrams, drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 22wd.recirculation
+    kind: conformance
+    check: >
+      Where the design keeps hot water at the fixtures by recirculation, heat
+      tracing or local heaters, the method chosen meets the energy and
+      plumbing codes' limits on delivery, every recirculation branch has a
+      balancing valve, and pump controls are the type the energy code
+      requires.
+    trace_to: [drawings.riser_diagrams, report.energy_compliance]
+    severity: medium
+    owner: design_team
+
+  - id: 22wd.pressure
+    kind: conformance
+    check: >
+      Pressure at the highest and most remote fixtures meets the fixtures' and
+      the code's minimums using the purveyor's supply data, with booster pumps
+      where it does not, pressure-reducing valves where static pressure
+      exceeds the code maximum, and the pressure zones shown on the riser
+      diagram.
+    trace_to: [report.utility_requirements, drawings.riser_diagrams]
+    severity: high
+    owner: design_team
+
+  - id: 22wd.fill-to-occupancy
+    kind: constructability
+    check: >
+      Disinfection, flushing and sampling are timed to occupancy: if the
+      building sits filled for weeks before it opens, the plan flushes or
+      re-disinfects and re-samples before people drink the water, and dead
+      ends left by late changes are removed or flushed under the owner's water
+      management program where one exists.
+    trace_to: [spec.part3, schedule.master]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+failure_modes:
+  - id: 22wd.fm.fill-unprotected
+    what_happens: Boiler fill, chemical feeder or janitor-sink dispenser connected with no backflow assembly, or with one rated for a lower hazard
+    consequence: Treated or chemical water siphoned into drinking water; a health department finding
+    caught_by: [22wd.backflow-coverage, if.22-hvac-makeup]
+    source: industry_practice
+
+  - id: 22wd.fm.rpz-flood
+    what_happens: A reduced-pressure assembly installed above a ceiling or in a room with no drain for its relief discharge
+    consequence: The relief discharge floods the room or the ceiling below
+    caught_by: [22wd.rpz-installation]
+    source: industry_practice
+
+  - id: 22wd.fm.relief-weeping
+    what_happens: A backflow assembly or pressure-reducing valve added at the service with no thermal expansion control
+    consequence: Relief valves weep at the heaters and pressure spikes damage fixtures
+    caught_by: [22wd.thermal-expansion]
+    source: industry_practice
+
+  - id: 22wd.fm.mixing-valve-hunting
+    what_happens: A master mixing valve sized for peak demand only, or the recirculation return piped to the wrong port
+    consequence: Temperature swings at fixtures, scald complaints or a cold loop
+    caught_by: [22wd.temperature-design]
+    source: industry_practice
+
+  - id: 22wd.fm.unbalanced-loop
+    what_happens: Recirculation branches installed without balancing valves
+    consequence: Remote fixtures wait for hot water; complaints and an energy code finding
+    caught_by: [22wd.recirculation]
+    source: industry_practice
+
+  - id: 22wd.fm.stagnant-opening
+    what_happens: The building is disinfected and filled long before occupancy, then left unflushed
+    consequence: Positive Legionella or bacteriological results at opening; occupancy waits on remediation
+    caught_by: [22wd.fill-to-occupancy]
+    source: industry_practice
+
+  - id: 22wd.fm.top-floor-starved
+    what_happens: Booster pump left out because the design assumed optimistic supply pressure
+    consequence: Flush valves and showers fail on the upper floors; a pump is added in a finished building
+    caught_by: [22wd.pressure]
+    source: industry_practice
+
+standards:
+  - id: 22wd.std.asse-backflow
+    name: ASSE 1013 / ASSE 1015
+    title: Reduced Pressure Principle Backflow Prevention Assemblies; Double Check Backflow Prevention Assemblies
+    verify: Listing of each containment and isolation assembly the purveyor and code require
+  - id: 22wd.std.asse-1017
+    name: ASSE 1017
+    title: Temperature Actuated Mixing Valves for Hot Water Distribution Systems
+    verify: Master mixing valve listing and its rated flow range
+  - id: 22wd.std.ashrae-188
+    name: ANSI/ASHRAE Standard 188
+    title: "Legionellosis: Risk Management for Building Water Systems"
+    verify: The water management program the owner or jurisdiction requires
+    note: Confirm the edition the owner's program or the jurisdiction cites
+
+regulatory_hooks:
+  - id: 22wd.rh.backflow
+    topic: cross-connection-backflow-protection
+    question: >
+      Which backflow assembly type does the plumbing code require at each
+      internal hazard, and must assemblies be tested by a certified tester at
+      installation and registered with the purveyor?
+    applies_when: Every building water system with cross-connections
+    source_families: [plumbing_code, utility_service_rules]
+    severity: high
+
+  - id: 22wd.rh.expansion
+    topic: water-heater-relief-and-expansion
+    question: >
+      When does the plumbing code require thermal expansion control on the hot
+      water system, and how must it be sized and located?
+    applies_when: Systems with a backflow assembly, check valve or pressure-reducing valve at the service
+    source_families: [plumbing_code]
+    severity: medium
+
+  - id: 22wd.rh.energy
+    topic: service-water-heating-energy
+    question: >
+      What does the adopted energy code require of hot water distribution:
+      limits on piping volume or length to fixtures, when recirculation or
+      heat trace is used, and recirculation pump controls?
+    applies_when: Hot water distribution systems
+    source_families: [energy]
+    severity: medium
+
+  - id: 22wd.rh.legionella
+    topic: legionella-water-management
+    question: >
+      Does the jurisdiction, the owner's accreditor or a facility program
+      require a water management program for this building, and what design
+      or commissioning features follow (storage and return temperatures,
+      flushing, sampling points, dead-leg removal)?
+    applies_when: Healthcare, senior living, hotels, large or complex water systems, and owners with a program
+    source_families: [plumbing_code, health_facility_licensing, public_health]
+    severity: medium
+
+  - id: 22wd.rh.disinfection
+    topic: building-water-system-disinfection
+    question: >
+      What disinfection, flushing and bacteriological testing does the
+      plumbing code or health department require before the water system is
+      used, and does a delay before occupancy require repeating it?
+    applies_when: Every new or extended potable water system
+    source_families: [plumbing_code]
+    severity: medium
+
+  - id: 22wd.rh.pressure
+    topic: water-supply-pressure-limits
+    question: >
+      What maximum static pressure and minimum flowing pressure at fixtures
+      does the plumbing code set, and when are pressure-reducing valves or
+      booster pumps required?
+    applies_when: Every building water system
+    source_families: [plumbing_code]
+    severity: medium
+
+extract_fields:
+  - id: 22wd.xf.backflow
+    label: Backflow assembly type and location at each cross-connection
+    type: list
+    per: package
+    reconcile_against: [drawings.plumbing]
+  - id: 22wd.xf.temperatures
+    label: Storage, recirculation and delivery temperatures and mixing valve set points
+    type: list
+    per: package
+    reconcile_against: [drawings.riser_diagrams, spec.part2]

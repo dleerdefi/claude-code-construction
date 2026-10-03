@@ -1,0 +1,220 @@
+schema_version: 1
+kind: section
+id: "22 13 00"
+title: Facility Sanitary Sewerage
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Sanitary waste and vent piping, floor drains and floor sinks, cleanouts,
+  interceptors, ejectors and trap seal protection. Most of it is fixed under
+  the slab before anyone sees a finished floor, so drain locations and rim
+  elevations come from current architectural and equipment layouts. Above
+  the slab the misses are equipment that needs an indirect-waste receptor
+  nobody placed, cleanouts that end up behind casework, vents that terminate
+  beside air intakes, and fixtures that sit below the street sewer.
+
+submittals:
+  - id: 22ss.sub.product-data
+    type: Product Data
+    must_show:
+      - Floor drains and floor sinks by tag, with body, strainer or grate, rim adjustment and flashing collar for the floor construction
+      - Cleanouts with covers matched to each floor and wall finish
+      - Trap seal protection devices and their water or power source
+      - Interceptors and separators with their rating, and ejector packages with controls and alarms
+
+review_checks:
+  - id: 22ss.indirect-waste
+    kind: coordination
+    check: >
+      Non-foodservice equipment with indirect waste (water treatment and
+      reverse osmosis reject, sterilizers and autoclaves, relief and backflow
+      discharges, process equipment) has a receptor sized for the flow and
+      temperature of the discharge, with the air gap or air break the code
+      requires, located from the approved equipment's drain outlet.
+    trace_to: [drawings.plumbing, schedule.equipment, drawings.equipment]
+    severity: high
+    owner: gc
+    gate: underslab_rough_in
+
+  - id: 22ss.trap-seals
+    kind: conformance
+    check: >
+      Floor drains and floor sinks that will seldom receive water (mechanical
+      rooms, toilet rooms with no other wet use, emergency fixture drains)
+      have the trap seal protection the code accepts, with the primer's water
+      or power source shown and the primer reachable.
+    trace_to: [drawings.plumbing, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 22ss.cleanouts
+    kind: constructability
+    check: >
+      Cleanouts are at the locations the code requires and stay usable: not
+      behind casework, under equipment or in walls without access, with room
+      to rod the line, and floor cleanouts with tops that suit the floor
+      finish.
+    trace_to: [drawings.plumbing, drawings.interior_elevations, schedule.finish]
+    severity: medium
+    owner: gc
+    gate: wall_close_in
+
+  - id: 22ss.below-sewer
+    kind: absence
+    check: >
+      Fixtures and drains below the street sewer, or below the next upstream
+      manhole rim, discharge through an ejector or are protected by a
+      backwater valve as the code requires, and each ejector shows duplex
+      pumps, a high-level alarm and the power source the design requires.
+    trace_to: [drawings.civil, drawings.plumbing, drawings.electrical]
+    severity: high
+    owner: design_team
+
+  - id: 22ss.vent-terminations
+    kind: coordination
+    check: >
+      Vent terminations are placed clear of outdoor air intakes, operable
+      openings, roof edges and occupied roofs as the code requires, checked
+      against the roof plan and the mechanical intakes, and air admittance
+      valves are used only where the code and the AHJ allow them.
+    trace_to: [drawings.roof_plan, drawings.mechanical, drawings.plumbing]
+    severity: medium
+    owner: design_team
+    gate: roof_membrane
+
+  - id: 22ss.other-interceptors
+    kind: absence
+    check: >
+      Uses that need an interceptor other than a grease interceptor have one:
+      oil and sand separators at vehicle maintenance, parking and wash bays,
+      lint interceptors at commercial laundries, and solids interceptors at
+      plaster, cast and dental rooms, each with the sampling and cleaning
+      access the sewer authority requires.
+    trace_to: [drawings.plumbing, drawings.plans, drawings.civil]
+    severity: high
+    owner: design_team
+
+reconciliations:
+  - id: 22ss.rc.floor-drains
+    between: [drawings.plumbing, drawings.enlarged_plans, drawings.structural]
+    key: Floor drain or floor sink
+    fields: [location and room, drain type, rim elevation relative to finished floor, slab depression or slope to drain, membrane flashing]
+    check: >
+      Each floor drain and floor sink on the plumbing plans is at the same
+      location on the enlarged plans, in a slab area the structural drawings
+      depress or slope for it, with its rim set to the finished floor and a
+      flashing collar where a waterproof membrane is required.
+    severity: high
+    owner: design_team
+    gate: underslab_rough_in
+
+failure_modes:
+  - id: 22ss.fm.drain-high
+    what_happens: Floor drain bodies set to the structural slab, or in an area with no slope to the drain
+    consequence: Water ponds away from the drain; slabs ground or topped after finishes
+    caught_by: [22ss.rc.floor-drains, if.03-underslab-plumbing]
+    source: industry_practice
+
+  - id: 22ss.fm.reject-no-receptor
+    what_happens: Water treatment, reverse osmosis or sterilizer discharge with no receptor sized for its flow and temperature
+    consequence: The discharge is piped to whatever drain is near; flooding, damaged piping or an inspection finding
+    caught_by: [22ss.indirect-waste]
+    source: industry_practice
+
+  - id: 22ss.fm.trap-dry
+    what_happens: Floor drains in rooms that are seldom wet installed with no trap seal protection
+    consequence: Traps dry out and sewer gas enters the building
+    caught_by: [22ss.trap-seals]
+    source: industry_practice
+
+  - id: 22ss.fm.cleanout-buried
+    what_happens: Cleanouts behind casework, under equipment or tiled over
+    consequence: Lines cannot be rodded; floors or casework removed at the first stoppage
+    caught_by: [22ss.cleanouts]
+    source: industry_practice
+
+  - id: 22ss.fm.sewer-backup
+    what_happens: Below-grade fixtures drained by gravity to a sewer that can surcharge
+    consequence: Sewage backs up into the building during a storm or a sewer blockage
+    caught_by: [22ss.below-sewer]
+    source: industry_practice
+
+  - id: 22ss.fm.vent-at-intake
+    what_happens: A plumbing vent stack terminated beside a rooftop unit's outside air hood, under an operable window or on an occupied roof
+    consequence: Sewer gas drawn into the building; the vent rerouted through finished roofing
+    caught_by: [22ss.vent-terminations, if.22-vent-intake-separation]
+    source: industry_practice
+
+  - id: 22ss.fm.no-separator
+    what_happens: Maintenance or wash bay drains connected to the sanitary sewer with no oil and sand separator
+    consequence: A sewer authority violation; a separator excavated in after paving
+    caught_by: [22ss.other-interceptors]
+    source: industry_practice
+
+standards:
+  - id: 22ss.std.asse-trap-seal
+    name: ASSE 1018 / ASSE 1044 / ASSE 1072
+    title: Trap Seal Primer Valves — Potable Water Supplied; Trap Seal Primer – Drainage Types and Electric Design Types; Barrier Type Floor Drain Trap Seal Protection Devices
+    verify: Listing of the trap seal protection device type the code accepts
+
+regulatory_hooks:
+  - id: 22ss.rh.trap-seal
+    topic: floor-drain-trap-seal-protection
+    question: >
+      Which floor drains require trap seal protection under the adopted
+      plumbing code, and which device types (primer valves, electronic
+      primers, barrier devices) does it accept?
+    applies_when: Floor drains and floor sinks
+    source_families: [plumbing_code]
+    severity: medium
+
+  - id: 22ss.rh.backwater
+    topic: building-sewer-backwater-protection
+    question: >
+      When does the plumbing code require a backwater valve or an ejector for
+      fixtures below the street sewer or the upstream manhole, and what
+      cleanout arrangement does the sewer authority require at the building
+      line?
+    applies_when: Basements, below-grade fixtures and low sites
+    source_families: [plumbing_code, public_works]
+    severity: high
+
+  - id: 22ss.rh.vents
+    topic: outdoor-air-intake-separation
+    question: >
+      What separation does the plumbing code require between vent
+      terminations and outdoor air intakes, operable openings and occupied
+      roofs, and are air admittance valves allowed here?
+    applies_when: Every vent through the roof or wall
+    source_families: [plumbing_code, mechanical_code]
+    severity: medium
+
+  - id: 22ss.rh.indirect
+    topic: indirect-waste-receptors
+    question: >
+      Which non-food equipment must discharge through an air gap or air
+      break, which discharges need cooling before the drain, and where must
+      the receptors be?
+    applies_when: Equipment with indirect waste outside foodservice
+    source_families: [plumbing_code]
+    severity: medium
+
+  - id: 22ss.rh.interceptors
+    topic: oil-sand-separator-requirements
+    question: >
+      Which uses require oil and sand separators or other interceptors under
+      the plumbing code and the sewer authority's pretreatment rules, and
+      what sizing, venting and sampling do they need?
+    applies_when: Vehicle maintenance, parking, wash bays, laundries, plaster and dental rooms
+    source_families: [plumbing_code, environmental, public_works]
+    severity: high
+
+extract_fields:
+  - id: 22ss.xf.floor-drains
+    label: Floor drain and floor sink tags with type, location and rim condition
+    type: list
+    per: package
+    reconcile_against: [drawings.plumbing, drawings.enlarged_plans]

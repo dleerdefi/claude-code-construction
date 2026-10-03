@@ -1,0 +1,273 @@
+schema_version: 1
+kind: section
+id: "23 09 00"
+title: Instrumentation and Control for HVAC
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["25 55 00", "25 95 00", "25 35 00"]   # HVAC controls specified under Integrated Automation
+
+contractor_designed: typical   # the controls contractor designs architecture, wiring and programming from the engineer's sequences
+
+scope_summary: >
+  The building automation system and its devices (23 09 23 and 23 09 93
+  inherit from here). The controls submittal is a design submittal:
+  architecture, panels, wiring, points, valve and damper selections,
+  sequences and graphics, prepared by the controls contractor from the
+  engineer's sequences. The misses are sequences copied from boilerplate,
+  points lists that cannot carry the sequences or the energy code, power and
+  wiring that fall between Divisions 23 and 26, the fire alarm interface,
+  integration of packaged equipment, ownership of the network, and trends
+  that are not running when commissioning starts.
+
+submittals:
+  - id: 23ct.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - System architecture with every controller, gateway and network segment, and where it connects to the owner's network
+      - Points list per system with point type, alarm limits and trend settings, including points mapped from packaged equipment
+      - Written sequence for every system, marked where it departs from the design sequence
+      - Control valve and damper schedule with size, flow coefficient, close-off rating, actuator, fail position and power source
+      - Wiring diagrams and panel layouts, with the power source of each panel and actuator
+      - Sample graphics for each system type and the floor-plan zone graphics
+  - id: 23ct.sub.product-data
+    type: Product Data
+    must_show:
+      - Controllers, sensors with stated accuracy, actuators, control valves, airflow and flow stations, meters
+  - id: 23ct.sub.certificates
+    type: Certificates
+    must_show:
+      - Protocol listing or conformance statement for each controller and gateway the spec requires (e.g. BTL listing and PICS for BACnet devices)
+      - Listing for smoke control service where the system operates smoke control
+
+review_checks:
+  - id: 23ct.sequences-match
+    kind: conformance
+    check: >
+      The submitted sequences reproduce the design sequences system by
+      system, including setpoints, resets, minimum outdoor air control,
+      economizer high-limit, freeze protection, safeties, alarms, and
+      fire and smoke modes. Generic manufacturer sequences in place of the
+      design are rejected, and every departure is marked.
+    trace_to: [drawings.controls, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 23ct.sequences-absent
+    kind: absence
+    check: >
+      The design gives a sequence for every controlled system, including
+      exhaust fans, unit heaters, decentralized units, packaged equipment
+      interfaces and fire and smoke modes. "By the controls contractor" or
+      "per manufacturer" for a system that needs coordination is an RFI
+      candidate before the controls design starts.
+    trace_to: [drawings.controls, spec.part3]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 23ct.points-list
+    kind: completeness
+    check: >
+      The points list supports each step of each sequence and each control
+      the energy code requires, distinguishes hardwired from network points,
+      and carries alarms and trends for the commissioning plan.
+    trace_to: [spec.part2, drawings.controls, report.commissioning]
+    severity: high
+    owner: subcontractor
+
+  - id: 23ct.valves-dampers
+    kind: conformance
+    check: >
+      Control valves are sized by flow coefficient for the scheduled flow and
+      design pressure drop, with close-off ratings above the pump shutoff
+      head; control dampers have actuators sized for their torque; and every
+      actuator's fail position (normally open, normally closed, last
+      position, spring return) matches what safety requires (outdoor air
+      closed for freeze protection, smoke dampers to their life-safety
+      position).
+    trace_to: [schedule.mechanical_equipment, drawings.controls, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 23ct.open-protocol
+    kind: conformance
+    check: >
+      The system meets the spec's open-protocol requirement with listed
+      devices, and the owner receives the software licenses, passwords,
+      programming tools and editable programs the spec requires, so that
+      another contractor can service it.
+    trace_to: [spec.part2, spec.part1]
+    severity: high
+    owner: subcontractor
+
+  - id: 23ct.life-safety-modes
+    kind: conformance
+    check: >
+      The sequences state how HVAC responds to fire alarm and smoke control:
+      which units stop on which detector or zone, damper positions, restart
+      after reset, and whether shutdown is hardwired from the fire alarm
+      relay to the starter or drive (including in bypass) or passes through
+      the automation system. Where the automation system operates smoke
+      control, it is listed for that service.
+    trace_to: [drawings.fire_alarm, drawings.controls, spec.part3]
+    severity: critical
+    owner: subcontractor
+
+  - id: 23ct.sensor-locations
+    kind: constructability
+    check: >
+      Space sensors and thermostats are located away from exterior walls,
+      sun, supply air and heat sources, are not behind doors, casework or
+      furniture shown on the elevations, and are at the mounting height the
+      accessibility rules require for user-adjustable devices.
+    trace_to: [drawings.mechanical, drawings.interior_elevations, drawings.plans]
+    severity: medium
+    owner: subcontractor
+    gate: in_wall_rough_in
+
+  - id: 23ct.graphics-trends
+    kind: completeness
+    check: >
+      Graphics for each system and zone floor plans are complete, alarms are
+      routed, and the trends the commissioning plan needs are configured and
+      collecting before functional testing begins.
+    trace_to: [spec.part2, report.commissioning]
+    severity: medium
+    owner: subcontractor
+    gate: substantial_completion
+
+reconciliations:
+  - id: 23ct.rc.controlled-equipment
+    between: [schedule.mechanical_equipment, drawings.controls]
+    key: Equipment tag
+    fields: [controlled or monitored, interface type (hardwired or network), sequence reference, who furnishes the interface]
+    check: >
+      Every scheduled item the design says is controlled or monitored
+      appears in the controls drawings and points list with a sequence and
+      an interface type, including small exhaust fans, unit heaters and
+      decentralized systems.
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+failure_modes:
+  - id: 23ct.fm.boilerplate-sequences
+    what_happens: Generic sequences programmed in place of the design sequences
+    consequence: Economizers, resets and outdoor air control that do not work as designed; found in commissioning or as energy and comfort complaints
+    caught_by: [23ct.sequences-match, 23ct.sequences-absent]
+    source: industry_practice
+
+  - id: 23ct.fm.wiring-gap
+    what_happens: Controls power, raceway and interlock wiring each assumed by Division 23 and Division 26 to be the other's
+    consequence: Late change order for circuits, conduit and wiring after ceilings are closing
+    caught_by: [if.23-controls-wiring]
+    source: industry_practice
+
+  - id: 23ct.fm.proprietary-lockin
+    what_happens: Front end or controllers delivered without licenses, tools or open programs
+    consequence: The owner can only use the installing vendor for service; a closeout dispute
+    caught_by: [23ct.open-protocol]
+    source: industry_practice
+
+  - id: 23ct.fm.wrong-fail-position
+    what_happens: Actuator fail positions not chosen against the safety intent
+    consequence: Frozen coils when an outdoor air damper fails open; smoke dampers in the wrong position on power loss
+    caught_by: [23ct.valves-dampers]
+    source: industry_practice
+
+  - id: 23ct.fm.valve-close-off
+    what_happens: Control valves selected without checking close-off against pump head
+    consequence: Valves leak through; coils cannot be controlled and pumps run harder than needed
+    caught_by: [23ct.valves-dampers]
+    source: industry_practice
+
+  - id: 23ct.fm.fire-shutdown
+    what_happens: Fire alarm shutdown wired to the automation controller instead of the starter or drive, or lost when the drive is in bypass
+    consequence: Fan keeps running in a fire alarm; fire alarm acceptance test failed
+    caught_by: [23ct.life-safety-modes, if.23-fire-alarm-hvac]
+    source: industry_practice
+
+  - id: 23ct.fm.no-trends
+    what_happens: Trends and graphics unfinished when functional testing is scheduled
+    consequence: Commissioning slips, and with it occupancy
+    caught_by: [23ct.graphics-trends]
+    source: industry_practice
+
+  - id: 23ct.fm.sensor-location
+    what_happens: Sensors installed on exterior walls, in sun or behind furniture and casework
+    consequence: Comfort complaints and relocation through finished walls
+    caught_by: [23ct.sensor-locations]
+    source: industry_practice
+
+  - id: 23ct.fm.network-gap
+    what_happens: Controls assumed to ride on the owner's IT network without the owner's IT approval, addressing or switch ports
+    consequence: Controllers cannot report at turnover; remote access blocked by the owner's security review
+    caught_by: [if.23-controls-network]
+    source: industry_practice
+
+standards:
+  - id: 23ct.std.bacnet
+    name: ANSI/ASHRAE 135
+    title: BACnet — A Data Communication Protocol for Building Automation and Control Networks
+    verify: Device profiles and conformance statements where the spec requires BACnet
+  - id: 23ct.std.btl
+    name: BACnet Testing Laboratories (BTL) listing
+    title: BTL listing of tested BACnet products
+    verify: Each controller and gateway is listed for the device profile the spec requires
+  - id: 23ct.std.ul-864
+    name: UL 864
+    title: Control Units and Accessories for Fire Alarm Systems
+    verify: Listing for smoke control system equipment (UUKL category) where the automation system operates smoke control
+  - id: 23ct.std.guideline-36
+    name: ASHRAE Guideline 36
+    title: High-Performance Sequences of Operation for HVAC Systems
+    verify: Sequences where the design cites the guideline instead of writing them out
+
+regulatory_hooks:
+  - id: 23ct.rh.energy-controls
+    topic: hvac-controls-energy-code
+    question: >
+      Which HVAC control functions does the adopted energy code require for
+      these systems (zone controls, setback and optimum start, demand-controlled
+      ventilation, economizer controls and fault detection, supply air and
+      static pressure reset, ventilation shutoff in unoccupied spaces), and
+      does the points list implement each one?
+    applies_when: Every HVAC controls submittal
+    source_families: [energy]
+    severity: high
+
+  - id: 23ct.rh.commissioning
+    topic: energy-code-commissioning
+    question: >
+      Does the adopted energy code require functional acceptance testing or
+      commissioning of the HVAC controls, by whom, and which reports must be
+      delivered before the certificate of occupancy?
+    applies_when: Every HVAC controls submittal
+    source_families: [energy]
+    severity: high
+
+  - id: 23ct.rh.smoke-control
+    topic: smoke-control-system-requirements
+    question: >
+      Does this building require a smoke control system (atrium, high-rise,
+      underground, stair or elevator pressurization), what testing and special
+      inspection does the code require, and must the equipment that operates
+      it be listed for smoke control with a firefighter's control panel?
+    applies_when: Buildings with smoke control or pressurization systems
+    source_families: [building_code, fire_code]
+    severity: critical
+
+extract_fields:
+  - id: 23ct.xf.points
+    label: Points per system with type, alarm and trend
+    type: list
+    per: package
+    reconcile_against: [drawings.controls, report.commissioning]
+  - id: 23ct.xf.fail-positions
+    label: Fail position of each control valve and damper
+    type: list
+    per: package
+    reconcile_against: [drawings.controls]

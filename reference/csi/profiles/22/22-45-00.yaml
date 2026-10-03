@@ -1,0 +1,136 @@
+schema_version: 1
+kind: section
+id: "22 45 00"
+title: Emergency Plumbing Fixtures
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+review_mode: per_element
+element_types: [emergency_fixture]
+
+scope_summary: >
+  Emergency showers, eyewashes, eye/face washes and drench hoses wherever a
+  hazard puts them: laboratories, battery rooms, chemical storage and
+  water-treatment rooms, pool chemical rooms and maintenance shops. They sit
+  idle for years and must work at once, so the review is about the tempered
+  water behind them (a valve sized for every fixture that may run together,
+  and a hot water source that lasts the full flushing period), a location
+  someone can reach with their eyes shut, and where the water goes when they
+  are tested every week.
+
+submittals:
+  - id: 22ef.sub.product-data
+    type: Product Data
+    must_show:
+      - Each fixture by tag with flow rate, activation, spray pattern and certification to the emergency equipment standard
+      - Tempering valve listed for emergency fixtures, with its flow range and cold-water bypass on failure
+      - Freeze protection or heating for outdoor units, and any flow alarm
+
+review_checks:
+  - id: 22ef.hazard-locations
+    kind: absence
+    scope: package
+    check: >
+      An emergency fixture is shown at each hazard the owner's or the code's
+      criteria cover outside laboratories as well: battery charging and
+      storage, corrosive chemical storage and dispensing, boiler and water
+      treatment chemical feed, pool chemicals and maintenance shops, each
+      with a clear path from the hazard.
+    trace_to: [drawings.plans, drawings.plumbing]
+    severity: high
+    owner: design_team
+
+  - id: 22ef.tempered-capacity
+    kind: conformance
+    check: >
+      The tempering valve serving each fixture or group is sized for the
+      combined flow of every fixture that can run at once, and the hot water
+      source can hold tepid water at that flow for the whole flushing period
+      the standard requires, not only the first minutes.
+    trace_to: [drawings.riser_diagrams, drawings.plumbing, spec.part2]
+    severity: high
+    owner: design_team
+
+  - id: 22ef.drainage-testing
+    kind: absence
+    check: >
+      Whether each fixture has a floor drain or waste connection is decided
+      and shown; where it has none, the weekly activation test has a way to
+      capture the water (test kit, nearby receptor) without flooding finishes
+      or sending contaminated water to the wrong drain.
+    trace_to: [drawings.plumbing, spec.part3]
+    severity: medium
+    owner: design_team
+
+  - id: 22ef.outdoor
+    kind: conformance
+    check: >
+      Exterior or unheated fixtures are freeze-protected or heated, and supply
+      piping exposed to sun is arranged so the first water delivered is not
+      hot.
+    trace_to: [drawings.plumbing, drawings.site]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 22ef.fm.valve-undersized
+    what_happens: One tempering valve sized for a single eyewash serves a shower and an eyewash that run together
+    consequence: Water goes cold or the flow drops when both are used; the valve is replaced
+    caught_by: [22ef.tempered-capacity]
+    source: industry_practice
+
+  - id: 22ef.fm.source-runs-out
+    what_happens: The heater serving the emergency fixtures cannot hold tepid water for the full flush
+    consequence: An injured person gets cold water partway through; a heater added or replaced
+    caught_by: [22ef.tempered-capacity]
+    source: industry_practice
+
+  - id: 22ef.fm.battery-room-missed
+    what_happens: A battery or chemical storage room built with no emergency fixture
+    consequence: A safety finding at inspection or by the owner's insurer; fixture and tempered water added in a finished room
+    caught_by: [22ef.hazard-locations]
+    source: industry_practice
+
+  - id: 22ef.fm.untestable
+    what_happens: A fixture with no drain in a finished room
+    consequence: Weekly tests are skipped to avoid flooding, and failures go unnoticed
+    caught_by: [22ef.drainage-testing]
+    source: industry_practice
+
+  - id: 22ef.fm.outdoor-frozen
+    what_happens: An outdoor shower supplied by a wet line through freezing weather
+    consequence: Frozen when it is needed, or a burst supply
+    caught_by: [22ef.outdoor]
+    source: industry_practice
+
+standards:
+  - id: 22ef.std.isea-z358-1
+    name: ANSI/ISEA Z358.1
+    title: American National Standard for Emergency Eyewash and Shower Equipment
+    verify: Flow, activation, tepid water, location and weekly activation claims
+    note: Confirm the edition the owner or jurisdiction applies
+  - id: 22ef.std.asse-1071
+    name: ASSE 1071
+    title: Temperature Actuated Mixing Valves for Plumbed Emergency Equipment
+    verify: Listing of the tempering valve and its cold-water bypass on failure
+
+regulatory_hooks:
+  - id: 22ef.rh.hazards
+    topic: emergency-eyewash-shower
+    question: >
+      Outside laboratories, which hazards (corrosives, battery charging,
+      chemical feed) require emergency eyewashes or showers under
+      occupational safety rules or the plumbing code, and does the code
+      require a drain or a tempered supply for them?
+    applies_when: Any emergency fixture, or any room with corrosive chemicals or battery charging
+    source_families: [occupational_safety, plumbing_code]
+    severity: high
+
+extract_fields:
+  - id: 22ef.xf.flow
+    label: Fixture flow rate and tempered water source
+    type: string
+    per: element
+    reconcile_against: [drawings.plumbing]

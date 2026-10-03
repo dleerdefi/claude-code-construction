@@ -1,0 +1,163 @@
+schema_version: 1
+kind: section
+id: "23 05 48"
+title: Vibration and Seismic Controls for HVAC
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # isolator selection and restraint design by the manufacturer's engineer
+
+scope_summary: >
+  Isolators, inertia bases, flexible connectors, and seismic and wind
+  restraint of equipment, piping and ductwork, usually selected and designed
+  by the isolation manufacturer's engineer under delegated design. The
+  failures are an isolator choice that ignores the floor it sits on,
+  isolation bridged by a rigid pipe or conduit, open springs where restraint
+  is required, and a restraint design that assumes attachment points and pad
+  sizes nobody else was told about.
+
+submittals:
+  - id: 23vs.sub.isolators
+    type: Product Data
+    must_show:
+      - Isolator type and selected deflection for each equipment tag, with the load on each isolator from the unit's weight distribution
+      - Inertia bases and flexible pipe and duct connectors at each isolated item
+  - id: 23vs.sub.restraint-design
+    type: Delegated Design
+    must_show:
+      - The seismic and wind design parameters used and the component factors for each system
+      - Anchorage and restraint details for each equipment tag, and bracing layouts for piping and ductwork
+      - Reactions at each attachment to the structure, and the housekeeping pad size, reinforcement and edge distance the anchors need
+
+review_checks:
+  - id: 23vs.isolator-selection
+    kind: conformance
+    check: >
+      Each isolated item gets the isolator type, deflection and base that the
+      spec's isolation schedule requires for its equipment type and for the
+      span of the floor or roof it sits on, with loads per isolator taken
+      from the unit's actual weight distribution.
+    trace_to: [spec.part2, schedule.mechanical_equipment, drawings.structural]
+    severity: medium
+    owner: subcontractor
+
+  - id: 23vs.isolation-bridged
+    kind: constructability
+    check: >
+      Every connection to isolated equipment (pipe, duct, conduit, condensate,
+      gas) is flexible, and nothing rigid bridges the isolators: a base
+      doweled to the pad, rigid conduit, braces tight to structure, or
+      debris under the base.
+    trace_to: [spec.part3, drawings.details]
+    severity: medium
+    owner: gc
+    gate: final_connection
+
+  - id: 23vs.restraint-design
+    kind: completeness
+    check: >
+      The restraint design uses the seismic and wind parameters on the
+      structural drawings, covers every equipment tag and the piping and duct
+      the code does not exempt, carries the delegated engineer's seal, and
+      sends attachment reactions and pad requirements to the structural
+      engineer and the concrete trade before pads are formed.
+    trace_to: [drawings.structural, spec.part1_submittals]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 23vs.restrained-isolators
+    kind: conformance
+    check: >
+      Isolated equipment that needs seismic or wind restraint sits on
+      restrained isolators, snubbers or rated isolation curbs, not open
+      springs, and rooftop units on isolation curbs or rails are restrained
+      against uplift and sliding.
+    trace_to: [spec.part2, drawings.roof_plan]
+    severity: high
+    owner: subcontractor
+    gate: equipment_set
+
+  - id: 23vs.bracing-conflicts
+    kind: coordination
+    check: >
+      Sway braces for duct and pipe are placed in the coordinated layout, not
+      added afterward through other trades' space, and piping and duct that
+      cross building seismic joints have the flexible connections the design
+      shows.
+    trace_to: [drawings.structural, drawings.mechanical]
+    severity: medium
+    owner: gc
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 23vs.fm.wrong-deflection
+    what_happens: Standard isolators used on a long-span floor or roof where the schedule calls for more deflection or an inertia base
+    consequence: Vibration and noise complaints in occupied spaces; isolators replaced with the equipment in service
+    caught_by: [23vs.isolator-selection]
+    source: industry_practice
+
+  - id: 23vs.fm.bridged
+    what_happens: Rigid conduit, pipe or a doweled base ties isolated equipment to the structure
+    consequence: Vibration carried into the building; source traced and corrected after occupancy
+    caught_by: [23vs.isolation-bridged]
+    source: industry_practice
+
+  - id: 23vs.fm.open-springs
+    what_happens: Open springs installed under equipment that needs seismic or wind restraint
+    consequence: Failed inspection, or equipment that walks off its base in an earthquake or high wind
+    caught_by: [23vs.restrained-isolators]
+    source: industry_practice
+
+  - id: 23vs.fm.pads-too-small
+    what_happens: The seismic anchor design needs a larger or reinforced pad than the one already poured
+    consequence: Pads demolished and recast, or anchors redesigned under schedule pressure
+    caught_by: [23vs.restraint-design]
+    source: industry_practice
+
+  - id: 23vs.fm.late-bracing
+    what_happens: Seismic braces added after other trades have filled the space
+    consequence: Reroutes, braces omitted or improvised, and findings at inspection
+    caught_by: [23vs.bracing-conflicts]
+    source: industry_practice
+
+standards:
+  - id: 23vs.std.smacna-seismic
+    name: SMACNA Seismic Restraint Manual
+    title: Seismic Restraint Manual — Guidelines for Mechanical Systems
+    verify: Duct and pipe bracing details where the spec allows the manual in place of project-specific design
+    note: Confirm the edition the spec cites; the fourth edition superseded the third
+
+regulatory_hooks:
+  - id: 23vs.rh.seismic-bracing
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Which mechanical components need seismic anchorage and bracing in this
+      project's seismic design category, which size, weight and hanger-length
+      exemptions does the adopted code allow for equipment, piping and
+      ductwork, and does the restraint design apply them correctly?
+    applies_when: Projects in seismic design categories where nonstructural component requirements apply
+    source_families: [building_code_seismic]
+    severity: high
+
+  - id: 23vs.rh.special-inspection
+    topic: mechanical-seismic-special-inspection
+    question: >
+      Does the adopted code require special inspection of the seismic
+      anchorage and bracing of mechanical equipment, piping and ductwork for
+      this building, and is it on the statement of special inspections?
+    applies_when: Projects where mechanical seismic restraint is required
+    source_families: [building_code]
+    severity: medium
+
+  - id: 23vs.rh.rooftop-wind
+    topic: rooftop-equipment-wind-anchorage
+    question: >
+      What wind loads does the adopted code require for rooftop equipment,
+      curbs and their attachment to the structure, and does the jurisdiction
+      require product approval for curbs or equipment in high-wind regions?
+    applies_when: Rooftop equipment
+    source_families: [building_code]
+    severity: high

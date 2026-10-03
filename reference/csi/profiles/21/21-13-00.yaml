@@ -1,0 +1,301 @@
+schema_version: 1
+kind: section
+id: "21 13 00"
+title: Fire-Suppression Sprinkler Systems
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Wet, dry, preaction and deluge sprinkler systems (21 13 13 and the other
+  system types inherit from here). A design is only as good as the hazard it
+  was classified for: storage height, commodity and arrangement set the
+  protection, not the room name. Beyond that the misses are coverage
+  (concealed spaces, canopies, below wide ducts), areas that freeze,
+  sprinkler types in finished and special spaces, and a head layout that has
+  to fit a ceiling already crowded with lights, diffusers and detectors.
+
+submittals:
+  - id: 21sp.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Head layout per area with sprinkler type, temperature rating, response, K-factor and finish by symbol, drawn over the reflected ceiling plan with ceiling heights
+      - Obstructions considered (ducts, beams, lights, cable tray, overhead doors) and the heads added below them
+      - Protection of concealed spaces, canopies, overhangs, stairs and elevator spaces, or the exemption relied on for each
+      - Inspector's test and drains, and for dry or preaction systems the air or nitrogen supply and every low-point drain
+  - id: 21sp.sub.product-data
+    type: Product Data
+    must_show:
+      - Each sprinkler by model and identification number, with listing, K-factor, response, temperature, finish and escutcheon or cover plate
+      - For CPVC piping, the manufacturer's list of materials compatible with the pipe
+      - Dry pipe, preaction or deluge valve, accelerator, and air or nitrogen supply
+  - id: 21sp.sub.samples
+    type: Samples
+    must_show:
+      - Concealed or decorative sprinklers and cover plates in the selected finish
+
+review_checks:
+  - id: 21sp.hazard-commodity
+    kind: conformance
+    reflex: true
+    check: >
+      Each area's hazard or storage protection matches its real use: storage
+      height, commodity class (including plastics and packaging), rack or
+      solid-piled arrangement and aisle widths come from the owner's or
+      tenant's stated use, not from the room name. Storage beyond what the
+      design criteria cover needs storage-specific criteria (possibly in-rack
+      sprinklers) and is a design-team question if the drawings are silent.
+    trace_to: [drawings.fire_protection, drawings.plans, spec.part2]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: 21sp.obstructions
+    kind: constructability
+    check: >
+      The head layout accounts for obstructions to the spray pattern: ducts,
+      cable tray and piping too wide to leave without heads beneath, beams
+      and joists, light fixtures, soffits, overhead doors and equipment, and
+      open-grid ceilings. Any duct or tray added or widened after the layout
+      means added heads.
+    trace_to: [drawings.mechanical, drawings.electrical, drawings.rcp, drawings.fire_protection]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: 21sp.concealed-spaces
+    kind: absence
+    check: >
+      Every concealed space, canopy and exterior projection is either
+      protected or falls within an exemption the adopted standard grants for
+      its construction (combustible or noncombustible, depth, insulation
+      fill), and the construction above each ceiling type is identified.
+    trace_to: [drawings.building_sections, drawings.wall_sections, drawings.fire_protection]
+    severity: high
+    owner: design_team
+
+  - id: 21sp.head-selection
+    kind: conformance
+    submittal_types: [Product Data, Shop Drawings, Samples]
+    check: >
+      Sprinkler type and temperature suit each area: quick response where the
+      standard requires it; concealed or recessed heads where finished
+      ceilings call for them, with factory-finished cover plates; higher
+      temperature ratings near heat sources (skylights, unit heaters, attics,
+      cooking areas); corrosion-resistant heads in pools and chemical areas;
+      and storage sprinklers used within their clearance and obstruction
+      rules.
+    trace_to: [drawings.fire_protection, drawings.rcp, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 21sp.freezing
+    kind: absence
+    check: >
+      Every area that can freeze (canopies, vestibules, loading docks, attics,
+      unheated stairs, parking structures, freezers and coolers) has a
+      protection method the adopted standard allows: a dry or preaction
+      system, dry sprinklers long enough for the wall or ceiling they pass
+      through, a listed antifreeze solution where still permitted, or heat;
+      and the boundary of the wet system is shown.
+    trace_to: [drawings.fire_protection, drawings.mechanical, drawings.plans]
+    severity: high
+    owner: design_team
+
+  - id: 21sp.dry-preaction
+    kind: conformance
+    check: >
+      For dry pipe and preaction systems, system volume and water delivery
+      time meet the standard by calculation or test; piping pitches to
+      accessible low-point drains; the air or nitrogen supply and its power
+      are shown; corrosion control matches the spec. For preaction systems,
+      the release type (single or double interlock) matches the owner's
+      intent and the fire alarm design.
+    trace_to: [drawings.fire_protection, spec.part2, drawings.fire_alarm]
+    severity: high
+    owner: subcontractor
+
+  - id: 21sp.cpvc
+    kind: conformance
+    check: >
+      Where CPVC pipe is used, it stays within its listing (hazard, exposure,
+      ceiling and plenum limits), and every product that will touch it
+      (firestop, thread sealant, cable jackets, spray foam, cutting oil,
+      paint) is on the pipe manufacturer's compatibility list.
+    trace_to: [spec.part2, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 21sp.cooking-hoods
+    kind: absence
+    check: >
+      Commercial cooking hoods and their exhaust ducts are protected by a
+      listed hood system or by sprinklers as the design intends, the party
+      furnishing that protection is named, and the sprinkler design does not
+      assume protection nobody provides.
+    trace_to: [drawings.foodservice, drawings.fire_protection, spec.part1]
+    severity: high
+    owner: gc
+
+reconciliations:
+  - id: 21sp.rc.design-areas
+    between: [drawings.fire_protection, drawings.plans, drawings.life_safety]
+    key: Room or area
+    fields: [use, hazard or commodity classification, ceiling height, system type]
+    check: >
+      Hazard classifications and system types on the sprinkler drawings line
+      up with the room uses on the current architectural and life safety
+      plans; a use changed by ASI or tenant fit-out (office to storage,
+      storage to server room) carries its new classification.
+    severity: high
+    owner: design_team
+
+  - id: 21sp.rc.rcp
+    between: [drawings.rcp, drawings.fire_protection]
+    key: Ceiling area or room
+    fields: [ceiling type and height, head location in the grid or tile, lights, diffusers, speakers and detectors, soffits and height changes]
+    check: >
+      Heads on the sprinkler drawings fit the reflected ceiling plans:
+      located in tiles as the architect requires, clear of lights, diffusers,
+      speakers and detectors, and dropped to every soffit and ceiling height
+      change the drawings show.
+    severity: medium
+    owner: gc
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 21sp.fm.storage-misclassified
+    what_happens: A stockroom or warehouse designed as ordinary hazard; the tenant stores high-piled plastics or racks above the design height
+    consequence: Protection is inadequate; in-rack sprinklers, larger mains or a fire pump added after occupancy, or storage limits imposed on the owner
+    caught_by: [21sp.hazard-commodity, 21sp.rc.design-areas]
+    source: industry_practice
+
+  - id: 21sp.fm.duct-shadow
+    what_happens: Wide ducts or cable tray installed below the sprinkler branch lines after the layout was set
+    consequence: Heads added below obstructions after ceilings are framed, or a failed above-ceiling inspection
+    caught_by: [21sp.obstructions, if.21-duct-obstructions]
+    source: industry_practice
+
+  - id: 21sp.fm.concealed-unprotected
+    what_happens: A combustible concealed space or exterior canopy left without sprinklers on the assumption it was exempt
+    consequence: AHJ final inspection finding; heads added through finished soffits
+    caught_by: [21sp.concealed-spaces]
+    source: industry_practice
+
+  - id: 21sp.fm.frozen-branch
+    what_happens: Wet pipe extended into a canopy, vestibule or loading dock that drops below freezing
+    consequence: Burst pipe and water damage in the first cold snap
+    caught_by: [21sp.freezing]
+    source: industry_practice
+
+  - id: 21sp.fm.cover-plates
+    what_happens: Concealed sprinkler cover plates painted in the field, or of a lower temperature rating than the head
+    consequence: Heads and plates replaced at final inspection
+    caught_by: [21sp.head-selection]
+    source: industry_practice
+
+  - id: 21sp.fm.cpvc-attack
+    what_happens: Incompatible firestop, sealant, cable or foam in contact with CPVC sprinkler pipe
+    consequence: Stress cracking and leaks months after occupancy, above finished ceilings
+    caught_by: [21sp.cpvc]
+    source: industry_practice
+
+  - id: 21sp.fm.delivery-time
+    what_happens: A dry system enlarged in the field without re-checking water delivery time
+    consequence: The trip test fails at acceptance; the system is split or an accelerator added
+    caught_by: [21sp.dry-preaction]
+    source: industry_practice
+
+  - id: 21sp.fm.trapped-water
+    what_happens: Dry or preaction piping with trapped sections and no low-point drains
+    consequence: Internal corrosion and pinhole leaks, or trapped water that freezes
+    caught_by: [21sp.dry-preaction]
+    source: industry_practice
+
+  - id: 21sp.fm.elevator-heads
+    what_happens: Sprinklers installed in an elevator machine room or hoistway without the heat detector and shunt trip that must accompany them
+    consequence: Elevator acceptance fails, or water reaches energized elevator equipment
+    caught_by: [if.14-elevator-sprinkler-shunt-trip]
+    source: industry_practice
+
+  - id: 21sp.fm.hood-unassigned
+    what_happens: Cooking hood suppression assumed by the sprinkler contractor and the hood supplier each to be the other's
+    consequence: The kitchen cannot open; the system is bought and installed at the end
+    caught_by: [21sp.cooking-hoods]
+    source: industry_practice
+
+  - id: 21sp.fm.heads-vs-ceiling
+    what_happens: Drops cut before the ceiling layout is final
+    consequence: Arm-overs added at every conflict with lights and diffusers; tiles recut
+    caught_by: [21sp.rc.rcp]
+    source: industry_practice
+
+standards:
+  - id: 21sp.std.nfpa-13
+    name: NFPA 13
+    title: Standard for the Installation of Sprinkler Systems
+    verify: Design method, sprinkler selection, obstruction and concealed-space rules, and dry system delivery time
+    note: Confirm the edition the jurisdiction adopted; the owner's insurer may impose its own criteria
+
+regulatory_hooks:
+  - id: 21sp.rh.sprinkler-standard
+    topic: sprinkler-standard-and-coverage
+    question: >
+      Which sprinkler standard does the building code require for this
+      occupancy and height (NFPA 13, 13R or 13D), and which spaces
+      (concealed spaces, balconies, attics, closets, elevator spaces) may be
+      left unsprinklered under that standard and edition?
+    applies_when: Every sprinklered building
+    source_families: [building_code, fire_code]
+    severity: high
+
+  - id: 21sp.rh.high-piled
+    topic: high-piled-combustible-storage
+    question: >
+      Does the planned storage (height, commodity, arrangement) make this
+      high-piled combustible storage under the fire code, and what permit,
+      sprinkler design, smoke removal, access doors and fire department
+      access does that bring?
+    applies_when: Storage rooms, warehouses, stockrooms and back-of-house storage
+    source_families: [fire_code]
+    severity: high
+
+  - id: 21sp.rh.freeze
+    topic: sprinkler-freeze-protection
+    question: >
+      Which freeze protection methods does the adopted sprinkler standard
+      allow (listed antifreeze solutions, dry sprinklers, dry or preaction
+      systems, listed heat tracing), and do the AHJ or the insurer restrict
+      antifreeze further?
+    applies_when: Any sprinklered area that can freeze
+    source_families: [fire_code, owner_insurer_standards]
+    severity: medium
+
+  - id: 21sp.rh.elevator
+    topic: elevator-sprinklers-shunt-trip
+    question: >
+      Does the adopted code require or allow omitting sprinklers in elevator
+      machine rooms, control spaces, hoistways and pits, and where they are
+      installed, what sprinkler temperature rating and shunt-trip
+      arrangement go with them?
+    applies_when: Buildings with elevators
+    source_families: [building_code, fire_code, electrical_code]
+    severity: high
+
+extract_fields:
+  - id: 21sp.xf.design-areas
+    label: Hazard or storage classification, density and area per design area
+    type: list
+    per: package
+    reconcile_against: [drawings.fire_protection, drawings.plans]
+  - id: 21sp.xf.sprinkler-types
+    label: Sprinkler model, response, temperature, K-factor and finish per symbol
+    type: list
+    per: package
+    reconcile_against: [spec.part2, drawings.rcp]
+  - id: 21sp.xf.system-types
+    label: System type per area (wet, dry, preaction, deluge, antifreeze)
+    type: list
+    per: package
+    reconcile_against: [drawings.fire_protection]

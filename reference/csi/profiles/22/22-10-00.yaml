@@ -1,0 +1,142 @@
+schema_version: 1
+kind: section
+id: "22 10 00"
+title: Plumbing Piping
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Plumbing piping of every service (22 11 00 through 22 15 00 inherit from
+  here). Gravity drainage constrains everything else: its slope fixes the
+  inverts from the farthest fixture to the building exit, where it has to
+  meet the site utility below it, and it competes with structure and ducts
+  for ceiling space. Stacks and leaders need a chase at every floor. Piping
+  material by service and location is where value-engineering substitutions
+  create plenum, noise and listing problems.
+
+submittals:
+  - id: 22pp.sub.product-data
+    type: Product Data
+    must_show:
+      - Pipe, fittings and joining method for each service and location (below grade, above grade, plenum, exterior), keyed to the spec's piping schedule
+      - Press, grooved or push-fit fittings with their listing for the service, pressure and temperature
+  - id: 22pp.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Pressure and drainage test records by area, dated before concealment
+
+review_checks:
+  - id: 22pp.material-by-service
+    kind: conformance
+    check: >
+      Each service and location uses a piping material and joining method the
+      spec's piping schedule allows. A plastic-for-metal or joining-method
+      change is checked for plenum limits, noise over occupied rooms,
+      pressure and temperature ratings, and the firestop systems already
+      selected.
+    trace_to: [spec.part2, drawings.plumbing]
+    severity: medium
+    owner: subcontractor
+
+  - id: 22pp.gravity-fit
+    kind: constructability
+    check: >
+      Long gravity runs are checked from the farthest fixture to the building
+      exit at the design slope against beams, ducts, ceiling heights and the
+      building-line invert, before the above-ceiling coordination is settled.
+    trace_to: [drawings.plumbing, drawings.structural, drawings.building_sections]
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+reconciliations:
+  - id: 22pp.rc.building-line
+    reflex: true
+    between: [drawings.civil, drawings.plumbing]
+    key: Each utility at the building line (domestic water, sanitary, storm, gas)
+    fields: [size, material, invert or elevation, exit location, cleanout, backwater valve, meter and backflow location]
+    check: >
+      Every service entering or leaving the building has the same size,
+      location and invert on the plumbing and civil drawings, and the civil
+      invert at the point of connection is low enough for the building drain
+      to reach it at slope.
+    severity: critical
+    owner: design_team
+    gate: underslab_rough_in
+
+  - id: 22pp.rc.chases
+    between: [drawings.riser_diagrams, drawings.plumbing, drawings.plans]
+    key: Each stack, riser and leader
+    fields: [location at each level, chase or enclosure, size with insulation, offsets]
+    check: >
+      Every stack, riser and leader on the plumbing riser diagrams lands in a
+      chase, wall cavity or column enclosure on the architectural plans at
+      every floor it passes, with room for its insulation, and offsets appear
+      where the architecture moves.
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
+  - id: 22pp.rc.equipment-connections
+    between: [schedule.equipment, schedule.mechanical_equipment, drawings.plumbing]
+    key: Equipment tag
+    fields: [water connections (cold, hot, tempered, treated) and sizes, waste type (direct or indirect), gas connection and input, backflow device]
+    check: >
+      Every piece of equipment that needs water, waste or gas (owner and
+      mechanical equipment, laundry, laboratory and process equipment) has
+      those connections on the plumbing drawings, sized and located for the
+      approved model, with the backflow device its hazard needs.
+    severity: high
+    owner: gc
+    gate: in_wall_rough_in
+
+failure_modes:
+  - id: 22pp.fm.invert-high
+    what_happens: The civil sewer connection is set higher than the building drain can reach at slope
+    consequence: The building drain is regraded, an ejector added, or the site sewer relaid
+    caught_by: [22pp.rc.building-line, if.22-building-line]
+    source: industry_practice
+
+  - id: 22pp.fm.size-mismatch
+    what_happens: Water service sized differently on the civil and plumbing drawings, or the meter and backflow drawn in two places
+    consequence: The wrong tap or meter ordered from the purveyor; service replaced
+    caught_by: [22pp.rc.building-line]
+    source: industry_practice
+
+  - id: 22pp.fm.no-chase
+    what_happens: A stack or leader on the riser diagram has no chase on the architectural plans
+    consequence: Pipe exposed in finished rooms, or furring added that shrinks rooms and moves fixtures
+    caught_by: [22pp.rc.chases]
+    source: industry_practice
+
+  - id: 22pp.fm.gravity-conflict
+    what_happens: A sanitary or storm main cannot keep its slope past beams and ducts
+    consequence: Field reroutes, flattened slopes or an added lift station
+    caught_by: [22pp.gravity-fit]
+    source: industry_practice
+
+  - id: 22pp.fm.ve-plastic
+    what_happens: Cast iron drainage replaced with plastic over offices and conference rooms
+    consequence: Noise complaints and plenum violations; pipe wrapped or replaced
+    caught_by: [22pp.material-by-service]
+    source: industry_practice
+
+  - id: 22pp.fm.equipment-unserved
+    what_happens: Owner or process equipment arrives needing water, waste or gas connections no drawing showed
+    consequence: Late rough-ins through finished walls and slabs
+    caught_by: [22pp.rc.equipment-connections]
+    source: industry_practice
+
+extract_fields:
+  - id: 22pp.xf.building-line
+    label: Size and invert of each service at the building line
+    type: list
+    per: package
+    reconcile_against: [drawings.civil, drawings.plumbing]
+  - id: 22pp.xf.materials
+    label: Pipe material and joining method by service and location
+    type: list
+    per: package
+    reconcile_against: [spec.part2]

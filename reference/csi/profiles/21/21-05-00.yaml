@@ -1,0 +1,132 @@
+schema_version: 1
+kind: section
+id: "21 05 00"
+title: Common Work Results for Fire Suppression
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # seismic bracing layout and calculations are by the installer
+
+scope_summary: >
+  Hangers, supports, seismic bracing, sleeves, valves and identification for
+  fire suppression piping (21 05 29 and 21 05 48 inherit from here).
+  Sprinkler hangers follow the sprinkler standard's own rules rather than the
+  general piping rules, and where seismic protection is required the bracing
+  is a calculated design whose loads go into the structure. Braces need space
+  that ducts and cable tray also want, so they have to be laid out before the
+  ceiling fills, and the clearances the standard requires around pipe at
+  walls and floors meet the firestop trade's systems.
+
+submittals:
+  - id: 21cw.sub.design-data
+    type: Design Data
+    must_show:
+      - Sway brace locations and calculations, with brace loads and the capacity of the fastener or anchor at each attachment
+      - Flexible couplings, seismic separation assemblies at building seismic joints, and clearances at wall and floor penetrations
+  - id: 21cw.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Hanger type and attachment for each structural condition (steel beam, joist, deck, concrete, wood truss)
+      - Riser supports and restraint at risers and changes of direction
+  - id: 21cw.sub.product-data
+    type: Product Data
+    must_show:
+      - Hangers, braces, attachments and anchors listed or approved for fire protection service
+
+review_checks:
+  - id: 21cw.seismic-bracing
+    kind: completeness
+    submittal_types: [Design Data, Shop Drawings]
+    check: >
+      Where seismic protection is required, the bracing submittal covers the
+      mains, risers and branch lines the standard requires, with lateral and
+      longitudinal brace layout, loads and attachment capacities, flexible
+      couplings where the standard calls for them, and separation assemblies
+      wherever piping crosses a building seismic joint. Braces are placed in
+      the coordination drawings with the other overhead trades, at the angles
+      the calculations assume.
+    trace_to: [drawings.structural, drawings.fire_protection, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: overhead_rough_in
+
+  - id: 21cw.seismic-clearance
+    kind: coordination
+    check: >
+      Where the standard requires clearance around pipe passing through walls
+      and floors for seismic movement, the firestop system at rated
+      assemblies is one listed for that annular space and movement, rather
+      than packing the clearance rigid.
+    trace_to: [drawings.fire_protection, schedule.partition_type]
+    severity: medium
+    owner: gc
+    gate: above_ceiling_close_in
+
+failure_modes:
+  - id: 21cw.fm.bracing-late
+    what_happens: Seismic bracing designed after ducts, cable tray and other piping are already hung
+    consequence: Braces cannot be installed at their calculated locations or angles; redesign, braces added through finished work, or a failed inspection
+    caught_by: [21cw.seismic-bracing]
+    source: industry_practice
+
+  - id: 21cw.fm.seismic-joint
+    what_happens: A main crosses a building seismic joint with no separation assembly
+    consequence: The pipe breaks or pulls apart when the two structures move; flooding on top of the earthquake damage
+    caught_by: [21cw.seismic-bracing]
+    source: industry_practice
+
+  - id: 21cw.fm.joist-overload
+    what_happens: Water-filled mains hung from joists or deck between panel points without the structural engineer seeing the load
+    consequence: Joist reinforcement in the field, or mains rerouted after installation
+    caught_by: [if.05-hanger-attachment]
+    source: industry_practice
+
+  - id: 21cw.fm.clearance-packed
+    what_happens: The seismic clearance around pipe at a rated wall is filled with rigid material or a system not listed for that gap
+    consequence: Firestop rejected at inspection, or pipe damaged when the building moves
+    caught_by: [21cw.seismic-clearance]
+    source: industry_practice
+
+  - id: 21cw.fm.brace-after-sfrm
+    what_happens: Brace and hanger attachment points chosen after the steel was sprayed with fireproofing
+    consequence: Fireproofing scraped off at each attachment and left unpatched above the ceiling
+    caught_by: [if.fireproofing-hangers]
+    source: industry_practice
+
+standards:
+  - id: 21cw.std.nfpa-13
+    name: NFPA 13
+    title: Standard for the Installation of Sprinkler Systems
+    verify: Hanger, support and seismic protection requirements the submittal claims to meet
+    note: Confirm the edition the jurisdiction adopted
+
+regulatory_hooks:
+  - id: 21cw.rh.seismic
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Does the project's seismic design category require seismic protection
+      of fire suppression piping, and does the adopted building code send that
+      design to the sprinkler standard's bracing rules or require more (a
+      design professional's seal, certified components)?
+    applies_when: Projects where nonstructural seismic requirements apply
+    source_families: [building_code_seismic]
+    severity: high
+
+  - id: 21cw.rh.special-inspection
+    topic: mechanical-seismic-special-inspection
+    question: >
+      Is special inspection of fire suppression piping bracing and anchorage
+      required for this building, and is it on the statement of special
+      inspections?
+    applies_when: Projects where fire suppression seismic bracing is required
+    source_families: [building_code]
+    severity: medium
+
+extract_fields:
+  - id: 21cw.xf.brace-loads
+    label: Brace locations and design loads at each structural attachment
+    type: list
+    per: package
+    reconcile_against: [drawings.structural]

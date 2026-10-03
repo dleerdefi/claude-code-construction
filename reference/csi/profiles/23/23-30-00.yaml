@@ -1,0 +1,62 @@
+schema_version: 1
+kind: section
+id: "23 30 00"
+title: HVAC Air Distribution
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Ducts, duct accessories, fans, terminal units, outlets and special
+  exhaust; the sections below inherit from here. One decision crosses all of
+  them and every other trade above the ceiling: whether ceilings, raised
+  floors and chases are air plenums, which sets what may be installed there.
+  Shutoff damper rules likewise apply wherever air enters or leaves the
+  building.
+
+review_checks:
+  - id: 23ad.plenum-designation
+    kind: absence
+    scope: package
+    check: >
+      The mechanical drawings say which ceilings, raised floors and chases
+      are return or supply plenums. That designation decides whether cable,
+      plastic pipe, insulation and devices above those ceilings must be
+      plenum-rated, so it has to be settled before other trades buy material.
+    trace_to: [drawings.mechanical, drawings.rcp]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 23ad.fm.plenum-not-flagged
+    what_happens: Ceiling return plenum not identified on the drawings until the above-ceiling inspection
+    consequence: Non-plenum cable, plastic pipe or insulation removed and replaced
+    caught_by: [23ad.plenum-designation]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 23ad.rh.plenum-materials
+    topic: return-air-plenum-materials
+    question: >
+      What does the adopted mechanical code, and NFPA 90A where referenced,
+      allow inside return and supply plenums (combustibility, flame-spread and
+      smoke-developed limits, plenum-rated cable and pipe), and does the
+      design rely on any exception?
+    applies_when: Ceilings, raised floors or chases used as air plenums
+    source_families: [mechanical_code, building_code]
+    severity: high
+
+  - id: 23ad.rh.shutoff-dampers
+    topic: outdoor-air-exhaust-shutoff-dampers
+    question: >
+      Does the adopted energy code require motorized shutoff dampers with a
+      maximum leakage rating on outdoor air intakes and on exhaust and relief
+      outlets here, or does it allow gravity dampers for this climate zone and
+      system size?
+    applies_when: Outdoor air intakes and exhaust or relief outlets
+    source_families: [energy]
+    severity: medium

@@ -1,0 +1,351 @@
+schema_version: 1
+kind: division
+id: "23"
+title: Heating, Ventilating, and Air Conditioning (HVAC)
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Equipment, air and water distribution, controls, and testing and
+  balancing. Equipment is reviewed tag by tag, and most findings come from
+  reconciling the submitted unit with documents outside Division 23: the
+  electrical panel schedules and single-line, the structural loads, the
+  ceilings and rooms it has to fit, the fire alarm drawings and the energy
+  compliance forms. A substitution or an added option changes several of
+  those at once. Most distribution work is concealed above ceilings and in
+  shafts, so access, testing and inspection have to be settled before
+  close-in.
+
+# Items marked applies_if per_element concern tagged equipment. They compile
+# only for the equipment sections (pumps, fans, terminal units, heating,
+# cooling, central and decentralized equipment), not for ducts, insulation,
+# controls or balancing. Condensate and refrigerant items live in the
+# equipment profiles that have them (23 50 00, 23 60 00, 23 70 00, 23 80 00).
+
+review_checks:
+  - id: d23.design-conditions
+    kind: conformance
+    scope: element
+    applies_if: {review_mode: per_element}
+    check: >
+      Capacity and performance are rated at the scheduled design conditions
+      (entering air and water temperatures, outdoor design temperature,
+      altitude, glycol type and concentration, fouling factor, external
+      static pressure), not at the manufacturer's standard rating
+      conditions, and corrected values are shown for every scheduled
+      performance line.
+    trace_to: [schedule.mechanical_equipment, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: d23.substitution-cascade
+    kind: coordination
+    scope: element
+    applies_if: {review_mode: per_element}
+    check: >
+      When the unit is not the basis of design, or adds or drops options,
+      list what it changes outside this submittal: electrical data, operating
+      weight and support points, footprint, curb and connection locations,
+      service clearances, sound, refrigerant, controls interface and the
+      values claimed in the energy compliance forms. Each change goes to the
+      trade or designer it affects before approval, with who pays named.
+    trace_to: [register.substitutions, schedule.mechanical_equipment, report.energy_compliance]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: d23.service-access
+    kind: constructability
+    scope: element
+    applies_if: {review_mode: per_element}
+    check: >
+      The manufacturer's service clearances (coil and filter pull, tube pull,
+      fan and motor removal, control panel working space, access door swing)
+      fit the room or roof as drawn once the piping, ductwork and electrical
+      gear around the unit are in, and there is a route to deliver and later
+      replace the unit (shipping splits, doors, shafts, crane or roof access).
+    trace_to: [drawings.enlarged_plans, drawings.mechanical, drawings.plans]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: d23.sound-data
+    kind: conformance
+    scope: element
+    applies_if: {review_mode: per_element}
+    check: >
+      Where the spec or an acoustical report sets sound criteria, the
+      submittal gives octave-band sound power at the scheduled operating
+      point for each path the criteria cover (discharge, inlet, casing
+      radiated, outdoor), not a single A-weighted value, and names any
+      attenuator, enclosure or barrier the result depends on.
+    trace_to: [report.acoustical, spec.part2, schedule.mechanical_equipment]
+    severity: medium
+    owner: subcontractor
+
+  - id: d23.vfd-motors
+    kind: coordination
+    scope: element
+    applies_if: {review_mode: per_element}
+    check: >
+      For each variable-speed motor: who furnishes the drive, where it is
+      mounted (on the unit, on a wall, in an electrical room), whether its
+      heat is counted in that room's cooling or ventilation, whether the
+      cable run to the motor needs output filtering, and whether the motor is
+      inverter-rated with the shaft-grounding or bearing protection the spec
+      requires. A drive with a bypass keeps safeties and fire alarm shutdown
+      working in bypass.
+    trace_to: [schedule.mechanical_equipment, drawings.electrical, spec.part2]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: d23.concealed-access
+    kind: absence
+    check: >
+      Every concealed item that needs service, inspection or testing (fire
+      and smoke dampers, terminal units, valves, coils, filters, drain pans,
+      duct detectors, control devices) has an access door or a lay-in
+      ceiling with a clear path to it. Access doors in hard ceilings and
+      walls appear on the reflected ceiling plans, sized for the task.
+    trace_to: [drawings.rcp, drawings.mechanical]
+    severity: high
+    owner: design_team
+    gate: above_ceiling_close_in
+
+reconciliations:
+  - id: d23.rc.mech-elec
+    reflex: true
+    applies_if: {review_mode: per_element}
+    between: [schedule.mechanical_equipment, schedule.electrical_panel, drawings.single_line]
+    key: Equipment tag
+    fields: [voltage, phase, MCA, MOCP or breaker size, number of power connections, disconnect and who furnishes it,
+             starter or drive and who furnishes it, emergency or standby source]
+    check: >
+      Each tag's electrical data in the approved submittal matches its
+      circuit on the panel schedule and the single-line. Recheck after every
+      substitution, alternate and option change (electric heat, drive,
+      factory disconnect, service receptacle, second power connection): the
+      submitted unit's MCA and MOCP govern the conductors and the
+      overcurrent device, not the design-stage schedule.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: d23.rc.equipment-presence
+    applies_if: {review_mode: per_element}
+    between: [schedule.mechanical_equipment, drawings.mechanical, drawings.electrical]
+    key: Equipment tag
+    fields: [tag shown, location, quantity]
+    check: >
+      Every scheduled tag appears on the mechanical plans and has a power
+      connection on the electrical plans, and every mechanical item on the
+      electrical plans exists on the mechanical schedule. Small items (exhaust
+      fans, unit heaters, condensate pumps, electric duct heaters) are the
+      usual gaps.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: d23.rc.structural-loads
+    applies_if: {review_mode: per_element}
+    between: [schedule.mechanical_equipment, drawings.structural, drawings.roof_plan]
+    key: Equipment tag and location
+    fields: [operating weight, support points or curb footprint, location on the framing, dunnage or support steel]
+    check: >
+      The submitted unit's operating weight and support arrangement are
+      within what the structural drawings carry at its location. A heavier
+      unit, a moved unit or a new point load on a roof or elevated slab goes
+      to the structural engineer before release.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: d23.rc.intake-separation
+    applies_if: {review_mode: per_element}
+    between: [drawings.mechanical, drawings.roof_plan, drawings.plumbing, drawings.exterior_elevations]
+    key: Each outdoor air intake, and each exhaust, relief or flue outlet, of the unit
+    fields: [distance to exhaust and relief outlets, plumbing vents, flues and generator exhaust, cooling towers, loading docks and drives, relative height]
+    check: >
+      The unit's outdoor air intake keeps the required separation from every
+      exhaust or relief outlet, plumbing vent, flue, cooling tower and vehicle
+      area on any discipline's roof plan or elevations, and its own exhaust,
+      relief or flue keeps it from every intake, including outlets added by
+      substitutions and later bulletins.
+    severity: high
+    owner: design_team
+    gate: roof_membrane
+
+  - id: d23.rc.energy-compliance
+    applies_if: {review_mode: per_element}
+    between: [schedule.mechanical_equipment, report.energy_compliance]
+    key: Equipment tag
+    fields: [efficiency metric and value, economizer, energy recovery, fan power or motor efficiency, control features the compliance path credits]
+    check: >
+      The submitted unit carries the efficiency, economizer, energy recovery
+      and fan power that the energy compliance documents claimed for its
+      tag. A substitution that drops one fails the energy inspection even
+      when it meets the spec.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: d23.fm.substitution-electrical
+    applies_if: {review_mode: per_element}
+    what_happens: A substituted or re-optioned unit is approved with a different voltage, MCA or MOCP, and the electrical work is built to the original schedule
+    consequence: Breakers, conductors or disconnects replaced at startup; delay and a dispute over who pays
+    caught_by: [d23.rc.mech-elec, d23.substitution-cascade]
+    source: industry_practice
+
+  - id: d23.fm.missing-circuit
+    applies_if: {review_mode: per_element}
+    what_happens: An exhaust fan, unit heater, condensate pump or duct heater on the mechanical plans has no circuit on the electrical drawings
+    consequence: Circuits added by change order after rough-in and ceilings
+    caught_by: [d23.rc.equipment-presence]
+    source: industry_practice
+
+  - id: d23.fm.standard-conditions
+    applies_if: {review_mode: per_element}
+    what_happens: Equipment selected at standard rating conditions instead of the scheduled design conditions (altitude, glycol, outdoor design temperature, fouling)
+    consequence: Capacity shortfall found at balancing or in the first peak season
+    caught_by: [d23.design-conditions]
+    source: industry_practice
+
+  - id: d23.fm.heavier-unit
+    applies_if: {review_mode: per_element}
+    what_happens: A substituted unit is heavier or has a different footprint than the one the structure, curb or pad was designed for
+    consequence: Structural reinforcement, curb adapters or new pads after the fact
+    caught_by: [d23.rc.structural-loads, d23.substitution-cascade]
+    source: industry_practice
+
+  - id: d23.fm.blocked-service
+    applies_if: {review_mode: per_element}
+    what_happens: The unit fits its space, but piping, conduit or walls installed around it block coil pull, filter access or panel working space
+    consequence: Rework of surrounding systems, or equipment that cannot be maintained or replaced without demolition
+    caught_by: [d23.service-access]
+    source: industry_practice
+
+  - id: d23.fm.no-access-door
+    what_happens: A terminal unit, damper or valve sits above a hard ceiling with no access door, or the door is too small to reach it
+    consequence: Access doors cut into finished ceilings; dampers that fail their acceptance or periodic test
+    caught_by: [d23.concealed-access]
+    source: industry_practice
+
+  - id: d23.fm.drive-heat
+    applies_if: {review_mode: per_element}
+    what_happens: Drives mounted in a small mechanical or electrical room without counting their heat
+    consequence: Drives trip on over-temperature in summer; room cooling added late
+    caught_by: [d23.vfd-motors]
+    source: industry_practice
+
+  - id: d23.fm.energy-compliance-lost
+    applies_if: {review_mode: per_element}
+    what_happens: A substitution meets the spec but drops the efficiency, economizer or energy recovery the energy compliance path relied on
+    consequence: Failed energy inspection; revised compliance documents or replaced equipment
+    caught_by: [d23.rc.energy-compliance, d23.substitution-cascade]
+    source: industry_practice
+
+  - id: d23.fm.re-entrainment
+    applies_if: {review_mode: per_element}
+    what_happens: An exhaust fan, plumbing vent or flue ends up beside an intake, often added late by another discipline or a substitution
+    consequence: Odors and fumes drawn into the building; intake or vent relocated through finished roofing
+    caught_by: [d23.rc.intake-separation]
+    source: industry_practice
+
+standards:
+  - id: d23.std.ahri-directory
+    applies_if: {review_mode: per_element}
+    name: AHRI Directory of Certified Product Performance
+    title: Certified performance ratings for HVAC equipment
+    verify: The certified rating covers the exact model, and for split and multi-split systems the exact indoor and outdoor combination submitted
+
+regulatory_hooks:
+  - id: d23.rh.equipment-efficiency
+    applies_if: {review_mode: per_element}
+    topic: hvac-equipment-efficiency
+    question: >
+      Which energy code edition and compliance path govern, what minimum
+      full-load and part-load efficiency applies to this equipment type and
+      capacity, and is the submitted rating stated in the same metric and
+      under the same rating standard that the code edition uses?
+    applies_when: Scheduled equipment with a code efficiency requirement
+    source_families: [energy]
+    severity: high
+
+  - id: d23.rh.equipment-access
+    applies_if: {review_mode: per_element}
+    topic: mechanical-equipment-access-clearance
+    question: >
+      What access, passageway, service clearance, platforms, lighting and
+      service receptacle does the adopted mechanical code require for this
+      equipment in its location (roof, attic, above a ceiling, mechanical
+      room), and does the layout provide it?
+    applies_when: Scheduled equipment
+    source_families: [mechanical_code, electrical_code]
+    severity: medium
+
+  - id: d23.rh.drive-working-space
+    applies_if: {review_mode: per_element}
+    topic: electrical-working-space
+    question: >
+      What electrical working space does the adopted electrical code require
+      in front of this equipment's drives, control panels and disconnects,
+      and is that space kept clear of the piping, ductwork and equipment
+      around them?
+    applies_when: Equipment with drives, control panels or disconnects likely to be serviced while energized
+    source_families: [electrical_code]
+    severity: medium
+
+  - id: d23.rh.intake-separation
+    applies_if: {review_mode: per_element}
+    topic: outdoor-air-intake-separation
+    question: >
+      What separation and height does the adopted mechanical code require
+      between outdoor air intakes and exhaust outlets, plumbing vents, flues,
+      cooling towers, streets, parking and loading areas, and does it vary by
+      the class of exhaust?
+    applies_when: Equipment with an outdoor air intake or an exhaust, relief or flue outlet
+    source_families: [mechanical_code, plumbing_code]
+    severity: high
+
+  - id: d23.rh.seismic-certification
+    applies_if: {review_mode: per_element}
+    topic: seismic-equipment-certification
+    question: >
+      For this project's seismic design category, which mechanical equipment
+      needs anchorage designed for seismic forces, and which components are
+      designated seismic systems that need the manufacturer's certification
+      that they remain operable after the design earthquake?
+    applies_when: Projects in seismic design categories where nonstructural component requirements apply
+    source_families: [building_code_seismic]
+    severity: high
+
+extract_fields:
+  - id: d23.xf.electrical
+    applies_if: {review_mode: per_element}
+    label: Voltage, phase, MCA and MOCP for each power connection
+    type: string
+    per: element
+    reconcile_against: [schedule.electrical_panel, drawings.single_line]
+  - id: d23.xf.operating-weight
+    applies_if: {review_mode: per_element}
+    label: Operating weight
+    type: number
+    unit: lb
+    per: element
+    reconcile_against: [drawings.structural]
+  - id: d23.xf.capacity
+    applies_if: {review_mode: per_element}
+    label: Rated capacity and the conditions it is rated at
+    type: string
+    per: element
+    reconcile_against: [schedule.mechanical_equipment]
+  - id: d23.xf.efficiency
+    applies_if: {review_mode: per_element}
+    label: Efficiency metric and value
+    type: string
+    per: element
+    reconcile_against: [report.energy_compliance]

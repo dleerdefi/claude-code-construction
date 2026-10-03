@@ -1,0 +1,122 @@
+schema_version: 1
+kind: section
+id: "23 34 00"
+title: HVAC Fans
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+review_mode: per_element
+element_types: [equipment_item]
+
+scope_summary: >
+  Supply, return, exhaust and relief fans, power ventilators, air curtains
+  and large-diameter ceiling fans, reviewed by tag. The misses are a fan
+  selected for ideal inlet conditions and installed with an elbow at the
+  inlet, a fan whose construction does not suit the exhaust it handles
+  (kitchen grease, laboratory, corrosive, classified locations), and
+  interlocks with hoods, make-up air and air handlers that nobody wires.
+
+submittals:
+  - id: 23fn.sub.product-data
+    type: Product Data
+    must_show:
+      - Fan curve per tag with the operating point at scheduled airflow and static pressure, speed control method, and motor data
+      - Construction for the service (grease-listed, spark-resistant, coated, explosion-proof), discharge type, and curb, damper and accessory options
+      - Sound power by octave band where the spec sets criteria
+
+review_checks:
+  - id: 23fn.system-effect
+    kind: conformance
+    check: >
+      The operating point is at the scheduled airflow and static pressure
+      with the fan's actual inlet and outlet connections accounted for
+      (elbows, plenums, roof curbs, dampers), sits in a stable part of the
+      curve, and uses the speed control the schedule calls for.
+    trace_to: [schedule.mechanical_equipment, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: 23fn.service-construction
+    kind: conformance
+    check: >
+      Construction suits the air the fan moves: listed upblast with hinged
+      base and grease containment for kitchen exhaust, high-plume or
+      corrosion-resistant fans for laboratory exhaust, spark-resistant or
+      explosion-proof where the area is classified, matching the duct
+      material upstream.
+    trace_to: [spec.part2, schedule.mechanical_equipment, drawings.foodservice]
+    severity: high
+    owner: subcontractor
+
+  - id: 23fn.interlocks
+    kind: coordination
+    check: >
+      Each fan's control source (automation system, hood controller, switch,
+      occupancy sensor, thermostat) and interlocks (make-up air with kitchen
+      exhaust, toilet exhaust with the air handler's occupied mode, relief
+      with economizer) are shown in a sequence and assigned to a trade to
+      wire.
+    trace_to: [drawings.controls, spec.part3, drawings.electrical]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: 23fn.fm.system-effect
+    what_happens: Fan selected for ideal inlet conditions and installed with an elbow or curb transition tight to the inlet
+    consequence: Airflow short at balancing; larger motor, sheave change or replacement fan
+    caught_by: [23fn.system-effect]
+    source: industry_practice
+
+  - id: 23fn.fm.wrong-kitchen-fan
+    what_happens: A general-purpose exhaust fan furnished on a grease duct
+    consequence: Rejected at the hood inspection; fan replaced before the kitchen can open
+    caught_by: [23fn.service-construction]
+    source: industry_practice
+
+  - id: 23fn.fm.no-interlock
+    what_happens: Kitchen or large exhaust runs without its make-up air interlock
+    consequence: Building pulled negative; doors hard to open, flues spill, and comfort complaints
+    caught_by: [23fn.interlocks]
+    source: industry_practice
+
+standards:
+  - id: 23fn.std.amca-211-311
+    name: AMCA 211 / AMCA 311
+    title: Certified Ratings Program — Product Rating Manuals for Fan Air Performance and Fan Sound Performance
+    verify: Air and sound ratings carry the certified ratings seal for the model and configuration submitted
+  - id: 23fn.std.ul-762
+    name: UL 762
+    title: Power Roof Ventilators for Restaurant Exhaust Appliances
+    verify: Listing of kitchen exhaust fans on grease ducts
+
+regulatory_hooks:
+  - id: 23fn.rh.fan-efficiency
+    topic: fan-efficiency-requirements
+    question: >
+      Does the adopted energy code set a fan efficiency or fan power limit
+      (fan energy index or system fan power) for these fans, and at what
+      operating point must the submitted fan meet it?
+    applies_when: Fans above the energy code's size threshold
+    source_families: [energy]
+    severity: medium
+
+  - id: 23fn.rh.exhaust-termination
+    topic: exhaust-outlet-termination
+    question: >
+      What termination does the adopted mechanical code require for this
+      exhaust class (height above roof, distance to property lines, openings
+      and walkways, discharge direction and velocity)?
+    applies_when: Exhaust fans discharging outdoors
+    source_families: [mechanical_code]
+    severity: medium
+
+  - id: 23fn.rh.kitchen-makeup
+    topic: kitchen-exhaust-makeup-air
+    question: >
+      What make-up air interlock and pressure relationship does the adopted
+      mechanical code require for this kitchen exhaust fan?
+    applies_when: Kitchen hood exhaust fans
+    source_families: [mechanical_code]
+    severity: medium
