@@ -56,7 +56,7 @@ The three skills that need bids or contracts run on generated fixtures in `_fixt
 
 `viewport-highlighter` has no case: it needs a running AgentCM project.
 
-Through the harness on Sonnet, one run of every case costs about $25-30; the real and synthetic cases range from under $1 (spec-splitter) to about $4 (code-researcher, tag-audit).
+Through the harness on Sonnet, one run of every case costs about $40 (smoke $5, real $21, synthetic $13); single cases range from under $1 (spec-splitter) to about $6 (subcontract-writer). Note that `claude plugin eval` has no skip convention: without the downloads, the `real` cases fail there rather than skip.
 
 ## Writing a case
 

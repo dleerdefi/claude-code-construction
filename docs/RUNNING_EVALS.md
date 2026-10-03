@@ -32,7 +32,7 @@ On Windows, macOS or Linux, from the plugin root:
 bin/construction-python evals/harness/run.py --tag smoke --runs 1      # built-in sample project, 4 cases, about $5
 bin/construction-python evals/harness/run.py --tag real --runs 1       # the Sanibel documents, 9 cases
 bin/construction-python evals/harness/run.py --tag synthetic --runs 1  # generated bids and templates, 3 cases
-bin/construction-python evals/harness/run.py --runs 1                  # everything, about $25-30 on Sonnet
+bin/construction-python evals/harness/run.py --runs 1                  # everything, about $40 on Sonnet
 ```
 
 Each run is a headless Claude Code session that is then graded; see the [harness README](../evals/harness/README.md) for options, requirements and how runs are confined, and the [eval suite README](../evals/plugin/README.md) for what every case checks. On Windows the harness needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`). The `real` cases are skipped, not failed, when the Sanibel PDFs have not been downloaded.
