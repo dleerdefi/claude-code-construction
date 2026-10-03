@@ -169,3 +169,5 @@ The harness (`evals/harness/`) reads the plugin-eval case format, so these apply
 5. One case per skill, each run once through the harness on Windows before commit.
 
 Not done: Layer 1 script tests (the exporters, splitters, `issue_manager.py` and markup scripts have no direct tests yet); fixes 3 to 5 above; a viewport-highlighter case (needs AgentCM or a mocked API).
+
+The current list of known issues with the suite is kept in [`evals/plugin/README.md`](plugin/README.md#known-issues).

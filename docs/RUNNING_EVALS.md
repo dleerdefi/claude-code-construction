@@ -35,7 +35,7 @@ bin/construction-python evals/harness/run.py --tag synthetic --runs 1  # generat
 bin/construction-python evals/harness/run.py --runs 1                  # everything, about $40 on Sonnet
 ```
 
-Each run is a headless Claude Code session that is then graded; see the [harness README](../evals/harness/README.md) for options, requirements and how runs are confined, and the [eval suite README](../evals/plugin/README.md) for what every case checks. On Windows the harness needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`). The `real` cases are skipped, not failed, when the Sanibel PDFs have not been downloaded.
+Each run is a headless Claude Code session that is then graded; see the [harness README](../evals/harness/README.md) for options, requirements and how runs are confined, and the [eval suite README](../evals/plugin/README.md) for what every case checks and the suite's known issues. On Windows the harness needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`). The `real` cases are skipped, not failed, when the Sanibel PDFs have not been downloaded.
 
 Alternatives:
 

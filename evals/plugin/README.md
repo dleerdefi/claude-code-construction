@@ -58,6 +58,35 @@ The three skills that need bids or contracts run on generated fixtures in `_fixt
 
 Through the harness on Sonnet, one run of every case costs about $40 (smoke $5, real $21, synthetic $13); single cases range from under $1 (spec-splitter) to about $6 (subcontract-writer). Note that `claude plugin eval` has no skip convention: without the downloads, the `real` cases fail there rather than skip.
 
+## Known issues
+
+State of the suite as of 2026-10-02. Each case has passed once through the harness on Windows 11 with Sonnet; nothing here has been run on macOS or Linux yet.
+
+**Reliability**
+
+- Every case was verified by a single run. Five cases depend on vision or on a one-vote LLM judge (`construction-guide`, `schedule-extractor`, `tag-audit-and-takeoff`, `pe-review`, `bid-tabulator`), and the default threshold is 1.00, so one grader flap shows as a failed case. Re-run a red case with `--runs 3` (and `--judge-votes 3` for llm graders) before treating it as a regression.
+- `subcontract-writer` is the slowest and least stable case: about 18 minutes and $6 when it passes; it once stopped on an API content-filter error after 6 turns (not reproduced) and once ran past a $5 cap while re-verifying its own output. It carries a $10 budget in its `harness.yaml`.
+- A full run of all 16 cases costs about $40 on Sonnet and takes over an hour. Costs are per case in the tables above.
+
+**Platform and runner**
+
+- On Windows the harness needs the native Claude Code install (`claude.exe`); the Agent SDK refuses npm's `claude.cmd` shim. Having both installs makes `claude doctor` warn about it. Shell commands in a Windows run are confined by the harness's policy guard only, not by an OS sandbox (see the [harness README](../harness/README.md)).
+- `claude plugin eval` has no skip convention: without the Sanibel downloads, the `real` cases fail there instead of skipping. The scaffold change for the harness (`CONSTRUCTION_EVAL_HARNESS=1` early exit in `_fixtures/prepare-workspace.sh`) and `--sandbox auto` have not been exercised under `claude plugin eval` or on macOS/Linux.
+- The `real` cases cannot run until the Sanibel download links are published (placeholders in `docs/RUNNING_EVALS.md`). The set holds the architectural, civil, electrical and mechanical sheets only; structural, plumbing, fire protection, technology and landscape sheets are indexed on the cover sheet but not included, which limits `pe-review` to those four disciplines.
+
+**Skills with known defects the cases work around**
+
+- `pe-review` never writes to the issue registry, although `rfi-drafter`'s documentation says it does; no case asserts a registry record after a review.
+- `subcontract-writer`'s generator appends its output after the template body when `docx_template_path` is set instead of filling the template; the case does not use that path.
+- `bid-tabulator`'s workbook lacks the lowest/highest highlighting and the "Base Bid" row its SKILL.md promises, and allowances are never rendered; the case grades the per-bid JSON instead.
+- Secondary: `sheet-splitter` does not say how `sheet_index.yaml` follows a rename and a re-run re-adds `page_NNN` entries; `spec-splitter` claims to skip existing sections but overwrites; `submittal-log-generator` merges batch files with `jq`, which may be missing on Windows; `schedule-extractor`'s pdfplumber method has no allow-listed script; `code-researcher`'s worked example still describes a Baltimore, Maryland project.
+
+**Not covered**
+
+- `viewport-highlighter` has no case: it needs a running AgentCM project (only its refusal message and `markup_viewports.py` could be tested standalone).
+- There are no direct script tests yet for the exporters, splitters, `issue_manager.py` or the markup scripts (the "Layer 1" tests in `evals/EVAL_SUITE_PLAN.md`); the agent cases exercise them indirectly.
+- `code-researcher` runs offline in its case, so Pass 2 and 3 (code verification online) are not evaluated.
+
 ## Writing a case
 
 Each case is a folder with `prompt.md` (frontmatter + the prompt), `case.yaml` (the scaffold), `setup.sh`, and `graders/*.md`. Copy an existing case. See the [plugin eval docs](https://code.claude.com/docs/en/plugin-evals) for grader types; the harness implements `file_exists`, `regex`, `tool_used`, `tool_order` and `llm`, plus `python` checks declared in `harness.yaml`.
