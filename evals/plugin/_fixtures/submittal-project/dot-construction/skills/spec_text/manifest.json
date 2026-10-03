@@ -1,0 +1,12 @@
+{
+  "12_35_53": {
+    "spec_title": "Laboratory Casework",
+    "extraction_method": "pdfplumber",
+    "quality_rating": "GOOD",
+    "repair_attempted": false,
+    "pages_extracted": 1,
+    "character_count": 1338,
+    "failure_modes": [],
+    "extracted_at": "2026-10-01T12:00:00+00:00"
+  }
+}

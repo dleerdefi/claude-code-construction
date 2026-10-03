@@ -1,0 +1,10 @@
+project:
+  name: HOLABIRD ACADEMY RENOVATION
+  location:
+    city: Baltimore
+    state: MD
+building:
+  occupancy_type: E
+  building_use: K-12 school renovation
+  facility_types:
+  - education.k12
