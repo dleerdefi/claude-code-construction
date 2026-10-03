@@ -1,0 +1,60 @@
+schema_version: 1
+kind: section
+id: "07 20 00"
+title: Thermal Protection
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Insulation, weather barriers, vapor retarders and air barriers (07 21 00
+  through 07 27 00 inherit from here). In an exterior wall these layers are
+  submitted by different trades but tested and regulated as one assembly:
+  fire propagation testing and vapor control both depend on the exact
+  combination of barrier, insulation, sheathing and cladding, so a product
+  swap in one layer can invalidate the wall.
+
+review_checks:
+  - id: tp.wall-fire-test-assembly
+    kind: conformance
+    reflex: true
+    check: >
+      Where the exterior wall needs to pass a fire propagation test, the
+      submitted barrier, continuous insulation, sheathing and cladding appear
+      together in the tested assembly or engineering analysis the design
+      relies on. Any substituted layer needs new evidence before approval.
+    trace_to: [drawings.wall_sections, spec.part2]
+    severity: critical
+    owner: gc
+    gate: procurement_release
+
+failure_modes:
+  - id: tp.fm.wall-assembly-broken
+    what_happens: One wall layer (barrier, insulation or cladding) is swapped for cost or availability after the assembly was chosen
+    consequence: The wall matches no passing tested assembly; rejection at inspection or removal of installed cladding
+    caught_by: [tp.wall-fire-test-assembly, if.exterior-wall-fire-test]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: tp.rh.nfpa-285
+    topic: exterior-wall-fire-propagation-testing
+    question: >
+      Does the adopted code require NFPA 285 compliance for this exterior wall
+      (construction type, height, combustible weather barrier, foam plastic
+      insulation, combustible cladding), and which tested assembly or
+      engineering analysis does the design rely on?
+    applies_when: Exterior walls of noncombustible construction types, or with foam plastic insulation, combustible weather barriers or combustible cladding
+    source_families: [building_code]
+    severity: critical
+
+  - id: tp.rh.vapor-retarder-class
+    topic: vapor-retarder-class-climate-zone
+    question: >
+      What vapor retarder class and location does the adopted code require for
+      this framed wall in this climate zone, and does the design follow it?
+    applies_when: Framed exterior wall assemblies
+    source_families: [building_code]
+    severity: medium

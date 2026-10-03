@@ -1,0 +1,314 @@
+schema_version: 1
+kind: section
+id: "07 50 00"
+title: Membrane Roofing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # attachment design for wind uplift is often delegated
+
+scope_summary: >
+  Low-slope membrane roofing of any type (modified bitumen, EPDM, TPO, PVC,
+  protected membrane); the type sections inherit from here. The roof is a
+  system warranted by one manufacturer and penetrated by every MEP trade. The
+  misses are drainage (primary and overflow), penetrations that cannot be
+  flashed, attachment that does not match the design wind pressures, decks
+  that are too wet to adhere to, and damage by other trades after the
+  membrane is down.
+
+submittals:
+  - id: rf.sub.product-data
+    type: Product Data
+    must_show:
+      - Every component of the assembly — vapor retarder, insulation, cover board, membrane, adhesives, fasteners, flashings, edge metal
+  - id: rf.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Tapered insulation layout with crickets and saddles to every drain and scupper
+      - Attachment or adhesive pattern by roof zone (field, perimeter, corner)
+      - Details for every penetration, curb, drain, edge, expansion joint and wall transition
+  - id: rf.sub.design-data
+    type: Design Data
+    must_show:
+      - Wind uplift calculation or approval listing for the exact assembly submitted
+
+review_checks:
+  - id: rf.drainage
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Tapered insulation and structural slope together drain every area to a
+      drain or scupper, with crickets and saddles at curbs, walls and between
+      drains, and no low spots at roof edges or around equipment.
+    trace_to: [drawings.roof_plan, drawings.structural]
+    severity: high
+    owner: subcontractor
+
+  - id: rf.overflow
+    kind: absence
+    reflex: true
+    check: >
+      Every roof area that can pond behind parapets or walls has secondary
+      drainage: overflow drains or scuppers.
+    trace_to: [drawings.roof_plan, drawings.plumbing]
+    severity: critical
+    owner: design_team
+
+  - id: rf.attachment-zones
+    kind: conformance
+    submittal_types: [Shop Drawings, Design Data]
+    check: >
+      The attachment or adhesive pattern changes by roof zone according to the
+      design wind pressures or the approval listing the spec requires, and the
+      listing or calculation covers the exact assembly submitted (deck,
+      insulation, cover board, membrane, fasteners).
+    trace_to: [spec.part2, drawings.structural]
+    severity: high
+    owner: subcontractor
+
+  - id: rf.penetrations
+    kind: constructability
+    check: >
+      Every penetration, curb and equipment support on the roof has a flashing
+      detail, and penetrations are spaced from each other, from curbs and from
+      walls far enough apart to be flashed without pitch pans.
+    trace_to: [drawings.roof_plan, drawings.details, drawings.mechanical, drawings.plumbing,
+               drawings.electrical]
+    severity: high
+    owner: gc
+    gate: roof_membrane
+
+  - id: rf.equipment-supports
+    kind: coordination
+    check: >
+      Rooftop equipment sits on curbs or supports flashed into the membrane,
+      tall enough to allow future reroofing, with a protected path from the
+      roof access point to each unit.
+    trace_to: [drawings.roof_plan, drawings.mechanical]
+    severity: medium
+    owner: gc
+    gate: roof_membrane
+
+  - id: rf.deck-condition
+    kind: constructability
+    check: >
+      The roofing manufacturer's deck requirements (deck type and attachment,
+      dryness of concrete decks, venting of insulating fill) are confirmed
+      before insulation and membrane are set.
+    trace_to: [spec.part3, drawings.structural]
+    severity: high
+    owner: gc
+    gate: roof_membrane
+
+  - id: rf.roof-vapor-retarder
+    kind: absence
+    check: >
+      Where the space below is humid (pools, laundries, washdown dish rooms,
+      wet-process plants, cold storage) or the design calls for one, a roof
+      vapor retarder is shown and tied to the wall air and vapor layers.
+    trace_to: [drawings.wall_sections, drawings.details]
+    severity: medium
+    owner: design_team
+
+  - id: rf.edge-securement
+    kind: conformance
+    check: >
+      Edge metal, copings and gravel stops are tested or approved systems as
+      the spec and code require, fastening is shown, and the installer of edge
+      metal and counterflashing is assigned.
+    trace_to: [spec.part2, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: rf.protection-after
+    kind: constructability
+    check: >
+      Protection of finished roofing from later trades (equipment setting,
+      photovoltaics, lightning protection, work on walls above) is planned,
+      with who repairs damage and how the manufacturer accepts the repairs.
+    trace_to: [spec.part1, schedule.master]
+    severity: medium
+    owner: gc
+    gate: equipment_set
+
+  - id: rf.leak-detection-ready
+    kind: completeness
+    check: >
+      Where electronic leak detection is specified, the method suits the
+      membrane and deck (a conductive deck, or a conductive layer under the
+      membrane, since some methods cannot test conductive membranes), and any
+      conductive layer is installed with the roofing.
+    trace_to: [spec.part3, spec.part2]
+    severity: medium
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: rf.temporary-roof
+    kind: constructability
+    check: >
+      If the roof will dry in the building early (temporary roofing, phased
+      areas, permanent membrane used during construction), the spec's position
+      and the manufacturer's warranty conditions for it are confirmed.
+    trace_to: [spec.part1]
+    severity: medium
+    owner: gc
+
+reconciliations:
+  - id: rf.rc.drains
+    between: [drawings.roof_plan, drawings.plumbing]
+    key: Drain or scupper location
+    fields: [count, location, size, primary or overflow, discharge route]
+    check: >
+      Each primary and overflow drain on the roof plan appears on the plumbing
+      drawings at the same location and size, and overflow drains are piped or
+      discharged independently of the primary system.
+    severity: high
+    owner: design_team
+    gate: roof_membrane
+
+  - id: rf.rc.overflow-elevation
+    between: [drawings.roof_plan, drawings.plumbing, drawings.structural]
+    key: Each overflow drain or scupper
+    fields: [overflow inlet elevation (dam or standpipe height, scupper invert), ponding depth assumed in the rain-load design]
+    check: >
+      The overflow inlet elevation on the roofing and plumbing submittals
+      matches the ponding depth the structural rain-load design assumed;
+      tapered insulation, raised dams and high scuppers all add rain load.
+    severity: critical
+    owner: design_team
+    gate: roof_membrane
+
+  - id: rf.rc.rooftop-equipment
+    between: [drawings.roof_plan, drawings.mechanical, drawings.plumbing, drawings.electrical]
+    key: Equipment tag or penetration
+    fields: [location, curb or support type, penetrations]
+    check: >
+      Every rooftop unit, fan, vent, conduit and pipe penetration on the MEP
+      roof plans appears on the architectural roof plan with a curb, support or
+      flashing detail.
+    severity: high
+    owner: design_team
+    gate: roof_membrane
+
+failure_modes:
+  - id: rf.fm.drains-not-set
+    what_happens: Drain bodies are not set when the roofer reaches the drains
+    consequence: Roofing stops at the drains, or drains are cut in later through finished roofing
+    caught_by: [if.roof-drains, rf.rc.drains]
+    source: industry_practice
+
+  - id: rf.fm.no-overflow
+    what_happens: Parapet roof built with no secondary drainage, or with overflow tied into the primary leader
+    consequence: Ponding beyond the structural design load when the primary drains clog
+    caught_by: [rf.overflow, rf.rc.drains, rf.rc.overflow-elevation]
+    source: industry_practice
+
+  - id: rf.fm.wet-deck
+    what_happens: Membrane adhered over a concrete deck that had not dried to the manufacturer's criteria
+    consequence: Adhesive failure, blistering and condensation inside the assembly
+    caught_by: [rf.deck-condition]
+    source: industry_practice
+
+  - id: rf.fm.trade-damage
+    what_happens: Other trades set equipment, run conduit or stage material on finished membrane
+    consequence: Punctures that show up as leaks months later, and a dispute over who pays
+    caught_by: [rf.protection-after]
+    source: industry_practice
+
+  - id: rf.fm.listing-mismatch
+    what_happens: Wind uplift approval submitted for a different assembly than the one installed
+    consequence: Roof does not meet design pressures or the insurer's requirement; possible removal
+    caught_by: [rf.attachment-zones]
+    source: industry_practice
+
+  - id: rf.fm.unflashable-penetrations
+    what_happens: Pipe and conduit penetrations clustered too close together or tight to curbs
+    consequence: Sealant-dependent pitch pans that leak and fall outside the warranty
+    caught_by: [rf.penetrations, rf.rc.rooftop-equipment]
+    source: industry_practice
+
+standards:
+  - id: rf.std.es-1
+    name: ANSI/SPRI/FM 4435/ES-1
+    title: Test Standard for Edge Systems Used with Low Slope Roofing Systems
+    verify: Edge metal and coping test claims
+  - id: rf.std.fm-4470
+    name: FM 4470
+    title: FM Approvals standard for Class 1 roof assemblies (single-ply, modified bitumen, built-up, liquid-applied)
+    verify: Approval listing where the owner's insurer or the spec requires it
+
+regulatory_hooks:
+  - id: rf.rh.wind-uplift
+    topic: roof-wind-uplift-design
+    question: >
+      What wind design criteria govern the roof assembly (adopted code and
+      load standard edition, risk category, exposure), and does the owner's
+      insurer require a specific approval listing or rating?
+    applies_when: Every low-slope roof
+    source_families: [building_code]
+    severity: high
+
+  - id: rf.rh.secondary-drainage
+    topic: roof-secondary-drainage
+    question: >
+      What do the adopted plumbing and building codes require for secondary
+      roof drainage (sizing, separate piping, discharge location)?
+    applies_when: Roofs bounded by parapets or walls
+    source_families: [plumbing_code, building_code]
+    severity: high
+
+  - id: rf.rh.edge-securement
+    topic: roof-edge-securement
+    question: >
+      Does the adopted code require tested edge securement for low-slope
+      membrane roofs, and to which test standard?
+    applies_when: Low-slope roofs with edge metal or copings
+    source_families: [building_code]
+    severity: medium
+
+  - id: rf.rh.fire-classification
+    topic: roof-assembly-fire-classification
+    question: >
+      What roof assembly fire classification does the construction type and
+      location require, and does the submitted assembly carry it?
+    applies_when: Every roof
+    source_families: [building_code]
+    severity: medium
+
+  - id: rf.rh.reroofing
+    topic: reroofing-recover-limits
+    question: >
+      Where this is reroofing, what limits does the code place on recovering
+      versus tearing off, and what insulation upgrade does the energy code
+      trigger?
+    applies_when: Reroofing and roof replacement projects
+    source_families: [building_code, energy]
+    severity: medium
+
+  - id: rf.rh.rooftop-guards
+    topic: rooftop-equipment-guards
+    question: >
+      Does the adopted code require guards or fall protection at roof hatches
+      and at equipment near the roof edge?
+    applies_when: Rooftop equipment or roof access hatches
+    source_families: [building_code, occupational_safety]
+    severity: medium
+
+extract_fields:
+  - id: rf.xf.assembly
+    label: Roof assembly components, top to bottom
+    type: list
+    per: package
+    reconcile_against: [spec.part2]
+  - id: rf.xf.drains
+    label: Drains and scuppers (location, size, primary or overflow)
+    type: list
+    per: package
+    reconcile_against: [drawings.roof_plan, drawings.plumbing]
+  - id: rf.xf.warranty
+    label: Warranty type and term offered
+    type: string
+    per: package
+    reconcile_against: [spec.part1]
