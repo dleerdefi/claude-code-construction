@@ -9,7 +9,7 @@ Reads the PDFs users download into evals/test_docs/SANIBEL FIRE AND RESCUE STATI
   drawings/<Mechanical set>.pdf                      the 8-sheet mechanical set, as downloaded
   drawings/A500 - <title>.pdf, A101 - ..., G010 - ... single sheets from the architectural set
   specs/Project Manual - Division 09 Flooring.pdf    cover, title page and 9 sections
-  specs/Project Manual - Three Sections.pdf          cover, title page and 3 sections
+  specs/Project Manual - Four Sections.pdf           cover, title page and 4 sections
   specs/sections/<number> - <TITLE>.pdf              the flooring sections, already split
   manifest.json                                      what was written, with page ranges
 
@@ -34,7 +34,7 @@ SHEETS = ["A500", "A101", "G010"]
 MANUALS = {
     "Project Manual - Division 09 Flooring.pdf": ["01 10 00", "01 23 00", "01 33 00", "09 30 00", "09 65 13",
                                                    "09 65 40", "09 65 67", "09 67 00", "09 67 10"],
-    "Project Manual - Three Sections.pdf": ["01 33 00", "09 30 00", "09 65 40"],
+    "Project Manual - Four Sections.pdf": ["01 33 00", "09 30 00", "09 65 13", "09 65 40"],
 }
 SPLIT_SECTIONS = ["09 30 00", "09 65 13", "09 65 40", "09 65 67", "09 67 00", "09 67 10"]
 FRONT_MATTER_PAGES = 2  # cover and title page of Volume 1

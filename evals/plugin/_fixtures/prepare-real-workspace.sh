@@ -16,7 +16,7 @@
 #   a101         (real) 01 - Drawings/A101 - ARCHITECTURAL PLAN - FIRST FLOOR.pdf
 #   g010         (real) 01 - Drawings/G010 - CODE SUMMARY & CALCULATIONS.pdf
 #   specs        (real) 02 - Specifications/Project Manual - Division 09 Flooring.pdf (9 sections)
-#   specs-small  (real) 02 - Specifications/Project Manual - Three Sections.pdf
+#   specs-small  (real) 02 - Specifications/Project Manual - Four Sections.pdf (01 33 00, 09 30 00, 09 65 13, 09 65 40)
 #   flooring     (real) 02 - Specifications/Specification Sections/<the 6 flooring sections, pre-split>
 #   addendum     04 - Addenda/Addendum 01 (eval fixture).pdf
 #   rfi-template 16 - Templates/RFI Template - Example Builders.docx and its mapping under .construction/skills/rfi-drafter/
@@ -53,7 +53,7 @@ for profile in "$@"; do
     a101)        mkdir -p "01 - Drawings"; cp "$GEN/drawings/A101 - "*.pdf "01 - Drawings/" ;;
     g010)        mkdir -p "01 - Drawings"; cp "$GEN/drawings/G010 - "*.pdf "01 - Drawings/" ;;
     specs)       mkdir -p "02 - Specifications"; cp "$GEN/specs/Project Manual - Division 09 Flooring.pdf" "02 - Specifications/" ;;
-    specs-small) mkdir -p "02 - Specifications"; cp "$GEN/specs/Project Manual - Three Sections.pdf" "02 - Specifications/" ;;
+    specs-small) mkdir -p "02 - Specifications"; cp "$GEN/specs/Project Manual - Four Sections.pdf" "02 - Specifications/" ;;
     flooring)    mkdir -p "02 - Specifications/Specification Sections"
                  cp "$GEN/specs/sections/"*.pdf "02 - Specifications/Specification Sections/" ;;
     addendum)    mkdir -p "04 - Addenda"; cp "$HERE/addendum/"*.pdf "04 - Addenda/" ;;
