@@ -1,0 +1,161 @@
+schema_version: 1
+kind: section
+id: "12 36 00"
+title: Countertops
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Countertops specified on their own: plastic laminate, solid surface,
+  quartz and natural stone, concrete, metal and wood. Casework review applies
+  (heights, knee space, cutouts by others, in-wall supports, backsplash
+  devices); what this section adds is the top itself. Stone and engineered
+  stone need support at overhangs and over knee spaces and appliance
+  openings, a thicker top or a built-up edge can push an accessible counter
+  over its height limit, undermount sinks have to be in the fabricator's hands
+  before cutting, and field cutting of silica-bearing tops is a regulated
+  exposure.
+
+suppress:
+  - id: cw.hardware
+    reason: Cabinet hardware belongs to the casework submittal, not a separately specified countertop
+  - id: cw.fm.hardware-short
+    reason: Follows cw.hardware; no cabinet hardware in a countertop package
+  - id: cw.std.bhma-a156-9
+    reason: Cabinet hardware standard; not applicable to countertops
+  - id: cw.xf.hardware-counts
+    reason: No cabinet hardware in a countertop package
+  - id: cw.base-toe-kick
+    reason: Toe kick and base belong to the casework below the top
+
+submittals:
+  - id: cw.sub.shop-drawings
+    override: true
+    merge: replace
+    type: Shop Drawings
+    must_show:
+      - Plan of every top keyed to the CD elevations, with material, thickness and any built-up edge
+      - Edge profiles, backsplash and sidesplash heights, and seam locations
+      - Cutouts with the model each is sized for, and who furnishes and attaches each sink
+      - Support at overhangs, bar tops and spans over knee spaces and appliance openings
+      - Field-verify dimensions and the templating step, if templates are taken from installed cabinets
+
+  - id: cw.sub.product-data
+    override: true
+    merge: replace
+    type: Product Data
+    must_show:
+      - Surfacing material with its performance data (absorption, flexural strength, stain and heat resistance as the spec requires)
+      - Adhesives, seam kits and sealants, with VOC content where the spec limits it
+
+review_checks:
+  - id: cw.grade-construction
+    override: true
+    check: >
+      Countertop material, grade, substrate or core, thickness, edge build-up
+      and seam construction match Part 2, under the AWI, stone or solid-surface
+      standard the spec actually cites.
+    submittal_types: [Shop Drawings, Product Data, Samples]
+
+  - id: 12ct.support-spans
+    kind: constructability
+    check: >
+      Overhangs, bar tops, cantilevers and spans over knee spaces and appliance
+      openings have the brackets, corbels, steel or substrate the material and
+      thickness need, per the fabricator's or material manufacturer's limits,
+      and concealed supports are identified for in-wall installation.
+    trace_to: [drawings.details, drawings.interior_elevations]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 12ct.undermount-sinks
+    kind: coordination
+    check: >
+      For undermount and integral sinks, the shop drawings state who furnishes
+      the sink and who attaches it (the fabricator in the shop or the plumber
+      in the field), the sink is in the fabricator's hands before cutting, and
+      an integral solid-surface sink is not also ordered from the plumbing
+      fixture schedule.
+    trace_to: [schedule.plumbing_fixture, spec.part1, drawings.interior_elevations]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 12ct.field-cutting
+    kind: constructability
+    scope: package
+    check: >
+      Cutouts and holes in stone and engineered stone are made in the shop
+      wherever possible; any field cutting or drilling of silica-bearing
+      material has the exposure controls the occupational safety research
+      requires.
+    trace_to: [spec.part3]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 12ct.fm.unsupported-overhang
+    what_happens: A stone or quartz overhang, or a span over a knee space, installed without the support its thickness needs
+    consequence: Cracks at the cutout or the overhang; the top is replaced
+    caught_by: [12ct.support-spans]
+    source: field_experience
+
+  - id: 12ct.fm.thickness-raises-height
+    what_happens: A thicker top or a built-up edge is set on standard-height base cabinets at an accessible counter
+    consequence: The accessible counter exceeds its height limit; tops reset or bases cut down
+    caught_by: [cw.counter-heights]
+    source: field_experience
+
+  - id: 12ct.fm.sink-not-in-hand
+    what_happens: Tops cut before the undermount sinks arrive, or an integral sink also bought by the plumber
+    consequence: Cutouts that don't fit the sink, or sinks bought twice
+    caught_by: [12ct.undermount-sinks, if.casework-plumbing]
+    source: industry_practice
+
+standards:
+  - id: 12ct.std.astm-c615
+    name: ASTM C615
+    title: Standard Specification for Granite Dimension Stone
+    verify: Physical property claims for granite tops
+  - id: 12ct.std.astm-c503
+    name: ASTM C503
+    title: Standard Specification for Marble Dimension Stone
+    verify: Physical property claims for marble tops
+
+regulatory_hooks:
+  - id: 12ct.rh.silica
+    topic: respirable-crystalline-silica
+    question: >
+      What exposure controls does the occupational safety standard (and any
+      state rule on engineered stone) require for cutting, grinding and
+      drilling silica-bearing countertop material on site?
+    applies_when: Stone, quartz or other engineered stone tops cut or drilled on site
+    source_families: [occupational_safety]
+    severity: medium
+
+  - id: 12ct.rh.food-contact
+    topic: food-contact-surface-materials
+    question: >
+      Does the food code or health department plan review require countertops
+      in food preparation or service areas, and their seams and backsplashes,
+      to be certified food-zone materials or of a particular construction?
+    applies_when: Countertops in food preparation, service or nourishment areas
+    source_families: [food_code]
+    severity: medium
+
+extract_fields:
+  - id: 12ct.xf.material-thickness
+    label: Material, thickness and edge build-up per top
+    type: string
+    per: element
+    reconcile_against: [drawings.details, spec.part2]
+  - id: 12ct.xf.sink-attachment
+    label: Sink type and who furnishes and attaches it
+    type: list
+    per: element
+    reconcile_against: [schedule.plumbing_fixture]

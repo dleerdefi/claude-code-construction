@@ -1,0 +1,112 @@
+schema_version: 1
+kind: section
+id: "12 48 00"
+title: Rugs and Mats
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Entrance floor mats and frames, entrance grilles, and rugs. The recessed
+  systems are the risk: the frame sits in a slab recess that has to be formed
+  at the pour to the depth of a product usually chosen later, exterior and
+  vestibule recesses may need a drain, and the finished mat has to sit flush
+  with the floor finish and the threshold on an accessible route. Grilles
+  have to suit the traffic that rolls over them.
+
+submittals:
+  - id: 12mt.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Plan of each mat with overall size, frame type and anchorage, and splice locations
+      - Section through the recess with frame, mat or grille, setting bed or leveling, and drainage pan or drain
+      - Relationship to adjacent floor finishes, thresholds and door swings
+  - id: 12mt.sub.product-data
+    type: Product Data
+    must_show:
+      - Mat or grille type with its rolling-load rating and the opening size in the walking surface
+
+review_checks:
+  - id: 12mt.recess-dimensions
+    kind: coordination
+    check: >
+      The slab recess on the structural and architectural drawings matches the
+      submitted frame and mat depth and plan size, including any setting bed or
+      drain pan, and it is formed at the pour. Where the mat is selected after
+      the slab design, its depth is confirmed before placement.
+    trace_to: [drawings.structural, drawings.details, drawings.plans]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 12mt.recess-drainage
+    kind: absence
+    check: >
+      Recesses at exterior entries and vestibules that will collect water have
+      a drain or a sloped pan to a drain where the design calls for it, and
+      that drain is on the plumbing drawings.
+    trace_to: [drawings.plumbing, drawings.details]
+    severity: medium
+    owner: design_team
+    gate: slab_pour
+
+  - id: 12mt.flush-transitions
+    kind: conformance
+    check: >
+      The finished mat surface sits flush with the adjacent floor finish (each
+      finish's thickness considered) and with the threshold, door bottoms
+      clear it, and grille openings meet the accessibility limits on changes in
+      level and openings in walking surfaces.
+    trace_to: [drawings.details, schedule.door, schedule.finish]
+    severity: medium
+    owner: subcontractor
+
+  - id: 12mt.rolling-loads
+    kind: conformance
+    check: >
+      Frames and grilles are rated for the traffic the entry carries
+      (carts, pallet jacks, floor scrubbers, wheelchairs), not only for
+      pedestrians.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 12mt.fm.no-recess
+    what_happens: Slab poured without the recess, or to a depth set by a different mat product
+    consequence: Frame surface-mounted with ramped edges, or slab ground down or saw-cut
+    caught_by: [12mt.recess-dimensions]
+    source: field_experience
+
+  - id: 12mt.fm.wet-pan
+    what_happens: Exterior or vestibule recess with no drain
+    consequence: Standing water under the mat, odor, deteriorated mats and slab damage
+    caught_by: [12mt.recess-drainage, if.12-mat-recess-drains]
+    source: industry_practice
+
+  - id: 12mt.fm.proud-frame
+    what_happens: The adjacent floor finish changed thickness and the frame now sits above or below it
+    consequence: Trip edge on the accessible route; frame reset or transition strips added
+    caught_by: [12mt.flush-transitions]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 12mt.rh.floor-surfaces
+    topic: accessible-route-floor-surfaces
+    question: >
+      What does the adopted accessibility standard allow for changes in level,
+      openings in walking surfaces (size and orientation of grille gaps), and
+      firm, stable and slip-resistant surfaces on the accessible route?
+    applies_when: Entrance mats, grilles and frames on accessible routes
+    source_families: [accessibility]
+    severity: medium
+
+extract_fields:
+  - id: 12mt.xf.recess
+    label: Recess depth and plan size required by the submitted system
+    type: string
+    per: item
+    reconcile_against: [drawings.structural, drawings.details]

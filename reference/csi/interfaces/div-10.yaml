@@ -1,0 +1,161 @@
+schema_version: 1
+kind: interfaces
+id: div-10
+title: Interfaces involving Division 10
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with Divisions 03-09 (backing, support steel, door hardware, ceilings,
+# membrane penetrations) belong to those divisions' files.
+
+edges:
+  # ── Toilet rooms ──────────────────────────────────────────────
+  - id: if.10-toilet-room-fixtures
+    a: ["10 21 13", "10 28 00"]
+    a_trade: Toilet compartments and accessories
+    b: ["22 40 00"]
+    b_trade: Plumbing fixtures
+    a_provides: Compartment module widths, accessible compartment dimensions, and grab bar and dispenser positions in each toilet room
+    b_provides: Fixture centerlines, carrier and supply rough-in locations, flush valve side and height, and lavatory and faucet models
+    gate:
+      milestone: in_wall_rough_in
+      note: Carriers and supplies are usually set before the compartment and accessory submittals are approved
+    severity: high
+
+  - id: if.10-powered-accessories
+    a: ["10 28 00"]
+    a_trade: Toilet accessories
+    b: ["26 05 33", "26 05 83", "26 27 26"]
+    b_trade: Electrical boxes, wiring connections and devices
+    a_provides: Powered accessory models (hand dryers, powered and heated dispensers) with voltage, load, hardwired or plug connection, recess box and connection height
+    b_provides: Circuit and junction box or receptacle at each unit's connection point and height, with any ground-fault protection the location requires
+    responsibility:
+      - item: Electric hand dryers
+        typical: {furnish: "10 28 00", install: "10 28 00", connect: "26 05 83"}
+        confirm_in: [spec.part1, drawings.electrical]
+    gate: {milestone: in_wall_rough_in}
+    severity: medium
+
+  - id: if.10-counter-dispensers
+    a: ["10 28 00"]
+    a_trade: Toilet accessories
+    b: ["12 36 00", "12 30 00"]
+    b_trade: Countertops and vanity casework
+    a_provides: Counter-mounted dispenser models, hole sizes and positions, and the reservoir and refill clearance they need below the top
+    b_provides: Shop-cut holes at those positions, and access below the top inside the vanity
+    responsibility:
+      - item: Holes for counter-mounted soap dispensers
+        typical: {install: "12 36 00"}
+        confirm_in: [spec.part1, drawings.interior_elevations]
+    gate:
+      milestone: procurement_release
+      note: Before stone, quartz or solid-surface tops are fabricated
+    severity: medium
+    failure: Tops fabricated without dispenser holes; field drilling chips or cracks the top, or dispensers move to the wall
+
+  # ── Signage ───────────────────────────────────────────────────
+  - id: if.10-elevator-signage
+    a: ["10 14 00"]
+    a_trade: Signage
+    b: ["14 20 00"]
+    b_trade: Elevators
+    a_provides: Signs at elevator lobbies and hall call stations carried in the sign package
+    b_provides: Raised floor designations at hoistway entrances and car signage the elevator contractor furnishes
+    responsibility:
+      - item: Raised floor designations at hoistway entrance jambs
+        typical: {furnish: "14 20 00 or 10 14 00", install: "14 20 00 or 10 14 00"}
+        confirm_in: [spec.part1]
+      - item: Elevator emergency-use signs at hall call stations
+        typical: {furnish: "10 14 00 or 14 20 00", install: "10 14 00 or 14 20 00"}
+        confirm_in: [spec.part1]
+    gate: {milestone: procurement_release}
+    severity: medium
+    failure: Elevator signs carried by neither contract; the elevator acceptance inspection fails
+
+  - id: if.10-illuminated-signs
+    a: ["10 14 00"]
+    a_trade: Signage
+    b: ["26 05 33", "26 05 83", "26 09 23"]
+    b_trade: Electrical boxes, wiring connections and lighting controls
+    a_provides: Illuminated sign locations, loads, power supply locations and control requirements
+    b_provides: Circuits and junction boxes at each sign's connection point, and photocell or time-clock control
+    gate:
+      milestone: envelope_close_in
+      note: Boxes and conduit in exterior walls go in before cladding
+    severity: medium
+    failure: Box missing or misplaced behind an exterior sign; cladding penetrated and patched after the fact
+
+  # ── Visual display ────────────────────────────────────────────
+  - id: if.10-visual-display-av
+    a: ["10 11 00"]
+    a_trade: Visual display units
+    b: ["27 41 00", "26 05 33", "26 27 26"]
+    b_trade: Audio-video systems and electrical
+    a_provides: Board layout and sizes on each wall, with screen, display and interactive board positions
+    b_provides: Display and projector mounting locations, and the boxes, conduit, power and data behind the board wall
+    gate: {milestone: in_wall_rough_in}
+    severity: medium
+
+  # ── Partitions and cubicles ───────────────────────────────────
+  - id: if.10-operable-partition-air-paths
+    a: ["10 22 39"]
+    a_trade: Operable partitions
+    b: ["23 31 00", "23 30 00"]
+    b_trade: HVAC ductwork and air distribution
+    a_provides: Partition line, acoustic rating, and the barrier above the track that ducts and return air must not short-circuit
+    b_provides: Duct and return-air crossings of the partition line with lined or attenuated crossings, or separate zoning for each divided room
+    gate: {milestone: above_ceiling_close_in}
+    severity: medium
+
+  - id: if.10-cubicle-track-sprinklers
+    a: ["10 21 23"]
+    a_trade: Cubicle curtain track
+    b: ["21 13 00"]
+    b_trade: Sprinklers
+    a_provides: Track layout and curtain extents in each room
+    b_provides: Sprinkler positions for each curtained area with the clearances the curtains need
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+
+  # ── Wall protection ───────────────────────────────────────────
+  - id: if.10-wall-protection-devices
+    a: ["10 26 00"]
+    a_trade: Wall protection
+    b: ["26 27 26", "28", "23 09 00"]
+    b_trade: Wall-mounted devices (switches and receptacles, security and fire alarm devices, thermostats)
+    a_provides: Rail, guard and handrail heights and extents along each corridor wall
+    b_provides: Device mounting heights and locations along those walls
+    gate: {milestone: in_wall_rough_in}
+    severity: medium
+
+  # ── Fire protection specialties ───────────────────────────────
+  - id: if.10-fire-valve-cabinets
+    a: ["10 44 00"]
+    a_trade: Fire protection cabinets
+    b: ["21 12 00"]
+    b_trade: Standpipes
+    a_provides: Cabinet size, depth, door swing and rated construction at each hose valve location
+    b_provides: Hose valve locations, sizes and orientation, and whether hose or a rack goes in the cabinet
+    responsibility:
+      - item: Cabinets for fire department hose valves
+        typical: {furnish: "10 44 00 or 21 12 00", install: "10 44 00 or 21 12 00"}
+        confirm_in: [spec.part1, drawings.fire_protection]
+    gate: {milestone: in_wall_rough_in}
+    severity: medium
+    failure: Valve handle or cap fouls the cabinet or its door; cabinets reframed after the standpipe is set
+
+  # ── Storage ───────────────────────────────────────────────────
+  - id: if.10-storage-sprinklers
+    a: ["10 56 00"]
+    a_trade: Shelving and storage racks
+    b: ["21 13 00"]
+    b_trade: Sprinklers
+    a_provides: Unit and rack heights, top-of-storage elevation, solid or open shelves, carriage layout and flue spaces
+    b_provides: Sprinkler design for the storage arrangement, deflector clearance to the top of storage, and in-rack sprinklers where required
+    gate:
+      milestone: procurement_release
+      note: Storage heights fix the sprinkler design
+    severity: high

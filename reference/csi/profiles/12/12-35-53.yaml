@@ -91,6 +91,19 @@ review_checks:
     severity: medium
     owner: subcontractor
 
+reconciliations:
+  - id: lc.rc.service-fixtures
+    between: [drawings.lab_gas, drawings.plumbing, drawings.interior_elevations]
+    key: Each service fixture location
+    fields: [service type, fixture type, mounting (deck, panel, reagent rack, pedestal), outlet count]
+    check: >
+      Every service outlet on the lab gas and plumbing drawings appears on the
+      casework elevations at the same location and mounting, and every fixture
+      on the elevations has piping to it.
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
 failure_modes:
   - id: lc.fm.service-fixture-split
     what_happens: Casework vendor furnishes service fixtures, plumbing assumes they are in its scope or vice versa

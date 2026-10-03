@@ -1,0 +1,173 @@
+schema_version: 1
+kind: section
+id: "13 21 26"
+title: Cold Storage Rooms
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["11 41 00"]
+
+scope_summary: >
+  Walk-in coolers and freezers and larger cold rooms (foodservice walk-ins
+  are often specified with foodservice storage equipment instead). The
+  expensive failures are slow: a freezer floor on grade without heat trace or
+  a ventilated subfloor heaves the slab over months, and a vapor retarder
+  that isn't on the warm side and continuous fills panels and walls with ice
+  or condensation. The room also needs things from three other trades: door
+  and relief-port heaters and heat trace on circuits, condensate drains that
+  won't freeze, and a refrigeration system whose design, piping, wiring and
+  start-up are split among the room vendor, the refrigeration contractor and
+  the electrician.
+
+submittals:
+  - id: 13cs.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Floor construction with insulation, heat trace or ventilation, vapor retarder, and the slab recess depth required for a flush entry
+      - Door types, sizes and swing, frame and threshold heaters, pressure relief ports, inside release and strip curtains
+      - Refrigeration layout with condensing unit and evaporator locations, piping routes, condensate drains and controls
+      - Electrical load schedule for condensing units, evaporators, heaters, heat trace and lights
+  - id: 13cs.sub.design-data
+    type: Design Data
+    must_show:
+      - Refrigeration load calculation and equipment selection, refrigerant type and system charge
+
+review_checks:
+  - id: 13cs.floor-frost
+    kind: constructability
+    reflex: true
+    check: >
+      Freezer floors on grade have insulation in a slab recess with heat
+      trace or a ventilated subfloor against frost heave, with the heat trace
+      powered and monitored; the recess depth matches the floor build-up so the
+      room floor is flush with the corridor. Cooler floors follow the design's
+      insulated or uninsulated choice.
+    trace_to: [drawings.structural, drawings.details, drawings.electrical]
+    severity: critical
+    owner: design_team
+    gate: slab_pour
+
+  - id: 13cs.vapor-control
+    kind: conformance
+    check: >
+      The vapor retarder is on the warm side and continuous at panel joints,
+      floor-to-wall and wall-to-ceiling transitions and penetrations; where the
+      room sits against an exterior wall or under the roof, the building
+      assembly behind it is checked for condensation.
+    trace_to: [drawings.details, drawings.wall_sections]
+    severity: high
+    owner: subcontractor
+
+  - id: 13cs.door-heaters
+    kind: coordination
+    check: >
+      Freezer door frame and threshold heaters and heated relief ports have
+      circuits on the electrical drawings, doors have inside release, and door
+      sizes suit the carts and pallet jacks that will use them.
+    trace_to: [drawings.electrical, schedule.door]
+    severity: high
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: 13cs.condensate-drains
+    kind: coordination
+    check: >
+      Evaporator condensate drains are heat-traced and insulated inside
+      freezers, trapped outside the room, and run to an indirect waste
+      receptor shown on the plumbing drawings.
+    trace_to: [drawings.plumbing, drawings.electrical]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 13cs.refrigeration-split
+    kind: coordination
+    scope: package
+    check: >
+      Who designs, furnishes, sets, pipes, wires, charges and starts up the
+      refrigeration system is assigned, along with the condensing unit's
+      location and support (roof, grade or rack), and temperature alarms and
+      monitoring connected to the owner's system.
+    trace_to: [spec.part1, drawings.mechanical, drawings.roof_plan]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+reconciliations:
+  - id: 13cs.rc.refrigeration-power
+    between: [schedule.equipment, schedule.electrical_panel]
+    key: Condensing unit, evaporator, door and relief-port heaters, heat trace, lights
+    fields: [voltage, phase, load, circuit, disconnect]
+    check: >
+      Each powered component of the cold room has a matching circuit and
+      disconnect on the electrical drawings, with the same electrical
+      characteristics as the submitted equipment.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 13cs.fm.frost-heave
+    what_happens: Freezer built on grade without heat trace or a ventilated subfloor, or the heat trace never energized or monitored
+    consequence: The slab heaves over months; floor, panels and doors rebuilt with the room out of service
+    caught_by: [13cs.floor-frost, if.13-cold-storage-power]
+    source: field_experience
+
+  - id: 13cs.fm.no-recess
+    what_happens: Slab poured flat under a room whose insulated floor needs a recess
+    consequence: The room floor sits above the corridor; a ramp at the door that carts and the accessible route can't use
+    caught_by: [13cs.floor-frost]
+    source: field_experience
+
+  - id: 13cs.fm.frozen-drain
+    what_happens: The evaporator drain freezes because its heat trace was omitted or left unpowered, or its trap sits in the cold space
+    consequence: Defrost meltwater overflows the pan and freezes on the floor; product moved out while the drain is rebuilt
+    caught_by: [13cs.condensate-drains, if.13-cold-storage-drains]
+    source: field_experience
+
+  - id: 13cs.fm.heater-no-circuit
+    what_happens: Door frame and relief-port heaters with no circuit
+    consequence: Doors freeze shut or sweat; circuits added through finished walls
+    caught_by: [13cs.door-heaters, 13cs.rc.refrigeration-power]
+    source: industry_practice
+
+  - id: 13cs.fm.refrigeration-gap
+    what_happens: Piping and control wiring between condensing unit and evaporators falls between the room vendor, the refrigeration contractor and the electrician
+    consequence: Late start-up and a change order for work everyone assumed someone else carried
+    caught_by: [13cs.refrigeration-split, if.13-cold-storage-refrigeration]
+    source: industry_practice
+
+  - id: 13cs.fm.envelope-condensation
+    what_happens: Cold room built against an exterior wall or under the roof with a discontinuous vapor retarder
+    consequence: Condensation and mold inside the building envelope behind the room
+    caught_by: [13cs.vapor-control]
+    source: industry_practice
+
+standards:
+  - id: 13cs.std.ashrae-15
+    name: ASHRAE 15
+    title: Safety Standard for Refrigeration Systems
+    verify: Refrigerant safety provisions the mechanical code applies to the system and its charge
+
+regulatory_hooks:
+  - id: 13cs.rh.walk-in-efficiency
+    topic: walk-in-cooler-energy-standards
+    question: >
+      What federal efficiency standards and energy code requirements apply to
+      walk-in cooler and freezer panels, doors and refrigeration, and does the
+      submitted equipment document compliance?
+    applies_when: Walk-in coolers and freezers
+    source_families: [energy]
+    severity: medium
+
+  - id: 13cs.rh.refrigerant-safety
+    topic: refrigerant-safety-requirements
+    question: >
+      Do the refrigerant type and system charge trigger the mechanical code's
+      refrigerant safety requirements (machinery room, detection, ventilation),
+      and where do they apply?
+    applies_when: Cold rooms with remote or rack refrigeration
+    source_families: [mechanical_code]
+    severity: medium

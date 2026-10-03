@@ -1,0 +1,200 @@
+schema_version: 1
+kind: section
+id: "10 14 00"
+title: Signage
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # exterior, monument and pylon sign structures are often designed by the sign fabricator
+
+scope_summary: >
+  Room identification, wayfinding, code-required egress signs and exterior
+  signs. Interior signs are judged at the door: tactile and Braille signs go
+  on the latch-side wall in a height band, which is exactly where light
+  switches and card readers get roughed in, and double doors, sidelights and
+  glass walls move them. The message schedule has to follow the owner's final
+  room numbers, and the signs inspectors check at final (stair
+  identification, tactile exit signs, area of refuge and elevator signs) are
+  often on no drawing. Exterior signs bring structure, power and a separate
+  sign permit.
+
+review_mode: per_element
+element_types: [sign_type]
+
+submittals:
+  - id: 10sg.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Each sign type with dimensions, materials, raised character and Braille layout, contrast and finish
+      - Location rule per type (latch side, double doors, latch side without wall space) and mounting height to the character baseline
+      - Mounting method and substrate per type, including signs at glass, sidelights and wall protection
+      - Exterior and illuminated signs with attachment, supporting structure, power and control
+  - id: 10sg.sub.schedule
+    type: Schedule
+    must_show:
+      - Message schedule by location keyed to door and room numbers, with sign type, text and Braille translation
+      - Location plans marking every sign
+  - id: 10sg.sub.samples
+    type: Samples
+    must_show:
+      - Each sign type in the selected materials and colors, with raised characters and Braille
+
+review_checks:
+  - id: 10sg.tactile-room-signs
+    kind: conformance
+    reflex: true
+    check: >
+      Every permanent room and space the accessibility standard covers has a
+      tactile and Braille identification sign on the latch-side wall (or where
+      the standard puts it at double doors and where the latch side has no
+      wall), within the required height band and with clear floor space beside
+      it. A sign on a door leaf or on glass is a finding unless the standard
+      allows it there.
+    trace_to: [schedule.signage, drawings.plans, schedule.door]
+    severity: high
+    owner: subcontractor
+
+  - id: 10sg.message-schedule
+    kind: completeness
+    scope: package
+    check: >
+      The message schedule lists every sign by location, keyed to door and
+      room numbers, with text, Braille and sign type, and uses the owner's final
+      room numbering where it differs from the construction documents. The
+      owner signs off the numbering before fabrication.
+    trace_to: [schedule.signage, drawings.plans, schedule.door]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 10sg.code-required-signs
+    kind: absence
+    scope: package
+    check: >
+      The package includes the signs codes require that plans often omit:
+      tactile exit signs at exit doors, stair identification signs at each
+      landing, elevator emergency signs at hall call stations, area of refuge
+      identification and instructions, accessible entrance, route and toilet
+      room signs, and any occupant load posting or luminous egress marking the
+      building type requires. Missing types go to the design team.
+    trace_to: [drawings.life_safety, schedule.signage, drawings.plans]
+    severity: high
+    owner: design_team
+
+  - id: 10sg.latch-side-devices
+    kind: coordination
+    scope: package
+    check: >
+      At each signed door, the sign location is compared with light switches,
+      card readers, thermostats, fire alarm devices, wall protection and
+      sidelights on the electrical, security and elevation drawings, so the
+      sign and the devices don't claim the same piece of wall.
+    trace_to: [drawings.electrical, drawings.security, drawings.interior_elevations, schedule.door]
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: 10sg.exterior-signs
+    kind: constructability
+    scope: package
+    check: >
+      Building-mounted and freestanding exterior signs show attachment to
+      structure or to backing inside the wall assembly, how the attachments are
+      sealed at the air and water barrier, foundations for monument and pylon
+      signs and who provides them, and power, conduit and control for
+      illuminated signs.
+    trace_to: [drawings.exterior_elevations, drawings.site, drawings.electrical, drawings.details]
+    severity: medium
+    owner: gc
+    gate: envelope_close_in
+
+reconciliations:
+  - id: 10sg.rc.room-numbers
+    between: [schedule.signage, drawings.plans, schedule.door]
+    key: Room or door number
+    fields: [room number, room name, sign type, door swing and latch side]
+    check: >
+      Each sign's room number and name match the plans and the door schedule,
+      and its wall location follows the latch side that the door schedule's
+      swing and handing produce.
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+failure_modes:
+  - id: 10sg.fm.renumbered-rooms
+    what_happens: The owner renumbers rooms for its own wayfinding or facilities system after signs were ordered to the drawing numbers
+    consequence: Room signs refabricated at the end of the job; temporary signs at occupancy
+    caught_by: [10sg.message-schedule, 10sg.rc.room-numbers]
+    source: industry_practice
+
+  - id: 10sg.fm.device-at-sign
+    what_happens: Light switches or card readers roughed in on the latch-side wall where the room sign belongs
+    consequence: Sign moved outside its required zone, or devices relocated and walls patched after paint
+    caught_by: [10sg.latch-side-devices]
+    source: field_experience
+
+  - id: 10sg.fm.code-signs-missing
+    what_happens: Stair, area of refuge, elevator and tactile exit signs left out of the package because no plan shows them
+    consequence: Final inspection fails; signs rush-ordered or temporary signs posted to get occupancy
+    caught_by: [10sg.code-required-signs]
+    source: industry_practice
+
+  - id: 10sg.fm.sign-on-glass
+    what_happens: At double doors, sidelights and storefronts the sign is put on the door or the glass because no wall is available
+    consequence: Rejected by the accessibility inspector; backer panels added or signs relocated
+    caught_by: [10sg.tactile-room-signs]
+    source: industry_practice
+
+standards:
+  - id: 10sg.std.icc-a117-1
+    name: ICC A117.1
+    title: Accessible and Usable Buildings and Facilities
+    verify: Raised character, Braille, mounting height and location claims on the shop drawings
+    note: Use the edition the adopted code references; federal accessibility standards may also apply
+
+regulatory_hooks:
+  - id: 10sg.rh.tactile-signs
+    topic: accessibility-signage
+    question: >
+      Which rooms and spaces need tactile and Braille signs under the adopted
+      accessibility standard, and what does it require for location relative
+      to the latch side and at double doors, mounting height, clear floor space,
+      raised characters, Braille and contrast?
+    applies_when: Interior room identification and directional signs
+    source_families: [accessibility]
+    severity: high
+
+  - id: 10sg.rh.egress-signs
+    topic: code-required-egress-signage
+    question: >
+      Which signs do the adopted building and fire codes require in this
+      building (stair identification, tactile exit signs, area of refuge,
+      elevator emergency use, occupant load, luminous egress path markings),
+      and where?
+    applies_when: Buildings with exit stairs, elevators or assembly spaces
+    source_families: [building_code, fire_code]
+    severity: high
+
+  - id: 10sg.rh.sign-permit
+    topic: exterior-sign-permits
+    question: >
+      Does the jurisdiction require a separate permit or design review for
+      exterior signs, what size and lighting limits apply, and who files it?
+    applies_when: Exterior building-mounted, monument or pylon signs
+    source_families: [building_code]
+    severity: medium
+
+extract_fields:
+  - id: 10sg.xf.mounting
+    label: Location rule and mounting height per sign type
+    type: string
+    per: element
+    reconcile_against: [schedule.signage]
+  - id: 10sg.xf.messages
+    label: Sign locations and messages by room or door number
+    type: list
+    per: package
+    reconcile_against: [drawings.plans, schedule.door]

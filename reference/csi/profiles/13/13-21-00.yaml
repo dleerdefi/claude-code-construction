@@ -1,0 +1,110 @@
+schema_version: 1
+kind: section
+id: "13 21 00"
+title: Controlled Environment Rooms
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # panel enclosures, their ceiling support and often the environmental systems are vendor-designed
+
+scope_summary: >
+  Prefabricated insulated or sealed room enclosures with their own
+  environmental control inside a host building: cold storage rooms, clean
+  rooms, constant-temperature and insulated rooms (the subtype sections
+  inherit from here). The room only performs if the base building and the
+  MEP trades deliver what it needs: a floor built for it, support for its
+  ceiling, sealed penetrations through the panels, sprinkler protection
+  inside it, and an environmental system someone is clearly responsible for
+  designing and certifying. Foam-core panels also have to satisfy the
+  building code's foam plastic rules.
+
+submittals:
+  - id: 13ce.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Room plan and elevations with panel layout, doors, floor construction and the slab condition assumed
+      - Ceiling support (self-supporting span or hangers to building structure) with loads at each hanger
+      - Every penetration through the panels with its sealing method
+  - id: 13ce.sub.product-data
+    type: Product Data
+    must_show:
+      - Panel core and facings with their fire test results and the code basis for using them without a thermal barrier, if claimed
+
+review_checks:
+  - id: 13ce.room-criteria
+    kind: completeness
+    check: >
+      The performance the room must hold (temperature and humidity range,
+      cleanliness class, pressure relationships, pull-down) is stated, with
+      who designs the environmental system (vendor or engineer of record) and
+      who verifies it at completion.
+    trace_to: [spec.part1, spec.part2, drawings.mechanical]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 13ce.panel-penetrations
+    kind: constructability
+    check: >
+      Every refrigeration line, conduit, sprinkler pipe, duct and drain through
+      the panels is located on the shop drawings with the panel manufacturer's
+      sealing method, and the penetrating trades are told to use it rather than
+      field-cutting the panels.
+    trace_to: [drawings.mechanical, drawings.electrical, drawings.plumbing, drawings.fire_protection]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 13ce.ceiling-support
+    kind: coordination
+    check: >
+      Room ceilings that are not self-supporting hang from building structure
+      at loads the EOR accepts, and walk-on ceilings used for equipment and
+      service are designed and shown as such.
+    trace_to: [drawings.structural, drawings.details]
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: 13ce.foam-panels
+    kind: conformance
+    check: >
+      Foam-core panels have the fire test results and listing the building
+      code's foam plastic provisions require for this room type and size,
+      including the basis for any exception to a thermal barrier.
+    trace_to: [spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+failure_modes:
+  - id: 13ce.fm.field-cut-panels
+    what_happens: Trades cut panels for conduit and piping without the manufacturer's seals
+    consequence: Ice and condensation inside cold room panels, or air leakage that a clean room can't certify through
+    caught_by: [13ce.panel-penetrations]
+    source: field_experience
+
+  - id: 13ce.fm.no-sprinklers-inside
+    what_happens: The room's ceiling blocks the building sprinklers and no protection is designed inside the room
+    consequence: Inspection fails; sprinklers added through finished panels, with dry or antifreeze piping in freezers
+    caught_by: [if.13-controlled-room-sprinklers]
+    source: industry_practice
+
+  - id: 13ce.fm.foam-core-rejected
+    what_happens: Panels with a foam core not tested or listed for use without a thermal barrier in this application
+    consequence: Rejected by the building official; panels covered or replaced
+    caught_by: [13ce.foam-panels]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 13ce.rh.foam-panels
+    topic: foam-plastic-insulated-panels
+    question: >
+      Do the adopted building code's foam plastic provisions allow the
+      submitted insulated panels without a thermal barrier for this room type
+      and size, and what test or listing documentation is required?
+    applies_when: Insulated panel rooms with foam plastic cores
+    source_families: [building_code]
+    severity: high

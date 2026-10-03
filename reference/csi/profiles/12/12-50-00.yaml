@@ -1,0 +1,180 @@
+schema_version: 1
+kind: section
+id: "12 50 00"
+title: Furniture
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Office, institutional, hospitality and systems furniture (the subtype
+  sections inherit from here). Furniture is often bought by the owner through
+  its own dealer, outside the construction contract, but it drives
+  construction early: systems furniture feeds land on floor boxes,
+  poke-throughs, power poles or wall boxes that are fixed at the slab pour or
+  at rough-in, its power system needs a particular circuit arrangement, and
+  wall-hung components need backing. Tall storage needs anchorage against
+  tipping, some occupancies regulate upholstered furniture, accessible
+  seating and work surfaces have counts, and the largest pieces have to fit
+  the elevator and doors.
+
+review_mode: per_element
+element_types: [furniture_item]
+
+submittals:
+  - id: 12fn.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Furniture plan keyed to item tags, with every power and data feed point and its type (floor box, poke-through, power pole, wall feed)
+      - Systems furniture electrical configuration (circuit count, neutral and ground arrangement) and data drops per cluster
+      - Wall-hung components and tall units with their anchorage and backing
+  - id: 12fn.sub.product-data
+    type: Product Data
+    must_show:
+      - Each item marked to its tag, with dimensions, finishes and fabric
+      - Upholstery fire-performance test documentation where the occupancy requires it
+      - Listing of the systems furniture electrical components
+      - Strength, stability and durability test claims for desks, panel systems and storage units, to the industry test standards the spec cites
+
+review_checks:
+  - id: 12fn.systems-power
+    kind: coordination
+    scope: package
+    check: >
+      The circuit arrangement the systems furniture power system needs
+      (number of circuits, shared or dedicated neutrals, isolated ground) is on
+      the panel schedules, and who makes the final connection from the
+      building feed to the furniture, and who tests it, is assigned.
+    trace_to: [schedule.electrical_panel, drawings.electrical, spec.part1]
+    severity: high
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: 12fn.tip-over
+    kind: constructability
+    check: >
+      Freestanding tall or top-heavy units (bookcases, wardrobes, stacked
+      storage, shelving) show anti-tip anchorage or ganging, and where the
+      anchors go into walls, backing exists at that height.
+    trace_to: [drawings.interior_elevations, drawings.details]
+    severity: medium
+    owner: subcontractor
+
+  - id: 12fn.accessible-counts
+    kind: conformance
+    scope: package
+    check: >
+      Accessible work surfaces, dining and study surfaces and seating are
+      provided in the number and dispersion the accessibility research
+      requires, with the knee clearance and heights it sets.
+    trace_to: [drawings.plans]
+    severity: medium
+    owner: design_team
+
+  - id: 12fn.upholstery-fire
+    kind: conformance
+    check: >
+      Upholstered furniture and mattresses carry the fire-performance testing
+      the fire code requires for this occupancy, documented by test reports or
+      labels on the delivered items.
+    trace_to: [spec.part2]
+    severity: high
+    owner: gc
+
+  - id: 12fn.delivery-path
+    kind: constructability
+    scope: package
+    check: >
+      The largest one-piece items (conference tables, reception desks, long
+      benches) fit the delivery route: elevator cab and door, stair turns and
+      door openings, and the installation is scheduled after finishes and
+      dust-producing work.
+    trace_to: [drawings.plans, schedule.master]
+    severity: low
+    owner: gc
+
+reconciliations:
+  - id: 12fn.rc.feeds
+    between: [drawings.plans, drawings.electrical, drawings.technology]
+    key: Workstation cluster or feed point
+    fields: [feed type, location, circuits, data drops]
+    check: >
+      Each feed point on the furniture plan has a device at the same location
+      on the electrical and technology drawings with the circuits and data
+      drops it needs, and no floor box falls under a panel, in an aisle or
+      outside the furniture footprint.
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+failure_modes:
+  - id: 12fn.fm.feeds-moved
+    what_happens: The furniture layout is revised after the slab pour; floor boxes end up under panels or in aisles
+    consequence: Abandoned boxes, new cores through the slab (scanned first in post-tensioned slabs), and flooring patched
+    caught_by: [12fn.rc.feeds, if.12-furniture-power-data]
+    source: field_experience
+
+  - id: 12fn.fm.circuit-arrangement
+    what_happens: The selected systems furniture needs more circuits or dedicated neutrals than the panel was designed for
+    consequence: Panel changes and added home runs late in the job
+    caught_by: [12fn.systems-power]
+    source: industry_practice
+
+  - id: 12fn.fm.tall-unanchored
+    what_happens: Tall storage set freestanding with no anchorage or backing
+    consequence: Tip-over hazard; anchors and backing added after finishes
+    caught_by: [12fn.tip-over]
+    source: industry_practice
+
+  - id: 12fn.fm.does-not-fit
+    what_happens: A one-piece conference table or desk doesn't fit the elevator or the door openings
+    consequence: Item split in the field, rebuilt, or hoisted through an opening
+    caught_by: [12fn.delivery-path]
+    source: field_experience
+
+standards:
+  - id: 12fn.std.ul-1286
+    name: UL 1286
+    title: Office Furnishing Systems
+    verify: Listing of systems furniture electrical components
+
+regulatory_hooks:
+  - id: 12fn.rh.upholstered-furniture
+    topic: upholstered-furniture-fire-performance
+    question: >
+      Does the adopted fire code (or a state furniture flammability rule)
+      require upholstered furniture and mattresses in this occupancy to meet a
+      fire test, and which test and documentation?
+    applies_when: Upholstered furniture or mattresses in healthcare, detention, residential care, dormitory or assembly occupancies
+    source_families: [fire_code]
+    severity: high
+
+  - id: 12fn.rh.accessible-surfaces
+    topic: accessibility-work-surfaces
+    question: >
+      What share of dining, work and study surfaces and of fixed or built-in
+      seating must be accessible in each space type, and how must they be
+      dispersed?
+    applies_when: Furniture plans with dining, work, study or fixed seating areas
+    source_families: [accessibility]
+    severity: medium
+
+  - id: 12fn.rh.tall-furniture-anchorage
+    topic: seismic-nonstructural-anchorage
+    question: >
+      At this building's seismic design category, do tall storage cabinets,
+      shelving and bookcases fall outside the furniture exemption and need
+      designed anchorage?
+    applies_when: Tall storage furniture and shelving
+    source_families: [building_code_seismic]
+    severity: medium
+
+extract_fields:
+  - id: 12fn.xf.feeds
+    label: Feed points with type, circuits and data drops
+    type: list
+    per: package
+    reconcile_against: [drawings.electrical, drawings.technology]

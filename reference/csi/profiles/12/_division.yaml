@@ -7,13 +7,15 @@ maintainers: [dleerdefi]
 reviewed_by: []
 last_reviewed: null
 
-legacy_scope_file: reference/pe_expertise/scope-12-furnishings.md
-
 scope_summary: >
-  Casework, countertops, window treatments, furniture, rugs and mats, and site
-  furnishings. Much of the risk sits at interfaces: backing before close-in,
-  power and data matching furniture layouts, and plumbing at countertops.
-  Casework may be specified in Division 06 instead; check both.
+  Casework, countertops, window treatments, furniture, multiple seating, and
+  rugs and mats. Much of the risk sits at interfaces: backing before
+  close-in, power and data matching furniture and seating layouts, plumbing at
+  countertops, slab recesses for mats, and pockets and power for shades. Many
+  items are owner-furnished or bought through the owner's dealer, so who
+  furnishes, who installs, and when each selection must be frozen matter as
+  much as the product. Casework may be specified in Division 06 instead;
+  check both.
 
 equivalents: ["06 41 00"]
 
@@ -42,29 +44,36 @@ review_checks:
     kind: coordination
     check: >
       Owner-furnished and contractor-furnished designations (OFCI, OFOI, CFCI)
-      for each item match the contract documents.
+      for each item match the contract documents, and each owner-furnished
+      item that needs backing, rough-in or an opening has a date by which the
+      owner's selection must be frozen.
     trace_to: [spec.part1, drawings.plans]
     severity: high
     owner: gc
+    gate: in_wall_rough_in
 
   - id: d12.anchorage
     kind: constructability
     submittal_types: [Shop Drawings]
     check: >
       Wall and floor anchorage and support method are shown, with required
-      backing identified for each wall-mounted item.
+      backing identified for each wall-mounted item and routed to the framer
+      before the wall is closed.
     trace_to: [drawings.details, spec.part3]
     severity: high
     owner: subcontractor
+    gate: wall_close_in
 
   - id: d12.power-data
     kind: coordination
     check: >
-      Items needing power, data or integral lighting show device locations,
-      and those match the electrical drawings.
-    trace_to: [drawings.electrical]
+      Items needing power, data or integral lighting show device locations and
+      the connection each needs (receptacle, hardwired, floor box), and those
+      match the electrical and technology drawings.
+    trace_to: [drawings.electrical, drawings.technology]
     severity: medium
     owner: gc
+    gate: in_wall_rough_in
 
 failure_modes:
   - id: d12.fm.outlets-vs-layout
@@ -72,6 +81,12 @@ failure_modes:
     consequence: Outlets behind cabinets or in the wrong place; rework after finishes
     caught_by: [d12.power-data]
     source: industry_practice
+
+  - id: d12.fm.owner-selection-late
+    what_happens: An owner-furnished item is selected after its backing, rough-in or opening was built to a guess
+    consequence: Walls opened, casework recut, or the item surface-mounted on exposed raceway
+    caught_by: [d12.furnished-by]
+    source: field_experience
 
 regulatory_hooks:
   - id: d12.rh.composite-wood-formaldehyde

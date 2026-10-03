@@ -1,0 +1,113 @@
+schema_version: 1
+kind: section
+id: "10 51 00"
+title: Lockers
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Metal, plastic, phenolic and wood lockers and locker room benches. Lockers
+  stand on a base someone has to provide (a concrete curb, a metal base or
+  legs), are anchored to the wall and floor against tipping, and close off to
+  walls and ceilings with fillers and sloped tops. Accessible lockers and
+  benches have counts and reach limits, and electronic or charging lockers
+  need power and data nobody drew.
+
+submittals:
+  - id: 10lk.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Locker layout by room with tiers, sizes, bases, fillers, end panels and sloped tops
+      - Base type and dimensions, and anchorage to wall, floor and back-to-back units
+      - Accessible lockers and benches identified with shelf and hook heights
+  - id: 10lk.sub.product-data
+    type: Product Data
+    must_show:
+      - Locks and latches, and power and data needs for electronic or charging lockers
+
+review_checks:
+  - id: 10lk.bases
+    kind: constructability
+    check: >
+      The base type is shown with who provides it; a concrete curb is on the
+      concrete or architectural drawings and in someone's scope, sized to the
+      locker footprint, and built before flooring and wall base.
+    trace_to: [drawings.details, drawings.plans, spec.part1]
+    severity: medium
+    owner: gc
+    gate: floor_finish_install
+
+  - id: 10lk.anchorage
+    kind: constructability
+    check: >
+      Each run is anchored against tipping as the manufacturer and the seismic
+      research require, including island and back-to-back runs that have no
+      wall behind them.
+    trace_to: [drawings.details, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: 10lk.accessible-lockers
+    kind: conformance
+    check: >
+      Accessible lockers in the required number have shelves and hooks within
+      reach and clear floor space in front, and locker rooms have the
+      accessible bench the standard requires.
+    trace_to: [drawings.plans, drawings.interior_elevations]
+    severity: medium
+    owner: subcontractor
+
+  - id: 10lk.electronic-locks
+    kind: coordination
+    check: >
+      Electronic, keyless or charging lockers have their power and data needs
+      on the electrical and technology drawings, with boxes behind or above the
+      runs where the manufacturer needs them.
+    trace_to: [drawings.electrical, drawings.technology]
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
+failure_modes:
+  - id: 10lk.fm.no-base
+    what_happens: The concrete curb under the lockers was in nobody's scope
+    consequence: Base built late in the field and flooring patched around it, or lockers set on the floor with no toe space
+    caught_by: [10lk.bases]
+    source: field_experience
+
+  - id: 10lk.fm.unanchored-island
+    what_happens: Island and back-to-back runs set with no floor anchorage
+    consequence: Tip hazard; anchors drilled through finished floors after inspection
+    caught_by: [10lk.anchorage]
+    source: industry_practice
+
+  - id: 10lk.fm.smart-lockers-no-power
+    what_happens: Electronic or charging lockers selected without power and data at the runs
+    consequence: Surface raceway or wall cutting after finishes
+    caught_by: [10lk.electronic-locks]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 10lk.rh.accessible-lockers
+    topic: accessibility-locker-rooms
+    question: >
+      How many accessible lockers and which benches does the adopted
+      accessibility standard require in this locker room, and what reach and
+      clear floor space apply to them?
+    applies_when: Locker rooms and public lockers
+    source_families: [accessibility]
+    severity: medium
+
+  - id: 10lk.rh.anchorage
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Given this building's seismic design category and occupancy, must
+      full-height lockers be anchored to an engineered design, or is the
+      manufacturer's standard anchorage enough?
+    applies_when: Full-height lockers, particularly in higher seismic design categories
+    source_families: [building_code_seismic]
+    severity: medium

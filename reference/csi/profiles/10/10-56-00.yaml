@@ -1,0 +1,110 @@
+schema_version: 1
+kind: section
+id: "10 56 00"
+title: Storage Assemblies
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # rack and mobile-system anchorage and seismic design is often by the manufacturer
+
+scope_summary: >
+  Metal and wire storage shelving, mobile (high-density) shelving and storage
+  racks. A loaded high-density system is one of the heaviest floor loads in a
+  building and its rails want a recess in the slab, so both have to be
+  settled before the floor is designed and poured. Tall shelving and racks
+  set the sprinkler design and can trigger the fire code's high-piled
+  storage rules, and they need anti-tip and seismic restraint that doesn't
+  conflict with the ceiling and sprinklers above.
+
+submittals:
+  - id: 10ss.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Layout with unit heights, top-of-storage elevation, aisle widths and carriage travel
+      - Rail installation (recessed in slab or on a raised deck) with floor flatness requirements
+      - Anchorage, overhead bracing and anti-tip devices
+  - id: 10ss.sub.design-data
+    type: Design Data
+    must_show:
+      - Loaded weight per unit floor area along the rails, and seismic design where required
+
+review_checks:
+  - id: 10ss.floor-load
+    kind: coordination
+    check: >
+      The loaded weight of high-density and rack systems is confirmed by the
+      EOR against the floor's design load in that area; a storage room drawn
+      on an ordinary office floor without a stated design load is raised.
+    trace_to: [drawings.structural, drawings.plans]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 10ss.rail-recess
+    kind: constructability
+    check: >
+      Mobile shelving rails are either recessed into slab blockouts formed at
+      the pour, or set on a raised deck whose ramps keep the accessible route;
+      the floor meets the system's flatness and level tolerance.
+    trace_to: [drawings.structural, drawings.details, spec.part3]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 10ss.restraint
+    kind: constructability
+    check: >
+      Anti-tip and seismic restraint is shown and designed where the seismic
+      research requires it, with overhead bracing that clears sprinklers,
+      lights and the ceiling.
+    trace_to: [drawings.details, drawings.rcp]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 10ss.fm.flat-slab
+    what_happens: Slab poured flat with no rail recess for a mobile system selected later
+    consequence: Raised deck and ramps that break the accessible route, or slab saw-cut for rails
+    caught_by: [10ss.rail-recess]
+    source: field_experience
+
+  - id: 10ss.fm.floor-overload
+    what_happens: High-density storage placed on a floor designed for office live load
+    consequence: Structural reinforcement or a smaller system late in the job
+    caught_by: [10ss.floor-load]
+    source: industry_practice
+
+  - id: 10ss.fm.storage-above-sprinkler-limit
+    what_happens: Shelving or racks taller than the sprinkler design assumed, or solid shelves where open ones were assumed
+    consequence: Sprinkler redesign, in-rack sprinklers, or storage height restricted at the fire inspection
+    caught_by: [if.10-storage-sprinklers]
+    source: industry_practice
+
+standards:
+  - id: 10ss.std.ansi-mh16-1
+    name: ANSI MH16.1
+    title: Specification for the Design, Testing and Utilization of Industrial Steel Storage Racks
+    verify: Rack design and load claims where storage racks are submitted
+
+regulatory_hooks:
+  - id: 10ss.rh.high-piled-storage
+    topic: high-piled-combustible-storage
+    question: >
+      Do the storage height, commodity and area trigger the fire code's
+      high-piled combustible storage requirements (permit, storage plans,
+      sprinkler design, aisle widths), and what clearance to sprinklers is
+      required?
+    applies_when: Shelving or racks storing combustible material at height
+    source_families: [fire_code]
+    severity: high
+
+  - id: 10ss.rh.anchorage
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Which shelving and racks at this site need engineered seismic restraint,
+      and must that design be filed with the building department?
+    applies_when: Shelving and racks above head height, particularly in higher seismic design categories
+    source_families: [building_code_seismic]
+    severity: medium

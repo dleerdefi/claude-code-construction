@@ -1,0 +1,180 @@
+schema_version: 1
+kind: section
+id: "10 21 13"
+title: Toilet Compartments
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Toilet compartments and urinal screens in every material (metal, plastic
+  laminate, phenolic, solid plastic, stone); the material subsections inherit
+  from here. The mounting style decides what the building owes the
+  partitions: overhead-braced and ceiling-hung units need structure above the
+  ceiling, floor-anchored pilasters need anchors that miss in-slab work and
+  waterproofing. Module widths on the shop drawings have to land on the
+  plumber's fixture centerlines, the accessible compartments have to keep
+  their dimensions when a fabricator's standard module is substituted, and
+  solid plastic partitions have to meet the fire performance some codes now
+  require.
+
+review_mode: per_element
+element_types: [toilet_room]
+
+submittals:
+  - id: 10tc.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Plan of each toilet room keyed to the enlarged plans, with compartment widths and depths, pilaster and door locations, door swings and fixture centerlines
+      - Accessible and ambulatory compartments identified with clear dimensions, door widths and hardware
+      - Mounting style and anchorage at floor, wall and ceiling, with the support each needs from the building
+      - Panel height above the floor, overall height, and gap or sight-line treatment where the spec requires privacy construction
+  - id: 10tc.sub.product-data
+    type: Product Data
+    must_show:
+      - Material and core, with the fire test classification of the exact panel construction
+      - Hinges, latches, pulls, coat hooks and door stops
+  - id: 10tc.sub.samples
+    type: Samples
+    must_show:
+      - Each panel color and finish, and hardware finish
+
+review_checks:
+  - id: 10tc.accessible-layout
+    kind: conformance
+    reflex: true
+    check: >
+      Each toilet room provides the accessible compartment, and the ambulatory
+      compartment where the standard requires one, and the shop drawings keep
+      their clear width and depth, door location, width and swing, latch and
+      pull hardware, toe clearance and water closet position. Substituting the
+      fabricator's standard module widths is the common way these dimensions
+      are lost.
+    trace_to: [drawings.enlarged_plans, drawings.interior_elevations]
+    severity: high
+    owner: subcontractor
+
+  - id: 10tc.overhead-support
+    kind: coordination
+    scope: package
+    check: >
+      Ceiling-hung and overhead-braced units have the structure above the
+      ceiling they depend on (continuous support members at the headrail or
+      pilaster lines, designed for the compartment loads), shown on the
+      drawings and installed before overhead MEP fills the space.
+      Floor-anchored pilasters have anchor points clear of in-slab conduit or
+      radiant tubing, sealed where they pass through floor waterproofing.
+    trace_to: [drawings.structural, drawings.details, drawings.rcp]
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: 10tc.plastic-fire-performance
+    kind: conformance
+    scope: package
+    check: >
+      Solid plastic compartments carry the fire test classification the
+      adopted code requires for partitions in this occupancy, for the exact
+      panel construction submitted; a standard solid plastic panel often lacks
+      it.
+    trace_to: [spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 10tc.privacy-heights
+    kind: conformance
+    check: >
+      Panel height above the floor, overall height, and door and pilaster gap
+      treatment match the spec, especially where the owner requires
+      no-sight-line construction; taller or lower panels still leave the toe
+      clearance the accessible compartments need.
+    trace_to: [spec.part2, drawings.interior_elevations]
+    severity: medium
+    owner: subcontractor
+
+reconciliations:
+  - id: 10tc.rc.fixture-centerlines
+    between: [drawings.enlarged_plans, drawings.plumbing]
+    key: Each compartment and urinal screen
+    fields: [fixture centerline from side wall or partition, compartment width, flush control side, door location]
+    check: >
+      Water closet and urinal centerlines on the plumbing drawings fall where
+      the compartment layout needs them: centered in standard compartments, at
+      the required distance from the side wall in accessible ones, with flush
+      controls on the open side and urinal screens clear of the fixtures.
+    severity: high
+    owner: gc
+    gate: in_wall_rough_in
+
+failure_modes:
+  - id: 10tc.fm.no-overhead-steel
+    what_happens: Ceiling-hung or overhead-braced compartments specified with no support steel designed or installed above the ceiling
+    consequence: Ceilings opened to add steel late, or a switch to floor-mounted units after the floor finish is down
+    caught_by: [10tc.overhead-support]
+    source: industry_practice
+
+  - id: 10tc.fm.centerlines-off
+    what_happens: Carriers and rough-in set to the plumbing drawings while the compartment module widths shifted on the shop drawings
+    consequence: Water closets off-center, the accessible side-wall dimension lost, carriers reset through finished walls
+    caught_by: [10tc.rc.fixture-centerlines, if.10-toilet-room-fixtures]
+    source: field_experience
+
+  - id: 10tc.fm.module-substitution
+    what_happens: The fabricator's standard compartment sizes replace the dimensions drawn at the accessible compartment
+    consequence: Clear width or door clearance short at inspection; the compartment is rebuilt
+    caught_by: [10tc.accessible-layout]
+    source: industry_practice
+
+  - id: 10tc.fm.plastic-unrated
+    what_happens: Solid plastic partitions without the required fire test classification are delivered and installed
+    consequence: Rejected at inspection; replaced with a rated panel or another material
+    caught_by: [10tc.plastic-fire-performance]
+    source: industry_practice
+
+standards:
+  - id: 10tc.std.nfpa-286
+    name: NFPA 286
+    title: Standard Methods of Fire Tests for Evaluating Contribution of Wall and Ceiling Interior Finish to Room Fire Growth
+    verify: Room-corner test results for plastic partitions where the code or spec requires them
+  - id: 10tc.std.astm-e84
+    name: ASTM E84
+    title: Standard Test Method for Surface Burning Characteristics of Building Materials
+    verify: Flame spread classification claimed for the panel material
+
+regulatory_hooks:
+  - id: 10tc.rh.accessible-compartments
+    topic: accessibility-toilet-rooms
+    question: >
+      How many accessible and ambulatory compartments does the adopted
+      accessibility standard require in each toilet room, and what does it
+      require for their size, door width, swing and hardware, toe clearance
+      and water closet location?
+    applies_when: Toilet rooms with compartments
+    source_families: [accessibility]
+    severity: high
+
+  - id: 10tc.rh.plastic-partitions
+    topic: toilet-partition-fire-performance
+    question: >
+      Does the adopted building or fire code require plastic toilet room
+      privacy partitions to meet an interior finish classification or a
+      room-corner fire test in this occupancy?
+    applies_when: Solid plastic compartments or urinal screens
+    source_families: [building_code, fire_code]
+    severity: high
+
+extract_fields:
+  - id: 10tc.xf.mounting-style
+    label: Mounting style (floor-mounted, overhead-braced, ceiling-hung, floor-to-ceiling)
+    type: enum
+    per: package
+    reconcile_against: [spec.part2, drawings.details]
+  - id: 10tc.xf.accessible-dims
+    label: Accessible compartment clear width, depth and door width
+    type: list
+    per: element
+    reconcile_against: [drawings.enlarged_plans]

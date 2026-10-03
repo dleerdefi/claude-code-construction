@@ -1,0 +1,187 @@
+schema_version: 1
+kind: section
+id: "12 20 00"
+title: Window Treatments
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Blinds, shades, curtains and drapes, and their operating hardware (the
+  subtype sections, such as window shades, inherit from here). What the
+  building owes a shade is decided long before it arrives: a ceiling pocket
+  or head blocking at every opening, a pocket that doesn't shadow the
+  sprinklers or crowd the perimeter diffusers, brackets that land on
+  something solid rather than the curtain wall, and, for motorized shades,
+  power at the head and a control path that someone owns between the shade
+  vendor, the lighting controls and the electrician. Fabric needs a flame
+  test where the fire code asks for one, and cords are a safety issue
+  wherever children or at-risk patients are.
+
+review_mode: per_element
+element_types: [window_treatment_type]
+
+submittals:
+  - id: 12wt.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Layout by opening with shade bands, split points at mullions, mounting (pocket, head, jamb, ceiling) and fascia or closure
+      - Pocket and blocking details at each ceiling and head condition, sized for the roller, motor and any double shade
+      - Motor, power supply and control locations, wiring diagram, keypad locations and the interface to lighting controls or building automation
+  - id: 12wt.sub.product-data
+    type: Product Data
+    must_show:
+      - Fabric, openness and color, with the flame test for the exact fabric and any backing or coating
+      - Motors and controls, and the operating mechanism (cordless, continuous loop, motorized)
+  - id: 12wt.sub.samples
+    type: Samples
+    must_show:
+      - Fabric and hem bar in the selected colors
+
+review_checks:
+  - id: 12wt.pocket-blocking
+    kind: coordination
+    check: >
+      Every opening that gets a treatment has a ceiling pocket or head
+      blocking detailed at the size the roller, motor and any double shade
+      need, with a removable closure for access, continuous across mullions,
+      and clear of linear diffusers and perimeter heating that compete for the
+      same zone.
+    trace_to: [drawings.details, drawings.rcp, drawings.mechanical]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 12wt.mullion-mounting
+    kind: constructability
+    check: >
+      Shade bands split at mullions and columns, widths stay within the
+      fabric and tube limits the manufacturer states, and brackets fasten to
+      blocking or structure, not to the window or curtain wall frame unless
+      its manufacturer accepts it. Inside-mount units clear window hardware,
+      operable sashes and interior trim.
+    trace_to: [drawings.exterior_elevations, drawings.details, schedule.window]
+    severity: medium
+    owner: subcontractor
+
+  - id: 12wt.sprinkler-clearance
+    kind: coordination
+    check: >
+      Pockets, fascias and drapery tracks at the ceiling are compared with the
+      sprinkler layout, so that a deep pocket doesn't shadow the window wall
+      and sprinklers go inside large pockets where the sprinkler standard
+      requires.
+    trace_to: [drawings.rcp, drawings.fire_protection]
+    severity: medium
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 12wt.motorized-controls
+    kind: coordination
+    scope: package
+    check: >
+      Motorized shades have motor voltage, power supply and panel locations,
+      circuits, control wiring, keypads, sensors and the integration with
+      lighting controls, building automation or AV defined, with who
+      furnishes, wires, programs and commissions each piece.
+    trace_to: [drawings.electrical, spec.part1, spec.part2]
+    severity: high
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: 12wt.fabric-flame
+    kind: conformance
+    check: >
+      Fabric flame-test results cover the exact fabric, color and backing
+      submitted, where the fire code requires them for this occupancy; some
+      fabrics pass only with a treatment that has to be documented.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 12wt.cord-safety
+    kind: conformance
+    check: >
+      Where children or at-risk patients use the space, operating mechanisms
+      are cordless or motorized, or meet the corded window covering safety
+      standard, and ligature-resistant products are used where the owner's
+      risk assessment calls for them.
+    trace_to: [spec.part2, drawings.plans]
+    severity: high
+    owner: subcontractor
+
+reconciliations:
+  - id: 12wt.rc.openings
+    between: [schedule.window, drawings.rcp, drawings.details]
+    key: Window opening or window type
+    fields: [openings receiving a treatment, opening width, mullion positions, pocket or head detail]
+    check: >
+      Each opening that receives a treatment on the plans or finish schedule
+      has a pocket or head detail on the reflected ceiling plan and details at
+      a width and split pattern that matches its window type.
+    severity: medium
+    owner: design_team
+    gate: above_ceiling_close_in
+
+failure_modes:
+  - id: 12wt.fm.no-pocket
+    what_happens: Ceilings finished with no pocket or head blocking where shades were scheduled
+    consequence: Surface brackets and added fascias, or pockets cut into finished ceilings
+    caught_by: [12wt.pocket-blocking, 12wt.rc.openings]
+    source: field_experience
+
+  - id: 12wt.fm.motor-no-power
+    what_happens: Motorized shades with no power at the head, or line-voltage motors where only low-voltage control was roughed in
+    consequence: Ceilings reopened for circuits, or surface raceway along the window wall
+    caught_by: [12wt.motorized-controls, if.12-motorized-shades-power]
+    source: field_experience
+
+  - id: 12wt.fm.controls-orphaned
+    what_happens: Integration of the shades with lighting controls or building automation falls between the shade vendor, the controls vendor and the electrician
+    consequence: Shades work only from local switches at turnover; programming and wiring added under a change order
+    caught_by: [12wt.motorized-controls]
+    source: industry_practice
+
+  - id: 12wt.fm.pocket-shadows-sprinklers
+    what_happens: A deep shade pocket next to the window wall obstructs sprinkler discharge
+    consequence: Sprinklers added in or beside the pocket after the ceiling is closed
+    caught_by: [12wt.sprinkler-clearance, if.12-shade-pockets-sprinklers]
+    source: industry_practice
+
+  - id: 12wt.fm.fabric-untested
+    what_happens: Fabric delivered without flame-test documentation for the color and backing installed
+    consequence: Fire marshal holds the final; fabric field-treated or replaced
+    caught_by: [12wt.fabric-flame]
+    source: industry_practice
+
+standards:
+  - id: 12wt.std.nfpa-701
+    name: NFPA 701
+    title: Standard Methods of Fire Tests for Flame Propagation of Textiles and Films
+    verify: Flame test results for the exact fabric submitted
+
+regulatory_hooks:
+  - id: 12wt.rh.fabric-flame
+    topic: decorative-materials-flame-propagation
+    question: >
+      Does the adopted fire code require window treatments, curtains and drapes
+      in this occupancy to pass a flame-propagation test, and what
+      documentation will the fire marshal accept?
+    applies_when: Fabric window treatments, curtains and drapes
+    source_families: [fire_code]
+    severity: medium
+
+extract_fields:
+  - id: 12wt.xf.mounting
+    label: Mounting condition and pocket size per type
+    type: string
+    per: element
+    reconcile_against: [drawings.details, drawings.rcp]
+  - id: 12wt.xf.motor
+    label: Motor voltage, power supply location and control interface
+    type: string
+    per: element
+    reconcile_against: [drawings.electrical]

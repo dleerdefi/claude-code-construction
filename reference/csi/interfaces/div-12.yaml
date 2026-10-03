@@ -1,11 +1,15 @@
 schema_version: 1
 kind: interfaces
 id: div-12
-title: Interfaces involving Division 12 casework
+title: Interfaces involving Division 12
 status: draft
 maintainers: [dleerdefi]
 reviewed_by: []
 last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with Divisions 03-11 (slab recesses, backing, window frames, ceilings,
+# equipment) belong to those divisions' files; the casework edges below predate that rule.
 
 edges:
   - id: if.casework-backing
@@ -36,7 +40,6 @@ edges:
         confirm_in: [spec.part1, schedule.plumbing_fixture]
     gate: {milestone: in_wall_rough_in}
     severity: high
-    failure: Tops cut for a fixture that was later substituted; rough-in lands inside a cabinet back or drawer
 
   - id: if.casework-electrical
     a: ["12 30 00", "06 41 00"]
@@ -47,7 +50,6 @@ edges:
     b_provides: Device locations and heights, under-cabinet fixture models and drivers
     gate: {milestone: in_wall_rough_in}
     severity: high
-    failure: Boxes behind upper cabinets or split by the backsplash; lights with no wiring path
 
   - id: if.casework-base
     a: ["12 30 00", "06 41 00"]
@@ -123,3 +125,72 @@ edges:
     severity: medium
     failure: Upper cabinets or countertops cover medical gas outlets or nurse call devices
     facility_types: [healthcare]
+
+  # ── Window treatments ─────────────────────────────────────────
+  - id: if.12-motorized-shades-power
+    a: ["12 20 00"]
+    a_trade: Window treatments
+    b: ["26 05 33", "26 05 83", "26 09 23"]
+    b_trade: Electrical and lighting controls
+    a_provides: Motor voltage and locations, power supply and panel locations, control wiring diagram, keypad and sensor locations, and the integration protocol
+    b_provides: Circuits and boxes at each head or pocket and power supply, conduit for control wiring, and the lighting-control interface
+    responsibility:
+      - item: Low-voltage shade control wiring and keypads
+        typical: {furnish: "12 20 00", install: "12 20 00 or 26 05 33", connect: "12 20 00"}
+        confirm_in: [spec.part1, drawings.electrical]
+      - item: Programming and commissioning of shade groups and integration
+        typical: {install: "12 20 00 or 26 09 23"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: in_wall_rough_in}
+    severity: high
+
+  - id: if.12-shade-pockets-sprinklers
+    a: ["12 20 00"]
+    a_trade: Window treatments
+    b: ["21 13 00"]
+    b_trade: Sprinklers
+    a_provides: Pocket, fascia and drapery track locations, widths and depths along each window wall
+    b_provides: Sprinkler positions relative to the pockets, and sprinklers inside pockets where the pocket would obstruct discharge
+    gate: {milestone: above_ceiling_close_in}
+    severity: medium
+
+  # ── Furniture and seating ─────────────────────────────────────
+  - id: if.12-furniture-power-data
+    a: ["12 50 00"]
+    a_trade: Furniture
+    b: ["26 05 33", "26 27 26", "27 10 00", "27 41 00"]
+    b_trade: Electrical, structured cabling and audiovisual
+    a_provides: Furniture plan with feed points and feed types, the furniture power system's circuit arrangement, data drops per cluster, and table cutouts for power and AV modules
+    b_provides: Floor boxes, poke-throughs, power poles and wall feeds at those points with the circuits and cabling they need, and AV inserts for conference tables
+    responsibility:
+      - item: Final connection of systems furniture to the building feed
+        typical: {install: "12 50 00", connect: "26 27 26"}
+        confirm_in: [spec.part1, drawings.electrical]
+      - item: Power and AV modules in conference tables
+        typical: {furnish: "12 50 00 or 27 41 00", install: "12 50 00 or 27 41 00"}
+        confirm_in: [spec.part1, drawings.technology]
+    gate:
+      milestone: slab_pour
+      note: Floor boxes in slabs on grade are set at the pour; later layouts mean cores
+    severity: high
+
+  - id: if.12-seating-aisle-power
+    a: ["12 60 00"]
+    a_trade: Multiple seating
+    b: ["26 05 33", "26 51 00"]
+    b_trade: Electrical raceway and interior lighting
+    a_provides: Aisle and step light locations on seat ends and risers, and power needs of motorized telescoping stands
+    b_provides: Conduit and boxes cast into risers at those locations, and circuits and controls for the stands
+    gate: {milestone: slab_pour}
+    severity: medium
+
+  # ── Rugs and mats ─────────────────────────────────────────────
+  - id: if.12-mat-recess-drains
+    a: ["12 48 00"]
+    a_trade: Entrance mats and grilles
+    b: ["22 13 00", "22 14 00"]
+    b_trade: Sanitary and storm drainage
+    a_provides: Recess locations, depths and pan details that need drainage
+    b_provides: Drain bodies and piping at each drained recess, set before the slab pour
+    gate: {milestone: slab_pour}
+    severity: medium

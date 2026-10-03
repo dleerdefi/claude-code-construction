@@ -195,6 +195,32 @@ review_checks:
     severity: medium
     owner: subcontractor
 
+reconciliations:
+  - id: cw.rc.sinks
+    between: [drawings.interior_elevations, schedule.plumbing_fixture, drawings.plumbing]
+    key: Each sink location in casework
+    fields: [fixture tag, sink type and mounting, bowl depth, faucet holes, accessible designation]
+    check: >
+      Every sink on the casework elevations has a fixture tag on the plumbing
+      plans and schedule, and the scheduled sink's mounting, bowl depth and
+      faucet holes suit the top and, at accessible units, the knee space.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: cw.rc.devices
+    between: [drawings.interior_elevations, drawings.electrical]
+    key: Each casework elevation
+    fields: [device type, location, height relative to backsplash and upper cabinets, under-cabinet lighting]
+    check: >
+      Receptacles, switches, data outlets and under-cabinet lights on the
+      electrical drawings land where the elevations leave wall exposed: above
+      the backsplash, below upper cabinets, and not behind tall units or
+      appliances.
+    severity: medium
+    owner: design_team
+    gate: in_wall_rough_in
+
 failure_modes:
   - id: cw.fm.in-wall-brackets-missed
     what_happens: In-wall brackets and backing for wall-hung counters were never identified or never reached the framer before drywall
