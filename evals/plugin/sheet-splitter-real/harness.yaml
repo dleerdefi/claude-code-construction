@@ -1,0 +1,4 @@
+checks:
+  - name: sheet-list
+    script: checks/sheet_list.py
+    weight: 3
