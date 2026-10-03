@@ -8,7 +8,7 @@ The question: which additional skills would be most valuable to a construction P
 
 ## 1. Where the plugin stands
 
-There are 14 production skills. Only 3 are validated: project-setup, spec-splitter and sheet-splitter.
+There are 14 production skills. 13 have a passing eval case in `evals/plugin/` (one run each through the harness on Windows, 2026-10-02); viewport-highlighter has none because it needs a running AgentCM project. See `evals/plugin/README.md` for what each case checks and the suite's known issues.
 
 | Phase | Skills today | Missing |
 |---|---|---|
