@@ -1,0 +1,190 @@
+schema_version: 1
+kind: section
+id: "03 20 00"
+title: Concrete Reinforcing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Reinforcing bars, welded wire reinforcement and their supports (03 21 00
+  and 03 22 00 inherit from here; post-tensioning is 03 23 00). Placing
+  drawings are the fabricator's reading of the structural drawings, and the
+  errors that matter make the concrete unbuildable or under-reinforced: laps
+  and development that do not match the design, joints too congested to
+  place concrete through, cover that ignores exposure, openings with no trim
+  bars, and dowels other trades were counting on. After the pour, a missing
+  bar is a structural repair.
+
+submittals:
+  - id: 03rb.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Placing drawings and bar lists for every element, keyed to the marks on the structural drawings and schedules
+      - Lap lengths, splice locations and splice type (lap, mechanical, welded) by bar size and condition
+      - Bar supports by type and finish, and cover by exposure
+      - Dowels for later work and trim bars at openings, with sleeves and embeds drawn where they crowd the bars
+  - id: 03rb.sub.certificates
+    type: Certificates
+    must_show:
+      - Mill test reports traceable by heat number to the bars delivered, with the specification and grade
+  - id: 03rb.sub.product-data
+    type: Product Data
+    must_show:
+      - Mechanical splices and headed bars with evaluation reports for the bar sizes and grades used
+      - Coating or galvanizing, and matching supports, tie wire and touch-up material
+
+review_checks:
+  - id: 03rb.laps-development
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Lap lengths, splice locations, hooks and headed-bar development match
+      the lap schedule on the structural drawings for each bar size, grade,
+      coating, position (top bars) and concrete strength. A single lap length
+      used for every condition, or splices moved into zones the drawings
+      prohibit (plastic hinge regions, mid-span bottom bars), goes back to
+      the detailer with the engineer of record copied.
+    trace_to: [drawings.structural, schedule.structural, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 03rb.grade-and-welding
+    kind: conformance
+    submittal_types: [Shop Drawings, Certificates]
+    check: >
+      Bar specification and grade on the placing drawings and mill reports
+      match each member's requirement, including low-alloy bars where the
+      seismic force-resisting system or welding requires them. Bars welded to
+      embeds, spliced by welding or tack-welded to crossing bars are weldable
+      or covered by the welding procedure the reinforcing-bar welding code
+      requires, and only where the engineer allows welding.
+    trace_to: [drawings.structural, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 03rb.congestion
+    kind: constructability
+    check: >
+      At beam-column joints, coupling beams, wall boundary elements,
+      post-tensioning anchorages, and around embed plates and anchor rod
+      groups, the bars, couplers, embeds and sleeves are drawn together at a
+      scale that shows whether concrete can be placed and consolidated with
+      the specified aggregate and slump. Congested joints get a large-scale
+      section or a three-dimensional check and an RFI before fabrication.
+    trace_to: [drawings.structural, drawings.details]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 03rb.cover-and-supports
+    kind: conformance
+    check: >
+      Cover is shown per exposure (cast against earth, formed and exposed to
+      weather or deicers, interior, and members whose fire rating depends on
+      cover), and supports suit the base: plates or precast blocks on soil and
+      on the vapor retarder, coated or plastic supports at exposed and
+      architectural surfaces.
+    trace_to: [drawings.structural, spec.part2, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: 03rb.dowels-for-others
+    kind: absence
+    check: >
+      Dowels and starter bars for work built later or by other trades
+      (reinforced masonry, site and screen walls, housekeeping pads and
+      equipment bases, curbs, stairs, tilt-up and precast connections, future
+      expansion) appear on the placing drawings at the locations of those
+      trades' approved layouts, not at nominal spacing.
+    trace_to: [drawings.structural, drawings.foundation, drawings.plans, spec.part3, submittals.approved]
+    severity: high
+    owner: gc
+    gate: foundation_pour
+
+  - id: 03rb.coated-bars
+    kind: constructability
+    check: >
+      Where epoxy-coated, galvanized or stainless bars are specified, every
+      coated bar is tagged on the placing drawings, supports and tie wire
+      match the coating, stainless is kept from touching carbon steel where
+      the spec prohibits contact, and field cutting and coating repair are
+      covered.
+    trace_to: [spec.part2, spec.part3, drawings.structural]
+    severity: medium
+    owner: subcontractor
+
+reconciliations:
+  - id: 03rb.rc.openings
+    between: [drawings.plans, drawings.mechanical, drawings.plumbing, drawings.structural]
+    key: Slab or wall opening (shaft, duct, large sleeve group, floor drain cluster)
+    fields: [location, size, trim reinforcing or framing, structural acceptance]
+    check: >
+      Every opening on the architectural and MEP drawings appears on the
+      structural drawings or falls within the typical opening details, and the
+      placing drawings carry its trim bars. Openings that appear only on MEP
+      drawings go to the engineer of record before the slab is reinforced.
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+failure_modes:
+  - id: 03rb.fm.congested-joint
+    what_happens: Bars detailed member by member collide at beam-column joints and around embed groups
+    consequence: Bars field-bent, cut or left out to make room; honeycombing; RFIs written during placement
+    caught_by: [03rb.congestion]
+    source: industry_practice
+
+  - id: 03rb.fm.dowels-missed
+    what_happens: Dowels for masonry, pads or later pours left off the placing drawings
+    consequence: Adhesive dowels drilled after the fact, needing the engineer's acceptance, an evaluation report and special inspection
+    caught_by: [03rb.dowels-for-others, if.03-masonry-dowels]
+    source: industry_practice
+
+  - id: 03rb.fm.generic-laps
+    what_happens: Laps detailed at one generic length, short for top bars, coated bars or the larger sizes
+    consequence: Under-strength splices caught at inspection and reworked under schedule pressure, or never caught
+    caught_by: [03rb.laps-development]
+    source: industry_practice
+
+  - id: 03rb.fm.supports-sink
+    what_happens: Unplated supports set on soil or the vapor retarder, or welded wire left lying on the base to be hooked up during the pour
+    consequence: Punctured retarder, reinforcing at the bottom of the slab, and cracking that telegraphs through flooring
+    caught_by: [03rb.cover-and-supports]
+    source: industry_practice
+
+  - id: 03rb.fm.untrimmed-opening
+    what_happens: Opening formed or cut from the MEP drawings with no trim bars because the structural drawings never showed it
+    consequence: Corner cracking or inadequate capacity at the opening; structural repair
+    caught_by: [03rb.rc.openings]
+    source: industry_practice
+
+standards:
+  - id: 03rb.std.astm-a615
+    name: ASTM A615/A615M
+    title: Deformed and Plain Carbon-Steel Bars for Concrete Reinforcement
+    verify: Grade on mill reports against the structural drawings
+  - id: 03rb.std.astm-a706
+    name: ASTM A706/A706M
+    title: Deformed and Plain Low-Alloy Steel Bars for Concrete Reinforcement
+    verify: Bars in the seismic force-resisting system and bars to be welded, where the drawings require them
+    note: Earlier editions are titled "Low-Alloy Steel Deformed and Plain Bars for Concrete Reinforcement"
+  - id: 03rb.std.aws-d1-4
+    name: AWS D1.4/D1.4M
+    title: Structural Welding Code — Steel Reinforcing Bars
+    verify: Welding procedure and welder qualification wherever reinforcing is welded
+
+extract_fields:
+  - id: 03rb.xf.grades
+    label: Bar specification and grade by member type
+    type: list
+    per: package
+    reconcile_against: [drawings.structural]
+  - id: 03rb.xf.splices
+    label: Splice type and lap length by bar size and condition
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, schedule.structural]

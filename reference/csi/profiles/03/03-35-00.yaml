@@ -1,0 +1,171 @@
+schema_version: 1
+kind: section
+id: "03 35 00"
+title: Concrete Finishing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Floor finishing and tolerances, and finishes that make the concrete the
+  final floor: hardened, sealed, colored, stamped and polished (03 35 43
+  inherits from here). Flatness and levelness have to be specified per
+  flooring type, measured by the standard method soon after finishing, and
+  accepted or remedied before the next trade, or the flooring installer
+  inherits the slab and the dispute. Where the slab is the finish, curing,
+  joint layout and protection from other trades decide the result more than
+  the polishing does.
+
+submittals:
+  - id: 03fin.sub.product-data
+    type: Product Data
+    must_show:
+      - Hardeners, densifiers, dyes or stains, sealers or guards, and joint fillers, with where each is used
+  - id: 03fin.sub.samples
+    type: Samples
+    must_show:
+      - Mockup of each exposed or polished finish, made with the production mix, finishing timing and crew
+  - id: 03fin.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Flatness and levelness results per placement, with placement and measurement dates
+  - id: 03fin.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Polishing installer experience or manufacturer certification the spec requires
+
+review_checks:
+  - id: 03fin.tolerance-per-flooring
+    kind: absence
+    check: >
+      Flatness and levelness are specified per area and match what each
+      flooring, racking or equipment manufacturer needs (thin-set and
+      large-format tile, resilient sheet, polished concrete, wood, raised
+      access floor, narrow-aisle racking with defined wheel paths). One
+      overall value for the whole building, or none, is an RFI.
+    trace_to: [spec.part3, schedule.finish, drawings.plans, drawings.storage_racks]
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+  - id: 03fin.measurement-timing
+    kind: completeness
+    submittal_types: [Test Reports]
+    check: >
+      Flatness and levelness are measured by the standard test method within
+      the window the tolerance specification sets after finishing, before
+      shores come out under elevated slabs, by the party the spec names, with
+      results issued before the next placement so methods can change.
+      Levelness is enforceable only on slabs on ground and shored elevated
+      slabs; unshored, cambered or composite-deck slabs need another
+      acceptance criterion in the spec.
+    trace_to: [spec.part3, register.special_inspections]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 03fin.exposed-slab-care
+    kind: constructability
+    check: >
+      Slabs to be polished, stained or left exposed are cured by a method
+      the finish system accepts, placed with the mix, finishing timing and
+      crew of the approved mockup, and protected from the pour to final
+      finish against hydraulic leaks, rust from stored steel, pipe-cutting
+      oil, tape, markings and scraping, with protection in the trades'
+      scopes.
+    trace_to: [spec.part3, spec.part1]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 03fin.exposed-joint-layout
+    kind: conformance
+    check: >
+      Where the slab is the finish, sawcut joints, construction joints and
+      pour breaks are on a plan the architect accepted, aligned with walls,
+      columns and the grid, with the joint filler and its timing specified.
+    trace_to: [drawings.plans, drawings.structural, spec.part3]
+    severity: medium
+    owner: subcontractor
+    gate: slab_pour
+
+  - id: 03fin.slip-resistance
+    kind: conformance
+    check: >
+      Polished, sealed or burnished floors in wet, entry and public areas
+      meet the slip-resistance criterion the spec or owner names, tested on
+      the mockup by the named method after the final sealer or guard.
+    trace_to: [spec.part2, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 03fin.fm.measured-late
+    what_happens: Flatness measured weeks after placement, after curling and trade traffic, or never measured
+    consequence: Compliance cannot be established; the flooring installer charges for leveling and nobody can be held to the tolerance
+    caught_by: [03fin.measurement-timing]
+    source: industry_practice
+
+  - id: 03fin.fm.one-tolerance
+    what_happens: A building-wide tolerance below what large-format tile, wood or racking needs
+    consequence: Grinding and leveling at the flooring stage, or racking that cannot be plumbed
+    caught_by: [03fin.tolerance-per-flooring]
+    source: industry_practice
+
+  - id: 03fin.fm.stained-polish
+    what_happens: A slab to be polished cured with a staining compound or left unprotected from leaks, rust and markings
+    consequence: Permanent stains, or deeper grinding that changes the aggregate exposure; owner rejects the floor
+    caught_by: [03fin.exposed-slab-care]
+    source: industry_practice
+
+  - id: 03fin.fm.mockup-not-matched
+    what_happens: Production floor placed with a different mix, finishing timing or crew than the approved mockup
+    consequence: Color and aggregate exposure differ from what was approved; dispute over acceptance
+    caught_by: [03fin.exposed-slab-care]
+    source: industry_practice
+
+  - id: 03fin.fm.random-joints-exposed
+    what_happens: Exposed slab sawcut on a structural grid with no architectural review
+    consequence: Joints run through rooms and across thresholds where the design intended none; permanent
+    caught_by: [03fin.exposed-joint-layout]
+    source: industry_practice
+
+  - id: 03fin.fm.slippery-after-guard
+    what_happens: Sealer or guard applied after slip testing, or never tested
+    consequence: Slippery entries and wet areas; owner claims and re-treatment
+    caught_by: [03fin.slip-resistance]
+    source: industry_practice
+
+standards:
+  - id: 03fin.std.astm-e1155
+    name: ASTM E1155
+    title: Determining FF Floor Flatness and FL Floor Levelness Numbers
+    verify: Test method, sample layout and reporting of flatness results
+  - id: 03fin.std.aci-117
+    name: ACI 117 (ACI SPEC-117)
+    title: Specification for Tolerances for Concrete Construction and Materials
+    verify: Measurement timing and the slabs to which levelness applies; also governs formed and placement tolerances the spec adopts
+
+regulatory_hooks:
+  - id: 03fin.rh.slip-resistance
+    topic: walking-surface-slip-resistance
+    question: >
+      Does the adopted accessibility standard, building code or the owner
+      require a measured slip resistance for floor surfaces in this project,
+      by which test method and wet or dry, and where does it apply?
+    applies_when: Polished, sealed or burnished concrete in entries, wet areas and public spaces
+    source_families: [accessibility, building_code]
+    severity: medium
+
+extract_fields:
+  - id: 03fin.xf.tolerances
+    label: Specified flatness and levelness by area
+    type: list
+    per: package
+    reconcile_against: [spec.part3, schedule.finish]
+  - id: 03fin.xf.finish-system
+    label: Finish system per exposed area (hardener, densifier, color, sealer or guard)
+    type: list
+    per: package
+    reconcile_against: [schedule.finish, spec.part2]

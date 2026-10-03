@@ -1,0 +1,121 @@
+schema_version: 1
+kind: section
+id: "04 72 00"
+title: Cast Stone Masonry
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # reinforcing and anchorage of large units are often by the manufacturer's engineer
+
+scope_summary: >
+  Architectural cast stone: sills, copings, lintels, bands, trim and veneer
+  units. Every piece is made to a shop drawing, so the review is piece by
+  piece: profile, wash and drip, reinforcing and anchors, and joints. Cast
+  stone sills and copings are where water most often gets into a masonry
+  wall: they need flashing beneath, washes and drips, and head joints sealed
+  rather than mortared so the units can move.
+
+submittals:
+  - id: 04cs.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Every piece with its mark, profile, dimensions, wash, drip and reinforcing
+      - Anchor, dowel and lifting-insert locations, and the backup each anchor engages
+      - Joint locations and treatment, with head joints at copings, sills and caps identified for sealant
+  - id: 04cs.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Compressive strength, absorption and freeze-thaw results for the mix being supplied, as recent as the spec requires
+  - id: 04cs.sub.samples
+    type: Samples
+    must_show:
+      - Color and texture range, approved against the mock-up
+
+review_checks:
+  - id: 04cs.piece-profiles
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Each piece's profile matches the details: washes on every top surface,
+      drips on projecting undersides, sills and copings that project past the
+      wall face, and the returns, stools and lugs the drawings show.
+    trace_to: [drawings.details, drawings.wall_sections, drawings.exterior_elevations]
+    severity: high
+    owner: subcontractor
+
+  - id: 04cs.joints
+    kind: conformance
+    check: >
+      Head joints in copings, sills, caps and other horizontal units are
+      raked back and sealed over backer rod, not mortared full, and long sills
+      are bedded as the details and the manufacturer require so a settling
+      wall does not crack them.
+    trace_to: [drawings.details, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 04cs.reinforcing-anchors
+    kind: completeness
+    submittal_types: [Shop Drawings]
+    check: >
+      Anchors, dowels and reinforcing for each piece are shown in corrosion-
+      resistant material, reinforcing is kept back from exposed faces as the
+      cast stone standard requires, and the anchors engage backup or structure
+      at locations the backup trades have been given.
+    trace_to: [spec.part2, drawings.details]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 04cs.testing
+    kind: completeness
+    submittal_types: [Test Reports]
+    check: >
+      Strength, absorption and freeze-thaw results are for the mix being
+      supplied and as recent as the spec requires, and any field sampling and
+      testing the spec calls for is scheduled.
+    trace_to: [spec.part1, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 04cs.fm.mortared-heads
+    what_happens: Coping and sill head joints mortared full
+    consequence: The joints crack and admit water straight onto the wall below; leaks and efflorescence
+    caught_by: [04cs.joints]
+    source: industry_practice
+
+  - id: 04cs.fm.no-drip
+    what_happens: Sills or bands cast with flat tops or no drip
+    consequence: Water runs back to the wall face; streaking and saturated masonry below
+    caught_by: [04cs.piece-profiles]
+    source: industry_practice
+
+  - id: 04cs.fm.rust-staining
+    what_happens: Reinforcing too close to the face, or carbon-steel anchors
+    consequence: Rust staining and spalls on exposed faces
+    caught_by: [04cs.reinforcing-anchors]
+    source: industry_practice
+
+standards:
+  - id: 04cs.std.astm-c1364
+    name: ASTM C1364
+    title: Standard Specification for Architectural Cast Stone
+    verify: Physical properties and reinforcing cover claimed for the mix
+  - id: 04cs.std.astm-c1194-c1195
+    name: ASTM C1194 / ASTM C1195
+    title: Compressive strength and absorption of architectural cast stone
+    verify: Test methods behind the reported results
+  - id: 04cs.std.csi-manual
+    name: Cast Stone Institute Technical Manual
+    title: Industry practice for cast stone design, joints, anchorage and setting
+    verify: Joint, anchor and setting practice where the spec references it
+
+extract_fields:
+  - id: 04cs.xf.joint-treatment
+    label: Joint treatment by piece type (sealed or mortared)
+    type: list
+    per: package
+    reconcile_against: [drawings.details, spec.part3]

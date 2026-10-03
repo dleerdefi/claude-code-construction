@@ -1,0 +1,187 @@
+schema_version: 1
+kind: section
+id: "05 21 00"
+title: Steel Joist Framing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # the joist manufacturer designs to the loads the specifying professional defines
+
+scope_summary: >
+  Open web steel joists, joist girders and composite joists, designed by the
+  joist manufacturer for the loads and criteria the contract documents give
+  and nothing else. A joist designation carries a uniform load; concentrated
+  and hung loads from rooftop units, air handlers, fire-protection mains,
+  solar arrays, operable partitions and future equipment, net uplift, drift,
+  and axial or end-moment forces from the lateral system all have to be
+  written down for the manufacturer to see them. Bridging and bracing are
+  part of the design, and cutting, welding or reinforcing a joist in the field
+  needs the manufacturer's engineering.
+
+submittals:
+  - id: 05jst.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Joist and girder placement plans with designation, seat depth and bearing at every support
+      - Bridging rows, type and anchorage at the ends of every run, with the erection bridging rows identified
+      - Load diagrams or added-load schedules for every joist designed for more than its designation
+  - id: 05jst.sub.design-data
+    type: Design Data
+    must_show:
+      - Design calculations or certification sealed as the spec and code require, listing every load case and concentrated load used
+
+review_checks:
+  - id: 05jst.loads-defined
+    kind: absence
+    check: >
+      The drawings define every load the manufacturer must design for:
+      concentrated and hung loads with their locations, net uplift on roofs,
+      snow drift, axial loads where joists act as struts or chords, end
+      moments where joist girders are part of the lateral system, and any
+      allowance for future equipment. A designation alone tells the
+      manufacturer nothing about point loads.
+    trace_to: [drawings.structural, spec.part2]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: 05jst.design-load-basis
+    kind: conformance
+    submittal_types: [Design Data, Shop Drawings]
+    check: >
+      The manufacturer's design lists the loads it used for each joist and
+      girder, and they match the structural drawings, including special-joist
+      load diagrams. The engineer of record reviews the load basis and the
+      bearing conditions; the member design stays the manufacturer's.
+    trace_to: [drawings.structural]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 05jst.bridging
+    kind: completeness
+    submittal_types: [Shop Drawings]
+    check: >
+      The bridging layout shows rows, type and anchorage at walls and beams at
+      the end of every run, the erection bridging rows the erector needs
+      before releasing hoisting lines, and bottom-chord bracing where net
+      uplift reverses chord forces. Bridging lines are checked against ducts
+      and lights routed between joists.
+    trace_to: [drawings.structural, drawings.mechanical]
+    severity: high
+    owner: subcontractor
+
+  - id: 05jst.bearing
+    kind: constructability
+    check: >
+      Seat depth, bearing length and bearing plates are shown at every
+      support. Plates embedded in masonry or concrete are set at the elevation
+      that gives the joist its slope and the deck its top elevation, and joist
+      girder seats at columns match the cap plates and stabilizers detailed.
+    trace_to: [drawings.structural, drawings.details]
+    severity: high
+    owner: gc
+    gate: masonry_grout
+
+  - id: 05jst.panel-points
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Joists bearing on joist girders land at the girder's panel points as the
+      girder designation assumes; any joist off a panel point is designed for
+      by the manufacturer, not shifted in the field.
+    trace_to: [drawings.structural]
+    severity: medium
+    owner: subcontractor
+
+  - id: 05jst.attachment-rules
+    kind: absence
+    check: >
+      The structural drawings set the rules other trades follow when they
+      hang from joists and deck: loads at or between panel points, top or
+      bottom chord, no welding to chords, nothing hung from deck alone, and
+      which loads go to the engineer of record and the manufacturer for
+      review. Without these notes every trade decides in the field.
+    trace_to: [drawings.structural, spec.part3]
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: 05jst.web-openings
+    kind: coordination
+    check: >
+      Ducts and pipes the MEP drawings route through joist webs fit the clear
+      openings of the submitted joist design, which depend on web geometry the
+      manufacturer chooses; where routing needs a larger opening, it is
+      specified to the manufacturer before design.
+    trace_to: [drawings.mechanical, drawings.plumbing, drawings.structural]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+reconciliations:
+  - id: 05jst.rc.concentrated-loads
+    reflex: true
+    between: [schedule.mechanical_equipment, drawings.mechanical, drawings.plumbing, drawings.fire_protection, drawings.electrical, drawings.structural, submittals.approved]
+    key: Each item carried by joists (equipment tag, main, array, partition track)
+    fields: [operating weight, location, support method (curb, rails, dunnage, hung), joist or girder it lands on, load shown on the structural drawings]
+    check: >
+      Every unit, fan, tank, coil, main, cable tray, solar array and hung
+      partition the other disciplines put on or under joists appears in the
+      joist loading at its operating weight and location, including equipment
+      approved or relocated after the structural design.
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 05jst.fm.point-loads-missing
+    what_happens: Rooftop units, hung air handlers, unit heaters, fire-protection mains or solar racks never given to the joist manufacturer as loads
+    consequence: Overloaded joists reinforced to a manufacturer's repair after installation, often over finished roofing or above ceilings
+    caught_by: [05jst.loads-defined, 05jst.rc.concentrated-loads, if.05-sprinkler-main-loads, if.05-suspended-equipment-supports]
+    source: industry_practice
+
+  - id: 05jst.fm.heavier-substitute
+    what_happens: Heavier or relocated equipment approved after the joists were designed and fabricated
+    consequence: Load check and joist reinforcement late in the job, under the equipment's setting date
+    caught_by: [05jst.rc.concentrated-loads, if.05-equipment-support-steel]
+    source: industry_practice
+
+  - id: 05jst.fm.uplift-unbraced
+    what_happens: Net uplift never stated, so bottom chords have no bracing for load reversal
+    consequence: Bottom-chord bracing added in the field, or roof framing that cannot resist design wind
+    caught_by: [05jst.loads-defined, 05jst.bridging]
+    source: industry_practice
+
+  - id: 05jst.fm.field-cut
+    what_happens: Trades cut joist webs or chords, or weld hangers to them, to clear ducts and pipes
+    consequence: Joists out of service until the manufacturer designs a repair
+    caught_by: [05jst.attachment-rules, 05jst.web-openings, if.05-hanger-attachment]
+    source: industry_practice
+
+  - id: 05jst.fm.ducts-dont-fit
+    what_happens: Ductwork drawn through joist webs whose actual clear openings turn out smaller than assumed
+    consequence: Ducts rerouted or downsized, or ceilings lowered
+    caught_by: [05jst.web-openings]
+    source: industry_practice
+
+  - id: 05jst.fm.bearing-elevation
+    what_happens: Bearing plates embedded in masonry or concrete at the wrong elevation
+    consequence: Shimmed or cut seats, a roof out of slope, ponding
+    caught_by: [05jst.bearing]
+    source: industry_practice
+
+standards:
+  - id: 05jst.std.sji-100
+    name: ANSI/SJI 100
+    title: Standard Specification for K-Series, LH-Series, and DLH-Series Open Web Steel Joists and for Joist Girders
+    verify: Load designations, special-joist provisions, bridging and bracing requirements, and what the specifying professional must define
+
+extract_fields:
+  - id: 05jst.xf.design-loads
+    label: Concentrated, uplift, axial and moment loads used in the joist and girder design
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, schedule.mechanical_equipment]

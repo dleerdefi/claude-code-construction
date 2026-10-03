@@ -1,0 +1,18 @@
+schema_version: 1
+kind: section
+id: "05 73 00"
+title: Decorative Metal Railings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+same_as: "05 52 00"   # ornamental railings specified under Decorative Metal; reviewed as metal railings
+
+scope_summary: >
+  Ornamental guards and handrails specified as decorative metal: stainless,
+  bronze, aluminum and glass systems with exposed finishes. Everything in metal
+  railings applies; the code geometry and the anchorage are no different for
+  being decorative. Finish samples and a mock-up set the standard of
+  acceptance, concealed fastening and ground welds limit how the system can be
+  anchored, and finished rails need protection until turnover.

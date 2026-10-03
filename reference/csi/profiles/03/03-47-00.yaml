@@ -1,0 +1,129 @@
+schema_version: 1
+kind: section
+id: "03 47 00"
+title: Site-Cast Concrete
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # panel design is usually the EOR's; lifting and bracing design is the contractor's
+
+suppress:
+  - id: 03pc.plant-certification
+    reason: Panels are cast on site; there is no plant to certify
+  - id: 03pc.std.pci-certification
+    reason: Panels are cast on site; there is no plant to certify
+  - id: 03pc.xf.plant-certification
+    reason: Panels are cast on site; there is no plant to certify
+
+scope_summary: >
+  Tilt-up wall panels cast on the building slab or a casting bed and lifted
+  into place (03 47 13 inherits from here). The floor slab is also the
+  casting bed, so its finish, curing, bond breaker and joints show up twice:
+  in the panel faces and in the finished floor. Lifting and brace inserts
+  are designed by the lifting-system supplier's engineer for the strength
+  at lift, and braces stay until the roof and connections complete the
+  lateral system. Embeds and openings for every trade are cast at the slab,
+  weeks before most of those trades have approved submittals.
+
+submittals:
+  - id: 03tu.sub.panel-drawings
+    type: Shop Drawings
+    must_show:
+      - Panel elevations by mark with openings, reveals, embeds, boxes and conduit, and lifting and brace inserts
+      - Casting layout on the slab with pour breaks, and brace anchor locations in the slab
+  - id: 03tu.sub.lifting-design
+    type: Delegated Design
+    must_show:
+      - Insert types and capacities, rigging, the concrete strength required at lift, and brace design with removal conditions
+
+review_checks:
+  - id: 03tu.casting-slab
+    kind: constructability
+    check: >
+      Where panels are cast on the building slab, the slab mix, finish,
+      curing and bond breaker suit both uses: the panel face finish, and the
+      final floor (flooring adhesion, polished or sealed floor). Slab joints
+      and cracks that will print on panel faces are located with the panel
+      layout.
+    trace_to: [spec.part3, schedule.finish, drawings.exterior_elevations]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 03tu.lift-and-brace-inserts
+    kind: completeness
+    submittal_types: [Delegated Design, Shop Drawings]
+    check: >
+      Lifting and bracing drawings give insert locations and capacities, the
+      panel concrete strength required at lift (confirmed by test of the
+      panel concrete, not the slab), and brace anchors clear of slab joints,
+      pour strips, underslab utilities and future floor finishes.
+    trace_to: [spec.part1_submittals, drawings.structural, drawings.plans]
+    severity: critical
+    owner: subcontractor
+
+  - id: 03tu.pour-strips
+    kind: constructability
+    check: >
+      Slab leave-outs or pour strips at the panel base (for panel bearing,
+      footing connections or brace anchors) are detailed with their dowels
+      and closure timing after erection, and closure does not wait on brace
+      removal without that being scheduled.
+    trace_to: [drawings.structural, drawings.details, schedule.master]
+    severity: medium
+    owner: gc
+
+reconciliations:
+  - id: 03tu.rc.panel-embeds
+    between: [drawings.exterior_elevations, drawings.structural, drawings.electrical, drawings.mechanical,
+              submittals.approved]
+    key: Panel mark
+    fields: [openings, roof framing seats and ledgers, canopy and dock equipment embeds, electrical boxes and conduit stubs, wall penetrations, reveals]
+    check: >
+      Each panel's openings and embeds agree across the architectural
+      elevations, the structural drawings (joist seats, ledgers, canopy
+      connections) and the MEP drawings (boxes, conduit, louvers and
+      penetrations), and match the approved shop drawings of the trades
+      that attach to them.
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+failure_modes:
+  - id: 03tu.fm.casting-slab-floor
+    what_happens: Bond breaker or curing compound chosen for casting is not accepted by the flooring or floor sealer that follows
+    consequence: The finished floor is ground or stripped across the building
+    caught_by: [03tu.casting-slab, d03.surface-compatibility]
+    source: industry_practice
+
+  - id: 03tu.fm.joints-print
+    what_happens: Slab sawcuts and cracks under the casting beds print on panel faces
+    consequence: Patched panel faces and architectural rejection
+    caught_by: [03tu.casting-slab]
+    source: industry_practice
+
+  - id: 03tu.fm.lifted-early
+    what_happens: Panel lifted on schedule before its concrete reached the lifting strength
+    consequence: Insert pull-out, cracked or dropped panels
+    caught_by: [03tu.lift-and-brace-inserts, d03.inspection-and-testing]
+    source: industry_practice
+
+  - id: 03tu.fm.missed-embed
+    what_happens: Joist seats, canopy embeds or electrical boxes left out of a panel
+    consequence: Post-installed anchors at concentrated loads, surface-mounted conduit, engineer review after the fact
+    caught_by: [03tu.rc.panel-embeds]
+    source: industry_practice
+
+  - id: 03tu.fm.brace-anchor-conflict
+    what_happens: Brace anchors drilled into the slab over underslab utilities or in areas getting exposed or thin finishes
+    consequence: Damaged utilities, and slab patches that show in the finished floor
+    caught_by: [03tu.lift-and-brace-inserts]
+    source: industry_practice
+
+standards:
+  - id: 03tu.std.aci-551-1
+    name: ACI PRC-551.1
+    title: Guide to Tilt-Up Concrete Construction
+    verify: Casting, lifting, bracing and erection practice the spec and the lifting engineer rely on

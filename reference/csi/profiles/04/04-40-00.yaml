@@ -1,0 +1,163 @@
+schema_version: 1
+kind: section
+id: "04 40 00"
+title: Stone Assemblies
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # anchorage for exterior stone cladding is often delegated
+
+scope_summary: >
+  Exterior stone cladding on anchors, stone masonry set in mortar, and
+  dry-placed stone (04 41 00 through 04 43 00 inherit). Stone is a natural
+  material whose strength varies by quarry, bed, finish and thickness, so the
+  anchorage has to be engineered from tests of the stone actually supplied.
+  The misses are anchors designed from generic values, finishes that weaken
+  thin stone, kerfs and dowel holes too close to an edge, anchor loads the
+  backup was never designed for, and stone that does not match the approved
+  range.
+
+submittals:
+  - id: 04st.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Elevations and sections with every piece numbered, with its thickness, finish and joint widths
+      - Anchor type and location for every piece, and the backup member each anchor engages
+      - Flashing, weeps and movement joints within the stone
+  - id: 04st.sub.design-data
+    type: Design Data
+    must_show:
+      - Anchorage and stone engineering by the specified professional, using test values of the stone supplied in its installed finish and thickness
+      - Anchor loads delivered to the backup framing or structure
+  - id: 04st.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Flexural strength, absorption and density of the selected stone in the finish and thickness to be installed
+      - Anchor strength tests where the spec requires them
+  - id: 04st.sub.samples
+    type: Samples
+    must_show:
+      - Range samples showing the color, veining and finish variation accepted for the project
+
+review_checks:
+  - id: 04st.stone-testing
+    kind: conformance
+    submittal_types: [Test Reports, Design Data]
+    check: >
+      Strength, absorption and density results are for the stone actually
+      selected, from the quarry and bed being supplied, tested in the finish
+      and thickness being installed (thermal and flamed finishes reduce
+      strength), and the anchorage design uses those values with the safety
+      factors the spec or referenced guide sets.
+    trace_to: [spec.part1, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 04st.anchorage-design
+    kind: completeness
+    check: >
+      The anchorage design covers every anchor type and condition (soffits,
+      returns, copings, corners, pieces at openings and at movement joints),
+      states the loads each anchor puts on the backup, and those loads reach
+      the engineer of the backup framing or structure before either is
+      fabricated.
+    trace_to: [spec.part1_submittals, drawings.structural, drawings.wall_sections]
+    severity: critical
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 04st.kerf-and-dowel
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Kerf, slot and dowel locations keep the edge distance and remaining stone
+      thickness the anchorage design assumed; anchors are stainless steel or
+      another material the spec allows; and anchor holes and kerfs are filled
+      or left open only as the anchorage design states.
+    trace_to: [spec.part2, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: 04st.range-and-blending
+    kind: conformance
+    check: >
+      Stone delivered falls within the approved range samples, and a blending
+      plan distributes pieces from different blocks so that color shifts do
+      not land as bands on an elevation.
+    trace_to: [spec.part2, drawings.exterior_elevations]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 04st.fm.generic-values
+    what_happens: Anchorage designed from published or generic stone values instead of tests of the stone supplied
+    consequence: Anchors undersized for a weaker block or finish; cracked or dislodged pieces
+    caught_by: [04st.stone-testing]
+    source: industry_practice
+
+  - id: 04st.fm.backup-not-designed
+    what_happens: Stone anchor loads never sent to the engineer of the backup framing
+    consequence: Studs or girts overloaded; framing added after cladding has started
+    caught_by: [04st.anchorage-design, if.04-veneer-stud-backup]
+    source: industry_practice
+
+  - id: 04st.fm.kerf-spall
+    what_happens: Kerfs or dowel holes cut too close to a face or edge
+    consequence: Spalls at anchors, sometimes years later, with falling-stone risk
+    caught_by: [04st.kerf-and-dowel]
+    source: industry_practice
+
+  - id: 04st.fm.color-banding
+    what_happens: Stone set block by block without blending
+    consequence: Visible color bands; pieces replaced or accepted under dispute
+    caught_by: [04st.range-and-blending]
+    source: industry_practice
+
+standards:
+  - id: 04st.std.astm-c1242
+    name: ASTM C1242
+    title: Standard Guide for Selection, Design, and Installation of Dimension Stone Attachment Systems
+    verify: Design approach and safety factors the anchorage design follows
+  - id: 04st.std.astm-c880
+    name: ASTM C880/C880M
+    title: Standard Test Method for Flexural Strength of Dimension Stone
+    verify: Test values used in the anchorage design, in the installed finish
+  - id: 04st.std.astm-c97
+    name: ASTM C97/C97M
+    title: Standard Test Methods for Absorption and Bulk Specific Gravity of Dimension Stone
+    verify: Absorption and density against the material standard for the stone type
+  - id: 04st.std.astm-c1354
+    name: ASTM C1354/C1354M
+    title: Standard Test Method for Strength of Individual Stone Anchorages in Dimension Stone
+    verify: Anchor tests where the spec requires them
+  - id: 04st.std.material-specs
+    name: ASTM C503 / C568 / C615 / C616 / C629
+    title: Standard specifications for marble, limestone, granite, quartz-based and slate dimension stone
+    verify: The stone's classification and physical property limits
+
+regulatory_hooks:
+  - id: 04st.rh.seismic-cladding
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Does the seismic design category require the stone cladding and its
+      anchorage to be designed as a nonstructural component for seismic force
+      and story drift, and does the anchorage design include it?
+    applies_when: Exterior stone cladding on anchors in a seismic design category that requires component design
+    source_families: [building_code_seismic]
+    severity: high
+
+extract_fields:
+  - id: 04st.xf.stone
+    label: Stone type, finish and thickness per area
+    type: list
+    per: package
+    reconcile_against: [spec.part2, drawings.exterior_elevations]
+  - id: 04st.xf.design-strength
+    label: Flexural strength value used in the anchorage design
+    type: number
+    unit: psi
+    per: package
+    reconcile_against: [spec.part2]

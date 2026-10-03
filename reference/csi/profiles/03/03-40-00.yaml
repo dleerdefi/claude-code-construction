@@ -1,0 +1,179 @@
+schema_version: 1
+kind: section
+id: "03 40 00"
+title: Precast Concrete
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # pieces, connections and handling are designed by the precaster's engineer to the EOR's criteria
+
+scope_summary: >
+  Plant-cast structural and architectural precast and site-cast tilt-up
+  (03 41 00, 03 45 00 and 03 47 00 inherit from here). Pieces and
+  connections are usually designed by the precaster's engineer to criteria
+  the engineer of record sets, and the erection drawings are where precast
+  meets the rest of the building: bearing on cast-in-place or steel, embeds
+  set by others, inserts and openings for every trade, and temporary bracing
+  until the structure is complete. Once a piece is cast, a missed insert or
+  opening means drilling a prestressed member or casting a new one.
+
+submittals:
+  - id: 03pc.sub.erection-drawings
+    type: Shop Drawings
+    must_show:
+      - Piece marks on plans and elevations, connection details, bearing, erection sequence and tolerances
+      - Temporary bracing and stability until the permanent structure is complete
+      - Embeds, anchor rods and bearing surfaces to be provided by others, dimensioned
+  - id: 03pc.sub.piece-drawings
+    type: Shop Drawings
+    must_show:
+      - Each piece with openings, inserts, embeds, lifting devices, reinforcing and finish
+  - id: 03pc.sub.design
+    type: Delegated Design
+    must_show:
+      - Sealed calculations for pieces, connections, handling and erection, with the reactions delivered to the supporting structure
+  - id: 03pc.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Plant certification category for the product, and erector qualification
+
+review_checks:
+  - id: 03pc.design-criteria
+    kind: coordination
+    submittal_types: [Delegated Design]
+    check: >
+      Where pieces or connections are designed by the precaster's or
+      contractor's engineer, the design uses the loads, drift and movement,
+      fire rating and connection criteria the engineer of record provided,
+      and lists the forces each connection puts into the supporting steel or
+      concrete so the engineer of record can check them. Connections to
+      members not designed for them go back before production.
+    trace_to: [drawings.structural, spec.part1_submittals]
+    severity: critical
+    owner: gc
+    gate: procurement_release
+
+  - id: 03pc.cast-in-for-others
+    kind: absence
+    check: >
+      Inserts, embeds, sleeves, blockouts and openings needed by other trades
+      (MEP penetrations, curtain wall and window anchors, railings, canopies,
+      roof drains, electrical boxes and conduit in panels) are on the piece
+      drawings before casting, taken from those trades' approved layouts.
+    trace_to: [drawings.mechanical, drawings.plumbing, drawings.electrical, drawings.exterior_elevations,
+               drawings.details, submittals.approved]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 03pc.bearing-survey
+    kind: constructability
+    check: >
+      Bearing seats, embeds, anchor rods and footing bearing elevations are
+      surveyed against the approved erection drawings before erection (before
+      shipping, for plant-cast pieces), and out-of-tolerance supports are
+      resolved with the piece designer, not by field cutting or welding at
+      the crane.
+    trace_to: [drawings.structural, spec.part3, submittals.approved]
+    severity: high
+    owner: gc
+    gate: precast_erection
+
+  - id: 03pc.erection-stability
+    kind: constructability
+    submittal_types: [Shop Drawings, Delegated Design]
+    check: >
+      Temporary bracing and the erection sequence are engineered, with the
+      condition that allows each brace to come off (connections welded,
+      diaphragm or roof deck complete) stated on the drawings, and brace
+      anchorages in slabs and footings located before those are poured.
+    trace_to: [spec.part1_submittals, drawings.structural]
+    severity: critical
+    owner: subcontractor
+    gate: precast_erection
+
+  - id: 03pc.interfacing-tolerances
+    kind: constructability
+    check: >
+      Precast product and erection tolerances are compatible with the
+      tolerances of what the pieces connect to (steel frame, cast-in-place,
+      windows and curtain wall set against them), and connection adjustment
+      and joint widths absorb the sum.
+    trace_to: [spec.part3, drawings.details]
+    severity: medium
+    owner: gc
+
+  - id: 03pc.plant-certification
+    kind: completeness
+    submittal_types: [Qualification Statements]
+    check: >
+      The producing plant holds the certification category the spec requires
+      for this product type, and the erector holds the qualification the spec
+      names. An uncertified plant is a substitution request, not a submittal.
+    trace_to: [spec.part1, spec.part2_manufacturers]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+failure_modes:
+  - id: 03pc.fm.missed-insert
+    what_happens: An embed or opening for another trade left off a piece cast before that trade's submittal was approved
+    consequence: Field drilling of a prestressed member, post-installed anchors that need the precaster engineer's acceptance, or a recast piece
+    caught_by: [03pc.cast-in-for-others]
+    source: industry_practice
+
+  - id: 03pc.fm.bearing-out
+    what_happens: Supporting embeds or seats out of position, found when the first piece is on the hook
+    consequence: Field-modified connections, crane standby, engineering redesign at the crane
+    caught_by: [03pc.bearing-survey]
+    source: industry_practice
+
+  - id: 03pc.fm.braces-off-early
+    what_happens: Braces removed before connections, diaphragm or roof framing complete the permanent lateral system
+    consequence: Panel or frame instability; collapse in a wind event
+    caught_by: [03pc.erection-stability]
+    source: industry_practice
+
+  - id: 03pc.fm.reactions-unchecked
+    what_happens: Connection forces from the precaster's design never checked against the supporting steel or concrete
+    consequence: Overstressed supporting members; retrofit after erection
+    caught_by: [03pc.design-criteria]
+    source: industry_practice
+
+  - id: 03pc.fm.tolerance-stack
+    what_happens: Frame and precast tolerances add up beyond the connection adjustment or joint width
+    consequence: Excess shims, field welds the design did not allow, sealant joints too narrow to move
+    caught_by: [03pc.interfacing-tolerances]
+    source: industry_practice
+
+standards:
+  - id: 03pc.std.pci-certification
+    name: PCI Plant Certification
+    title: Precast/Prestressed Concrete Institute plant certification program
+    verify: Plant's current certification category against the product type the spec requires
+
+regulatory_hooks:
+  - id: 03pc.rh.erection-safety
+    topic: precast-tilt-up-erection-safety
+    question: >
+      What do the occupational safety rules in force require for erecting
+      precast and tilt-up members: bracing designed by a qualified engineer,
+      an erection plan, limited access zones, and conditions for removing
+      bracing?
+    applies_when: Precast and tilt-up erection
+    source_families: [occupational_safety]
+    severity: high
+
+extract_fields:
+  - id: 03pc.xf.connections
+    label: Connection types and reactions delivered to the supporting structure
+    type: list
+    per: package
+    reconcile_against: [drawings.structural]
+  - id: 03pc.xf.plant-certification
+    label: Plant certification category
+    type: string
+    per: package
+    reconcile_against: [spec.part1]

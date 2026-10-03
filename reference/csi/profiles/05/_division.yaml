@@ -1,0 +1,221 @@
+schema_version: 1
+kind: division
+id: "05"
+title: Metals
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Structural steel, joists, deck, cold-formed framing and metal fabrications.
+  Much of it is designed by someone other than the engineer of record:
+  connections, joists, cold-formed framing, stairs, railings and many
+  fabrications are delegated, and each delegated design is only as good as the
+  loads and criteria the contract documents give it. Steel is detailed and
+  fabricated off site well ahead of erection, so a missing load, a wrong anchor
+  or an uncoordinated opening is locked into the shop drawings early and paid
+  for later as field work. Coatings matter where they meet something else:
+  fireproofing listings, bolted faying surfaces, paint over galvanizing,
+  contact between dissimilar metals.
+
+submittals:
+  - id: d05.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Fabricator and erector certification or the AHJ's approved-fabricator status, where the spec or the code relies on it
+      - Welding procedure specifications and welder qualifications for every process and position used, including sheet steel welding of deck, studs and cold-formed framing
+
+review_checks:
+  - id: d05.special-inspection
+    kind: completeness
+    check: >
+      The statement of special inspections covers every Division 05 element
+      this building needs inspected (structural welding and high-strength
+      bolting, deck fastening and shear studs, open web joists, cold-formed
+      framing, anchors into concrete), and either names an inspector for work
+      done in the fabricator's shop or relies on the fabricator's approved
+      status. Both are settled before fabrication starts, not when the first
+      load arrives.
+    trace_to: [register.special_inspections, spec.part1]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: d05.post-installed-anchors
+    kind: conformance
+    check: >
+      Every post-installed anchor (railing posts, equipment and stair
+      supports, clips, fixes for missed rods and embeds) is the product, size
+      and embedment the design assumed, with an evaluation report for the base
+      material and condition: cracked concrete, seismic, masonry, adhesive in
+      sustained tension. A different anchor is a redesign, not an equal.
+      Drilling locations are scanned for reinforcing and post-tensioning
+      tendons first.
+    trace_to: [drawings.structural, drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: d05.duplex-coating
+    kind: conformance
+    check: >
+      Where galvanized steel is painted or powder coated, the submittal states
+      the surface preparation for zinc, a primer or powder system compatible
+      with galvanizing, and who applies each coat. Galvanizing damaged by
+      welding or handling is repaired by a method the spec accepts, and the
+      repair is compatible with the topcoat.
+    trace_to: [spec.part2, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: d05.galvanizing-fabrication
+    kind: constructability
+    submittal_types: [Shop Drawings]
+    check: >
+      Items to be hot-dip galvanized are detailed for the process: vent and
+      drain holes in every closed section and enclosed space, placed where
+      they are acceptable on exposed work; thin, long or asymmetric pieces
+      reviewed for distortion; assemblies sized for the galvanizer's kettle or
+      split with bolted field splices.
+    trace_to: [spec.part2, drawings.details]
+    severity: medium
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: d05.dissimilar-metals
+    kind: conformance
+    check: >
+      Contact between dissimilar metals (aluminum, stainless steel or copper
+      against carbon or galvanized steel), and between aluminum and concrete,
+      mortar or treated wood, is isolated by the method the spec requires,
+      and fasteners are compatible with both parts they join.
+    trace_to: [spec.part2, drawings.details]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: d05.fm.covered-before-inspection
+    what_happens: Welds, bolted connections, deck fastening or studs concealed by fireproofing, concrete or finishes before the special inspector sees them
+    consequence: Fireproofing stripped or slabs cored to inspect, or the AHJ withholds acceptance of the frame
+    caught_by: [d05.special-inspection]
+    source: industry_practice
+
+  - id: d05.fm.shop-uninspected
+    what_happens: Fabricator is not approved under a program the AHJ accepts and no in-plant inspection was arranged
+    consequence: Members arrive with no compliance record; inspection after the fact on erected steel, or rejection
+    caught_by: [d05.special-inspection]
+    source: industry_practice
+
+  - id: d05.fm.anchor-swap
+    what_happens: Installer substitutes a different post-installed anchor or adhesive, or drills without scanning
+    consequence: Anchors rejected at inspection, proof-tested or replaced; cut tendons or bars in the slab
+    caught_by: [d05.post-installed-anchors]
+    source: industry_practice
+
+  - id: d05.fm.paint-on-zinc
+    what_happens: Finish paint or powder coat applied over galvanizing without zinc-compatible preparation
+    consequence: Coating peels in sheets within a few seasons; stripping and recoating in place
+    caught_by: [d05.duplex-coating]
+    source: industry_practice
+
+  - id: d05.fm.unvented-sections
+    what_happens: Closed sections sent to the galvanizer without vent and drain holes, or holes added where they show
+    consequence: Pieces ruptured or rejected and refabricated; visible holes on finished railings and exposed frames
+    caught_by: [d05.galvanizing-fabrication]
+    source: industry_practice
+
+  - id: d05.fm.galvanic-corrosion
+    what_happens: Aluminum or stainless items fastened to carbon steel, or aluminum set in concrete or mortar, with no isolation
+    consequence: Corrosion and staining at the contact and loss of anchorage over time
+    caught_by: [d05.dissimilar-metals]
+    source: industry_practice
+
+standards:
+  - id: d05.std.aisc-207
+    name: AISC 207
+    title: Standard for Certification Programs
+    verify: Fabricator or erector certification the spec requires, or that the AHJ accepts in place of in-plant inspection
+  - id: d05.std.aws-d1-3
+    name: AWS D1.3/D1.3M
+    title: Structural Welding Code — Sheet Steel
+    verify: Procedures and qualifications for arc spot and seam welds on deck, cold-formed framing and other sheet steel
+  - id: d05.std.astm-a123
+    name: ASTM A123/A123M
+    title: Standard Specification for Zinc (Hot-Dip Galvanized) Coatings on Iron and Steel Products
+    verify: Galvanizing claims for fabricated items
+  - id: d05.std.astm-a385
+    name: ASTM A385/A385M
+    title: Standard Practice for Providing High-Quality Zinc Coatings (Hot-Dip)
+    verify: Venting, draining and detailing of assemblies to be galvanized
+  - id: d05.std.astm-a780
+    name: ASTM A780/A780M
+    title: Standard Practice for Repair of Damaged and Uncoated Areas of Hot-Dip Galvanized Coatings
+    verify: Field repair method for galvanizing damaged by welding, cutting or handling
+  - id: d05.std.astm-d6386
+    name: ASTM D6386
+    title: Standard Practice for Preparation of Zinc (Hot-Dip Galvanized) Coated Iron and Steel Product and Hardware Surfaces for Painting
+    verify: Surface preparation for paint over galvanizing
+  - id: d05.std.aci-355
+    name: ACI 355.2 / ACI 355.4
+    title: Qualification of Post-Installed Mechanical Anchors in Concrete; Qualification of Post-Installed Adhesive Anchors in Concrete
+    verify: Qualification behind the evaluation report cited for each post-installed anchor
+
+regulatory_hooks:
+  - id: d05.rh.steel-special-inspection
+    topic: steel-special-inspection
+    question: >
+      Which special inspections does the adopted building code require for
+      the steel work on this building (structural welding and high-strength
+      bolting, steel deck, open web joists, cold-formed steel framing, and the
+      seismic force-resisting system where it applies), at what frequency, and
+      which of them hold the work uncovered until they are done?
+    applies_when: Structural steel, joists, deck and cold-formed framing
+    source_families: [building_code, building_code_seismic]
+    severity: high
+
+  - id: d05.rh.fabricator-inspection
+    topic: fabricator-special-inspection
+    question: >
+      Does the adopted code require in-plant special inspection of the steel
+      fabricator, joist manufacturer or other shop producing structural
+      members for this project, or accept an approved or certified fabricator
+      in its place, and what certificate of compliance must be filed?
+    applies_when: Shop-fabricated structural steel, joists and stairs
+    source_families: [building_code]
+    severity: high
+
+  - id: d05.rh.steel-erection-safety
+    topic: steel-erection-safety-design
+    question: >
+      What does the applicable federal or state steel erection safety
+      standard require of the design and shop drawings (anchor rods at each
+      column, connections that keep a member supported while the next is
+      bolted, stabilization of joists and joist girders at columns, erection
+      bridging, shear connectors installed in the field, perimeter safety
+      cable attachment), and does the submittal provide it?
+    applies_when: Structural steel, joist and deck erection
+    source_families: [occupational_safety]
+    severity: medium
+
+  - id: d05.rh.post-installed-anchors
+    topic: post-installed-anchor-inspection
+    question: >
+      For post-installed anchors in this metals work (railing and stair
+      posts, equipment supports, clips, repairs of missed rods and embeds),
+      what evaluation report, special inspection, proof loading and installer
+      certification does the adopted code require?
+    applies_when: Any post-installed anchor in concrete or masonry
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: d05.xf.coatings
+    label: Coating system by item and exposure (bare, primed, galvanized, duplex)
+    type: list
+    per: package
+    reconcile_against: [spec.part2]
+  - id: d05.xf.post-installed-anchors
+    label: Post-installed anchor product, size, embedment and evaluation report per condition
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, drawings.details]

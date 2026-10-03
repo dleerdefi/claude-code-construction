@@ -1,0 +1,207 @@
+schema_version: 1
+kind: section
+id: "05 40 00"
+title: Cold-Formed Metal Framing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # delegated to the framing engineer under the EOR's criteria
+
+scope_summary: >
+  Load-bearing and exterior cold-formed steel framing: wind-bearing exterior
+  studs, load-bearing walls, joists and trusses, parapets, soffits and framing
+  that supports other systems. The framing engineer designs studs, clips and
+  connections to the wind and gravity loads, deflection limits and structural
+  movements the contract documents supply. The misses are at the boundaries:
+  a deflection limit that suits the wall but not the cladding on it, fixed
+  connections where the structure moves, clip reactions nobody checked against
+  the slab edge, an air barrier run tight across a slip joint, and walls nobody
+  decided were structural.
+
+submittals:
+  - id: 05cf.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Wall, floor and roof framing layouts with member size, thickness, spacing and bridging
+      - Connections to structure at every floor and roof condition, identifying slip and fixed connections and the movement each allows
+      - Header, jamb and sill framing at openings, with the window, door and storefront anchor loads used
+      - Parapets, soffits and screen walls with their load path into the structure
+  - id: 05cf.sub.delegated-design
+    type: Delegated Design
+    must_show:
+      - Sealed calculations stating wind pressures by zone, the deflection limit per wall type, the vertical movement and drift accommodated, and the reaction at each attachment to structure
+  - id: 05cf.sub.product-data
+    type: Product Data
+    must_show:
+      - Steel thickness, yield strength and coating designation per member type, and clip and fastener products with their evaluation data
+
+review_checks:
+  - id: 05cf.design-criteria
+    kind: absence
+    check: >
+      The contract documents give the framing engineer what to design to:
+      wind pressures by zone, a deflection limit for each wall and cladding
+      type, the vertical deflection and drift at each floor line, gravity loads
+      for load-bearing framing, and a clear statement of which walls are in
+      this scope. Missing criteria are raised before design, not assumed by
+      the framing engineer.
+    trace_to: [drawings.structural, spec.part1, drawings.wall_sections]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 05cf.deflection-by-cladding
+    kind: conformance
+    submittal_types: [Delegated Design]
+    check: >
+      The deflection limit used for each wall matches what the contract
+      documents state for the cladding it carries (masonry veneer, stone,
+      plaster, panels, glazing). Where one limit is applied to every wall, it
+      is checked against the strictest cladding the documents name.
+    trace_to: [spec.part1, drawings.wall_sections, schedule.partition_type]
+    severity: high
+    owner: subcontractor
+
+  - id: 05cf.slip-connections
+    kind: constructability
+    check: >
+      Where framing bypasses or infills between floors, the connection at each
+      floor line allows the vertical movement the structural drawings state
+      (slide clips or deflection track), fixed connections appear only where
+      the framing is meant to move with the structure, and the cladding has a
+      joint where the framing moves.
+    trace_to: [drawings.wall_sections, drawings.details, drawings.structural]
+    severity: high
+    owner: subcontractor
+
+  - id: 05cf.attachment-reactions
+    kind: coordination
+    check: >
+      The reaction at every attachment to structure goes back to the engineer
+      of record, who confirms the slab edge, spandrel beam (including
+      torsion), embed or joist can take it. Anchors into slab edges meet edge
+      distance and stay clear of post-tensioning tendons.
+    trace_to: [drawings.structural, drawings.details]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 05cf.load-bearing-path
+    kind: constructability
+    check: >
+      In load-bearing framing, joists, trusses and studs align from roof to
+      foundation or bear on a designed distribution member, and shear walls,
+      strap bracing, hold-downs and the anchors they need in concrete are
+      shown and placed before the pour.
+    trace_to: [drawings.structural, drawings.foundation]
+    severity: high
+    owner: subcontractor
+    gate: slab_pour
+
+  - id: 05cf.parapets-screens
+    kind: absence
+    check: >
+      Parapets, sloped soffits, canopies and rooftop screen walls in the
+      framing scope have a designed load path into the structure (posts,
+      kickers, connections to roof framing), and posts through the roofing
+      have a flashing detail.
+    trace_to: [drawings.wall_sections, drawings.roof_plan, drawings.details]
+    severity: medium
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 05cf.fm.stiffness-for-cladding
+    what_happens: Framing designed to a deflection limit suited to panels but carrying veneer, stone or plaster
+    consequence: Cracked cladding, or studs and bracing added after the walls are framed
+    caught_by: [05cf.deflection-by-cladding, 05cf.design-criteria, if.04-veneer-stud-backup]
+    source: industry_practice
+
+  - id: 05cf.fm.fixed-at-floor
+    what_happens: Bypass framing fastened rigidly at each floor line where the slab edge deflects
+    consequence: Buckled studs, cracked cladding and torn sealant joints as floors take load
+    caught_by: [05cf.slip-connections]
+    source: industry_practice
+
+  - id: 05cf.fm.clip-overload
+    what_happens: Clip reactions never checked against slab edges or spandrel beams
+    consequence: Spalled slab edges and rotating spandrels; supports reinforced after the wall is framed
+    caught_by: [05cf.attachment-reactions]
+    source: industry_practice
+
+  - id: 05cf.fm.barrier-torn-at-slip
+    what_happens: Air barrier run continuously across a slip joint without a transition that allows the movement
+    consequence: Barrier torn at each floor line behind the cladding; air and water leaks found after occupancy
+    caught_by: [if.05-cfmf-air-barrier]
+    source: industry_practice
+
+  - id: 05cf.fm.walls-nobody-designed
+    what_happens: Over-height interior walls, load-carrying shaft walls or exterior soffits claimed by neither the structural nor the non-structural framing contract
+    consequence: Walls framed with undersized studs, then engineered and reframed after the gap is found
+    caught_by: [if.05-cfmf-boundary, 05cf.design-criteria]
+    source: industry_practice
+
+  - id: 05cf.fm.screens-unbraced
+    what_happens: Rooftop screen walls and parapets framed with no designed connection to the roof structure
+    consequence: Screens rack or blow down; bracing retrofitted through finished roofing
+    caught_by: [05cf.parapets-screens]
+    source: industry_practice
+
+standards:
+  - id: 05cf.std.aisi-s100
+    name: AISI S100
+    title: North American Specification for the Design of Cold-Formed Steel Structural Members
+    verify: Design basis of the sealed calculations
+  - id: 05cf.std.aisi-s240
+    name: AISI S240
+    title: North American Standard for Cold-Formed Steel Structural Framing
+    verify: Framing design, in-line framing and installation provisions
+  - id: 05cf.std.aisi-s202
+    name: AISI S202
+    title: Code of Standard Practice for Cold-Formed Steel Structural Framing
+    verify: Split of design responsibility between the engineer of record and the framing engineer, and what each must submit
+  - id: 05cf.std.aisi-s220
+    name: AISI S220
+    title: North American Standard for Cold-Formed Steel Nonstructural Framing
+    verify: Limits of what may be framed as nonstructural, at the boundary with structural framing
+  - id: 05cf.std.astm-c955
+    name: ASTM C955
+    title: Standard Specification for Cold-Formed Steel Structural Framing Members
+    verify: Member thickness, yield strength and coating claims
+
+regulatory_hooks:
+  - id: 05cf.rh.wind-criteria
+    topic: structural-design-criteria
+    question: >
+      Which wind criteria govern exterior wall components and cladding here
+      (adopted code and load standard edition, risk category, basic wind
+      speed, exposure, any local wind provisions), and do the framing
+      calculations use them by wall zone?
+    applies_when: Exterior and wind-bearing cold-formed framing
+    source_families: [building_code]
+    severity: high
+
+  - id: 05cf.rh.wall-deflection
+    topic: masonry-veneer-backup-deflection
+    question: >
+      What deflection limits does the adopted code set for exterior wall
+      framing behind brittle finishes (masonry, stone, plaster) and behind
+      flexible finishes, and do the framing calculations meet them or the
+      stricter values the spec states?
+    applies_when: Exterior cold-formed framing supporting cladding
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: 05cf.xf.criteria
+    label: Wind pressure, deflection limit and vertical movement used per wall type
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, spec.part1]
+  - id: 05cf.xf.reactions
+    label: Reactions at attachments to structure, by condition
+    type: list
+    per: package
+    reconcile_against: [drawings.structural]

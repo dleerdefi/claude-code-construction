@@ -1,0 +1,257 @@
+schema_version: 1
+kind: division
+id: "04"
+title: Masonry
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Unit masonry, stone and cast stone, with their mortar, grout, reinforcement,
+  anchors and accessories. An exterior masonry wall is a drainage wall: water
+  gets past the face and has to be caught by flashing and let out through
+  weeps at every place the wall is interrupted. Almost everything that matters
+  is built into the wall as it rises (flashing, anchors, reinforcement,
+  lintels, frames, boxes) and cannot be added afterward, so coordination has
+  to reach the mason before each course. Mortar, grout and accessories may be
+  specified in 04 05 00 or inside the unit masonry section; check which.
+
+review_checks:
+  - id: d04.flashing-every-interruption
+    kind: absence
+    reflex: true
+    check: >
+      At every horizontal interruption of a masonry wall (base of wall, shelf
+      and relief angles, lintels and heads, sills, copings and wall caps,
+      roof-to-wall intersections, and over louvers and other penetrations) the
+      details show through-wall flashing carried past the face with a drip,
+      end dams wherever the flashing stops, sealed laps, its termination on the
+      backup lapped under the air and water barrier above, and weeps at that
+      level. An interruption with no such detail is a finding.
+    trace_to: [drawings.wall_sections, drawings.details, drawings.exterior_elevations]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: d04.flashing-materials
+    kind: conformance
+    submittal_types: [Product Data, Shop Drawings]
+    check: >
+      The flashing submittal names the material at each location, how laps
+      are sealed, how end dams and inside and outside corners are formed, the
+      drip edge material, and how the flashing terminates under the air and
+      water barrier, with the manufacturers' confirmation that flashing,
+      barrier, primers and sealants are compatible. A membrane that cannot be
+      left exposed to sunlight stops behind the face on a metal drip edge.
+    trace_to: [spec.part2, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: d04.cavity-drainage
+    kind: constructability
+    check: >
+      The method of keeping the cavity clear at each flashing level
+      (mortar-collection material, beveled bed joints, cleanouts) is defined
+      and inspected as the wall rises; weeps are the specified type at every
+      flashing level and stay open; and the clear air space behind the veneer
+      is still what the wall section shows once the continuous insulation is
+      in.
+    trace_to: [spec.part3, drawings.wall_sections]
+    severity: high
+    owner: subcontractor
+    gate: envelope_close_in
+
+  - id: d04.soft-joint-relief-angle
+    kind: absence
+    check: >
+      Every shelf or relief angle has a detail with a soft joint below it
+      (compressible filler and sealant, no mortar) sized for the frame's
+      deflection and shortening and the masonry's own movement, with the
+      flashing on the angle above the joint.
+    trace_to: [drawings.wall_sections, drawings.details, drawings.structural]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: d04.veneer-anchors
+    kind: conformance
+    check: >
+      Veneer anchors suit each backup (studs, block, concrete, steel), reach
+      the bed joint across the air space plus the continuous insulation as
+      actually specified, carry the corrosion protection the exposure and spec
+      require, and are the thermally broken type where the energy compliance
+      assumed it. Spacing and any seismic joint reinforcement follow the
+      referenced masonry standard or the engineered design.
+    trace_to: [drawings.wall_sections, drawings.details, spec.part2, report.energy_compliance]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: d04.mortar-by-use
+    kind: conformance
+    check: >
+      Mortar type at each use (below grade, loadbearing and reinforced walls,
+      exterior veneer, parapets and copings, interior partitions), and whether
+      the proportion or property specification governs, match the spec and the
+      structural notes. Stronger is not better for veneer: a higher type than
+      specified stiffens the joints and cracks the wall. Masonry cement or
+      mortar cement is used only where the spec and the seismic provisions
+      allow it.
+    trace_to: [spec.part2, drawings.structural]
+    severity: medium
+    owner: subcontractor
+
+  - id: d04.weather-construction
+    kind: constructability
+    check: >
+      The cold- and hot-weather procedures the spec requires (heated
+      materials, enclosures and protection of new work, covered wall tops, no
+      frozen units, no antifreeze admixtures) are submitted before work starts
+      in that season, and the schedule puts masonry where the mason has planned
+      for them.
+    trace_to: [spec.part3, schedule.master]
+    severity: medium
+    owner: gc
+
+  - id: d04.mockup
+    kind: completeness
+    check: >
+      The sample panel or mock-up includes the conditions that fail: a
+      flashing with end dams and weeps, a window head and sill, a movement
+      joint, veneer anchors, and test areas for the cleaning method and any
+      water repellent, with water testing where specified. It is approved
+      before production work and kept as the standard for workmanship and
+      cleaning.
+    trace_to: [spec.part1, spec.part3]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+  - id: d04.cleaning-efflorescence
+    kind: constructability
+    check: >
+      Units are stored off the ground and covered, wall tops are covered at
+      the end of each day, the cleaner is the one the unit manufacturer
+      recommends and was tried on the mock-up, and any post-applied water
+      repellent is breathable, goes on after efflorescence is cleaned off, and
+      is confirmed compatible with the units and the joint sealants.
+    trace_to: [spec.part3]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: d04.fm.flashing-gap
+    what_happens: Flashing left out at a lintel, relief angle or sill, or stopped with no end dams or unsealed laps
+    consequence: Water is discharged into the wall at the flashing ends; interior leaks and stained veneer, repaired only by taking masonry down
+    caught_by: [d04.flashing-every-interruption]
+    source: field_experience
+
+  - id: d04.fm.flashing-behind-face
+    what_happens: Flashing trimmed behind the face or turned down inside the cavity instead of projecting with a drip
+    consequence: Water runs back under the flashing into the wall below it
+    caught_by: [d04.flashing-materials]
+    source: industry_practice
+
+  - id: d04.fm.cavity-bridged
+    what_happens: Mortar droppings collect on the flashing and bridge the cavity at the weeps
+    consequence: Water is held in the wall; efflorescence, freeze-thaw damage and leaks
+    caught_by: [d04.cavity-drainage]
+    source: field_experience
+
+  - id: d04.fm.tight-under-angle
+    what_happens: Masonry laid tight to the underside of a relief angle, or the joint packed with mortar
+    consequence: Frame shortening and masonry growth load the veneer; spalling and bowing at each floor line
+    caught_by: [d04.soft-joint-relief-angle]
+    source: industry_practice
+
+  - id: d04.fm.anchor-reach
+    what_happens: Anchors ordered before the insulation thickness was set, or not changed when it grew
+    consequence: Anchors too short to engage the bed joint, or beyond the prescriptive limits; field-bent anchors and rejected work
+    caught_by: [d04.veneer-anchors]
+    source: industry_practice
+
+  - id: d04.fm.overstrength-mortar
+    what_happens: A stronger mortar type than specified used throughout for convenience
+    consequence: Stiffer, less forgiving joints; cracking and poorer bond in the veneer
+    caught_by: [d04.mortar-by-use]
+    source: industry_practice
+
+  - id: d04.fm.frozen-work
+    what_happens: Masonry laid with frozen units or left uncovered through a freeze
+    consequence: Frozen mortar and lost bond; sections torn down and relaid
+    caught_by: [d04.weather-construction]
+    source: industry_practice
+
+  - id: d04.fm.cleaner-stain
+    what_happens: A cleaner never tried on the mock-up used across light-colored brick
+    consequence: Permanent staining over whole elevations
+    caught_by: [d04.cleaning-efflorescence, d04.mockup]
+    source: industry_practice
+
+standards:
+  - id: d04.std.tms-402-602
+    name: TMS 402/602
+    title: Building Code Requirements and Specification for Masonry Structures
+    verify: Veneer, quality assurance, grouting and construction requirements the spec invokes, in the edition the adopted code references
+    note: Older specs cite the same documents as ACI 530/530.1
+  - id: d04.std.astm-c270
+    name: ASTM C270
+    title: Standard Specification for Mortar for Unit Masonry
+    verify: Mortar type, and whether the proportion or property specification governs
+  - id: d04.std.astm-c1601
+    name: ASTM C1601
+    title: Standard Test Method for Field Determination of Water Penetration of Masonry Wall Surfaces
+    verify: Mock-up or field water testing where the spec requires it
+
+regulatory_hooks:
+  - id: d04.rh.veneer-anchorage
+    topic: masonry-veneer-anchorage
+    question: >
+      Under the adopted code and its referenced masonry standard, what are the
+      prescriptive limits for anchored veneer (anchor type and spacing, the
+      distance from veneer to backing including insulation, veneer height and
+      support at floors) beyond which the veneer and its anchorage need an
+      engineered design, and what added provisions apply in this seismic
+      design category?
+    applies_when: Anchored masonry, stone or cast stone veneer
+    source_families: [building_code, building_code_seismic]
+    severity: high
+
+  - id: d04.rh.masonry-quality-assurance
+    topic: masonry-special-inspection
+    question: >
+      Which masonry quality assurance level and special inspections does the
+      adopted code require for this building's masonry (engineered or
+      prescriptive design, veneer, risk category), and which tests (grout,
+      mortar, prisms) and which inspections before grouting does it include?
+    applies_when: Structural, reinforced or engineered masonry, and veneer where the code includes it
+    source_families: [building_code]
+    severity: high
+
+  - id: d04.rh.thermal-bridging
+    topic: energy-code-envelope
+    question: >
+      Does the energy compliance path count shelf angles, veneer anchors and
+      masonry that interrupts the continuous insulation as thermal bridges, and
+      do the submitted anchors and angle supports match what it assumed?
+    applies_when: Masonry veneer over continuous insulation
+    source_families: [energy]
+    severity: medium
+
+extract_fields:
+  - id: d04.xf.mortar-types
+    label: Mortar type per use
+    type: list
+    per: package
+    reconcile_against: [spec.part2, drawings.structural]
+  - id: d04.xf.flashing
+    label: Flashing material, drip edge and end-dam method
+    type: list
+    per: package
+    reconcile_against: [spec.part2, drawings.details]
+  - id: d04.xf.anchors
+    label: Veneer anchor type, finish and reach per backup
+    type: list
+    per: package
+    reconcile_against: [drawings.wall_sections]

@@ -1,0 +1,212 @@
+schema_version: 1
+kind: interfaces
+id: div-05
+title: Interfaces involving Division 05
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Edges this division owns (05 with a higher-numbered division). 03↔05 and 04↔05 live in
+# div-03 and div-04; fireproofing, roof curbs and casework backing edges live in div-07 and div-12.
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+
+edges:
+  # ── Envelope and openings ────────────────────────────────────
+  - id: if.05-cladding-anchorage
+    a: ["05 12 00", "05 50 00", "05 40 00"]
+    a_trade: Structural steel, metal fabrications and cold-formed framing
+    b: ["08 44 00", "08 41 00", "08 50 00"]
+    b_trade: Curtain wall, storefront and windows
+    a_provides: Slab-edge plates and angles, spandrel beams, kickers, girts and stud framing at openings designed for the anchor reactions, and the slab-edge and head deflection the frames must absorb (not a stair or railing item)
+    b_provides: Anchor locations, types and reactions (dead, wind, seismic) from the system engineer, the movement each anchor and head receptor allows, and the slab-edge tolerance the anchors can take
+    responsibility:
+      - item: Steel supports, kickers and girts behind curtain wall and storefront where the structure does not reach the anchor line
+        typical: {furnish: "05 50 00 or 08 44 00", install: "05 50 00 or 08 44 00"}
+        confirm_in: [spec.part1, drawings.details]
+    gate:
+      milestone: procurement_release
+      note: Anchor reactions reach the engineer of record before slab-edge steel and spandrel beams are fabricated
+    severity: high
+
+  - id: if.05-overhead-door-supports
+    a: ["05 50 00", "05 12 00"]
+    a_trade: Metal fabrications and structural steel
+    b: ["08 33 00", "08 36 00"]
+    b_trade: Coiling and sectional overhead doors
+    a_provides: Jamb, head and hood support steel at each door, designed for the door's wind and operating loads (not a stair or railing item)
+    b_provides: Approved door size, weight, wind load reactions, mounting and hood or counterbalance support requirements for each opening
+    responsibility:
+      - item: Jamb and header steel at overhead door openings
+        typical: {furnish: "05 50 00", install: "05 50 00 or 05 12 00"}
+        confirm_in: [spec.part1, drawings.details]
+    gate: {milestone: procurement_release}
+    severity: medium
+
+  # ── Framing boundaries ───────────────────────────────────────
+  - id: if.05-cfmf-boundary
+    a: ["05 40 00"]
+    a_trade: Cold-formed metal framing (structural)
+    b: ["09 22 16"]
+    b_trade: Non-structural metal framing
+    a_provides: Delegated design of exterior, load-bearing and other walls assigned to structural framing
+    b_provides: Interior walls beyond non-structural limits (height, lateral load, heavy wall-hung loads, shaft walls carrying stairs or equipment) identified for structural design or for engineered non-structural framing
+    responsibility:
+      - item: Exterior soffits, parapets, over-height interior walls and walls carrying heavy wall-hung loads
+        typical: {furnish: "05 40 00 or 09 22 16", install: "05 40 00 or 09 22 16"}
+        confirm_in: [spec.part1, schedule.partition_type]
+    gate: {milestone: procurement_release}
+    severity: high
+
+  - id: if.05-partition-heads
+    a: ["05 12 00", "05 21 00", "05 31 00"]
+    a_trade: Structural steel, joists and deck
+    b: ["09 22 16", "09 21 16"]
+    b_trade: Interior partitions
+    a_provides: Design deflection of the floor or roof above each partition line, including cantilevers and long spans, and the rules for fastening top track and bracing to joists and deck
+    b_provides: Head details with movement for that deflection, and bracing to structure where a wall runs parallel to deck flutes, between joists or under a joist bottom chord
+    gate:
+      milestone: procurement_release
+      note: The deflection value comes from the engineer of record, not from the framer
+    severity: medium
+    failure: Partition tops braced to joist bottom chords or screwed into deck flutes that cannot take the load, or heads built tight under long spans; cracked partitions and joists loaded in ways they were not designed for
+
+  - id: if.05-cfmf-air-barrier
+    a: ["05 40 00"]
+    a_trade: Cold-formed metal framing
+    b: ["07 27 00"]
+    b_trade: Air barrier
+    a_provides: Location and amount of vertical movement at each floor-line slip joint, and clip and anchor penetrations through the sheathing plane
+    b_provides: A transition at each slip joint that takes the movement, and sealing of clip and anchor penetrations
+    responsibility:
+      - item: Air barrier transition across floor-line movement joints
+        typical: {install: "07 27 00"}
+        confirm_in: [drawings.details, spec.part3]
+    gate: {milestone: envelope_close_in}
+    severity: high
+
+  - id: if.05-roof-deck-roofing
+    a: ["05 31 00"]
+    a_trade: Steel roof deck
+    b: ["07 50 00"]
+    b_trade: Membrane roofing
+    a_provides: Deck gauge, profile, finish and fastening as installed, and openings framed for drains, sumps, curbs and hatches
+    b_provides: Deck requirements of the roofing assembly's uplift approval and of any rated roof-ceiling design (gauge, fastening by roof zone), and drain sump locations
+    gate:
+      milestone: procurement_release
+      note: Deck gauge and fastening are fixed when the deck is ordered; the roofing approval often arrives later
+    severity: high
+
+  # ── Conveying ────────────────────────────────────────────────
+  - id: if.05-elevator-supports
+    a: ["05 12 00", "05 50 00"]
+    a_trade: Structural steel and metal fabrications
+    b: ["14 20 00"]
+    b_trade: Elevators
+    a_provides: Hoist beams, machine beams, divider beams between adjacent cars, intermediate rail bracket supports, sill and entrance supports, and pit ladder, built to the approved elevator layout (not a stair or railing item)
+    b_provides: Approved layout with rail forces and bracket spacing, machine and hoist beam loads and locations, sill and entrance support needs, and pit ladder location
+    responsibility:
+      - item: Hoist and machine beams, divider beams and intermediate rail bracket supports
+        typical: {furnish: "05 12 00 or 05 50 00", install: "05 12 00 or 05 50 00"}
+        confirm_in: [spec.part1, drawings.structural]
+      - item: Sill angles and entrance supports
+        typical: {furnish: "05 50 00 or 14 20 00", install: "05 50 00 or 14 20 00"}
+        confirm_in: [spec.part1, drawings.details]
+      - item: Pit ladder
+        typical: {furnish: "14 20 00 or 05 50 00", install: "14 20 00 or 05 50 00"}
+        confirm_in: [spec.part1, drawings.details]
+    gate:
+      milestone: hoistway_turnover
+      note: Steel is usually detailed before the elevator is selected, so the approved layout has to reach the steel detailer early; every support is in place before the installer's hoistway survey
+    severity: high
+
+  - id: if.05-escalator-supports
+    a: ["05 12 00", "05 50 00"]
+    a_trade: Structural steel and metal fabrications
+    b: ["14 30 00"]
+    b_trade: Escalators and moving walks
+    a_provides: Wellway framing, and truss bearing supports at each landing and at any intermediate support, at the elevations, spacing and tolerance the approved unit requires (not a stair or railing item)
+    b_provides: Approved truss length, rise and support points, reactions at each support, bearing plate and isolation details, and wellway dimensions and tolerances
+    responsibility:
+      - item: Truss bearing angles or plates at landings and intermediate supports
+        typical: {furnish: "05 12 00, 05 50 00 or 14 30 00", install: "05 12 00, 05 50 00 or 14 30 00"}
+        confirm_in: [spec.part1, drawings.structural]
+    gate:
+      milestone: procurement_release
+      note: Framing at the wellway is fabricated before the escalator is usually approved
+    severity: high
+    failure: Wellway and bearing steel built to the basis-of-design unit; supports moved or reinforced, or the wellway reframed, when the approved truss arrives
+
+  # ── Fire suppression and MEP ─────────────────────────────────
+  - id: if.05-sprinkler-main-loads
+    a: ["05 21 00", "05 12 00"]
+    a_trade: Joists and structural steel
+    b: ["21 13 00"]
+    b_trade: Fire-suppression sprinkler systems
+    a_provides: Where large mains may hang and the loads the joist design carries for them
+    b_provides: Routing, size and water-filled weight of mains and feed lines, with hanger locations, early enough to reach the joist design
+    gate:
+      milestone: procurement_release
+      note: The sprinkler layout is often drawn after the joists are ordered
+    severity: high
+
+  - id: if.05-equipment-support-steel
+    a: ["05 12 00", "05 21 00", "05 50 00"]
+    a_trade: Structural framing and metal fabrications
+    b: ["23 60 00", "23 70 00", "22 30 00", "26 30 00", "23 05 48", "23 80 00"]
+    b_trade: Mechanical, plumbing and electrical equipment, and vibration isolation and seismic restraint
+    a_provides: Support framing and dunnage as scheduled, and the engineer of record's acceptance of each equipment load and support point (not a stair or railing item)
+    b_provides: Approved equipment weights, footprints, support points, isolation rails or bases, and which frames and supports each trade furnishes
+    responsibility:
+      - item: Support steel and dunnage for floor-, roof- and platform-mounted equipment
+        typical: {furnish: "05 50 00 or the equipment trade", install: "05 50 00 or the equipment trade"}
+        confirm_in: [spec.part1, drawings.mechanical]
+    gate: {milestone: procurement_release}
+    severity: high
+
+  - id: if.05-duct-openings
+    a: ["05 31 00", "05 12 00"]
+    a_trade: Steel deck and structural steel
+    b: ["23 31 00"]
+    b_trade: HVAC ducts and casings
+    a_provides: Framing and deck reinforcement at each duct opening and shaft, sized to the openings the coordinated duct layout needs
+    b_provides: Duct shaft, riser and roof or floor penetration sizes and locations from the coordinated layout, before deck and framing are detailed
+    gate: {milestone: procurement_release}
+    severity: high
+
+  - id: if.05-hanger-attachment
+    a: ["05 12 00", "05 21 00", "05 31 00"]
+    a_trade: Structural steel, joists and deck
+    b: ["21 05 29", "22 05 29", "23 05 29", "26 05 29"]
+    b_trade: Hangers and supports for fire protection, plumbing, HVAC and electrical
+    a_provides: Attachment rules on the structural drawings (beam clamps and where welding is allowed, loads at or between joist panel points, nothing from deck alone, no attachments in protected zones of seismic frames) and the loads that need engineer of record review
+    b_provides: Hanger types, locations and loads for heavy mains, racks, cable tray and suspended equipment before rough-in
+    gate: {milestone: overhead_rough_in}
+    severity: high
+
+  - id: if.05-suspended-equipment-supports
+    a: ["05 12 00", "05 21 00", "05 50 00"]
+    a_trade: Structural framing and metal fabrications
+    b: ["10 21 13", "10 22 00", "11 52 00", "11 61 00", "11 66 00", "11 70 00"]
+    b_trade: Overhead-braced toilet compartments, operable partitions, audio-visual, stage rigging, athletic and ceiling-mounted medical equipment
+    a_provides: Support members and above-ceiling support frames at each hang point, designed for the stated loads and the equipment's deflection or stiffness limit, on joists only where the joist design carries them (not a stair or railing item)
+    b_provides: Weights, hang point locations, vertical and lateral reactions including dynamic loads from rigging, retracting backstops and divider curtains, and the deflection or stiffness limit the equipment needs at its supports (booms, surgical lights, partition tracks)
+    gate:
+      milestone: procurement_release
+      note: These selections often come after the roof framing is designed
+    severity: high
+
+  # ── Backing ──────────────────────────────────────────────────
+  - id: if.05-railing-backing
+    a: ["05 52 00", "05 51 00"]
+    a_trade: Metal railings and stair handrails
+    b: ["06 10 53", "09 22 16"]
+    b_trade: Rough carpentry and metal framing
+    a_provides: Wall bracket locations, heights, loads and fasteners for every wall-mounted handrail
+    b_provides: Backing designed for the bracket loads, installed and checked before the wall is boarded
+    responsibility:
+      - item: Backing for wall-mounted handrails
+        typical: {furnish: "06 10 53 or 09 22 16", install: "06 10 53 or 09 22 16"}
+        confirm_in: [spec.part1, drawings.details]
+    gate: {milestone: wall_close_in}
+    severity: high

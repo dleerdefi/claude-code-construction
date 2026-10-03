@@ -1,0 +1,347 @@
+schema_version: 1
+kind: section
+id: "04 20 00"
+title: Unit Masonry
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Brick and concrete masonry units: brick veneer over stud or block backup,
+  single-wythe exterior block, and reinforced loadbearing and shear walls
+  (04 21 00 and 04 22 00 inherit). Clay units grow and concrete units shrink,
+  so the two need different joints and cannot be locked together. A
+  reinforced wall is only as good as the grout around its bars, which is
+  inspected once, before it is placed. The fire rating of a block wall comes
+  from the unit's aggregate and equivalent thickness under the code's method,
+  not from whether the cells are grouted.
+
+submittals:
+  - id: 04um.sub.product-data
+    type: Product Data
+    must_show:
+      - Each unit type with grade, type, size, density class and strength
+      - Integral water repellent where specified, with the matching mortar admixture
+  - id: 04um.sub.certificates
+    type: Certificates
+    must_show:
+      - For units in rated walls, the manufacturer's certification of aggregate type and equivalent thickness
+  - id: 04um.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Unit test data the spec requires (strength, absorption, efflorescence for brick, linear shrinkage for concrete units)
+  - id: 04um.sub.samples
+    type: Samples
+    must_show:
+      - Units showing the full range of color and texture, and mortar color
+  - id: 04um.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Special shapes and where each is used; coursing at openings where frames, lintels and sills must fit the module
+
+review_checks:
+  - id: 04um.movement-joints
+    kind: absence
+    reflex: true
+    check: >
+      Expansion joints in clay masonry and control joints in concrete masonry
+      are located on the elevations, not left to a spacing note: at corners,
+      offsets, openings, changes in wall height or backup, and wherever clay
+      and concrete units meet in the same wythe. The details keep the joint
+      free of mortar, stop the joint reinforcement, give the filler and
+      sealant, and use anchors that let the veneer move independently of its
+      backup.
+    trace_to: [drawings.exterior_elevations, drawings.plans, drawings.details]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 04um.lintel-details
+    kind: absence
+    check: >
+      Each lintel type is detailed with its bearing at each end, the flashing
+      and end dams above it, corrosion protection for exterior exposure, and
+      bearing that does not fall in a movement joint; reinforced masonry
+      lintels show their bars, grout and the shoring they need until the grout
+      gains strength.
+    trace_to: [schedule.lintel, drawings.details, drawings.structural]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 04um.strength-method
+    kind: conformance
+    check: >
+      How the specified masonry compressive strength is shown (unit strength
+      method from the units and mortar type, or prism testing before and
+      during construction) matches the spec and the structural notes, and the
+      submitted units, mortar and grout support it.
+    trace_to: [drawings.structural, spec.part1, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 04um.dowel-layout
+    kind: coordination
+    check: >
+      Dowels cast into footings and slabs for reinforced masonry walls are
+      located from the masonry cell layout and wall elevations, not just the
+      wall centerline, so each one lands in a cell that will be grouted.
+    trace_to: [drawings.foundation, drawings.structural]
+    severity: high
+    owner: gc
+    gate: foundation_pour
+
+  - id: 04um.grout-inspection
+    kind: constructability
+    check: >
+      Before each grout pour, reinforcement is in place, lapped and held in
+      position; cleanouts are provided where the pour height requires them and
+      the cells are clear of mortar fins and droppings; lift heights and
+      consolidation follow the spec; and the required inspection is done and
+      recorded before the grout covers the bars.
+    trace_to: [spec.part3, drawings.structural, register.special_inspections]
+    severity: critical
+    owner: gc
+    gate: masonry_grout
+
+  - id: 04um.fire-resistance
+    kind: conformance
+    submittal_types: [Product Data, Certificates]
+    check: >
+      For each rated masonry wall, the submitted unit's aggregate type and
+      equivalent thickness, with any grout, fill or finish the rating counts
+      on, achieves the rating by the method the design uses (a listed design
+      or the code's calculation). Solid grouting is neither assumed required
+      nor assumed sufficient; the unit governs.
+    trace_to: [drawings.life_safety, schedule.partition_type, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 04um.single-wythe-water
+    kind: absence
+    check: >
+      Single-wythe exterior block walls have a defined water strategy:
+      integral water repellent in both units and mortar or a coating, flashing
+      and weeps at the base, heads and sills, tooled joints, and no interior
+      finish that traps moisture in the wall.
+    trace_to: [drawings.wall_sections, drawings.details, spec.part2]
+    severity: high
+    owner: design_team
+
+  - id: 04um.wall-bracing
+    kind: constructability
+    check: >
+      The mason's plan for bracing walls under construction against wind,
+      with the restricted zone around each wall and the wind condition at
+      which work stops, is in place before walls rise, and walls stay braced
+      until the floors, roof or bond beams they depend on are connected.
+    trace_to: [spec.part1, schedule.master]
+    severity: high
+    owner: subcontractor
+
+  - id: 04um.top-of-wall
+    kind: coordination
+    check: >
+      Non-loadbearing masonry walls that stop under beams, joists or slabs
+      have a top anchor that braces the wall while leaving room for the
+      structure to deflect, and where such a wall is rated the gap is a listed
+      fire-resistive joint for masonry. Loadbearing walls show bearing plates
+      and anchors set in grouted bond beams at the right elevation.
+    trace_to: [drawings.structural, drawings.details, schedule.partition_type]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 04um.veneer-on-studs
+    kind: coordination
+    check: >
+      Where brick veneer is anchored to steel studs, the stud design (often
+      delegated) uses the deflection limit the spec or code sets for framing
+      behind masonry, not the limit for gypsum finishes, and the stud spacing
+      matches the anchor layout.
+    trace_to: [spec.part2, drawings.wall_sections, drawings.structural]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+reconciliations:
+  - id: 04um.rc.lintels
+    between: [schedule.lintel, drawings.exterior_elevations, drawings.plans, schedule.door, schedule.window, drawings.mechanical]
+    key: Each opening in a masonry wall
+    fields: [opening width, wall type and thickness, lintel type and size, bearing at each end, loose or built-in]
+    check: >
+      Every door, window, louver and duct or pipe opening in a masonry wall
+      has a lintel scheduled for its actual width and wall thickness; an
+      opening widened by a frame or louver change is rechecked.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 04um.rc.joints-vs-structure
+    between: [drawings.exterior_elevations, drawings.plans, drawings.structural]
+    key: Each movement joint in a masonry wall
+    fields: [location, joint type, shear wall segment it falls in, lintel bearing, bond beam continuity]
+    check: >
+      Movement joints on the architectural drawings do not cut a structural
+      shear wall into segments the engineer did not design, do not land within
+      a lintel bearing, and match the structural detail for bond beam bars at
+      the joint.
+    severity: high
+    owner: design_team
+    gate: masonry_grout
+
+  - id: 04um.rc.rated-walls
+    between: [drawings.life_safety, schedule.partition_type, spec.part2]
+    key: Each rated masonry wall type
+    fields: [required rating, unit aggregate and density, nominal thickness, equivalent thickness basis, grout or fill]
+    check: >
+      Every masonry wall rated on the life safety plans is a partition type
+      whose unit, thickness and fill achieve that rating, and the spec
+      calls for that unit.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 04um.fm.joints-bridged
+    what_happens: Movement joints filled with mortar or crossed by continuous joint reinforcement
+    consequence: Cracks beside the joint; brick growth pushes past corners and cracks the returns
+    caught_by: [04um.movement-joints]
+    source: industry_practice
+
+  - id: 04um.fm.clay-concrete-locked
+    what_happens: Brick and block laid in the same wythe, or brick rigidly tied to a block backup, with no joint between them
+    consequence: Clay growth against concrete shrinkage cracks the wall
+    caught_by: [04um.movement-joints]
+    source: industry_practice
+
+  - id: 04um.fm.shear-wall-cut
+    what_happens: A control joint drawn by the architect runs through a structural shear wall
+    consequence: The wall acts as two short segments; reinforcement added or joints moved after the wall is up
+    caught_by: [04um.rc.joints-vs-structure]
+    source: industry_practice
+
+  - id: 04um.fm.unscheduled-opening
+    what_happens: A louver or duct opening from the MEP drawings has no lintel on the schedule
+    consequence: Masonry cut and patched around field-sized steel; cracked heads
+    caught_by: [04um.rc.lintels, if.04-mep-in-masonry]
+    source: industry_practice
+
+  - id: 04um.fm.dowels-miss-cells
+    what_happens: Foundation dowels set on the wall centerline but off the cell layout
+    consequence: Dowels bent into cells, or replaced by drilled anchors that need the engineer's approval
+    caught_by: [04um.dowel-layout, if.03-masonry-dowels]
+    source: industry_practice
+
+  - id: 04um.fm.grout-voids
+    what_happens: Cells grouted over mortar fins, droppings or displaced bars, with no cleanouts
+    consequence: Voids at the reinforcement; structural repair or rebuilding after a failed inspection
+    caught_by: [04um.grout-inspection]
+    source: field_experience
+
+  - id: 04um.fm.rating-assumed
+    what_happens: Rated block walls grouted solid because the rating was assumed to need it, or left hollow with a unit that cannot achieve it
+    consequence: Wasted grout cost, or a rated wall that does not meet its rating at inspection
+    caught_by: [04um.fire-resistance, 04um.rc.rated-walls]
+    source: industry_practice
+
+  - id: 04um.fm.single-wythe-leaks
+    what_happens: Single-wythe block built without repellent in the mortar, base flashing or weeps
+    consequence: Persistent leaks and interior damage; coatings applied after the fact
+    caught_by: [04um.single-wythe-water]
+    source: industry_practice
+
+  - id: 04um.fm.wall-collapse
+    what_happens: Tall walls left unbraced overnight or as wind rises
+    consequence: Collapse during construction, with injury risk and the wall relaid
+    caught_by: [04um.wall-bracing]
+    source: industry_practice
+
+  - id: 04um.fm.no-deflection-gap
+    what_happens: Non-loadbearing block built tight to the underside of a beam or slab
+    consequence: The structure deflects onto the wall; diagonal cracking and crushed top courses
+    caught_by: [04um.top-of-wall, if.04-wall-top-anchorage]
+    source: industry_practice
+
+  - id: 04um.fm.stud-deflection
+    what_happens: Steel studs behind brick designed to the deflection limit used for gypsum finishes
+    consequence: Cracked veneer at mid-height and at openings
+    caught_by: [04um.veneer-on-studs, if.04-veneer-stud-backup]
+    source: industry_practice
+
+standards:
+  - id: 04um.std.astm-c90
+    name: ASTM C90
+    title: Standard Specification for Loadbearing Concrete Masonry Units
+    verify: Density class, strength and linear shrinkage of the units submitted
+  - id: 04um.std.astm-c216
+    name: ASTM C216
+    title: Standard Specification for Facing Brick (Solid Masonry Units Made from Clay or Shale)
+    verify: Grade for weathering exposure and type for appearance
+  - id: 04um.std.astm-c652
+    name: ASTM C652
+    title: Standard Specification for Hollow Brick (Hollow Masonry Units Made from Clay or Shale)
+    verify: Grade and type where hollow brick is used
+  - id: 04um.std.aci-tms-216-1
+    name: ACI/TMS 216.1
+    title: Code Requirements for Determining Fire Resistance of Concrete and Masonry Construction Assemblies
+    verify: Equivalent thickness and aggregate basis for calculated ratings, where the adopted code references it
+  - id: 04um.std.wall-bracing
+    name: Standard Practice for Bracing Masonry Walls Under Construction
+    title: Council for Masonry Wall Bracing (Mason Contractors Association of America)
+    verify: The mason's bracing plan and restricted zones
+
+regulatory_hooks:
+  - id: 04um.rh.masonry-fire-resistance
+    topic: masonry-fire-resistance-calculated
+    question: >
+      Which methods does the adopted code accept for the fire-resistance
+      rating of masonry walls (listed designs, calculation by aggregate type
+      and equivalent thickness, a referenced standard), and what equivalent
+      thickness and fill does each required rating need for the units
+      specified?
+    applies_when: Rated concrete or clay masonry walls
+    source_families: [building_code]
+    severity: high
+
+  - id: 04um.rh.backup-deflection
+    topic: masonry-veneer-backup-deflection
+    question: >
+      What deflection limit does the adopted code set for framing that
+      supports masonry veneer or other brittle finishes, and is the spec's
+      criterion for the backup at least as strict?
+    applies_when: Masonry veneer over steel studs or other framed backup
+    source_families: [building_code]
+    severity: high
+
+  - id: 04um.rh.wall-bracing
+    topic: masonry-wall-bracing-limited-access-zone
+    question: >
+      What do the applicable occupational safety rules require for masonry
+      walls under construction (limited access zone, bracing), and does the
+      mason's plan meet them?
+    applies_when: Masonry walls built above the height those rules address
+    source_families: [occupational_safety]
+    severity: medium
+
+extract_fields:
+  - id: 04um.xf.units
+    label: Unit types (grade, type, density class, size)
+    type: list
+    per: package
+    reconcile_against: [spec.part2]
+  - id: 04um.xf.rated-units
+    label: Equivalent thickness and aggregate of units in rated walls
+    type: list
+    per: package
+    reconcile_against: [schedule.partition_type, drawings.life_safety]
+  - id: 04um.xf.strength-method
+    label: Method used to show masonry compressive strength
+    type: enum
+    per: package
+    reconcile_against: [spec.part1, drawings.structural]

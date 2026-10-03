@@ -1,0 +1,182 @@
+schema_version: 1
+kind: section
+id: "05 31 00"
+title: Steel Decking
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # profile and gauge usually by the EOR; some specs delegate deck selection
+
+scope_summary: >
+  Roof deck, non-composite and composite floor deck, its fastening, shear
+  studs, pour stops and the framing at openings. Deck is part of the
+  diaphragm, so the fastening pattern is a structural design, not an
+  installer's choice. It is also part of fire-rated floor and roof designs and
+  the substrate the roofing is approved over, so profile, gauge, finish and
+  attachment must match those listings as well as the load tables. The costly
+  misses are openings nobody framed, openings cut before the pour, fasteners
+  swapped without data, and studs never inspected.
+
+submittals:
+  - id: 05dk.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Deck layout with profile, depth, gauge, finish, span direction and the span condition (single, double, triple) assumed for each run
+      - Support and sidelap fastening by zone, matching the diaphragm schedule
+      - Openings with their framing or reinforcement, and who cuts each one and when
+      - Pour stops and edge forms with gauge and size for each slab edge condition, including steps, depressions and curtain wall edges
+      - Shear stud layout per beam
+      - Spans that need temporary shoring during the pour
+  - id: 05dk.sub.product-data
+    type: Product Data
+    must_show:
+      - Deck, fastener and stud products, with the evaluation data behind any fastener other than the one the drawings show
+
+review_checks:
+  - id: 05dk.diaphragm-fastening
+    kind: conformance
+    check: >
+      Support and sidelap fastening follows the diaphragm schedule zone by
+      zone. A substitute fastener (screws or power-actuated pins for welds)
+      comes with data showing equal diaphragm strength and stiffness and the
+      engineer of record's acceptance; welds on thin deck use the procedure
+      and weld washers the sheet steel welding code calls for.
+    trace_to: [drawings.structural, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 05dk.fire-listing
+    kind: conformance
+    check: >
+      The deck profile, depth, gauge and finish (galvanized or painted) are
+      ones the listed fire-rated floor and roof designs accept. Another
+      manufacturer's profile, or painted deck where the design lists
+      galvanized, can fall outside the listing or force spray protection of
+      the deck itself.
+    trace_to: [drawings.life_safety, drawings.structural, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 05dk.openings-at-pour
+    kind: constructability
+    check: >
+      Openings and sleeves through composite slabs are boxed out or sleeved
+      before the pour, with the deck left in place under each blockout and
+      cut after the concrete cures by an assigned trade. Coring afterward goes
+      to the engineer of record where reinforcing, studs or deck ribs carrying
+      the slab would be cut.
+    trace_to: [drawings.structural, drawings.mechanical, drawings.plumbing]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 05dk.studs
+    kind: completeness
+    check: >
+      Shear stud count and layout per beam match the drawings, studs are
+      welded through the deck under a procedure that accounts for the deck's
+      coating and any gap to the beam, and stud and deck inspection,
+      including bend tests, is finished before concrete is placed.
+    trace_to: [drawings.structural, spec.part3, register.special_inspections]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 05dk.shoring
+    kind: constructability
+    check: >
+      Spans the deck cannot carry unshored for the specified slab and
+      construction load are identified on the shop drawings, and the shoring
+      is designed, placed before the pour and removed only when the spec
+      allows.
+    trace_to: [drawings.structural, spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: slab_pour
+
+reconciliations:
+  - id: 05dk.rc.openings
+    reflex: true
+    between: [drawings.plans, drawings.roof_plan, drawings.mechanical, drawings.plumbing, drawings.structural]
+    key: Opening or penetration through floor or roof deck
+    fields: [location, size, framing or reinforcement detail, who cuts it and when]
+    check: >
+      Every floor and roof opening on the architectural and MEP drawings
+      (shafts, duct and pipe chases, roof drains and sumps, curbs, hatches,
+      stair and equipment openings) is on the structural drawings with
+      framing, or the typical reinforcement detail its size allows.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 05dk.fm.opening-unframed
+    what_happens: A shaft, duct or roof drain opening shown by architecture or MEP is never framed on the structural drawings
+    consequence: Openings cut in the field with no framing; steel added later under the deck or through finished areas
+    caught_by: [05dk.rc.openings, if.05-duct-openings]
+    source: industry_practice
+
+  - id: 05dk.fm.cut-before-pour
+    what_happens: Deck cut for openings before the composite slab is poured
+    consequence: Concrete lost through the openings, unsupported deck edges, rework and cleanup below
+    caught_by: [05dk.openings-at-pour]
+    source: industry_practice
+
+  - id: 05dk.fm.fastener-swap
+    what_happens: Installer replaces specified welds with screws or pins, or changes the sidelap fastening, without diaphragm data
+    consequence: Diaphragm capacity unverified; added fasteners after inspection or an EOR redesign
+    caught_by: [05dk.diaphragm-fastening]
+    source: industry_practice
+
+  - id: 05dk.fm.deck-outside-listing
+    what_happens: Deck from another manufacturer, or painted instead of galvanized, that the fire-rated design does not list
+    consequence: Deck needs spray protection, or the floor rating fails at inspection
+    caught_by: [05dk.fire-listing, if.fireproofing-steel-primer]
+    source: industry_practice
+
+  - id: 05dk.fm.studs-uninspected
+    what_happens: Shear studs poured over without bend tests or inspection
+    consequence: Composite action unverified; testing through the slab or added capacity designed after the fact
+    caught_by: [05dk.studs, d05.special-inspection]
+    source: industry_practice
+
+  - id: 05dk.fm.unshored-span
+    what_happens: Long deck spans poured without the shoring the construction stage needs
+    consequence: Excessive deflection or deck failure under wet concrete
+    caught_by: [05dk.shoring]
+    source: industry_practice
+
+  - id: 05dk.fm.roof-deck-listing
+    what_happens: Roof deck gauge or fastening does not meet the roofing assembly's uplift approval
+    consequence: Added fasteners or thicker deck before roofing can start, or a roof that fails the insurer's requirement
+    caught_by: [if.05-roof-deck-roofing]
+    source: industry_practice
+
+standards:
+  - id: 05dk.std.sdi-sd
+    name: ANSI/SDI SD
+    title: Standard for Steel Deck
+    verify: Deck design and installation provisions the spec invokes, including construction-stage spans and fastening
+  - id: 05dk.std.sdi-qaqc
+    name: ANSI/SDI QA/QC
+    title: Standard for Quality Control and Quality Assurance for Installation of Steel Deck
+    verify: Inspection tasks for deck placement, fastening and studs
+  - id: 05dk.std.aisi-s310
+    name: AISI S310
+    title: North American Standard for the Design of Profiled Steel Diaphragm Panels
+    verify: Diaphragm strength and stiffness claimed for substitute fastener patterns
+
+extract_fields:
+  - id: 05dk.xf.deck-types
+    label: Deck profile, depth, gauge and finish per area
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, drawings.life_safety]
+  - id: 05dk.xf.fastening
+    label: Support and sidelap fastener type and pattern per zone
+    type: list
+    per: package
+    reconcile_against: [drawings.structural]

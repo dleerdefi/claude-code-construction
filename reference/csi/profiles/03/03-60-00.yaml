@@ -1,0 +1,81 @@
+schema_version: 1
+kind: section
+id: "03 60 00"
+title: Grouting
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Non-shrink cementitious and epoxy grouts under column base plates, bearing
+  plates and equipment bases, in precast connections and anchor pockets, and
+  injection grouts for crack repair (03 61 00 through 03 64 00 inherit from
+  here). A small submittal with structural consequences: the plate or
+  machine base bears on the grout, so the product has to suit the grout
+  thickness, the flow needed to fill without voids, the load, vibration and
+  temperature, and it has to go in at the right moment relative to plumbing,
+  leveling and tightening.
+
+submittals:
+  - id: 03gr.sub.product-data
+    type: Product Data
+    must_show:
+      - Grout product per condition, with its thickness range, placement consistency and any aggregate extension
+  - id: 03gr.sub.instructions
+    type: Manufacturer's Instructions
+    must_show:
+      - Surface preparation, forming and head box, temperature limits and curing for each product
+
+review_checks:
+  - id: 03gr.product-per-condition
+    kind: conformance
+    submittal_types: [Product Data]
+    check: >
+      Each grouting condition (column base plates, bearing plates,
+      vibrating or rotating equipment, precast joints, anchor rod pockets,
+      post-tensioning pockets) maps to a grout suited to its thickness and
+      service: flowable where it must fill under a plate without voids,
+      epoxy where the equipment manufacturer requires it, extended with
+      aggregate where the pour is deep.
+    trace_to: [spec.part2, drawings.details, schedule.equipment]
+    severity: medium
+    owner: subcontractor
+
+  - id: 03gr.timing
+    kind: constructability
+    check: >
+      Base plate grouting follows plumbing of the frame and the engineer's
+      release, before loads the leveling nuts or shims cannot carry; equipment
+      grouting follows alignment. Who grouts each condition is assigned, and
+      whether leveling nuts and shims stay or come out is set by the design.
+    trace_to: [spec.part3, drawings.structural, schedule.master]
+    severity: high
+    owner: gc
+
+failure_modes:
+  - id: 03gr.fm.voids-under-plate
+    what_happens: Dry-pack used where flowable grout was needed, or flowable grout placed without head pressure
+    consequence: Voids under base plates and loss of bearing area, found only by sounding or removal
+    caught_by: [03gr.product-per-condition]
+    source: industry_practice
+
+  - id: 03gr.fm.left-on-nuts
+    what_happens: Base plates left ungrouted on leveling nuts while the frame is loaded
+    consequence: Bent anchor rods and out-of-plumb columns
+    caught_by: [03gr.timing, if.03-steel-anchorage]
+    source: industry_practice
+
+  - id: 03gr.fm.cement-under-vibration
+    what_happens: Cementitious grout used under vibrating equipment where the manufacturer required epoxy
+    consequence: Cracked grout, misalignment, and the equipment warranty in question
+    caught_by: [03gr.product-per-condition]
+    source: industry_practice
+
+standards:
+  - id: 03gr.std.astm-c1107
+    name: ASTM C1107/C1107M
+    title: Packaged Dry, Hydraulic-Cement Grout (Nonshrink)
+    verify: Grade and the consistency at which the product was qualified

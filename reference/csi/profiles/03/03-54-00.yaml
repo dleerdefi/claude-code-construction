@@ -1,0 +1,127 @@
+schema_version: 1
+kind: section
+id: "03 54 00"
+title: Cast Underlayment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Gypsum and hydraulic-cement underlayments poured over wood or concrete
+  subfloors, often over an acoustic mat in multifamily and hospitality floor
+  assemblies (03 54 13 and 03 54 16 inherit from here). The underlayment is
+  usually part of a listed fire-resistance design and a sound-rated
+  assembly, so its product, thickness and the mat under it are not free
+  choices. Gypsum underlayment is moisture-sensitive: it needs drying
+  conditions, a primer or sealer the flooring manufacturer accepts, and
+  protection from later water, and most flooring failures over it trace back
+  to one of those.
+
+submittals:
+  - id: 03ul.sub.product-data
+    type: Product Data
+    must_show:
+      - Underlayment product, strength, thickness, acoustic mat and perimeter isolation, and primer or sealer
+      - The fire-resistance design and sound-rated assembly in which this exact combination is tested
+
+review_checks:
+  - id: 03ul.assembly-match
+    kind: conformance
+    submittal_types: [Product Data]
+    check: >
+      The underlayment product, thickness and density, and the acoustic mat
+      under it, are those in the listed fire-resistance design and the
+      sound-rated assembly the drawings cite. A different mat, a thinner pour
+      or another product is a new assembly that needs its own test evidence.
+    trace_to: [drawings.details, drawings.life_safety, spec.part2, report.acoustical]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 03ul.drying-and-primer
+    kind: constructability
+    check: >
+      The schedule gives the underlayment the enclosure, heat and
+      ventilation its manufacturer needs to dry, moisture is tested by the
+      method the flooring manufacturer accepts for this substrate, and the
+      primer or sealer applied before flooring is accepted by both
+      manufacturers.
+    trace_to: [spec.part3, schedule.master, schedule.finish]
+    severity: high
+    owner: gc
+    gate: floor_finish_install
+
+  - id: 03ul.flooring-suitability
+    kind: conformance
+    check: >
+      Underlayment strength and surface suit the flooring over it: tile and
+      stone over gypsum need the product grade and setting materials the tile
+      manufacturer accepts, and corridors and rolling loads need the strength
+      the flooring requires.
+    trace_to: [spec.part2, schedule.finish]
+    severity: medium
+    owner: subcontractor
+
+  - id: 03ul.isolation-and-sequence
+    kind: constructability
+    check: >
+      The schedule fixes whether underlayment is poured before or after wall
+      framing, board and tubs, matching the rated wall and floor details, and
+      the acoustic mat and perimeter isolation strip run continuous to walls,
+      pipes and penetrations so nothing bridges the pour to the structure.
+    trace_to: [drawings.details, schedule.master, report.acoustical]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: 03ul.fm.wet-underlayment
+    what_happens: Flooring installed over gypsum underlayment that never dried, or was rewetted by later trades
+    consequence: Adhesive failure, soft and crumbling surface, mold under the flooring
+    caught_by: [03ul.drying-and-primer]
+    source: industry_practice
+
+  - id: 03ul.fm.unprimed
+    what_happens: Flooring adhesive or tile mortar applied directly to unsealed gypsum underlayment
+    consequence: Dusting surface and bond failure
+    caught_by: [03ul.drying-and-primer, 03ul.flooring-suitability]
+    source: industry_practice
+
+  - id: 03ul.fm.assembly-swap
+    what_happens: A different acoustic mat or thinner pour substituted for cost or availability
+    consequence: Fire and sound ratings unproven; failed field sound testing between units
+    caught_by: [03ul.assembly-match]
+    source: industry_practice
+
+  - id: 03ul.fm.flanking
+    what_happens: Underlayment poured tight to walls and pipes without isolation, or fasteners driven through the mat
+    consequence: Impact noise between units bypasses the mat; complaints after occupancy
+    caught_by: [03ul.isolation-and-sequence]
+    source: industry_practice
+
+standards:
+  - id: 03ul.std.astm-f2419
+    name: ASTM F2419
+    title: Installation of Thick Poured Gypsum Concrete Underlayments and Preparation of the Surface to Receive Resilient Flooring
+    verify: Drying, moisture testing and surface preparation before resilient flooring
+
+regulatory_hooks:
+  - id: 03ul.rh.sound-transmission
+    topic: dwelling-unit-sound-transmission
+    question: >
+      What airborne and impact sound ratings does the adopted code require
+      for floor-ceiling assemblies separating dwelling or sleeping units, may
+      they be shown by laboratory test or must they be field tested, and
+      does the submitted underlayment and mat match the tested assembly?
+    applies_when: Floor-ceiling assemblies between dwelling or sleeping units
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: 03ul.xf.assembly
+    label: Underlayment product and thickness, acoustic mat, and the tested assemblies cited
+    type: string
+    per: package
+    reconcile_against: [drawings.details, report.acoustical]

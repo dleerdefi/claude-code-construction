@@ -1,0 +1,172 @@
+schema_version: 1
+kind: interfaces
+id: div-04
+title: Interfaces involving Division 04 masonry
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Masonry to air barrier and to the fire-tested wall assembly live in div-07.yaml.
+
+edges:
+  # ── Structure and supports (Division 05) ──────────────────────
+  - id: if.04-shelf-angles
+    a: ["04 20 00", "04 40 00", "04 72 00"]
+    a_trade: Masonry, stone and cast stone veneer
+    b: ["05 50 00", "05 12 00"]
+    b_trade: Metal fabrications and structural steel (relief angles)
+    a_provides: Coursing elevation at each floor line, the soft-joint height below each angle, the flashing over the angle and the anchor layout
+    b_provides: Angle elevation, size, length and attachment to the slab edge or spandrel, shim and adjustment range, corrosion protection, any standoff or thermally broken support the energy compliance assumed, and the structure's deflection at each angle
+    responsibility:
+      - item: Relief angles and their attachment to structure
+        typical: {furnish: "05 50 00 or 05 12 00", install: "05 50 00 or 05 12 00"}
+        confirm_in: [spec.part1, drawings.structural]
+    gate:
+      milestone: procurement_release
+      note: Review the angle shop drawings against the masonry coursing and the soft-joint detail together
+    severity: high
+    failure: Angles set at elevations that do not fit the coursing, leaving no room for the soft joint; brick cut or ground at every floor line
+
+  - id: if.04-loose-lintels
+    a: ["04 20 00"]
+    a_trade: Unit masonry
+    b: ["05 50 00"]
+    b_trade: Metal fabrications
+    a_provides: Opening widths, wall thickness and bearing at every masonry opening, and when each head will be reached
+    b_provides: Loose lintels per the lintel schedule, long enough for bearing at each end, with the corrosion protection the exposure requires, on site before the mason reaches the head
+    responsibility:
+      - item: Loose steel lintels
+        typical: {furnish: "05 50 00", install: "04 20 00"}
+        confirm_in: [spec.part1, schedule.lintel]
+    gate: {milestone: procurement_release}
+    severity: high
+    failure: Lintels missing when the mason reaches the head, or sized from a schedule that missed added openings; walls left open or field-sized steel set
+
+  - id: if.04-veneer-stud-backup
+    a: ["04 20 00", "04 40 00"]
+    a_trade: Masonry and stone veneer
+    b: ["05 40 00"]
+    b_trade: Cold-formed metal framing (veneer backup)
+    a_provides: Veneer type and weight, anchor type and spacing, and for stone the anchor locations and loads from the anchorage design
+    b_provides: Stud design to the deflection limit for masonry backup, stud spacing matched to the anchor layout, added studs or girts at stone anchors, and the sheathing the anchors bear on
+    gate:
+      milestone: procurement_release
+      note: Review the stud design and the veneer anchor layout together
+    severity: high
+
+  - id: if.04-wall-top-anchorage
+    a: ["04 20 00"]
+    a_trade: Unit masonry
+    b: ["05 12 00", "05 50 00", "07 84 00"]
+    b_trade: Structural steel, metal fabrications and firestopping
+    a_provides: Which walls are loadbearing, shear or non-loadbearing, where each stops under structure, and which are rated
+    b_provides: Top-of-wall anchors or clip angles that brace the wall and allow deflection, bearing plates and anchors for members bearing on masonry, and a listed joint system at the head of rated masonry walls
+    responsibility:
+      - item: Top-of-wall lateral anchors at structure
+        typical: {furnish: "04 05 00 or 05 50 00", install: "04 20 00 or 05 50 00"}
+        confirm_in: [spec.part1, drawings.details]
+      - item: Fire-resistive joint at the head of rated masonry walls
+        typical: {install: "07 84 00"}
+        confirm_in: [spec.part1, drawings.details]
+    gate: {milestone: procurement_release}
+    severity: high
+
+  # ── Envelope (Division 07) ────────────────────────────────────
+  - id: if.04-through-wall-flashing
+    a: ["04 05 00", "04 20 00", "04 40 00", "04 72 00"]
+    a_trade: Masonry
+    b: ["07 65 00", "07 62 00", "07 27 00"]
+    b_trade: Flexible and sheet metal flashing, and the air and water barrier
+    a_provides: Flashing installed at each horizontal interruption as the wall rises, with end dams, sealed laps, drips and weeps
+    b_provides: Flashing and drip-edge materials where specified in Division 07, and the air and water barrier lapped over the flashing's upturned leg at each level
+    responsibility:
+      - item: Through-wall flashing and drip edges
+        typical: {furnish: "04 05 00, 07 62 00 or 07 65 00", install: "04 20 00"}
+        confirm_in: [spec.part1, spec.part2]
+      - item: Lap of the air and water barrier over the flashing termination
+        typical: {install: "07 27 00 or 04 20 00"}
+        confirm_in: [drawings.details, spec.part3]
+    gate:
+      milestone: envelope_close_in
+      note: Each flashing level is covered by the next courses; inspect level by level as the wall rises
+    severity: critical
+    failure: Flashing furnished under one section and installed by no one, or the barrier lapped behind the flashing instead of over it; water directed into the wall
+
+  - id: if.04-cavity-insulation
+    a: ["04 20 00", "04 40 00"]
+    a_trade: Masonry veneer
+    b: ["07 21 00"]
+    b_trade: Cavity insulation
+    a_provides: Anchor type and spacing the boards fit around or are pierced by, and the clear air space kept in front of the boards
+    b_provides: Insulation type and thickness, joint and edge sealing, and installation ahead of the veneer
+    responsibility:
+      - item: Insulation in the masonry cavity
+        typical: {furnish: "07 21 00 or 04 20 00", install: "04 20 00 or 07 21 00"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: envelope_close_in}
+    severity: medium
+    failure: Boards fitted loosely around anchors already set, or left out ahead of the veneer; gaps the energy compliance did not assume
+
+  - id: if.04-stone-sealant
+    a: ["04 40 00", "04 72 00"]
+    a_trade: Stone and cast stone
+    b: ["07 92 00"]
+    b_trade: Joint sealants
+    a_provides: Samples of the stone and cast stone for staining and adhesion testing, and which joints are sealed rather than mortared
+    b_provides: Sealant and primer tested on those samples for staining and adhesion
+    gate: {milestone: procurement_release}
+    severity: medium
+    failure: Sealant chosen without staining tests on the stone; dark bands along every joint that cannot be cleaned out
+
+  # ── Openings (Division 08) ────────────────────────────────────
+  - id: if.04-frames-in-masonry
+    a: ["04 20 00"]
+    a_trade: Unit masonry
+    b: ["08 11 00", "08 12 00"]
+    b_trade: Hollow metal frames
+    a_provides: Coursing at each opening, the masonry anchor type each frame needs, and grouting of jambs as the wall rises
+    b_provides: Frames with masonry anchors, grout guards at hardware preparations, and raceway for electrified hardware in place before grouting; frames set, plumbed and braced before the masonry reaches them
+    responsibility:
+      - item: Setting frames in masonry walls
+        typical: {install: "04 20 00 or 08 11 00"}
+        confirm_in: [spec.part3]
+      - item: Grouting frames solid
+        typical: {install: "04 20 00"}
+        confirm_in: [spec.part3, schedule.door]
+    gate:
+      milestone: masonry_grout
+      note: Frames are set and braced before the masonry around them is laid
+    severity: high
+
+  - id: if.04-openings-in-masonry
+    a: ["04 20 00", "04 40 00", "04 72 00"]
+    a_trade: Masonry
+    b: ["08 40 00", "08 50 00", "08 91 00"]
+    b_trade: Storefront, windows and louvers
+    a_provides: Openings sized to the coursing, with head flashing and drip above the frame and the sill or sill flashing below
+    b_provides: Frame sizes with the perimeter joint width that frame and masonry tolerances need, anchorage into the masonry or backup, and the sill and receptor details
+    gate: {milestone: opening_install}
+    severity: high
+    failure: Openings laid to nominal sizes, leaving perimeter joints too narrow or too wide to seal, or frame anchors landing in hollow cells and mortar joints
+
+  # ── MEP (Divisions 22, 23, 26, 27) ────────────────────────────
+  - id: if.04-mep-in-masonry
+    a: ["04 20 00"]
+    a_trade: Unit masonry
+    b: ["26 05 33", "27 05 28", "22 10 00", "23 31 00"]
+    b_trade: Electrical, communications, plumbing and HVAC trades routing through masonry
+    a_provides: Coursing and cell layout, which walls are exposed, grouted or rated, and bond beam elevations
+    b_provides: Box, conduit, pipe and sleeve locations set as the courses are laid, masonry boxes aligned to coursing in exposed block, and duct and louver openings sized early enough to get lintels
+    responsibility:
+      - item: Boxes and conduit built into hollow masonry
+        typical: {furnish: "26 05 33 or 27 05 28", install: "26 05 33 or 27 05 28, as the mason lays the courses"}
+        confirm_in: [spec.part3]
+      - item: Sleeves and openings through masonry walls
+        typical: {furnish: "22 10 00, 23 31 00 or 26 05 33", install: "04 20 00"}
+        confirm_in: [spec.part1, spec.part3]
+    gate:
+      milestone: masonry_grout
+      note: In exposed block, boxes and conduit go in as the courses are laid; afterward they can only be chased or surface-mounted
+    severity: high

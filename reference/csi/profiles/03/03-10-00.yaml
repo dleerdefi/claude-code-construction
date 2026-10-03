@@ -1,0 +1,170 @@
+schema_version: 1
+kind: section
+id: "03 10 00"
+title: Concrete Forming and Accessories
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # formwork, shoring and reshoring are designed by the contractor's engineer
+
+scope_summary: >
+  Formwork, shoring and reshoring, form ties and liners, and the accessories
+  cast with the concrete: waterstops, joint formers, inserts and cast-in
+  anchors (03 11 00 and 03 15 00 inherit from here). Shoring is a temporary
+  structure designed by the contractor's engineer, and its failure is a
+  collapse, so the submittal has to carry the real construction loads, the
+  pour sequence and the reshoring through the floors below. On exposed
+  concrete the form layout is architecture, and at waterproofed or
+  liquid-containing walls every form tie and construction joint is a leak path.
+
+submittals:
+  - id: 03fw.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Shoring and reshoring layout by level, with the levels below each pour that stay shored or reshored
+      - Construction joint locations in walls, slabs and beams, with joint preparation and waterstop at each
+      - For exposed concrete, form panel joints, tie pattern, reveals and chamfers on elevations
+  - id: 03fw.sub.delegated-design
+    type: Delegated Design
+    must_show:
+      - Sealed shoring and reshoring design with the construction loads assumed
+      - Concrete strength, and how it is measured, required before stripping, shore removal and reshoring
+  - id: 03fw.sub.product-data
+    type: Product Data
+    must_show:
+      - Form release agent, form ties by location (exposed, waterproofed, liquid-containing), form liners
+      - Waterstops with corner and intersection fittings, joint formers, cast-in anchors and inserts
+
+review_checks:
+  - id: 03fw.shoring-design
+    kind: completeness
+    submittal_types: [Delegated Design, Shop Drawings]
+    check: >
+      Shoring and reshoring drawings are sealed by the contractor's engineer
+      and show the construction loads, the number of levels shored or
+      reshored below each pour, the stripping and reshoring sequence, and the
+      strength-based criteria for each step. Where the structure has limits
+      the shoring must respect (capacity of slabs below for construction load,
+      post-tensioning stressing before shore removal, transfer levels), they
+      come from the engineer of record and appear on the shoring drawings.
+    trace_to: [spec.part1_submittals, drawings.structural]
+    severity: critical
+    owner: subcontractor
+    gate: slab_pour
+
+  - id: 03fw.exposed-concrete-layout
+    kind: conformance
+    check: >
+      Where concrete stays exposed, the form panel joints, tie-hole pattern,
+      reveals, construction joints and chamfers are drawn on elevations that
+      agree with the architectural elevations, and a mockup with the actual
+      forms, release agent and mix is approved before production.
+    trace_to: [drawings.exterior_elevations, drawings.interior_elevations, drawings.structural, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 03fw.ties-at-waterproofing
+    kind: conformance
+    check: >
+      Form ties in below-grade waterproofed walls, elevator pits and
+      liquid-containing structures are a type that can be sealed (waterstop
+      ties or removable cones), and the tie-hole patch is a material the
+      waterproofing or liner manufacturer accepts.
+    trace_to: [spec.part2, drawings.foundation, drawings.details]
+    severity: high
+    owner: subcontractor
+    gate: foundation_pour
+
+  - id: 03fw.construction-joints
+    kind: coordination
+    check: >
+      Construction joint locations are shown on the drawings or submitted for
+      the engineer of record's acceptance, with the joint preparation,
+      reinforcing continuity and waterstop each needs. A joint the contractor
+      adds in a beam or girder, a post-tensioned slab, a shear wall or a
+      water-retaining wall is a design question, not a field choice.
+    trace_to: [drawings.structural, drawings.foundation, spec.part3]
+    severity: high
+    owner: gc
+    gate: foundation_pour
+
+  - id: 03fw.waterstop-installation
+    kind: constructability
+    check: >
+      Waterstops run continuously through corners, intersections and changes
+      of direction with the fittings or splices the product requires, are
+      secured against displacement during the pour, and expanding waterstops
+      have the concrete cover and protection from early wetting their
+      manufacturer requires.
+    trace_to: [spec.part3, drawings.details]
+    severity: high
+    owner: subcontractor
+    gate: foundation_pour
+
+failure_modes:
+  - id: 03fw.fm.reshores-pulled
+    what_happens: Reshores below a fresh pour removed early or never installed to the engineered layout to free up equipment for the next floor
+    consequence: Overloaded young slabs crack and deflect permanently; in the worst case progressive collapse
+    caught_by: [03fw.shoring-design, d03.inspection-and-testing]
+    source: industry_practice
+
+  - id: 03fw.fm.unapproved-tie-pattern
+    what_happens: Architectural concrete formed with a tie and panel layout nobody approved
+    consequence: Exposed walls rejected; rubbed, coated or removed
+    caught_by: [03fw.exposed-concrete-layout]
+    source: industry_practice
+
+  - id: 03fw.fm.tie-hole-leaks
+    what_happens: Standard snap ties left in waterproofed or liquid-containing walls, or tie holes patched with a material the membrane does not accept
+    consequence: A leak at every tie; injection or interior coating after the fact
+    caught_by: [03fw.ties-at-waterproofing]
+    source: industry_practice
+
+  - id: 03fw.fm.waterstop-folded
+    what_happens: Waterstop folded over by concrete placement, unspliced at corners, or an expanding strip swollen by rain before the pour
+    consequence: A continuous leak path along the joint, repaired by injection from inside
+    caught_by: [03fw.waterstop-installation]
+    source: industry_practice
+
+  - id: 03fw.fm.joint-moved
+    what_happens: A construction joint added in the field where the engineer did not accept one (high-shear zone, post-tensioning anchorage zone, water-retaining wall)
+    consequence: Engineering review after the fact, added reinforcing or dowels, possible removal
+    caught_by: [03fw.construction-joints]
+    source: industry_practice
+
+standards:
+  - id: 03fw.std.aci-347
+    name: ACI PRC-347
+    title: Guide to Formwork for Concrete
+    verify: Formwork design loads and practices the shoring engineer cites
+  - id: 03fw.std.aci-347-2
+    name: ACI PRC-347.2
+    title: Guide for Shoring/Reshoring of Concrete Multistory Buildings
+    verify: Shoring and reshoring analysis method and sequence
+
+regulatory_hooks:
+  - id: 03fw.rh.formwork-shoring
+    topic: formwork-shoring-design-requirements
+    question: >
+      Does the jurisdiction require formwork, shoring and reshoring to be
+      designed by a licensed engineer, filed or permitted, and kept at the
+      site, and what do the occupational safety rules in force require for
+      form and shore removal?
+    applies_when: Elevated slabs and beams, tall wall forms, and any shored construction
+    source_families: [occupational_safety, building_code]
+    severity: high
+
+extract_fields:
+  - id: 03fw.xf.shored-levels
+    label: Levels shored or reshored below each pour
+    type: number
+    per: package
+    reconcile_against: [drawings.structural]
+  - id: 03fw.xf.strip-criteria
+    label: Strength criteria for stripping, shore removal and reshoring
+    type: string
+    per: package
+    reconcile_against: [spec.part3, drawings.structural]

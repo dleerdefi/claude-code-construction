@@ -1,0 +1,179 @@
+schema_version: 1
+kind: section
+id: "05 50 00"
+title: Metal Fabrications
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # ladders, platforms, support frames and similar items are often delegated
+
+scope_summary: >
+  Miscellaneous metals: loose lintels and shelf angles, embedded plates and
+  anchors, equipment supports and frames, ladders, bollards, platforms, and
+  stairs and railings where they are not specified separately (review those
+  against the 05 51 00 and 05 52 00 profiles as well). The items are small but
+  scattered across every discipline's drawings, so the first question is
+  whether each one shown is in someone's scope. Many are cast into concrete or
+  built into masonry and must be on site before the pour or the wall, and the
+  ones that carry people or equipment are delegated designs whose reactions
+  land on structure designed by others. Stairs and railings inherit from here.
+
+submittals:
+  - id: 05mf.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Every item keyed to the drawing and detail that calls for it, with material, finish and anchorage
+      - Embed and anchor layouts for the concrete and masonry trades, with marks matching the embed schedule
+  - id: 05mf.sub.delegated-design
+    type: Delegated Design
+    must_show:
+      - Calculations for each delegated item (ladders, platforms, support frames, canopies, stairs, railings) with the reaction at every attachment
+
+review_checks:
+  - id: 05mf.scope-coverage
+    kind: absence
+    check: >
+      Every miscellaneous metal item shown on any discipline's drawings is in
+      a scope: lintels and shelf angles, embeds, equipment and pipe support
+      frames, ladders, bollards, frames at overhead doors and openings, hoist
+      and trolley beams, supports for ceiling-hung equipment. Items that appear
+      only on MEP or structural sheets, or are noted "support steel by others",
+      are the usual gaps.
+    trace_to: [drawings.details, drawings.structural, drawings.mechanical, drawings.electrical, spec.part1]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 05mf.reactions-to-structure
+    kind: coordination
+    check: >
+      Each delegated fabrication design states the reaction at every
+      attachment, and the engineer of record confirms that the slab edge,
+      beam, joist, wall or framing it lands on can take it before the item is
+      fabricated.
+    trace_to: [drawings.structural, spec.part1_submittals]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 05mf.ladders
+    kind: conformance
+    scope: package
+    check: >
+      Fixed ladders and ship ladders show rung spacing, clearances, rail
+      extension at the landing, roof or hatch, the cage or ladder safety
+      system the hook calls for, and attachment to structure; roof access
+      ladders line up with the hatch location as built.
+    trace_to: [drawings.details, drawings.roof_plan, drawings.building_sections]
+    severity: medium
+    owner: subcontractor
+
+  - id: 05mf.bollards
+    kind: constructability
+    scope: package
+    check: >
+      Bollard locations are checked against underground utilities and
+      foundations before excavation, embedment and fill are detailed, and
+      protective bollards are placed wherever the fire code or the serving
+      utility requires them (gas meters, transformers, generators, fuel
+      equipment).
+    trace_to: [drawings.civil, drawings.site, drawings.electrical, drawings.details]
+    severity: medium
+    owner: gc
+    gate: site_paving
+
+reconciliations:
+  - id: 05mf.rc.embeds
+    between: [drawings.structural, drawings.details, drawings.wall_sections, drawings.mechanical, drawings.electrical, submittals.approved]
+    key: Embedded item or mark
+    fields: [location, elevation, plate size and anchors, item it supports, furnishing trade]
+    check: >
+      Every embed called for anywhere in the documents (curtain wall and
+      canopy connections, railing and stair supports, equipment and hoist
+      supports, door and gate frames) is on the embed layout, and the layout
+      agrees with the approved concrete placement or masonry drawings the
+      trade will set from, at the same location and elevation, before the
+      pour or the grout lift reaches it.
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+failure_modes:
+  - id: 05mf.fm.support-steel-orphan
+    what_happens: Support steel shown on MEP drawings as "by others" or "by GC" and carried by no contract
+    consequence: Equipment arrives with nothing to sit on; frames designed and fabricated in a hurry
+    caught_by: [05mf.scope-coverage, if.05-equipment-support-steel]
+    source: industry_practice
+
+  - id: 05mf.fm.embed-missed
+    what_happens: Embed plates for railings, canopies, curtain wall or equipment left off the layout the concrete trade set from
+    consequence: Post-installed anchors or through-bolts designed under schedule pressure; some conditions cannot be anchored at all
+    caught_by: [05mf.rc.embeds, if.03-steel-anchorage]
+    source: industry_practice
+
+  - id: 05mf.fm.reaction-unchecked
+    what_happens: A canopy, platform, support frame or stair anchored to a slab edge, joist or framing never checked for its reactions
+    consequence: The supporting structure reinforced after the item is installed
+    caught_by: [05mf.reactions-to-structure]
+    source: industry_practice
+
+  - id: 05mf.fm.ladder-noncompliant
+    what_happens: Ladder fabricated without the extension, cage or ladder safety system the applicable rules require
+    consequence: Rejected at inspection; ladder modified or replaced in place
+    caught_by: [05mf.ladders]
+    source: industry_practice
+
+  - id: 05mf.fm.bollard-utility-strike
+    what_happens: Bollard holes drilled into duct banks, gas lines or footings
+    consequence: Utility damage and outage, or bollards relocated off the protection line
+    caught_by: [05mf.bollards]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 05mf.rh.guards-handrails
+    topic: guard-handrail-requirements
+    question: >
+      Where do the adopted building code and accessibility standard require
+      guards and handrails on these metal stairs, ramps, landings, platforms,
+      mezzanines and floor openings, and which heights, infill opening limits,
+      handrail extensions, graspable profiles and guard and handrail design
+      loads apply?
+    applies_when: Metal stairs, ramps, platforms, mezzanines and edges with a drop
+    source_families: [building_code, accessibility]
+    severity: high
+
+  - id: 05mf.rh.fixed-ladders
+    topic: fixed-ladder-requirements
+    question: >
+      Where do the adopted building code and occupational safety rules allow
+      fixed or ship ladders as access, and what do they require of them here
+      (rung spacing and clearances, extension above the landing, cage, ladder
+      safety system or personal fall arrest)?
+    applies_when: Fixed ladders, ship ladders and roof access ladders
+    source_families: [building_code, occupational_safety]
+    severity: medium
+
+  - id: 05mf.rh.vehicle-impact
+    topic: vehicle-impact-protection
+    question: >
+      Where does the adopted fire code, or the serving utility, require
+      vehicle impact protection (gas meters, fuel dispensing, generators,
+      transformers, hydrants and fire department connections), and what
+      bollard spacing, height and construction does it require?
+    applies_when: Bollards and equipment exposed to vehicles
+    source_families: [fire_code]
+    severity: medium
+
+extract_fields:
+  - id: 05mf.xf.items
+    label: Fabricated items with the drawing and detail reference for each
+    type: list
+    per: package
+    reconcile_against: [drawings.details, drawings.structural]
+  - id: 05mf.xf.embeds
+    label: Embed marks with location, elevation and receiving trade
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, drawings.details]

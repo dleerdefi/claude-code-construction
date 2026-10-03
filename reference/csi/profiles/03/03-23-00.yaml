@@ -1,0 +1,197 @@
+schema_version: 1
+kind: section
+id: "03 23 00"
+title: Stressed Tendon Reinforcing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # tendon layout and profiles are often delegated to the post-tensioning supplier's engineer
+equivalents: ["03 38 00"]
+
+scope_summary: >
+  Post-tensioning tendons, anchorages, stressing and pocket grouting, often
+  specified here or under 03 38 00 Post-Tensioned Concrete. The supplier's
+  shop drawings turn the engineer's forces into tendon layouts and profiles,
+  and every sleeve, opening, drain and slab-edge embed has to be worked
+  around those tendons before the pour. After stressing the tendons are
+  invisible and dangerous to cut, so the as-built record matters for the life
+  of the building. Elongation records reconciled against calculated values
+  are the acceptance test.
+
+submittals:
+  - id: 03pt.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Tendon layout by bay with profile heights at high and low points, support bar and chair heights
+      - Stressing ends, dead ends, intermediate stressing at construction joints, and pocket details
+      - Anchorage-zone (bursting) reinforcing and added bars at openings and sleeves
+      - Every sleeve, opening, floor drain and slab-edge embed, with the tendon sweeps around them
+      - Stressing sequence and calculated elongations
+  - id: 03pt.sub.product-data
+    type: Product Data
+    must_show:
+      - Strand, anchorages, sheathing and coating, and the encapsulation system where the exposure requires one
+  - id: 03pt.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Installer and inspector field certification the spec requires
+  - id: 03pt.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Stressing records per tendon with gauge pressure, measured and calculated elongation, and the concrete strength at stressing
+
+review_checks:
+  - id: 03pt.stressing-acceptance
+    kind: completeness
+    submittal_types: [Test Reports]
+    check: >
+      Stressing starts only after the concrete strength the drawings require
+      is confirmed by test. Measured elongations are compared with calculated
+      for every tendon, out-of-tolerance tendons go to the engineer before
+      tails are cut and pockets grouted, and forms and shores stay in place
+      until stressing is accepted.
+    trace_to: [spec.part3, drawings.structural]
+    severity: critical
+    owner: subcontractor
+
+  - id: 03pt.as-built-record
+    kind: completeness
+    check: >
+      Tendon locations are recorded as built (survey or photographs with
+      reference marks before the pour, revised layout drawings), and the
+      closeout documents and the owner's procedure for later penetrations
+      point to that record.
+    trace_to: [spec.part1, spec.part3]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 03pt.anchorage-zones
+    kind: constructability
+    submittal_types: [Shop Drawings]
+    check: >
+      Anchorage zones carry the bursting and backup reinforcing, and every
+      stressing end has room for the jack: clear of adjacent buildings,
+      property lines, walls and columns. Where the slab edge is
+      inaccessible, intermediate or dead-end anchorages are shown.
+    trace_to: [drawings.structural, drawings.details, drawings.site]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 03pt.encapsulation
+    kind: conformance
+    check: >
+      The tendon system has the corrosion protection the spec or exposure
+      requires (encapsulated anchorages and couplers in parking structures,
+      exterior exposure and chloride environments), with sheathing repairs and
+      pocket protection to match, and pockets are grouted with the specified
+      non-shrink grout promptly after acceptance.
+    trace_to: [spec.part2, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 03pt.slab-edge
+    kind: coordination
+    check: >
+      At slab edges, curtain wall and cladding embeds, edge angles and
+      perimeter fire containment are located clear of anchorages, and pockets
+      at exposed edges are filled and finished before the cladding,
+      waterproofing or firestop that covers them.
+    trace_to: [drawings.structural, drawings.wall_sections, drawings.details]
+    severity: medium
+    owner: gc
+    gate: slab_pour
+
+  - id: 03pt.restraint
+    kind: constructability
+    check: >
+      Where the slab is restrained by stiff walls, cores or closely spaced
+      columns, pour strips, slip joints or delayed connections are shown with
+      the timing for closing them. Field changes that add restraint (closing a
+      pour strip early, casting walls tight to the slab) go to the engineer.
+    trace_to: [drawings.structural, drawings.details]
+    severity: medium
+    owner: design_team
+
+reconciliations:
+  - id: 03pt.rc.penetrations
+    between: [drawings.structural, drawings.plumbing, drawings.mechanical, drawings.electrical, drawings.plans]
+    key: Sleeve, opening, floor drain or embed in a post-tensioned slab
+    fields: [location relative to tendon bands and distributed tendons, size, tendon sweep, added reinforcing]
+    check: >
+      Every penetration and embed on the architectural and MEP drawings is on
+      the tendon layout before it is finalized, with the tendons swept around
+      it within the supplier's limits. One added after layout approval is
+      redesigned around the tendons by the supplier's engineer, never placed
+      by moving tendons in the field.
+    severity: critical
+    owner: gc
+    gate: slab_pour
+
+failure_modes:
+  - id: 03pt.fm.tendon-cut
+    what_happens: A tenant-improvement or MEP trade cores or drills a stressed slab without scanning or checking the tendon record
+    consequence: Tendon released violently, slab capacity lost over its length; emergency shoring and tendon repair
+    caught_by: [d03.coring-scanning, 03pt.as-built-record]
+    source: industry_practice
+
+  - id: 03pt.fm.late-sleeve
+    what_happens: A sleeve or floor drain arrives after the tendon layout is approved and is placed by pushing tendons aside
+    consequence: Tendon profile and spacing changed without design; capacity questions, or the sleeve is omitted and cored later
+    caught_by: [03pt.rc.penetrations, if.03-sleeves]
+    source: industry_practice
+
+  - id: 03pt.fm.early-stressing
+    what_happens: Tendons stressed on schedule before the concrete reached the required strength
+    consequence: Anchorage blowout and spalling at the slab edge; repair and restressing
+    caught_by: [03pt.stressing-acceptance]
+    source: industry_practice
+
+  - id: 03pt.fm.tails-cut-first
+    what_happens: Tails cut and pockets grouted before elongation records were reviewed
+    consequence: Tendons that did not reach force cannot be restressed; slab capacity is unknown
+    caught_by: [03pt.stressing-acceptance]
+    source: industry_practice
+
+  - id: 03pt.fm.edge-embed-conflict
+    what_happens: Curtain wall embeds or edge angles land on stressing anchorages at the slab edge
+    consequence: Embeds relocated or post-installed near tendons; curtain wall anchor redesign
+    caught_by: [03pt.slab-edge, if.03-cladding-embeds]
+    source: industry_practice
+
+  - id: 03pt.fm.restraint-cracking
+    what_happens: Slab cast tight to stiff walls or cores with no pour strip or slip joint
+    consequence: Shortening cracks at walls and columns, and lost precompression where it was needed
+    caught_by: [03pt.restraint]
+    source: industry_practice
+
+  - id: 03pt.fm.corroded-tendons
+    what_happens: Unencapsulated tendons or poorly grouted pockets in a parking or exterior exposure
+    consequence: Corroded strand and anchorages found years later; tendon replacement in an occupied building
+    caught_by: [03pt.encapsulation]
+    source: industry_practice
+
+standards:
+  - id: 03pt.std.aci-423-7
+    name: ACI 423.7
+    title: Specification for Unbonded Single-Strand Tendon Materials
+    verify: Tendon, anchorage, sheathing and encapsulation materials for unbonded systems
+  - id: 03pt.std.astm-a416
+    name: ASTM A416/A416M
+    title: Low-Relaxation, Seven-Wire Steel Strand for Prestressed Concrete
+    verify: Strand certificates against the size and grade on the shop drawings
+
+extract_fields:
+  - id: 03pt.xf.system
+    label: Tendon system (bonded or unbonded, encapsulated or not)
+    type: string
+    per: package
+    reconcile_against: [spec.part2]
+  - id: 03pt.xf.stressing-strength
+    label: Concrete strength required before stressing
+    type: string
+    per: package
+    reconcile_against: [drawings.structural, spec.part3]
