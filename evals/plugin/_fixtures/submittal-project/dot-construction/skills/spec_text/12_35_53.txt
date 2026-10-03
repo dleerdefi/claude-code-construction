@@ -1,0 +1,27 @@
+SECTION 12 35 53 - LABORATORY CASEWORK
+
+PART 1 - GENERAL
+1.1  SUMMARY
+A.  Section includes metal laboratory casework, epoxy resin work surfaces and wall-hung counters.
+B.  Fume hoods are specified in Section 11 53 13. Sinks are furnished under Section 22 40 00.
+1.2  COORDINATION
+A.  Furnish concealed in-wall counter brackets to the framing contractor for installation
+before gypsum board. Coordinate locations and heights shown on the Drawings.
+B.  Size sink cutouts to the sink models scheduled on the plumbing drawings.
+1.3  ACTION SUBMITTALS
+A.  Product Data: For casework, work surfaces and hardware.
+B.  Shop Drawings: Plans and elevations keyed to the Contract Drawings, sections, work
+surface heights, in-wall supports, cutouts for sinks and fixtures furnished by others,
+and service fixture locations. Include every elevation shown on the Drawings.
+C.  Samples: Work surface colors.
+PART 2 - PRODUCTS
+2.1  METAL CASEWORK
+A.  Steel laboratory casework conforming to SEFA 8-M.
+2.2  EPOXY RESIN WORK SURFACES
+A.  Epoxy resin, 1 inch thick, conforming to SEFA 3.
+2.3  ACCESSIBLE WORKSTATIONS
+A.  Provide accessible student stations where indicated on the Drawings, with open knee space.
+PART 3 - EXECUTION
+3.1  INSTALLATION
+A.  Install casework level and plumb. Anchor wall-hung counters to in-wall brackets.
+END OF SECTION 12 35 53
