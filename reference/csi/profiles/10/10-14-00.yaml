@@ -23,6 +23,20 @@ scope_summary: >
 review_mode: per_element
 element_types: [sign_type]
 
+suppress:
+  - id: d10.recess-in-rated-walls
+    reason: No recessed units in this scope; the rated-wall recess check is for accessories, cabinets and lockers
+  - id: d10.fm.standard-unit-rated-wall
+    reason: Follows d10.recess-in-rated-walls
+  - id: d10.wall-depth
+    reason: No recessed units in this scope
+  - id: d10.fm.semi-recessed-swap
+    reason: Follows d10.wall-depth; no recessed unit to swap
+  - id: d10.rh.membrane-penetrations
+    reason: No recessed units in rated walls in this scope
+  - id: d10.rh.reach-ranges
+    reason: Signs have no operable parts
+
 submittals:
   - id: 10sg.sub.shop-drawings
     type: Shop Drawings
@@ -44,7 +58,6 @@ submittals:
 review_checks:
   - id: 10sg.tactile-room-signs
     kind: conformance
-    reflex: true
     check: >
       Every permanent room and space the accessibility standard covers has a
       tactile and Braille identification sign on the latch-side wall (or where

@@ -345,11 +345,11 @@ standards:
     verify: Mold-resistance claims for moisture- and mold-resistant boards
   - id: 09gb.std.ga-214
     name: GA-214
-    title: Gypsum Association levels of gypsum board finish
-    verify: Finish level per surface; confirm the edition the spec cites
+    title: Recommended Levels of Finish for Gypsum Panel Products
+    verify: Finish level per surface; confirm the edition the spec cites (older editions are titled for gypsum board)
   - id: 09gb.std.ga-600
     name: GA-600
-    title: Gypsum Association fire-resistance design manual (GA File Numbers)
+    title: Fire Resistance and Sound Control Design Manual
     verify: Generic rated designs cited by GA File Number instead of a testing agency listing; confirm the edition
   - id: 09gb.std.sound
     name: ASTM E90 / ASTM E413 / ASTM E336

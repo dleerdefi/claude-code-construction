@@ -149,7 +149,7 @@ standards:
 
 regulatory_hooks:
   - id: 06aw.rh.interior-finish
-    topic: interior-finish-flame-spread-class
+    topic: interior-wall-finish-classification
     question: >
       What flame spread and smoke-developed classification does the adopted
       code require for wall and ceiling finishes in each occupancy and

@@ -133,7 +133,7 @@ edges:
 
   # ── Structural wood and building systems ──────────────────────
   - id: if.06-truss-mep-loads
-    a: ["06 17 00"]
+    a: ["06 17 53"]
     a_trade: Shop-fabricated wood trusses
     b: ["23 74 00", "23 81 00", "23 31 00", "21 10 00"]
     b_trade: HVAC equipment and ductwork, and sprinkler piping on or in the truss space

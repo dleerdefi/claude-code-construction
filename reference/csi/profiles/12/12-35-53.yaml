@@ -108,36 +108,36 @@ failure_modes:
   - id: lc.fm.service-fixture-split
     what_happens: Casework vendor furnishes service fixtures, plumbing assumes they are in its scope or vice versa
     consequence: Duplicate fixtures or none; connections missed at turnover
-    caught_by: [lc.service-fixtures]
+    caught_by: [lc.service-fixtures, if.lab-casework-services]
     source: industry_practice
 
   - id: lc.fm.vented-cabinet-no-duct
     what_happens: Vented storage cabinets submitted with no exhaust connection in the mechanical design
     consequence: Late duct and fan work, or cabinets plugged contrary to owner standards
-    caught_by: [lc.ventilated-storage]
+    caught_by: [lc.ventilated-storage, if.lab-casework-exhaust]
     source: industry_practice
 
   - id: lc.fm.hood-size-changed
     what_happens: Fume hood width changed in the hood submittal; casework base and top still built to the old width
     consequence: Rework of base cabinets and tops at hood locations
-    caught_by: [lc.fume-hood-interface]
+    caught_by: [lc.fume-hood-interface, if.lab-casework-fume-hoods]
     source: industry_practice
 
 standards:
   - id: lc.std.sefa-8
     name: SEFA 8 series
-    title: Laboratory grade casework — 8-M metal, 8-W wood, 8-PH phenolic, 8-P polypropylene, 8-PL plastic laminate
+    title: Lab Grade Casework Standards — 8-M metal, 8-W wood, 8-PH phenolic, 8-P polypropylene, 8-PL plastic laminate
     verify: Conformance and test data claims for the specified material
     note: Confirm the edition the spec cites
 
   - id: lc.std.sefa-3
     name: SEFA 3
-    title: Laboratory Work Surfaces
+    title: Work Surfaces Standard
     verify: Work surface chemical-resistance and performance claims
 
   - id: lc.std.sefa-7
     name: SEFA 7
-    title: Laboratory Fixtures
+    title: Lab Grade Fixtures Standard
     verify: Service fixture claims
 
 regulatory_hooks:

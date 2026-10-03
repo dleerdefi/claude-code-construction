@@ -12,7 +12,7 @@ contractor_designed: never
 scope_summary: >
   Hardware sets for every opening, including electrified locking, exit
   devices, closers and holders, operators, seals and thresholds (08 71 13
-  automatic door operators inherit from here). At each door the hardware is
+  power door operators inherit from here). At each door the hardware is
   where egress, fire rating, accessibility, security and the owner's
   operations meet: free egress without special knowledge, rated doors that
   close and latch, closers that open easily, locks on the owner's keying and
@@ -256,7 +256,7 @@ standards:
     verify: Panic hardware listing; fire exit hardware also carries a fire door listing
   - id: 08hw.std.a156-4
     name: ANSI/BHMA A156.4
-    title: Standard for Door Closers and Pivots
+    title: Door Controls - Closers
     verify: Closer grade, sizing and adjustability for opening force
   - id: 08hw.std.electrified
     name: ANSI/BHMA A156.23 / A156.24 / A156.25 / A156.31
@@ -268,7 +268,7 @@ standards:
     verify: Hold-open and closer-holder release devices on rated doors
   - id: 08hw.std.a156-19
     name: ANSI/BHMA A156.19
-    title: Power Assist and Low Energy Power Operated Swinging Doors
+    title: Power Assist and Low Energy Power Operated Doors
     verify: Low-energy swing operators
   - id: 08hw.std.a156-28
     name: ANSI/BHMA A156.28

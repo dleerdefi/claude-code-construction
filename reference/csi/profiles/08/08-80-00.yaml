@@ -22,6 +22,12 @@ scope_summary: >
 review_mode: per_element
 element_types: [glass_type]
 
+suppress:
+  - id: d08.sequence-of-operation
+    reason: Glass carries no locking, release or operator sequence; the opening it sits in is reviewed with the door, hardware or framing
+  - id: d08.fm.trades-disagree
+    reason: Glass carries no locking, release or operator sequence
+
 submittals:
   - id: 08gl.sub.product-data
     type: Product Data
@@ -132,6 +138,10 @@ standards:
     name: ASTM C1048
     title: Standard Specification for Heat-Strengthened and Fully Tempered Flat Glass
     verify: Heat treatment kind claimed for each lite
+  - id: 08gl.std.astm-e2190
+    name: ASTM E2190
+    title: Standard Specification for Insulating Glass Unit Performance and Evaluation
+    verify: Insulating glass unit durability certification claimed for each insulating type, with the edge seal and spacer actually submitted
   - id: 08gl.std.safety
     name: ANSI Z97.1 / 16 CFR 1201
     title: Safety glazing materials used in buildings; safety standard for architectural glazing materials

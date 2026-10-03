@@ -18,6 +18,18 @@ scope_summary: >
   glass units need structure, and fabric display surfaces are combustible
   material that fire codes limit on corridor and classroom walls.
 
+suppress:
+  - id: d10.recess-in-rated-walls
+    reason: No recessed units in this scope; the rated-wall recess check is for accessories, cabinets and lockers
+  - id: d10.fm.standard-unit-rated-wall
+    reason: Follows d10.recess-in-rated-walls
+  - id: d10.wall-depth
+    reason: No recessed units in this scope
+  - id: d10.fm.semi-recessed-swap
+    reason: Follows d10.wall-depth; no recessed unit to swap
+  - id: d10.rh.membrane-penetrations
+    reason: No recessed units in rated walls in this scope
+
 submittals:
   - id: 10vd.sub.shop-drawings
     type: Shop Drawings

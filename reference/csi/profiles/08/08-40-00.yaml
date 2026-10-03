@@ -132,6 +132,7 @@ review_checks:
 
   - id: 08gf.finish-class
     kind: conformance
+    scope: package
     submittal_types: [Product Data, Samples]
     check: >
       Coating or anodic class matches the spec; a lower-performance coating
@@ -199,6 +200,10 @@ failure_modes:
     source: industry_practice
 
 standards:
+  - id: 08gf.std.thermal-ratings
+    name: NFRC 100 / NFRC 200 / AAMA 1503
+    title: Fenestration product U-factor; solar heat gain coefficient and visible transmittance; thermal transmittance and condensation resistance of windows, doors and glazed wall sections
+    verify: Whether submitted U-factor, SHGC, VT and condensation values are whole-product ratings or tests for the project's framing and glass, by the method the energy compliance and spec accept
   - id: 08gf.std.aama-501-1
     name: AAMA 501.1
     title: Standard Test Method for Water Penetration of Windows, Curtain Walls and Doors Using Dynamic Pressure
@@ -217,7 +222,7 @@ standards:
     verify: Coating or anodic class claimed against the class specified
   - id: 08gf.std.aama-501-6
     name: AAMA 501.6
-    title: Recommended Dynamic Test Method for Determining the Seismic Lateral Inter-Story Movement Causing Glass Fallout
+    title: Recommended Dynamic Test Method for Determining the Seismic Drift Causing Glass Fallout from a Wall System
     verify: Drift capacity where seismic glass fallout criteria apply
 
 regulatory_hooks:
@@ -250,7 +255,7 @@ regulatory_hooks:
       framing, at which elevations and to what level, and has the anchorage
       and supporting structure been designed for those loads?
     applies_when: Government, institutional or owner-designated secure facilities
-    source_families: [building_code]
+    source_families: [federal_security_criteria, owner_insurer_standards]
     severity: high
 
 extract_fields:

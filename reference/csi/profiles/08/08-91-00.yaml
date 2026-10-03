@@ -37,6 +37,10 @@ suppress:
     reason: Louvers carry no fire label to void
   - id: d08.fm.mixed-listing
     reason: Louvers are not listed opening protectives
+  - id: d08.std.nfpa-80
+    reason: Wall louvers are not opening protectives; the fire damper behind a louver in a rated wall is reviewed under Division 23, and louvers in rated doors are reviewed with the labeled door assembly under 08 10 00
+  - id: d08.std.nfpa-105
+    reason: Louvers are not smoke door assemblies
 
 submittals:
   - id: 08lv.sub.product-data
@@ -136,6 +140,16 @@ failure_modes:
     consequence: Exhaust re-entrained into the building; louver or exhaust relocated after construction
     caught_by: [08lv.intake-location]
     source: industry_practice
+
+standards:
+  - id: 08lv.std.amca-ratings
+    name: ANSI/AMCA 500-L / AMCA 511
+    title: Laboratory Methods of Testing Louvers for Rating; Certified Ratings Program Product Rating Manual for Air Control Devices
+    verify: Test basis of the free area, pressure drop, water penetration and wind-driven rain ratings, and whether the model and size carry certified ratings where the spec requires them
+  - id: 08lv.std.amca-550
+    name: ANSI/AMCA 550
+    title: Test Method for High Velocity Wind Driven Rain Resistant Louvers
+    verify: Rating claimed where the spec or jurisdiction requires louvers tested for high-velocity wind-driven rain
 
 regulatory_hooks:
   - id: 08lv.rh.intake-separation

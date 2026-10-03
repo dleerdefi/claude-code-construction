@@ -70,6 +70,19 @@ review_checks:
     severity: medium
     owner: gc
 
+  - id: 09pt.rated-wall-marking
+    kind: absence
+    check: >
+      Where the code requires rated and smoke-resistant walls to be
+      identified in concealed spaces, the marking (wording, letter size,
+      spacing, and which walls) is assigned to a trade, usually painting or
+      signage, and is applied above each ceiling before it closes rather than
+      found missing at the above-ceiling inspection.
+    trace_to: [spec.part1, spec.part3, drawings.life_safety]
+    severity: medium
+    owner: gc
+    gate: above_ceiling_close_in
+
   - id: 09pt.color-samples
     kind: completeness
     submittal_types: [Samples]
@@ -112,6 +125,12 @@ failure_modes:
     caught_by: [09pt.substrate-readiness, 09pt.system-per-substrate]
     source: industry_practice
 
+  - id: 09pt.fm.rated-wall-unmarked
+    what_happens: Rated walls above ceilings left unmarked because neither the painting nor the signage scope carried the identification
+    consequence: Above-ceiling inspection fails; ceilings held open or tiles pulled to mark walls late in the job
+    caught_by: [09pt.rated-wall-marking]
+    source: industry_practice
+
   - id: 09pt.fm.accent-missed
     what_happens: Accent colors shown only on interior elevations missed by the painter's take-off
     consequence: Rooms repainted after punch
@@ -139,6 +158,17 @@ regulatory_hooks:
     applies_when: Renovation work that sands, scrapes or removes existing paint
     source_families: [environmental, occupational_safety]
     severity: high
+
+  - id: 09pt.rh.rated-wall-marking
+    topic: rated-wall-identification-marking
+    question: >
+      Does the adopted building code require fire walls, fire barriers, fire
+      partitions, smoke barriers and smoke partitions to be identified in
+      concealed spaces above ceilings and in attics, and with what wording,
+      letter size and spacing?
+    applies_when: Rated or smoke-resistant walls that continue above ceilings or into attics
+    source_families: [building_code]
+    severity: medium
 
 extract_fields:
   - id: 09pt.xf.systems

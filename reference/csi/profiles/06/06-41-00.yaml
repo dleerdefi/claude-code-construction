@@ -3,6 +3,7 @@ kind: section
 id: "06 41 00"
 title: Architectural Wood Casework
 same_as: "12 30 00"
+equivalents: ["06 40 23", "12 32 00", "12 36 00"]   # casework inside interior woodwork; manufactured wood casework; countertops specified separately
 status: draft
 maintainers: [dleerdefi]
 reviewed_by: []
@@ -62,42 +63,7 @@ review_checks:
     severity: medium
     owner: subcontractor
 
-  - id: 06ac.cores
-    kind: conformance
-    check: >
-      Panel cores suit their location: moisture-resistant cores at sinks,
-      dishwashers and other wet areas, fire-rated cores where a flame spread
-      class is required, and no-added-formaldehyde or certified products where
-      the spec requires them.
-    trace_to: [spec.part2, drawings.interior_elevations, schedule.plumbing_fixture]
-    severity: medium
-    owner: subcontractor
-
-  - id: 06ac.site-conditions
-    kind: constructability
-    scope: package
-    check: >
-      Casework is delivered only after the room is enclosed and dry, the HVAC
-      is holding the humidity range the AWI standard sets for the project's
-      region, and walls are finished and primed behind it; units acclimate in
-      the room before they are scribed and installed.
-    trace_to: [spec.part1, spec.part3, schedule.master]
-    severity: high
-    owner: gc
-
 failure_modes:
-  - id: 06ac.fm.warped-doors
-    what_happens: Casework installed while the HVAC is off or the room is still wet
-    consequence: Doors warp, veneer and laminate delaminate and joints open; doors and panels replaced
-    caught_by: [06ac.site-conditions, if.01-temporary-conditions-woodwork]
-    source: industry_practice
-
-  - id: 06ac.fm.swollen-sink-base
-    what_happens: Standard particleboard cores used at sinks and dishwashers
-    consequence: Swollen tops and bases after the first leak or wet cleaning
-    caught_by: [06ac.cores]
-    source: industry_practice
-
   - id: 06ac.fm.face-match
     what_happens: Doors and drawer fronts cut from unmatched veneer
     consequence: Visible grain breaks across each elevation; fronts refabricated
