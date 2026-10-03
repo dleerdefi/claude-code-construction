@@ -16,25 +16,6 @@ scope_summary: >
 review_mode: package
 
 review_checks:
-  - id: g.section-identified
-    kind: completeness
-    check: >
-      Submittal identifies the spec section and article it responds to, and
-      covers one section unless Division 01 allows combined submittals.
-    trace_to: [spec.part1_submittals]
-    severity: low
-    owner: subcontractor
-
-  - id: g.required-items-present
-    kind: completeness
-    check: >
-      Every submittal item the section's Part 1 requires (product data, shop
-      drawings, samples, certificates, calculations, qualifications) is
-      included, or is logged as a separate pending submittal.
-    trace_to: [spec.part1_submittals, register.submittal_log]
-    severity: high
-    owner: subcontractor
-
   - id: g.current-documents
     kind: conformance
     check: >
@@ -49,8 +30,9 @@ review_checks:
     kind: conformance
     check: >
       Proposed manufacturer and model match the basis of design or a listed
-      acceptable manufacturer. Anything else is a substitution and needs an
-      approved substitution request before review.
+      acceptable manufacturer. Anything else follows the comparable-product or
+      substitution procedure Division 01 allows, with its timing and
+      comparison data, before it is reviewed on its merits.
     trace_to: [spec.part2_manufacturers, register.substitutions]
     severity: high
     owner: gc
