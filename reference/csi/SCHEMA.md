@@ -124,11 +124,13 @@ Compliance is not a check kind: it lives in `regulatory_hooks`, because its answ
 
 | Group | Terms |
 |---|---|
+| Contract | `contract.general_conditions`, `spec.division_01` |
 | Spec | `spec.part1`, `spec.part1_submittals`, `spec.part2`, `spec.part2_manufacturers`, `spec.part3` |
-| Drawings | `drawings.plans`, `drawings.interior_elevations`, `drawings.details`, `drawings.material_legend`, `drawings.wall_sections`, `drawings.exterior_elevations`, `drawings.roof_plan`, `drawings.rcp`, `drawings.life_safety`, `drawings.foundation`, `drawings.structural`, `drawings.civil`, `drawings.plumbing`, `drawings.mechanical`, `drawings.electrical`, `drawings.single_line`, `drawings.fire_alarm`, `drawings.lab_gas`, `drawings.revision_blocks` |
-| Schedules | `schedule.casework`, `schedule.casework_hardware`, `schedule.finish`, `schedule.partition_type`, `schedule.door`, `schedule.door_hardware`, `schedule.equipment`, `schedule.plumbing_fixture`, `schedule.mechanical_equipment`, `schedule.electrical_panel`, `schedule.lighting_fixture`, `schedule.master` |
-| Reports | `report.geotechnical`, `report.energy_compliance` |
+| Drawings | `drawings.plans`, `drawings.enlarged_plans`, `drawings.interior_elevations`, `drawings.exterior_elevations`, `drawings.building_sections`, `drawings.wall_sections`, `drawings.details`, `drawings.material_legend`, `drawings.roof_plan`, `drawings.rcp`, `drawings.life_safety`, `drawings.demolition`, `drawings.site`, `drawings.civil`, `drawings.landscape`, `drawings.foundation`, `drawings.structural`, `drawings.fire_protection`, `drawings.plumbing`, `drawings.mechanical`, `drawings.controls`, `drawings.electrical`, `drawings.single_line`, `drawings.riser_diagrams`, `drawings.fire_alarm`, `drawings.technology`, `drawings.security`, `drawings.lab_gas`, `drawings.foodservice`, `drawings.equipment`, `drawings.storage_racks`, `drawings.revision_blocks` |
+| Schedules | `schedule.casework`, `schedule.casework_hardware`, `schedule.finish`, `schedule.partition_type`, `schedule.door`, `schedule.door_hardware`, `schedule.window`, `schedule.signage`, `schedule.toilet_accessories`, `schedule.equipment`, `schedule.foodservice_equipment`, `schedule.plumbing_fixture`, `schedule.mechanical_equipment`, `schedule.electrical_panel`, `schedule.lighting_fixture`, `schedule.structural`, `schedule.lintel`, `schedule.master` |
+| Reports | `report.geotechnical`, `report.energy_compliance`, `report.hazmat_survey`, `report.existing_conditions`, `report.commissioning`, `report.acoustical`, `report.stormwater`, `report.utility_requirements`, `report.radiation_shielding`, `report.chemical_inventory`, `report.risk_assessment`, `report.basis_of_design`, `report.wind_tunnel`, `report.preservation_approval` |
 | Registers | `register.submittal_log`, `register.rfi_log`, `register.asi_bulletin_log`, `register.substitutions`, `register.special_inspections` |
+| Other submittals | `submittals.approved`: another section's approved shop drawings or product data this submittal must fit (the approved sink a casework top is cut for, the embed plan a steel connection lands on) |
 
 The validator warns on anything else; add new terms here first.
 
@@ -164,7 +166,14 @@ A hook is a compliance **question**, never an answer. The resolver binds each ho
 
 **Rule K2 — Hooks are never dropped.** Every applicable hook appears in the compiled output in one of these three states. This is how a health-department requirement that no drawing mentions still reaches the reviewer.
 
-`source_families` seeds code-researcher's Pass 2: `accessibility`, `building_code`, `building_code_seismic`, `fire_code`, `plumbing_code`, `mechanical_code`, `electrical_code`, `health_facility_licensing`, `fgi_guidelines`, `food_code`, `pharmacy`, `occupational_safety`, `environmental`, `energy`.
+`source_families` seeds code-researcher's Pass 2:
+
+| Group | Families |
+|---|---|
+| Model codes | `building_code`, `building_code_seismic`, `fire_code`, `plumbing_code`, `mechanical_code`, `fuel_gas_code`, `electrical_code`, `elevator_code`, `energy`, `accessibility` |
+| Agencies | `health_facility_licensing`, `fgi_guidelines`, `food_code`, `public_health` (pools and other local health rules), `pharmacy`, `radiation_control`, `occupational_safety`, `boiler_pressure_vessel`, `environmental`, `historic_preservation` |
+| Utilities and public works | `public_works` (municipal utility and right-of-way standards), `utility_service_rules` (the serving utility's service requirements) |
+| Owner and funding | `owner_insurer_standards`, `public_funding` (conditions attached to public money), `federal_security_criteria` |
 
 ### 4.3 Other keyed lists
 
@@ -289,7 +298,8 @@ edges:
 - `responsibility.typical` is a **prompt to confirm**, never an answer — furnish / install / connect splits are project-specific and are where coordination money is lost.
 - `gate.milestone` must be an id in `milestones.yaml`. `gate.inspect_before` (optional) lists inspections specific to this interface, on top of the milestone's own.
 - `reflex: true` on an edge puts it in the always-on list.
-- `failure` is for an interface no failure mode covers. When a profile's failure mode names the edge in `caught_by`, leave `failure` off the edge so the consequence has one home.
+- `failure` is for an interface no failure mode covers. When a profile's failure mode names the edge in `caught_by`, leave `failure` off the edge so the consequence has one home; `resolve` attaches that failure mode's text to the edge when the review comes from the other side, and `validate` lints an edge that repeats it.
+- An endpoint matches its own lineage: `26 05 00` reaches `26 05 33` but not `26 24 16`. Use the division (`26`) when the edge concerns the whole trade, or name the specific sections.
 
 ### 6.1 Milestones (`milestones.yaml`)
 

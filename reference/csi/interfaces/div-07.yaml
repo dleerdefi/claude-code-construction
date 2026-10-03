@@ -160,7 +160,6 @@ edges:
     b_provides: Attachment locations, ballast or anchorage, conduit routing and the installation schedule
     gate: {milestone: equipment_set}
     severity: medium
-    failure: Attachments made through the membrane without approved details; warranty exclusion
 
   - id: if.roof-wall-air-barrier
     a: ["07 50 00"]

@@ -73,12 +73,17 @@ TRACE_TERMS = {
     "schedule.foodservice_equipment", "schedule.structural", "schedule.lintel",
     "report.hazmat_survey", "report.existing_conditions", "report.commissioning",
     "report.acoustical", "report.stormwater", "report.utility_requirements", "spec.division_01",
+    "contract.general_conditions", "submittals.approved", "drawings.controls", "drawings.storage_racks",
+    "report.radiation_shielding", "report.chemical_inventory", "report.risk_assessment",
+    "report.basis_of_design", "report.wind_tunnel", "report.preservation_approval",
 }
 SOURCE_FAMILIES = {
     "accessibility", "building_code", "building_code_seismic", "fire_code",
     "health_facility_licensing", "fgi_guidelines", "food_code", "pharmacy",
     "occupational_safety", "environmental", "energy", "plumbing_code", "mechanical_code",
-    "electrical_code",
+    "electrical_code", "elevator_code", "fuel_gas_code", "boiler_pressure_vessel",
+    "radiation_control", "public_health", "public_works", "utility_service_rules",
+    "historic_preservation", "public_funding", "federal_security_criteria", "owner_insurer_standards",
 }
 KEYED_LISTS = ["submittals", "review_checks", "reconciliations", "failure_modes", "standards",
                "regulatory_hooks", "extract_fields"]
@@ -248,6 +253,28 @@ def iter_files(kb, sub, pattern="*.yaml"):
     return sorted(folder.rglob(pattern) if sub == "profiles" else folder.glob(pattern))
 
 
+_edge_failures = {}
+
+
+def edge_failure_index(kb):
+    """Edge id -> [(failure mode id, what_happens)] for failure modes that name the edge.
+
+    An edge leaves `failure` off when a profile's failure mode names it, so the consequence
+    has one home. The review from the other side of the edge still needs it: resolve
+    attaches it from here.
+    """
+    key = str(Path(kb).resolve())
+    if key not in _edge_failures:
+        index = {}
+        for path in iter_files(kb, "profiles") + iter_files(kb, "overlays"):
+            for fm in load_yaml(path).get("failure_modes") or []:
+                for cid in fm.get("caught_by", []) or []:
+                    if str(cid).startswith("if."):
+                        index.setdefault(cid, []).append((fm.get("id"), " ".join(str(fm.get("what_happens", "")).split())))
+        _edge_failures[key] = index
+    return _edge_failures[key]
+
+
 def resolve_section_id(kb, raw):
     sid = normalize(raw)
     if sid:
@@ -351,18 +378,48 @@ def spec_text_path(project, sid):
     return str(p.relative_to(project)) if p.exists() else None
 
 
+def _find_alias(kb, sid):
+    """(target, alias_node) for the nearest section-level alias at or above sid.
+
+    An ancestor's alias is followed only when its target lies outside the ancestor's
+    own subtree: 26 43 00 → 26 20 00 carries 26 43 13 with it, but 31 20 00 → 31 23 00
+    does not drag its other children (31 25 00) into excavation and fill.
+    """
+    for node in reversed(lineage(sid)):
+        if node == "global" or len(node) == 2:
+            break
+        path = profile_path(kb, node)
+        if not path.exists():
+            continue
+        target = load_yaml(path).get("same_as")
+        if not target:
+            continue
+        target = normalize(target)
+        if node != sid and node in lineage(target):
+            return None, None
+        return target, node
+    return None, None
+
+
 def resolve(kb, section, facilities=(), project=None):
     kb = Path(kb)
     project = Path(project).resolve() if project else None
     sid = resolve_section_id(kb, section)
     chain = lineage(sid)
-    reviewed_as = None
-    own = profile_path(kb, sid)
-    if own.exists() and load_yaml(own).get("same_as"):
+    reviewed_as, alias_node = _find_alias(kb, sid)
+    if reviewed_as:
         # An alias: the same scope specified under another number (06 41 00 → 12 30 00).
-        reviewed_as = normalize(load_yaml(own)["same_as"])
-        chain = [n for n in lineage(reviewed_as)] + [sid]
-    match_ids = [sid] + ([reviewed_as] if reviewed_as else [])
+        # Sections under an aliased level-2 number follow it (26 43 13 under 26 43 00).
+        target_chain = lineage(reviewed_as)
+        tail = chain[chain.index(alias_node):]
+        chain = target_chain + [n for n in tail if n not in target_chain]
+
+    def edge_hits(x):
+        if not reviewed_as:
+            return related(x, sid)
+        # The target's edges, plus edges naming the alias number or something under it;
+        # not the edges of the alias number's own parents (03 30 00 for 03 38 00).
+        return related(x, reviewed_as) or (alias_node in lineage(x) and related(x, sid))
     facilities = list(dict.fromkeys(list(facilities) + project_facilities(project)))
     warnings = []
     compiled = {name: {} for name in KEYED_LISTS}
@@ -408,6 +465,8 @@ def resolve(kb, section, facilities=(), project=None):
             for item in doc.get(list_name, []) or []:
                 _add_or_override(compiled, list_name, item, layer, status, "section")
 
+    if reviewed_as and profile_path(kb, sid).exists():
+        scalars["title"] = load_yaml(profile_path(kb, sid)).get("title") or scalars["title"]
     if sid not in [entry["layer"] for entry in loaded]:
         warnings.append(f"No profile for {sid}; compiled from ancestors only")
     for layer in missing:
@@ -462,9 +521,9 @@ def resolve(kb, section, facilities=(), project=None):
                 continue
             a = [normalize(x) for x in edge.get("a", [])]
             b = [normalize(x) for x in edge.get("b", [])]
-            if any(x and related(x, m) for x in a for m in match_ids):
+            if any(x and edge_hits(x) for x in a):
                 this, other = "a", "b"
-            elif any(x and related(x, m) for x in b for m in match_ids):
+            elif any(x and edge_hits(x) for x in b):
                 this, other = "b", "a"
             else:
                 continue
@@ -479,7 +538,9 @@ def resolve(kb, section, facilities=(), project=None):
                 "gate": edge.get("gate"),
                 "severity": edge.get("severity"),
                 "reflex": bool(edge.get("reflex")),
-                "failure": edge.get("failure"),
+                "failure": edge.get("failure") or "; ".join(
+                    text for fid, text in edge_failure_index(kb).get(edge["id"], [])
+                    if fid not in compiled["failure_modes"]) or None,
                 "_from": f"interfaces:{doc.get('id')}",
                 "_status": status,
             })
@@ -1311,6 +1372,18 @@ def validate(kb):
             if iid in homes and homes[iid] != path:
                 err(path, f"{list_name} id {iid!r} is already defined in {homes[iid].relative_to(kb)} — ids are global")
             homes.setdefault(iid, path)
+
+    # An edge states its own failure only when no failure mode names it (SCHEMA, interface edges)
+    named_by = {}
+    for path in files:
+        for fm in load_yaml(path).get("failure_modes") or []:
+            for cid in fm.get("caught_by", []) or []:
+                named_by.setdefault(cid, fm.get("id"))
+    for path in files:
+        for edge in load_yaml(path).get("edges") or []:
+            if edge.get("failure") and edge.get("id") in named_by:
+                lint.append(f"{path.relative_to(kb)}: edge {edge['id']} states a failure, but failure mode "
+                            f"{named_by[edge['id']]} already names it — drop the edge's failure")
 
     for path, target in escalate_targets:
         if target not in all_check_ids and not any(

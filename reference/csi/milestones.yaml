@@ -22,6 +22,16 @@ milestones:
       - Submittal approved and review comments resolved
       - Interfacing submittals reviewed together where one sizes the other
 
+  - id: demolition_start
+    title: Demolition or selective removal begins in an area
+    covers:
+      - Existing construction, finishes and services in the area are removed; what was not surveyed or isolated is disturbed with them
+    inspect_before:
+      - Hazardous material abatement complete and clearance obtained where the survey identified materials
+      - Utilities and building services serving the area isolated, locked out and verified
+      - Shoring or temporary bracing accepted where removal affects structure
+      - Condition survey of adjacent construction to remain recorded
+
   - id: excavation
     title: Excavation near footings, utilities or groundwater
     covers: []
@@ -29,6 +39,8 @@ milestones:
       - Excavation support and underpinning designed and installed
       - Dewatering operating where groundwater requires it
       - Existing utilities located and protected
+      - Condition survey of adjacent structures, streets and utilities recorded
+      - Monitoring instrument baselines recorded where the excavation support design requires monitoring
 
   - id: foundation_pour
     title: Footing and foundation wall placement
@@ -76,6 +88,20 @@ milestones:
       - Anchor bolt and embed positions become fixed to the frame
     inspect_before:
       - Anchor bolt and embed survey accepted against the steel shop drawings
+
+  - id: precast_erection
+    title: Precast concrete erection
+    covers:
+      - Bearing surfaces, embeds and connection hardware in the supporting structure become fixed to the precast
+    inspect_before:
+      - Bearing elevation and embed survey accepted against the precast erection drawings
+
+  - id: sheathing_cover
+    title: Structural sheathing covered
+    covers:
+      - Shear wall and diaphragm sheathing nailing, hold-downs and straps behind the weather barrier, cladding or board
+    inspect_before:
+      - Shear wall and diaphragm nailing inspected, including special inspection where required
 
   - id: slab_pour
     title: Slab placement, on grade or elevated
@@ -125,6 +151,20 @@ milestones:
       - Air and water barrier, flashings, continuous insulation and cladding attachments
     inspect_before:
       - Flashings at openings, shelf angles and base of wall inspected
+
+  - id: interior_finish_start
+    title: Moisture-sensitive interior work begins
+    covers:
+      - Wood doors, woodwork, casework, finish flooring and gypsum board finishing enter a building that must already be enclosed and conditioned
+    inspect_before:
+      - Enclosure and temperature and humidity conditions the specs and manufacturers require confirmed and recorded
+
+  - id: hoistway_turnover
+    title: Hoistway turnover to the elevator installer
+    covers:
+      - Hoistway walls, pit, sump, rail bracket supports, sill supports and overhead structure become fixed
+    inspect_before:
+      - Hoistway survey (plumb, clear dimensions, pit depth, overhead clearance) accepted by the elevator installer
 
   - id: overburden_placement
     title: Overburden placed on horizontal waterproofing
@@ -203,3 +243,4 @@ milestones:
       - AHJ final inspections and life-safety system acceptance tests
       - Commissioning functional tests the spec requires
       - Manufacturers' final inspections for system warranties
+      - Stormwater management facilities inspected or certified where the permit requires it
