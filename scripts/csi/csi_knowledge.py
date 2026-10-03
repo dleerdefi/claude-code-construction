@@ -44,6 +44,7 @@ FIELD_TYPES = {"number", "string", "boolean", "enum", "list"}
 FIELD_PER = {"element", "item", "package"}
 FM_SOURCES = {"field_experience", "industry_practice", "project_incident"}
 CONTRACTOR_DESIGNED = ["typical", "sometimes", "never"]
+SCOPES = {"element", "package"}
 APPLIES_IF = {"contractor_designed": set(CONTRACTOR_DESIGNED) | {"unknown"},
               "review_mode": {"per_element", "package"}}
 SUBMITTAL_TYPES = {
@@ -481,6 +482,15 @@ def resolve(kb, section, facilities=(), project=None):
                 del compiled[list_name][item_id]
                 not_applicable.append(item_id)
 
+    # Effective scope: is the check answered once per element or once per package?
+    per_element = (scalars["review_mode"] or "package") == "per_element"
+    for item in compiled["review_checks"].values():
+        if not item.get("scope"):
+            general = item["_from"] == "global" or len(item["_from"]) == 2
+            item["scope"] = "element" if per_element and not general else "package"
+    for item in compiled["reconciliations"].values():
+        item.setdefault("scope", "package")
+
     # Failure modes must be catchable by a check, reconciliation or interface in this context
     catchers = set(compiled["review_checks"]) | set(compiled["reconciliations"]) | {e["id"] for e in interfaces}
     for fm in compiled["failure_modes"].values():
@@ -545,6 +555,26 @@ def resolve(kb, section, facilities=(), project=None):
     }
 
 
+def filter_types(ctx, types):
+    """Drop checks that name submittal types none of which are in this package."""
+    if not types:
+        return ctx
+    wanted = set(types)
+    unknown = wanted - SUBMITTAL_TYPES
+    if unknown:
+        raise ResolveError(f"--types: unknown submittal type(s) {sorted(unknown)} "
+                           f"(choose from {', '.join(sorted(SUBMITTAL_TYPES))})")
+    out = dict(ctx)
+    kept, dropped = [], []
+    for c in ctx.get("review_checks", []):
+        (kept if not c.get("submittal_types") or wanted & set(c["submittal_types"]) else dropped).append(c)
+    out["review_checks"] = kept
+    out["submittals"] = [s for s in ctx.get("submittals", []) if s.get("type") in wanted]
+    out["query"] = dict(ctx["query"], submittal_types=sorted(wanted))
+    out["not_applicable"] = list(ctx.get("not_applicable", [])) + [c["id"] for c in dropped]
+    return out
+
+
 def slice_context(ctx, only):
     """Keep only the requested content lists (JIT loading); metadata always stays."""
     if not only:
@@ -584,6 +614,8 @@ def _check_line(c, home=None):
 
 def _check_meta(c, home):
     bits = [f"Trace: {', '.join(c.get('trace_to', []))}", f"Owner: {c.get('owner')}"]
+    if c.get("scope"):
+        bits.append(f"Scope: {c['scope']}")
     if c.get("submittal_types"):
         bits.append(f"Types: {', '.join(c['submittal_types'])}")
     if c.get("gate"):
@@ -1146,6 +1178,8 @@ def validate(kb):
                     err(path, f"{list_name} {item_id}: reflex and gate belong on checks and reconciliations")
                 if "reflex" in item and not isinstance(item["reflex"], bool):
                     err(path, f"{list_name} {item_id}: reflex must be true or false")
+                if "scope" in item and (list_name != "review_checks" or item["scope"] not in SCOPES):
+                    err(path, f"{list_name} {item_id}: scope belongs on checks and must be element or package")
                 if item.get("gate") and milestone_ids and item["gate"] not in milestone_ids:
                     err(path, f"{list_name} {item_id}: unknown gate milestone {item['gate']!r}")
                 for key, allowed in (item.get("applies_if") or {}).items():
@@ -1287,6 +1321,8 @@ def main():
     r = sub.add_parser("resolve", help="Compile the knowledge for one section")
     r.add_argument("--section", required=True, help='e.g. "07 84 00", 078400, or a legacy number like 12300')
     r.add_argument("--only", help=f"Comma list of slices to keep: {', '.join(sorted(set(SLICES)))}")
+    r.add_argument("--types", help='Comma list of submittal types in the package, e.g. "Shop Drawings,Product Data"; '
+                                   'drops checks that apply only to other types')
     view_args(r)
     x = sub.add_parser("reflexes", help="Always-on checks across the layer, grouped by where they live")
     view_args(x)
@@ -1300,6 +1336,7 @@ def main():
     try:
         if args.command == "resolve":
             ctx = resolve(args.kb, args.section, args.facility, args.project)
+            ctx = filter_types(ctx, [t.strip() for t in args.types.split(",")] if args.types else None)
             ctx = slice_context(ctx, [s.strip() for s in args.only.split(",")] if args.only else None)
             emit(to_markdown(ctx) if args.format == "md" else dump(ctx), args.output)
             return 0

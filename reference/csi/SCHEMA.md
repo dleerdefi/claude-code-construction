@@ -104,6 +104,7 @@ review_checks:
     owner: gc                    # gc | subcontractor | design_team | owner
     gate: wall_close_in          # optional: milestone by which it must be resolved (§6.1)
     reflex: false                # optional: true = always on, even when unrelated to the question
+    scope: element               # optional: element | package (see below)
 ```
 
 **`kind`** maps to the four review passes:
@@ -133,6 +134,8 @@ The validator warns on anything else; add new terms here first.
 **`owner`** says who resolves a finding. It is how the output separates "sub must fix" from "design team must answer" (an RFI candidate).
 
 **`gate`** names the milestone by which the finding has to be resolved: the last moment it is still cheap. It must be an id in `milestones.yaml`. `milestone --id <gate>` lists every check gated there (§11).
+
+**`scope`** says whether the check is answered once per element (each elevation, item, mark) or once for the whole package. Unset, it compiles as `package` for global and division checks and as `element` for section and overlay checks when the section's `review_mode` is `per_element`. Set it when that default is wrong. `submittal-review`'s coverage gate expects one answer per element × element-scope check.
 
 **`reflex: true`** marks the red flags: checks a PE notices while looking at a drawing for an unrelated reason. They stay in the profile that owns them; `reflexes` compiles them into the always-on list (§11), so the list is a view, never a second copy. Use it sparingly: the list loses its value if it grows past what a reviewer can hold in mind.
 
@@ -440,6 +443,7 @@ PY="${CLAUDE_PLUGIN_ROOT}/bin/construction-python"; KB="${CLAUDE_PLUGIN_ROOT}/sc
 ```
 
 - `--only` slices: `checks`, `reconciliations`, `hooks`, `interfaces`, `failures`, `submittals`, `standards`, `extract`.
+- `--types "Shop Drawings,Product Data"` drops checks that apply only to other submittal types (labels from `submittal-log-generator`'s taxonomy).
 - `reflexes` and `milestone` are cross-layer views. They list each item where it lives; overrides and suppressions only apply inside `resolve`.
 - With `--project`, both views keep only what the project specifies: profiles related to a section in `.construction/skills/spec_text/`, and interfaces whose two trades are both on the project. Without extracted spec text they show the whole layer and say so.
 - `--output <file>` writes a versioned file instead of printing.
