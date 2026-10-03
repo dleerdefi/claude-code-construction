@@ -1,0 +1,215 @@
+schema_version: 1
+kind: section
+id: "22 30 00"
+title: Plumbing Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+review_mode: per_element
+element_types: [plumbing_equipment_item]
+
+scope_summary: >
+  Water heaters (electric, fuel-fired and heat pump), heat exchangers,
+  softeners and filtration (22 31 00 through 22 36 00 inherit from here).
+  Reviewed tag by tag against the equipment schedule: capacity and recovery,
+  the electrical or gas data other trades build to, the venting a fuel-fired
+  or condensing heater needs, and where its relief, condensate and
+  regeneration water go. A model change is also a change to the electrical,
+  venting and drain design.
+
+submittals:
+  - id: 22pe.sub.product-data
+    type: Product Data
+    must_show:
+      - Each unit by schedule tag with input, storage, recovery and temperature rise, efficiency rating, and electrical or gas data
+      - Vent category, vent material and length limits for fuel-fired units, and condensate neutralization for condensing units
+      - Relief valve, drain pan, expansion tank and seismic restraint provisions
+      - Code-stamped construction and state registration where the boiler and pressure vessel program covers the unit
+      - For heat pump water heaters, the air volume or ducting needed and the cooling effect on the room
+  - id: 22pe.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Equipment room layout with service clearances, flue and combustion air routes, drain receptors and the path to remove each unit
+
+review_checks:
+  - id: 22pe.capacity
+    kind: conformance
+    check: >
+      Input, storage, recovery and temperature rise match the schedule for the
+      tag at the inlet water temperature the design used; for instantaneous
+      heaters the minimum activation flow works with the low-flow fixtures
+      served; for heat pump units the capacity is rated at the room's actual
+      air temperature and the room can supply the air.
+    trace_to: [schedule.equipment, drawings.plumbing, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 22pe.venting
+    kind: conformance
+    check: >
+      For fuel-fired units, vent category and material, vent length and
+      terminations, and the combustion air source match the manufacturer's
+      instructions for the model submitted, and condensing units have their
+      condensate piped through neutralization to a drain.
+    trace_to: [drawings.plumbing, drawings.mechanical, drawings.roof_plan]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 22pe.drains
+    kind: completeness
+    check: >
+      Each discharge from the unit goes to a receptor that is shown:
+      temperature and pressure relief full size to a safe, visible point, a
+      drain pan with its own drain where a leak would damage finished space,
+      and softener or filter regeneration and reject water at its flow rate.
+    trace_to: [drawings.plumbing, drawings.details]
+    severity: medium
+    owner: gc
+    gate: underslab_rough_in
+
+  - id: 22pe.access
+    kind: constructability
+    check: >
+      Service clearances (burner, anode, element and tube bundle removal,
+      front access for tankless units) and a path to get the unit out of the
+      room are kept, and the unit is restrained as the seismic design or the
+      plumbing code requires.
+    trace_to: [drawings.plumbing, drawings.enlarged_plans]
+    severity: medium
+    owner: gc
+    gate: equipment_set
+
+reconciliations:
+  - id: 22pe.rc.electrical
+    between: [drawings.plumbing, schedule.electrical_panel, drawings.single_line]
+    key: Equipment tag
+    fields: [voltage, phase, kW or full-load amps, elements operating at once, MCA and MOCP, disconnect]
+    check: >
+      Electric and heat pump water heaters, pumps and other powered plumbing
+      equipment carry the same electrical data on the plumbing schedule and
+      the panel schedules, including how many elements operate at once, and a
+      submitted model with different data goes back to the electrical
+      engineer before approval.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 22pe.rc.gas
+    between: [drawings.plumbing, drawings.riser_diagrams]
+    key: Fuel-fired unit
+    fields: [input, inlet gas pressure required, gas pipe size and length serving it]
+    check: >
+      The gas input and inlet pressure of each submitted fuel-fired unit fit
+      the gas piping sized on the plumbing drawings; a higher-input model
+      means the piping is re-checked.
+    severity: medium
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 22pe.fm.condensing-swap
+    what_happens: A condensing water heater substituted for a non-condensing one, or the reverse, without changing the vent and drain design
+    consequence: Vent material wrong for the category; flue gas or condensate leaks and the vent is replaced
+    caught_by: [22pe.venting]
+    source: industry_practice
+
+  - id: 22pe.fm.electrical-mismatch
+    what_happens: Electric heater submitted at a different voltage or kW, or with all elements firing at once, against the panel schedule
+    consequence: Feeder, breaker or panel changed late, or the heater rewired to a lower rating
+    caught_by: [22pe.rc.electrical, if.22-equipment-power]
+    source: industry_practice
+
+  - id: 22pe.fm.relief-to-ceiling
+    what_happens: Relief valve discharge piped into a ceiling space or a pan with no drain
+    consequence: Water damage the first time the relief opens; an inspection finding
+    caught_by: [22pe.drains]
+    source: industry_practice
+
+  - id: 22pe.fm.hpwh-closet
+    what_happens: Heat pump water heater installed in a closet without the air volume or ducting it needs
+    consequence: Low capacity and a cold room; louvers or ducts added
+    caught_by: [22pe.capacity]
+    source: industry_practice
+
+  - id: 22pe.fm.gas-undersized
+    what_happens: A higher-input heater approved without re-checking the gas pipe
+    consequence: The burner starves at full fire; gas piping replaced
+    caught_by: [22pe.rc.gas]
+    source: industry_practice
+
+  - id: 22pe.fm.no-service-room
+    what_happens: A heater set with no room to pull the tube bundle, change the anode or get the unit out
+    consequence: Maintenance becomes impossible; walls opened to replace the unit
+    caught_by: [22pe.access]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 22pe.rh.efficiency
+    topic: service-water-heating-energy
+    question: >
+      What minimum efficiency and controls does the adopted energy code
+      require for this water heating equipment type and size, and does the
+      jurisdiction restrict fuel-fired water heating in new buildings?
+    applies_when: Every water heater
+    source_families: [energy]
+    severity: medium
+
+  - id: 22pe.rh.relief
+    topic: water-heater-relief-and-expansion
+    question: >
+      Where may temperature and pressure relief valves discharge, when is a
+      drain pan required, and what thermal expansion control must accompany
+      the heater?
+    applies_when: Every storage water heater
+    source_families: [plumbing_code]
+    severity: medium
+
+  - id: 22pe.rh.venting
+    topic: appliance-vent-termination
+    question: >
+      What does the adopted fuel gas or mechanical code require for vent
+      material, termination clearances and combustion air for this water
+      heater's vent category?
+    applies_when: Fuel-fired water heaters
+    source_families: [fuel_gas_code, mechanical_code]
+    severity: medium
+
+  - id: 22pe.rh.pressure-vessel
+    topic: water-heater-pressure-vessel-registration
+    question: >
+      Does the state boiler and pressure vessel program cover this water
+      heater or storage tank by input, volume or temperature, and does it
+      then require code-stamped construction, registration or inspection
+      before operation?
+    applies_when: Commercial water heaters and hot water storage tanks
+    source_families: [boiler_pressure_vessel]
+    severity: medium
+
+  - id: 22pe.rh.restraint
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Does the jurisdiction require water heaters and storage tanks to be
+      strapped or anchored for seismic forces, and to what design?
+    applies_when: Water heaters and storage tanks
+    source_families: [building_code_seismic, plumbing_code]
+    severity: medium
+
+extract_fields:
+  - id: 22pe.xf.capacity
+    label: Input, storage and recovery
+    type: string
+    per: element
+    reconcile_against: [schedule.equipment]
+  - id: 22pe.xf.electrical
+    label: Voltage, phase and kW or amps
+    type: string
+    per: element
+    reconcile_against: [schedule.electrical_panel]
+  - id: 22pe.xf.vent
+    label: Vent category and material
+    type: string
+    per: element
+    reconcile_against: [drawings.plumbing]

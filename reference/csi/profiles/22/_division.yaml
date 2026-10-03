@@ -1,0 +1,124 @@
+schema_version: 1
+kind: division
+id: "22"
+title: Plumbing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Domestic water, sanitary and storm drainage, plumbing equipment and
+  fixtures, and laboratory and healthcare gas systems. Plumbing is laid out
+  by the engineer, so review is conformance and coordination: gravity lines
+  whose slopes and inverts are fixed at the slab pour, rough-ins that must
+  match the architectural layouts and the approved fixtures and equipment
+  before walls close, drinking water kept safe (backflow, certified
+  materials, temperature, disinfection), and the many plumbing products that
+  end up in return-air plenums and behind finished surfaces.
+
+review_checks:
+  - id: d22.potable-certification
+    kind: conformance
+    submittal_types: [Product Data]
+    check: >
+      Every product in contact with drinking water (pipe, fittings, valves,
+      faucets, water heaters, backflow assemblies, drinking fountains, solder
+      and joint compounds) carries the health-effects and lead-content
+      certification the code requires, shown on the product data, including
+      components inside equipment packages furnished by others.
+    trace_to: [spec.part2, spec.part2_manufacturers]
+    severity: high
+    owner: subcontractor
+
+  - id: d22.plenum-materials
+    kind: conformance
+    reflex: true
+    check: >
+      Plastic pipe, insulation, jackets and pipe wraps exposed in return-air
+      plenums meet the plenum flame-spread and smoke-developed limits or are
+      listed for plenum use, or are enclosed or routed out of the plenum. A
+      metal-to-plastic substitution is checked for this before approval.
+    trace_to: [drawings.mechanical, drawings.plumbing, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: d22.concealed-access
+    kind: absence
+    check: >
+      Valves, cleanouts, trap primers, water hammer arresters, mixing valves,
+      backflow assemblies and other serviceable devices concealed in walls or
+      above hard ceilings have access panels located on the architectural
+      drawings, sized for the service, and placed where the finishes allow
+      (not in tile or feature walls without the architect's approval).
+    trace_to: [drawings.rcp, drawings.interior_elevations, drawings.plumbing]
+    severity: medium
+    owner: gc
+    gate: wall_close_in
+
+failure_modes:
+  - id: d22.fm.plastic-in-plenum
+    what_happens: PVC drainage or uncovered foam insulation installed in a return-air plenum
+    consequence: The above-ceiling inspection fails; pipe replaced with metal or wrapped after other trades have filled the ceiling
+    caught_by: [d22.plenum-materials]
+    source: industry_practice
+
+  - id: d22.fm.uncertified-product
+    what_happens: A faucet, valve or equipment component arrives without lead-content certification
+    consequence: Products replaced before occupancy, or the owner's water sampling fails
+    caught_by: [d22.potable-certification]
+    source: industry_practice
+
+  - id: d22.fm.no-access
+    what_happens: Valves, primers or mixing valves left behind hard ceilings or tile with no access panel
+    consequence: Access panels cut into finished surfaces after turnover, or devices that can never be serviced
+    caught_by: [d22.concealed-access]
+    source: industry_practice
+
+standards:
+  - id: d22.std.nsf-61
+    name: NSF/ANSI 61
+    title: Drinking Water System Components – Health Effects
+    verify: Certification of products in contact with potable water
+  - id: d22.std.nsf-372
+    name: NSF/ANSI 372
+    title: Drinking Water System Components – Lead Content
+    verify: Lead-content certification of potable water products
+  - id: d22.std.astm-e84
+    name: ASTM E84
+    title: Standard Test Method for Surface Burning Characteristics of Building Materials
+    verify: Flame-spread and smoke-developed indices claimed for products exposed in plenums
+
+regulatory_hooks:
+  - id: d22.rh.plumbing-code
+    topic: plumbing-code-adoption
+    question: >
+      Which plumbing code and edition govern this project, with which local
+      amendments, and do the water purveyor and the sewer authority impose
+      their own rules on connections, metering and discharge?
+    applies_when: Every project with plumbing
+    source_families: [plumbing_code, utility_service_rules, public_works]
+    severity: high
+
+  - id: d22.rh.potable-certification
+    topic: potable-water-component-certification
+    question: >
+      What health-effects and lead-content certification do the adopted
+      plumbing code and drinking water law require for products that convey
+      or dispense potable water?
+    applies_when: Every potable water product
+    source_families: [plumbing_code, environmental]
+    severity: medium
+
+  - id: d22.rh.plenum
+    topic: return-air-plenum-materials
+    question: >
+      Which plumbing materials (plastic pipe, insulation, jackets) may be
+      exposed in return-air plenums under the adopted mechanical and building
+      codes, and with what flame-spread and smoke-developed limits or
+      listings?
+    applies_when: Ceilings used as return-air plenums
+    source_families: [mechanical_code, building_code]
+    severity: high

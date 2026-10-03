@@ -1,0 +1,147 @@
+schema_version: 1
+kind: interfaces
+id: div-22
+title: Interfaces involving Division 22
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with Division 07 and 12 stay in div-07 and div-12; edges with Division 21
+# are in div-21; edges with lower divisions (03, 05, 06, 10, 11, 13, 14) live in theirs.
+
+edges:
+  # ── Site utilities ────────────────────────────────────────────
+  - id: if.22-building-line
+    a: ["22 10 00"]
+    a_trade: Plumbing piping
+    b: ["33 10 00", "33 30 00", "33 40 00"]
+    b_trade: Site water, sanitary sewer and stormwater utilities
+    a_provides: Size, exit location and invert of each building drain, and the size and entry point of the water service, with the flows behind them
+    b_provides: Invert and location at the point of connection, pipe material transitions, cleanouts, backwater valves, and meter and backflow vaults on the site
+    responsibility:
+      - item: Building sewer, storm drain and water service between the foundation and the site point of connection
+        typical: {furnish: "22 10 00 or Division 33", install: "22 10 00 or Division 33"}
+        confirm_in: [spec.part1, drawings.civil, drawings.plumbing]
+    gate:
+      milestone: underslab_rough_in
+      note: Exit inverts are fixed when the first underslab line is set
+    severity: high
+
+  - id: if.22-irrigation-connection
+    a: ["22 11 00"]
+    a_trade: Domestic water distribution
+    b: ["32 84 00"]
+    b_trade: Planting irrigation
+    a_provides: The point of connection (tap, isolation valve, sleeve through the foundation or wall) with the size and pressure available there
+    b_provides: Irrigation demand flow and pressure, the backflow assembly type, its location and freeze protection, and any separate irrigation meter the purveyor or the energy and water rules require
+    responsibility:
+      - item: Backflow assembly at the irrigation point of connection
+        typical: {furnish: "22 11 00 or 32 84 00", install: "22 11 00 or 32 84 00"}
+        confirm_in: [spec.part1, drawings.plumbing, drawings.landscape]
+    gate:
+      milestone: underslab_rough_in
+      note: The tap, the sleeve and the backflow location are fixed with the service entry
+    severity: medium
+    failure: Neither trade carries the point of connection, or irrigation is tapped with no backflow assembly or with one placed where it freezes or cannot be tested
+
+  # ── HVAC ──────────────────────────────────────────────────────
+  - id: if.22-vent-intake-separation
+    a: ["22 13 00", "22 60 00"]
+    a_trade: Plumbing vents and laboratory or medical vacuum exhausts
+    b: ["23 37 00", "23 72 00", "23 73 00", "23 74 00"]
+    b_trade: Outdoor air intakes on hoods, energy recovery units, air handlers and rooftop units
+    a_provides: Vent terminal and vacuum exhaust locations and heights on the roof and walls
+    b_provides: Outdoor air intake locations and heights, and any unit moved or added on the roof after the plumbing roof layout was set
+    gate:
+      milestone: roof_membrane
+      note: Roof penetrations are fixed before the membrane; moving a vent afterward means new flashing
+    severity: medium
+
+  - id: if.22-hvac-drains
+    a: ["22 13 00"]
+    a_trade: Sanitary drainage
+    b: ["23 52 00", "23 65 00", "23 70 00", "23 80 00"]
+    b_trade: Boilers, cooling towers, air handlers and terminal equipment
+    a_provides: Receptors (floor sinks, funnel and hub drains) sized and placed for each equipment discharge, and neutralization where condensate is acidic
+    b_provides: Condensate, blowdown, relief valve and drain discharges with their location, flow and temperature, and the drain piping to the receptor
+    responsibility:
+      - item: Drain piping from HVAC equipment to the receptor
+        typical: {install: "Division 23"}
+        confirm_in: [spec.part1, drawings.mechanical]
+      - item: Receptors at HVAC equipment
+        typical: {furnish: "22 13 00", install: "22 13 00"}
+        confirm_in: [drawings.plumbing]
+    gate: {milestone: underslab_rough_in}
+    severity: medium
+    failure: Equipment set with condensate or relief piped to nothing, or a floor sink under an equipment frame where it cannot be seen or cleaned
+
+  - id: if.22-hvac-makeup
+    a: ["22 11 00"]
+    a_trade: Domestic water distribution
+    b: ["23 21 00", "23 25 00", "23 52 00", "23 65 00", "23 84 00"]
+    b_trade: Hydronic systems, water treatment, boilers, cooling towers and humidifiers
+    a_provides: Domestic water to each fill and makeup point with the backflow assembly its hazard needs, and a drain for that assembly's relief
+    b_provides: Makeup locations, flow and pressure, chemical treatment (which sets the hazard), and makeup meters where the energy code or the owner requires them
+    responsibility:
+      - item: Backflow assembly at hydronic fill and cooling tower makeup
+        typical: {furnish: "22 11 00 or 23 21 00", install: "22 11 00 or 23 21 00"}
+        confirm_in: [spec.part1, drawings.plumbing, drawings.mechanical]
+    gate: {milestone: final_connection}
+    severity: high
+
+  - id: if.22-water-heater-venting
+    a: ["22 34 00"]
+    a_trade: Fuel-fired water heaters
+    b: ["23 51 00"]
+    b_trade: Breechings, chimneys and stacks
+    a_provides: Heater model with vent category, vent material and length limits, combustion air and condensate requirements
+    b_provides: Vent and combustion air piping of the listed material, its route and roof or wall terminations, and any common venting with other appliances
+    responsibility:
+      - item: Vent and combustion air piping for water heaters
+        typical: {furnish: "22 34 00 or 23 51 00", install: "22 34 00 or 23 51 00"}
+        confirm_in: [spec.part1, drawings.plumbing, drawings.mechanical]
+    gate:
+      milestone: procurement_release
+      note: The vent design depends on the heater model approved
+    severity: high
+    failure: Each trade leaves the vent to the other, or it is built from a material the heater's vent category does not allow
+
+  # ── Electrical ────────────────────────────────────────────────
+  - id: if.22-equipment-power
+    a: ["22 05 33", "22 11 00", "22 13 00", "22 14 00", "22 30 00"]
+    a_trade: Plumbing equipment, pumps and heat tracing
+    b: ["26 24 00", "26 28 00", "26 29 00"]
+    b_trade: Panelboards, disconnects and motor controllers
+    a_provides: Electrical data for the approved models (voltage, phase, load, elements operating at once), pump control panels and alarms, and heat tracing circuits with their ground-fault protection
+    b_provides: Circuits, disconnects and controllers sized to that data, standby power where the design puts pumps or heaters on it, and alarm wiring to the monitoring point
+    responsibility:
+      - item: Disconnects and motor controllers for plumbing equipment
+        typical: {furnish: "Division 26 or with the equipment", install: "Division 26", connect: "Division 26"}
+        confirm_in: [spec.part1, drawings.electrical]
+      - item: Pump control panels and alarm devices
+        typical: {furnish: "22 13 00 or 22 14 00", install: "22 13 00 or 22 14 00", connect: "Division 26"}
+        confirm_in: [spec.part1, drawings.electrical]
+    gate: {milestone: procurement_release}
+    severity: high
+
+  - id: if.22-sensor-fixtures-power
+    a: ["22 40 00", "22 13 00"]
+    a_trade: Plumbing fixtures and devices that need power (sensor faucets and flush valves, electric water coolers, electronic trap primers)
+    b: ["26 05 33", "26 27 00"]
+    b_trade: Boxes, raceways and wiring devices
+    a_provides: Which fixtures and devices are hardwired, transformer and junction box locations in the chase or under counters, and the load per circuit
+    b_provides: Boxes and circuits at those locations, roughed in before the walls close, and receptacles under counters where plug-in transformers are used
+    gate: {milestone: in_wall_rough_in}
+    severity: medium
+
+  - id: if.22-gas-source-power
+    a: ["22 60 00", "22 09 63"]
+    a_trade: Medical and laboratory gas sources and alarms
+    b: ["26 24 00", "26 36 00"]
+    b_trade: Panelboards and transfer switches
+    a_provides: Source equipment and alarm panel loads and locations, and which must stay on through an outage
+    b_provides: Circuits from the branch of the essential electrical system, or the standby system, that the design assigns, through the matching transfer switch
+    gate: {milestone: in_wall_rough_in}
+    severity: high

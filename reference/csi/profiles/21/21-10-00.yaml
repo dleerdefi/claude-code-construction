@@ -1,0 +1,245 @@
+schema_version: 1
+kind: section
+id: "21 10 00"
+title: Water-Based Fire-Suppression Systems
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Fire service piping, standpipes and sprinkler systems that run on a water
+  supply (21 11 00 through 21 13 00 inherit from here). Everything rests on
+  the water supply: a flow test of known date and location, reduced for the
+  backflow assembly, meter and underground losses, compared with the demand
+  of every remote area with the margin the spec requires. The fire
+  department connection, backflow assembly, fire service entry and test
+  drains are where the fire protection, plumbing, civil and fire department
+  requirements meet.
+
+submittals:
+  - id: 21wb.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Design criteria for each area on the drawings (hazard or commodity, density and area or other method, hose allowance, system type)
+      - The water supply test used (date, time, location, static and residual pressure, flow, and who witnessed it)
+      - Fire service entry, backflow assembly, control valves, fire department connection, drains and test connections, with where each discharges
+  - id: 21wb.sub.design-data
+    type: Design Data
+    must_show:
+      - Hydraulic calculations for every remote area the design criteria create, with a supply curve showing demand, margin and every loss between the test point and the base of the riser
+  - id: 21wb.sub.product-data
+    type: Product Data
+    must_show:
+      - Each valve, backflow assembly, flow switch, pipe and fitting with its listing and pressure rating marked
+  - id: 21wb.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - The designer's certification, license or seal the spec and jurisdiction require
+  - id: 21wb.sub.certificates
+    type: Certificates
+    must_show:
+      - Material and test certificates for underground and aboveground piping, signed by the witness
+
+review_checks:
+  - id: 21wb.water-supply-test
+    kind: conformance
+    reflex: true
+    submittal_types: [Design Data]
+    check: >
+      The calculations use a water supply test that meets the AHJ's and the
+      purveyor's rules on age, location and witness, taken on the main that
+      will actually feed the building, and the supply is reduced for the
+      backflow assembly, meter, underground piping and any seasonal or system
+      pressure drop the purveyor reports. The margin between supply and
+      demand is at least what the spec requires.
+    trace_to: [spec.part1, drawings.civil, report.utility_requirements]
+    severity: critical
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 21wb.design-basis
+    kind: conformance
+    submittal_types: [Shop Drawings, Design Data]
+    check: >
+      The design method and criteria on the working plans match what the
+      fire protection drawings and spec assign to each area, and every area
+      that can govern is calculated, not just the obvious one: high and
+      sloped ceilings, attics, exterior canopies, storage areas and the
+      standpipe demand where it combines with sprinklers.
+    trace_to: [drawings.fire_protection, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 21wb.backflow-assembly
+    kind: conformance
+    check: >
+      The fire service backflow assembly is the type the purveyor requires
+      (double check or reduced pressure, with or without a detector meter),
+      its friction loss is in the calculations, it can be forward-flow tested
+      at system demand, and a reduced-pressure assembly's relief discharge has
+      a drain or exterior outlet that can take it.
+    trace_to: [drawings.fire_protection, drawings.plumbing, drawings.civil]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 21wb.component-pressure
+    kind: conformance
+    check: >
+      Where static pressure, fire pump churn or fire department pumping
+      through the connection can exceed standard component ratings, the
+      submittal shows high-pressure rated pipe, fittings, valves and
+      sprinklers or pressure-reducing valves, and the riser diagram shows the
+      pressure zones the design requires.
+    trace_to: [drawings.riser_diagrams, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 21wb.test-discharges
+    kind: completeness
+    check: >
+      Every discharge the system needs for testing (main drain, inspector's
+      test, auxiliary drains, backflow forward-flow test, standpipe drain
+      riser) has a destination shown that can take full flow without flooding
+      the building or the site: an exterior outlet with splash protection,
+      or a drain the plumbing design sized for it.
+    trace_to: [drawings.fire_protection, drawings.plumbing, drawings.site]
+    severity: medium
+    owner: gc
+    gate: underslab_rough_in
+
+reconciliations:
+  - id: 21wb.rc.fire-service
+    between: [drawings.civil, drawings.fire_protection, drawings.plumbing]
+    key: Fire service from the public main to the base of the riser
+    fields: [main size and material, point of connection, backflow and meter location, control valves (post indicator or wall valve), combined or separate from domestic]
+    check: >
+      The fire service size, entry point, backflow and meter location and
+      control valve arrangement agree on the civil, plumbing and fire
+      protection drawings and in the hydraulic calculations.
+    severity: high
+    owner: design_team
+    gate: underslab_rough_in
+
+  - id: 21wb.rc.fdc
+    between: [drawings.civil, drawings.exterior_elevations, drawings.fire_protection]
+    key: Fire department connection
+    fields: [location on the building or site, coupling type, mounting height, distance to the hydrant, signage]
+    check: >
+      The fire department connection is at the same location and of the same
+      type on the site, elevation and fire protection drawings, and that
+      location is the one the fire department accepted.
+    severity: medium
+    owner: design_team
+
+failure_modes:
+  - id: 21wb.fm.stale-test
+    what_happens: Calculations based on an old flow test, or one taken on a different main than the one serving the building
+    consequence: The margin disappears when the purveyor's current data arrive; a fire pump or larger pipe is added after installation
+    caught_by: [21wb.water-supply-test]
+    source: industry_practice
+
+  - id: 21wb.fm.backflow-loss-omitted
+    what_happens: The purveyor requires a backflow assembly late in design, or its loss is left out of the calculations
+    consequence: Demand exceeds supply at acceptance; mains resized or a pump added
+    caught_by: [21wb.water-supply-test, 21wb.backflow-assembly]
+    source: industry_practice
+
+  - id: 21wb.fm.remote-area-skipped
+    what_happens: Only the obvious remote area calculated; a high-ceiling, attic or canopy area with higher demand left out
+    consequence: Plan review rejection, or a system that cannot meet demand where it matters most
+    caught_by: [21wb.design-basis]
+    source: industry_practice
+
+  - id: 21wb.fm.fdc-rejected
+    what_happens: Fire department connection located or specified without the fire department's review
+    consequence: Relocated or adapted after the facade or site work is finished
+    caught_by: [21wb.rc.fdc]
+    source: industry_practice
+
+  - id: 21wb.fm.overpressure
+    what_happens: Components rated below the pressure that pump churn or fire department pumping can produce
+    consequence: Failed hydrostatic test or replaced components; pressure-reducing valves added late
+    caught_by: [21wb.component-pressure]
+    source: industry_practice
+
+  - id: 21wb.fm.test-water
+    what_happens: Inspector's test, main drain or forward-flow test discharge shown nowhere, or into a floor drain far too small for it
+    consequence: Acceptance tests cannot be run, or flood finished rooms when they are
+    caught_by: [21wb.test-discharges, if.21-drain-discharge]
+    source: industry_practice
+
+  - id: 21wb.fm.underground-debris
+    what_happens: The fire service underground is connected to the riser before it is flushed
+    consequence: Debris lodges in valves and sprinklers; heads replaced and the system flushed again
+    caught_by: [if.21-fire-service-underground]
+    source: industry_practice
+
+standards:
+  - id: 21wb.std.nfpa-24
+    name: NFPA 24
+    title: Standard for the Installation of Private Fire Service Mains and Their Appurtenances
+    verify: Underground fire service materials, thrust restraint, flushing and hydrostatic test
+  - id: 21wb.std.nfpa-291
+    name: NFPA 291
+    title: Recommended Practice for Water Flow Testing and Marking of Hydrants
+    verify: The flow test procedure behind the water supply data
+  - id: 21wb.std.nfpa-25
+    name: NFPA 25
+    title: Standard for the Inspection, Testing, and Maintenance of Water-Based Fire Protection Systems
+    verify: Test connections and access the owner will need for the required periodic tests are built in
+  - id: 21wb.std.asse-backflow
+    name: ASSE 1013 / ASSE 1015 / ASSE 1047 / ASSE 1048
+    title: Reduced pressure principle and double check backflow prevention assemblies, and their detector versions
+    verify: Listing of the fire service backflow assembly the purveyor requires
+
+regulatory_hooks:
+  - id: 21wb.rh.water-supply-test
+    topic: fire-protection-water-supply-test
+    question: >
+      How recent must the water supply test behind the hydraulic calculations
+      be, who must perform or witness it (purveyor, fire department), and what
+      safety margin or supply reduction does the AHJ or purveyor require?
+    applies_when: Hydraulically calculated systems
+    source_families: [fire_code, utility_service_rules]
+    severity: high
+
+  - id: 21wb.rh.backflow
+    topic: service-backflow-prevention
+    question: >
+      Which backflow assembly does the purveyor's cross-connection program
+      require on the fire service (type, detector meter, location at the
+      property line or inside the building), and who must test it at
+      installation?
+    applies_when: Every fire service connected to a public water system
+    source_families: [utility_service_rules, plumbing_code, fire_code]
+    severity: high
+
+  - id: 21wb.rh.fdc
+    topic: fire-department-connection-requirements
+    question: >
+      What does the fire department require for the fire department
+      connection: location relative to the hydrant and the address side,
+      coupling type, height, signage, and whether a remote or freestanding
+      connection is acceptable?
+    applies_when: Systems with a fire department connection
+    source_families: [fire_code]
+    severity: medium
+
+extract_fields:
+  - id: 21wb.xf.supply-test
+    label: Water supply test (date, location, static, residual, flow)
+    type: list
+    per: package
+    reconcile_against: [report.utility_requirements, drawings.civil]
+  - id: 21wb.xf.demand
+    label: Demand and margin at the base of the riser for each remote area
+    type: list
+    per: package
+    reconcile_against: [drawings.fire_protection]
+  - id: 21wb.xf.backflow
+    label: Fire service backflow assembly type and size
+    type: string
+    per: package
+    reconcile_against: [drawings.civil, drawings.plumbing]

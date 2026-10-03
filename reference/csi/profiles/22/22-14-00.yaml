@@ -1,0 +1,138 @@
+schema_version: 1
+kind: section
+id: "22 14 00"
+title: Facility Storm Drainage
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # siphonic roof drainage is designed by the drain manufacturer
+
+scope_summary: >
+  Roof drains and leaders, overflow drainage, area and trench drains, and
+  storm sumps inside the building to the building line. Roof drains are set
+  with the roofing (the roofing profile and its interface carry that
+  handoff); this side checks that each drain body suits the deck and the
+  insulation it sits in, that overflow piping ends where the code and the
+  design intend, and that areas that cannot drain by gravity have sumps with
+  power, backup and alarms.
+
+submittals:
+  - id: 22sd.sub.product-data
+    type: Product Data
+    must_show:
+      - Roof drain bodies by tag with deck clamp or sump receiver, extension or adjustable collar for the insulation thickness, membrane clamping ring and dome
+      - Overflow drains with their dam or separate inlet, and their discharge nozzles
+      - Sump pumps with controls, alarms and backup
+  - id: 22sd.sub.design-data
+    type: Design Data
+    must_show:
+      - Siphonic system calculations by the drain manufacturer, where siphonic drainage is used
+
+review_checks:
+  - id: 22sd.drain-bodies
+    kind: conformance
+    submittal_types: [Product Data]
+    check: >
+      Each roof drain body matches the roof it goes in: a deck clamp or sump
+      receiver for the deck type, an extension for the insulation thickness at
+      that drain (deeper where tapered insulation forms a sump), and a
+      clamping ring and flashing method the roofing manufacturer accepts.
+    trace_to: [drawings.roof_plan, drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 22sd.overflow-discharge
+    kind: conformance
+    check: >
+      Each overflow leader ends where the code and the design intend, often
+      at a nozzle in the exterior wall where its flow will be noticed, and
+      those outlets are shown on the exterior elevations and site plan with
+      splash protection and clear of entrances and walkways.
+    trace_to: [drawings.plumbing, drawings.exterior_elevations, drawings.site]
+    severity: high
+    owner: design_team
+
+  - id: 22sd.siphonic
+    kind: conformance
+    check: >
+      Where siphonic roof drainage is used, the manufacturer's calculations
+      match the pipe sizes, lengths and fittings to be installed, the AHJ has
+      accepted the method, and any field change to the routing goes back to
+      the manufacturer before it is made.
+    trace_to: [spec.part2, drawings.plumbing]
+    severity: high
+    owner: subcontractor
+
+  - id: 22sd.below-grade-drainage
+    kind: absence
+    check: >
+      Areaways, depressed loading docks, ramps, window wells and other areas
+      that cannot drain by gravity have sumps with duplex or backup pumps, a
+      high-water alarm and the power source the design requires, and exposed
+      area drains and leaders are protected from freezing.
+    trace_to: [drawings.plumbing, drawings.civil, drawings.electrical]
+    severity: high
+    owner: design_team
+
+failure_modes:
+  - id: 22sd.fm.wrong-body
+    what_happens: Drain bodies ordered without extensions for the tapered insulation at sumps, or without deck clamps for the deck
+    consequence: Drains sit below the membrane or float in the insulation; field fixes the roofer will not warrant
+    caught_by: [22sd.drain-bodies, if.roof-drains]
+    source: industry_practice
+
+  - id: 22sd.fm.hidden-overflow
+    what_happens: Overflow leaders discharge behind landscaping or into an underground line nobody watches
+    consequence: Clogged primary drains go unnoticed until the roof ponds or leaks
+    caught_by: [22sd.overflow-discharge]
+    source: industry_practice
+
+  - id: 22sd.fm.nozzle-afterthought
+    what_happens: Overflow nozzles left off the exterior elevations
+    consequence: Nozzles cut through finished cladding, or discharging onto entries and walkways
+    caught_by: [22sd.overflow-discharge]
+    source: industry_practice
+
+  - id: 22sd.fm.siphonic-modified
+    what_happens: Siphonic leaders rerouted or resized in the field
+    consequence: The system does not prime; the roof drains at a fraction of design flow and ponds
+    caught_by: [22sd.siphonic]
+    source: industry_practice
+
+  - id: 22sd.fm.dock-flood
+    what_happens: A depressed loading dock drained to a sump with one pump and no alarm or backup power
+    consequence: The dock and the building beside it flood in a storm when the pump or the power fails
+    caught_by: [22sd.below-grade-drainage]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 22sd.rh.secondary
+    topic: roof-secondary-drainage
+    question: >
+      Where may secondary roof drainage discharge under the adopted plumbing
+      code (to grade where it will be observed, or to a separate storm
+      connection), and must the overflow system be sized independently of the
+      primary?
+    applies_when: Roofs with overflow drains or scuppers
+    source_families: [plumbing_code]
+    severity: high
+
+  - id: 22sd.rh.siphonic
+    topic: siphonic-roof-drainage-acceptance
+    question: >
+      Does the jurisdiction accept siphonic roof drainage under the plumbing
+      code or as an alternative method, and what design documentation and
+      inspection does it require?
+    applies_when: Siphonic roof drainage
+    source_families: [plumbing_code]
+    severity: medium
+
+extract_fields:
+  - id: 22sd.xf.drains
+    label: Roof and overflow drain tags with body, extension and clamp type
+    type: list
+    per: package
+    reconcile_against: [drawings.roof_plan, drawings.plumbing]

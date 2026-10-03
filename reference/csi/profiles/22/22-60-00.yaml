@@ -1,0 +1,133 @@
+schema_version: 1
+kind: section
+id: "22 60 00"
+title: Gas and Vacuum Systems for Laboratory and Healthcare Facilities
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Compressed air, vacuum and gas systems for laboratories and healthcare
+  (22 61 00 through 22 63 00 inherit from here). Medical gas qualification,
+  testing and verification are carried by the healthcare overlay, and
+  laboratory gas purity, storage and detection by the laboratory overlay.
+  What applies either way: where the sources take in air and discharge
+  exhaust, whether outlets fit the equipment the owner will plug into them,
+  where zone valves and alarms sit, and the power behind sources and alarms.
+
+submittals:
+  - id: 22gv.sub.product-data
+    type: Product Data
+    must_show:
+      - Outlets and inlets by service with connector type, and the owner's equipment they must fit
+      - Source equipment (compressors, vacuum pumps, manifolds) with redundancy, intake and exhaust connections and power
+      - Zone valve boxes and alarm panels with the signals each reports
+  - id: 22gv.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Source room layout, intake and exhaust routes to their terminations, and zone valve and alarm locations on the floor plans
+
+review_checks:
+  - id: 22gv.intakes-exhausts
+    kind: conformance
+    check: >
+      Medical or laboratory air intakes draw from a clean location away from
+      vacuum and waste anesthetic gas exhausts, plumbing vents, engine and fan
+      exhausts and loading areas, and vacuum exhausts discharge where they
+      cannot re-enter intakes, windows or occupied roofs; both are on the
+      roof plan.
+    trace_to: [drawings.roof_plan, drawings.mechanical, drawings.lab_gas]
+    severity: high
+    owner: design_team
+    gate: roof_membrane
+
+  - id: 22gv.connector-type
+    kind: conformance
+    check: >
+      The outlet and inlet connector type for each service (keyed
+      quick-connect pattern or threaded) matches the owner's existing
+      equipment and standard, so flowmeters, regulators and hoses fit on
+      the first day of use.
+    trace_to: [spec.part2, drawings.lab_gas]
+    severity: high
+    owner: owner
+    gate: procurement_release
+
+  - id: 22gv.zone-valves-alarms
+    kind: conformance
+    check: >
+      Zone valves are in boxes outside the rooms they serve, visible and
+      reachable (not behind doors or furniture), each paired with the area
+      alarm for its zone, and master alarms are where staff watch them
+      continuously, as the governing standard requires.
+    trace_to: [drawings.lab_gas, drawings.plans, drawings.interior_elevations]
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
+  - id: 22gv.source-power
+    kind: coordination
+    check: >
+      Source equipment and alarms are on the power source the design and the
+      governing code assign (the essential electrical system in healthcare,
+      standby power where the laboratory program requires it), with redundant
+      units so one can be serviced while the system runs.
+    trace_to: [drawings.electrical, drawings.single_line, drawings.lab_gas]
+    severity: high
+    owner: design_team
+
+failure_modes:
+  - id: 22gv.fm.exhaust-reentrained
+    what_happens: Vacuum or anesthetic gas exhaust terminated near the medical air intake or an air handler intake
+    consequence: Contaminated breathing air; exhaust or intake relocated on a finished roof
+    caught_by: [22gv.intakes-exhausts, if.22-vent-intake-separation]
+    source: industry_practice
+
+  - id: 22gv.fm.connector-mismatch
+    what_happens: Outlets of a different connector pattern than the owner's equipment
+    consequence: Adapters or outlet replacement at move-in, and the zone verified again
+    caught_by: [22gv.connector-type]
+    source: industry_practice
+
+  - id: 22gv.fm.zone-valve-hidden
+    what_happens: A zone valve box placed inside the room it serves or behind an open door
+    consequence: Staff cannot shut off gas in an emergency; the box relocated after walls are finished
+    caught_by: [22gv.zone-valves-alarms]
+    source: industry_practice
+
+  - id: 22gv.fm.alarm-on-normal
+    what_happens: Alarm panels or source equipment circuited from normal power
+    consequence: Alarms or supply lost in an outage; circuits moved late
+    caught_by: [22gv.source-power, if.22-gas-source-power]
+    source: industry_practice
+
+standards:
+  - id: 22gv.std.nfpa-99
+    name: NFPA 99
+    title: Health Care Facilities Code
+    verify: Source, intake, exhaust, zone valve and alarm requirements for the system category the design assigns
+    note: Confirm the edition the jurisdiction and the state health facility agency adopted
+  - id: 22gv.std.asse-6000
+    name: ASSE/IAPMO/ANSI Series 6000
+    title: Medical Gas Systems Personnel
+    verify: Installer (6010), inspector (6020) and verifier (6030) qualifications the spec requires
+
+regulatory_hooks:
+  - id: 22gv.rh.medgas
+    topic: medical-gas-system-requirements
+    question: >
+      Which system category does the facility's risk assessment assign, and
+      what does the adopted NFPA 99 edition require for medical air intake and
+      vacuum exhaust locations, zone valve and alarm placement, and source
+      redundancy?
+    applies_when: Medical gas and vacuum systems
+    source_families: [health_facility_licensing, plumbing_code]
+    severity: high
+
+extract_fields:
+  - id: 22gv.xf.connectors
+    label: Outlet connector type per service
+    type: list
+    per: package
+    reconcile_against: [spec.part2]

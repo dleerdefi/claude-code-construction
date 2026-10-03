@@ -1,0 +1,118 @@
+schema_version: 1
+kind: section
+id: "22 07 00"
+title: Plumbing Insulation
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Insulation and jacketing for plumbing piping and equipment. Hot water
+  insulation is an energy code item; insulation on cold water, storm leaders
+  and roof drain bodies is about condensation, which shows up as stained
+  ceilings wherever the vapor retarder is broken at a hanger or a fitting.
+  Insulation also decides which firestop system applies at a rated
+  penetration, and has to meet flame and smoke limits where it is exposed.
+
+submittals:
+  - id: 22in.sub.product-data
+    type: Product Data
+    must_show:
+      - Insulation material, thickness and jacket by service and pipe size, with conductivity
+      - Flame-spread and smoke-developed ratings of the insulation, jacket and adhesives
+      - Hanger inserts or shields that keep the insulation and vapor retarder continuous
+
+review_checks:
+  - id: 22in.coverage
+    kind: completeness
+    check: >
+      The insulation schedule covers every service the spec and energy code
+      require, including the ones that condense: horizontal storm leaders and
+      roof drain bodies, cold water in humid or unconditioned spaces, and
+      cold drains such as ice machine and condensate lines, as well as the
+      hot water and recirculation piping the energy code requires.
+    trace_to: [spec.part2, drawings.plumbing]
+    severity: medium
+    owner: subcontractor
+
+  - id: 22in.vapor-retarder
+    kind: constructability
+    check: >
+      On cold and condensing piping the vapor retarder is continuous: sealed
+      at joints, fittings and valves, and carried through hangers on inserts
+      and shields instead of being crushed or cut by the hanger.
+    trace_to: [spec.part3, drawings.details]
+    severity: high
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+  - id: 22in.firestop-match
+    kind: coordination
+    check: >
+      Whether insulation runs continuous through rated penetrations or stops
+      short of them matches the firestop system selected for that penetrant,
+      and combustible insulation or jackets are not carried through where the
+      system does not list them.
+    trace_to: [schedule.partition_type, drawings.plumbing]
+    severity: medium
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 22in.flame-smoke
+    kind: conformance
+    submittal_types: [Product Data]
+    check: >
+      Insulation, jackets, adhesives and coatings meet the flame-spread and
+      smoke-developed limits for where they are installed, tested as a
+      composite where the code requires.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 22in.fm.leader-sweats
+    what_happens: Storm leaders and roof drain bodies left uninsulated inside the building
+    consequence: Condensation drips onto ceilings in warm, humid weather; stained tiles blamed on roof leaks
+    caught_by: [22in.coverage]
+    source: industry_practice
+
+  - id: 22in.fm.hanger-crush
+    what_happens: Cold water insulation crushed or slit at hangers without inserts
+    consequence: Condensation and ceiling stains at each hanger
+    caught_by: [22in.vapor-retarder]
+    source: industry_practice
+
+  - id: 22in.fm.firestop-mismatch
+    what_happens: Insulation run through a rated wall where the firestop system was selected for bare pipe
+    consequence: Firestop rejected; insulation cut back and penetrations redone
+    caught_by: [22in.firestop-match]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 22in.rh.energy
+    topic: service-water-heating-energy
+    question: >
+      What insulation thickness and conductivity does the adopted energy code
+      require for service hot water and recirculation piping, and which runs
+      are exempt?
+    applies_when: Hot water and recirculation piping
+    source_families: [energy]
+    severity: medium
+
+  - id: 22in.rh.flame-smoke
+    topic: insulation-flame-smoke-ratings
+    question: >
+      What flame-spread and smoke-developed limits apply to plumbing pipe
+      insulation, jackets and adhesives under the adopted mechanical code,
+      inside and outside plenums?
+    applies_when: Every plumbing insulation submittal
+    source_families: [mechanical_code]
+    severity: medium
+
+extract_fields:
+  - id: 22in.xf.schedule
+    label: Insulation material and thickness by service and pipe size
+    type: list
+    per: package
+    reconcile_against: [spec.part2]

@@ -1,0 +1,173 @@
+schema_version: 1
+kind: section
+id: "21 22 00"
+title: Clean-Agent Fire-Extinguishing Systems
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Halocarbon and inert-gas clean-agent systems protecting rooms such as data,
+  telecom, archive and control rooms. The agent works only if the room holds
+  it for the hold time, so the review reaches into walls, ceilings, doors,
+  dampers and HVAC controls built by other trades. The calculation must use
+  the room as currently drawn, the room must survive the discharge pressure,
+  and release must run through a panel listed with the actuators it fires.
+
+submittals:
+  - id: 21ca.sub.design-data
+    type: Design Data
+    must_show:
+      - Agent quantity from the listed flow calculation, for the protected volume including any under-floor and above-ceiling spaces the design protects
+      - Design concentration compared with the exposure limit for occupied spaces, and the hold time the spec requires
+      - Enclosure pressure relief calculation with vent size and location
+  - id: 21ca.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Cylinders and their location, piping, nozzles, detection, releasing panel, abort and manual release stations, alarms and signage
+      - Interlocks on release (HVAC shutdown, damper closure, door hold-open release, power shutdown where required)
+  - id: 21ca.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Enclosure integrity test procedure and pass criteria
+
+review_checks:
+  - id: 21ca.enclosure-sealing
+    kind: constructability
+    check: >
+      Before the ceiling closes, the room is made tight by the trades that
+      build it, each one assigned: partitions sealed at the deck or at the
+      ceiling plane the calculation assumes, every pipe, duct, conduit and
+      cable opening sealed whether or not the wall is rated, and doors fitted
+      with closers and gasketing. The enclosure integrity test follows while
+      leaks can still be reached.
+    trace_to: [drawings.plans, drawings.details, spec.part3]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 21ca.pressure-relief
+    kind: conformance
+    check: >
+      Where the discharge can over- or under-pressurize the enclosure beyond
+      what its walls, ceiling and doors can take, a relief vent sized by the
+      agent supplier is shown in a wall that vents to a space able to accept
+      it, and the partition and ceiling construction are checked against the
+      design pressure.
+    trace_to: [drawings.plans, drawings.details, spec.part2]
+    severity: high
+    owner: design_team
+
+  - id: 21ca.occupant-safety
+    kind: conformance
+    check: >
+      For normally occupied rooms the design concentration stays within the
+      agent's exposure limit; pre-discharge alarms, time delay, abort and
+      manual release stations, and warning signs are at each entrance; and a
+      lockout for maintenance is provided where the standard requires it.
+    trace_to: [drawings.fire_protection, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 21ca.supplemental
+    kind: absence
+    check: >
+      The design states whether the clean agent supplements required
+      sprinklers or replaces them under an exemption the AHJ accepts; where
+      sprinklers stay, their system type in the room is coordinated with the
+      agent's detection.
+    trace_to: [drawings.fire_protection, spec.part1]
+    severity: high
+    owner: design_team
+
+  - id: 21ca.cylinders
+    kind: constructability
+    check: >
+      Cylinders sit where they can be weighed, serviced and replaced, within
+      the pipe length and elevation limits of the flow calculation,
+      restrained as the seismic design requires, and inside or outside the
+      room as the design intends.
+    trace_to: [drawings.plans, drawings.fire_protection]
+    severity: medium
+    owner: subcontractor
+
+reconciliations:
+  - id: 21ca.rc.protected-volume
+    between: [drawings.plans, drawings.rcp, drawings.fire_protection]
+    key: Protected enclosure
+    fields: [floor area, ceiling height, raised floor and above-ceiling depth, spaces included in the protection, openings that cannot close]
+    check: >
+      The volume in the agent calculation matches each protected room as
+      currently drawn, including raised floors and ceiling plenums the design
+      protects; a room enlarged, a ceiling removed or an opening added since
+      the calculation means it is redone.
+    severity: high
+    owner: subcontractor
+
+failure_modes:
+  - id: 21ca.fm.integrity-fail
+    what_happens: The enclosure integrity test is run after the ceiling closed, with unsealed penetrations above it
+    consequence: Ceilings reopened to find the leaks; room turnover and equipment move-in slip
+    caught_by: [21ca.enclosure-sealing]
+    source: industry_practice
+
+  - id: 21ca.fm.no-relief
+    what_happens: Agent discharged into a tight room with no relief vent
+    consequence: Walls, ceiling or doors damaged by the discharge, and the room no longer holds the agent
+    caught_by: [21ca.pressure-relief]
+    source: industry_practice
+
+  - id: 21ca.fm.volume-changed
+    what_happens: Room enlarged, ceiling removed or raised floor deepened after the agent was calculated
+    consequence: Concentration below design; agent and cylinders added after installation
+    caught_by: [21ca.rc.protected-volume]
+    source: industry_practice
+
+  - id: 21ca.fm.hvac-running
+    what_happens: An air handler serving the room keeps running, or its dampers stay open, at discharge
+    consequence: The agent is diluted below design concentration before the hold time ends
+    caught_by: [if.21-clean-agent-hvac]
+    source: industry_practice
+
+  - id: 21ca.fm.release-incompatible
+    what_happens: The releasing panel and the agent valve actuators are not listed together
+    consequence: The system cannot be accepted; panel or actuators replaced
+    caught_by: [if.21-release-control]
+    source: industry_practice
+
+  - id: 21ca.fm.sprinklers-omitted
+    what_happens: Sprinklers left out of the room on the assumption the clean agent replaces them
+    consequence: The AHJ requires sprinklers late; a preaction system is added in a finished room
+    caught_by: [21ca.supplemental]
+    source: industry_practice
+
+standards:
+  - id: 21ca.std.nfpa-2001
+    name: NFPA 2001
+    title: Standard on Clean Agent Fire Extinguishing Systems
+    verify: Design concentration, hold time, enclosure integrity test and occupant safety provisions claimed
+    note: Confirm the edition the jurisdiction adopted
+
+regulatory_hooks:
+  - id: 21ca.rh.acceptance
+    topic: clean-agent-system-requirements
+    question: >
+      Does the AHJ accept a clean-agent system in place of required
+      sprinklers in this room, and must it witness the enclosure integrity
+      test and a functional release test at acceptance?
+    applies_when: Clean-agent protected rooms
+    source_families: [fire_code]
+    severity: high
+
+extract_fields:
+  - id: 21ca.xf.agent
+    label: Agent, design concentration, quantity and hold time
+    type: string
+    per: package
+    reconcile_against: [spec.part2]
+  - id: 21ca.xf.volume
+    label: Protected volume per enclosure
+    type: list
+    per: package
+    reconcile_against: [drawings.plans, drawings.rcp]

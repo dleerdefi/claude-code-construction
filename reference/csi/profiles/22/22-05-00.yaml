@@ -1,0 +1,145 @@
+schema_version: 1
+kind: section
+id: "22 05 00"
+title: Common Work Results for Plumbing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # seismic restraint design is often delegated
+
+scope_summary: >
+  Hangers and supports, seismic restraint, expansion compensation, valves,
+  meters, heat tracing and identification for plumbing piping and equipment
+  (22 05 13 through 22 05 76 inherit from here). The plumbing-specific risks
+  are the weight of cast iron drainage stacks and leaders, hot water risers
+  that grow with temperature and need anchors and loops, copper meeting
+  steel at equipment, and heat tracing that depends on another trade's power
+  and on insulation installed over it.
+
+submittals:
+  - id: 22cw.sub.product-data
+    type: Product Data
+    must_show:
+      - Hangers, supports and attachments by pipe material and size, with isolation for copper and plastic pipe
+      - Expansion joints, loops, anchors and guides with the movement each takes
+      - Dielectric fittings at each dissimilar-metal connection
+      - Heat tracing cable, controller and ground-fault protection
+  - id: 22cw.sub.design-data
+    type: Design Data
+    must_show:
+      - Seismic restraint layout and calculations where required, with loads at each attachment
+
+review_checks:
+  - id: 22cw.vertical-support
+    kind: constructability
+    check: >
+      Stacks, leaders and risers (cast iron drainage, roof drain leaders,
+      water risers) have riser clamps at the floors the spec requires and
+      support at the base, so their weight is not carried by the joints or by
+      the horizontal piping at the bottom.
+    trace_to: [drawings.riser_diagrams, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: 22cw.expansion
+    kind: conformance
+    check: >
+      Long hot water and recirculation mains and risers, and plastic piping,
+      have the expansion loops, offsets or compensators, anchors and guides
+      the design shows or the submittal designs, with anchor loads given to
+      the structural engineer.
+    trace_to: [drawings.plumbing, drawings.riser_diagrams, drawings.structural]
+    severity: medium
+    owner: subcontractor
+
+  - id: 22cw.dissimilar-metals
+    kind: conformance
+    check: >
+      Where copper meets steel or iron (water heaters, tanks, equipment
+      connections) the joint is isolated with the dielectric fitting type the
+      spec names, and hangers and supports on copper are copper-plated or
+      isolated from it.
+    trace_to: [spec.part2, drawings.details]
+    severity: medium
+    owner: subcontractor
+
+  - id: 22cw.seismic
+    kind: completeness
+    check: >
+      Where seismic restraint is required, the restraint submittal covers the
+      plumbing piping the code does not exempt by size or hanger length,
+      water heaters and storage tanks, and flexible joints where piping
+      crosses a building seismic joint or meets isolated equipment.
+    trace_to: [drawings.structural, spec.part1_submittals]
+    severity: high
+    owner: subcontractor
+    gate: overhead_rough_in
+
+  - id: 22cw.heat-trace
+    kind: coordination
+    check: >
+      Heat tracing for freeze protection or hot water temperature maintenance
+      shows the circuits, ground-fault protection and controllers the
+      electrical design must provide, and is installed and tested before the
+      insulation goes over it.
+    trace_to: [drawings.plumbing, drawings.electrical, spec.part3]
+    severity: medium
+    owner: gc
+    gate: above_ceiling_close_in
+
+failure_modes:
+  - id: 22cw.fm.riser-growth
+    what_happens: A hot water riser installed with no expansion compensation or anchors
+    consequence: Branch connections crack or pull apart; leaks inside chases
+    caught_by: [22cw.expansion]
+    source: industry_practice
+
+  - id: 22cw.fm.galvanic
+    what_happens: Copper piped directly to a steel tank or heater nipple
+    consequence: Corrosion at the connection and leaks within a few years
+    caught_by: [22cw.dissimilar-metals]
+    source: industry_practice
+
+  - id: 22cw.fm.stack-unsupported
+    what_happens: Cast iron stacks and leaders installed without riser clamps or base support
+    consequence: Couplings slip under the stack's weight; leaks at the joints
+    caught_by: [22cw.vertical-support]
+    source: industry_practice
+
+  - id: 22cw.fm.trace-no-power
+    what_happens: Heat tracing installed without circuits or ground-fault protection in the electrical design
+    consequence: Pipes freeze the first winter, or circuits are added after insulation and ceilings are in
+    caught_by: [22cw.heat-trace, if.22-equipment-power]
+    source: industry_practice
+
+  - id: 22cw.fm.trapeze-after-sfrm
+    what_happens: Trapezes and hanger rods for heavy drainage mains attached to steel after spray fireproofing
+    consequence: Fireproofing knocked off at every attachment and not patched before the ceiling closes
+    caught_by: [if.fireproofing-hangers]
+    source: industry_practice
+
+  - id: 22cw.fm.pt-coring
+    what_happens: Plumbing sleeves missed at the slab pour, then cored through a post-tensioned slab
+    consequence: A cut tendon, structural repair and schedule loss
+    caught_by: [if.03-sleeves]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 22cw.rh.seismic
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Does the seismic design category require restraint of plumbing piping
+      and equipment, which piping is exempt, and does the plumbing code or
+      the jurisdiction add water heater strapping?
+    applies_when: Projects where nonstructural seismic requirements apply
+    source_families: [building_code_seismic, plumbing_code]
+    severity: medium
+
+extract_fields:
+  - id: 22cw.xf.expansion
+    label: Expansion compensation and anchor locations on hot water risers and mains
+    type: list
+    per: package
+    reconcile_against: [drawings.riser_diagrams]

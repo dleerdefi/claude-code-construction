@@ -1,0 +1,154 @@
+schema_version: 1
+kind: interfaces
+id: div-21
+title: Interfaces involving Division 21
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with Division 07 and 12 stay in div-07 and div-12; edges with lower
+# divisions (05, 10, 11, 14) live in theirs.
+
+edges:
+  # ── Water supply and drains ───────────────────────────────────
+  - id: if.21-fire-service-underground
+    a: ["21 10 00"]
+    a_trade: Water-based fire suppression
+    b: ["33 10 00"]
+    b_trade: Site water utilities (fire service main)
+    a_provides: Flow and pressure needed at the base of the riser, the riser and backflow location, and the point where the aboveground contractor takes over
+    b_provides: Fire main size, material and route, thrust restraint, hydrant and post indicator valve locations, the flush and hydrostatic test certificate for the underground, and the hydrant flow test (date, location, witness) the calculations are based on
+    responsibility:
+      - item: Fire service from the site point of connection to the riser flange inside the building
+        typical: {furnish: "33 14 00 or 21 10 00", install: "33 14 00 or 21 10 00"}
+        confirm_in: [spec.part1, drawings.civil, drawings.fire_protection]
+    gate:
+      milestone: trench_backfill
+      note: The underground is flushed at full flow and tested before it is connected to the riser
+      inspect_before: [Underground flush and hydrostatic test witnessed as the AHJ requires]
+    severity: high
+
+  - id: if.21-water-entry
+    a: ["21 10 00"]
+    a_trade: Water-based fire suppression
+    b: ["22 11 00"]
+    b_trade: Domestic water distribution
+    a_provides: Fire service size, backflow assembly type and location, and the room it needs at the entry
+    b_provides: Whether the service is combined or separate, the split point, domestic meter and backflow locations, and the room drain for relief discharges
+    responsibility:
+      - item: Backflow assembly on the fire service
+        typical: {furnish: "21 10 00 or 22 11 00", install: "21 10 00 or 22 11 00"}
+        confirm_in: [spec.part1, drawings.fire_protection, drawings.plumbing]
+    gate:
+      milestone: underslab_rough_in
+      note: The entry location and the room drain are fixed with the underslab work
+    severity: high
+    failure: The two trades draw the split, meter and backflow assemblies differently; the entry room is too small or has no drain for relief discharge
+
+  - id: if.21-drain-discharge
+    a: ["21 10 00", "21 30 00"]
+    a_trade: Sprinkler, standpipe and fire pump systems
+    b: ["22 13 00", "22 14 00"]
+    b_trade: Sanitary and storm drainage
+    a_provides: Each test and drain discharge (main drain, inspector's test, auxiliary drains, backflow forward-flow test, pump test, relief and casing discharge) with its location and full flow
+    b_provides: Receptors and drains sized for those flows, or an exterior discharge point agreed with the site design
+    responsibility:
+      - item: Receptors for fire protection test and relief discharges
+        typical: {furnish: "22 13 00", install: "22 13 00"}
+        confirm_in: [drawings.plumbing, drawings.fire_protection]
+    gate: {milestone: underslab_rough_in}
+    severity: medium
+
+  # ── Ceiling space ─────────────────────────────────────────────
+  - id: if.21-duct-obstructions
+    a: ["21 13 00"]
+    a_trade: Sprinkler systems
+    b: ["23 31 00"]
+    b_trade: HVAC ductwork
+    a_provides: Main, branch line and head routing and elevations, and heads needed below ducts wide enough to obstruct the spray
+    b_provides: Duct sizes and elevations in the coordinated ceiling layout, and any later change in duct width or height
+    gate:
+      milestone: overhead_rough_in
+      note: Settle ducts and sprinklers in one coordination layout before either is hung
+    severity: high
+
+  - id: if.21-clean-agent-hvac
+    a: ["21 22 00"]
+    a_trade: Clean-agent systems
+    b: ["23 33 00", "23 09 00", "23 81 00"]
+    b_trade: Dampers, HVAC controls and in-room cooling units
+    a_provides: The enclosure boundary, the hold time, and which air handlers, in-room units and duct openings must stop, close or keep recirculating on release
+    b_provides: Motorized dampers at every duct crossing the enclosure boundary with actuators that close on release, unit shutdown or recirculation as the agent design assumes, and the control wiring from the release signal
+    responsibility:
+      - item: Dampers that close on release in ducts crossing the enclosure boundary
+        typical: {furnish: "23 33 00", install: "23 33 00", connect: "21 22 00 or 28 46 00"}
+        confirm_in: [spec.part1, drawings.mechanical, drawings.fire_protection]
+      - item: Shutdown of air handlers and in-room units on release
+        typical: {connect: "23 09 00 or 28 46 00"}
+        confirm_in: [spec.part1, drawings.fire_alarm]
+    gate:
+      milestone: above_ceiling_close_in
+      note: Dampers and their wiring above the ceiling are in and tested before the enclosure integrity test
+    severity: high
+
+  # ── Fire pumps ────────────────────────────────────────────────
+  - id: if.21-fire-pump-power
+    a: ["21 30 00"]
+    a_trade: Fire pumps
+    b: ["26 21 00", "26 32 00", "26 36 00"]
+    b_trade: Electrical service, generators and transfer switches
+    a_provides: Motor horsepower, voltage, locked-rotor current, controller type (with or without an integral transfer switch) and its short-circuit rating
+    b_provides: Power source arrangement, feeder routing and protection, available fault current at the controller, and generator capacity for the pump's starting load
+    responsibility:
+      - item: Fire pump controller and fire pump transfer switch
+        typical: {furnish: "21 30 00", install: "21 30 00 or Division 26", connect: "Division 26"}
+        confirm_in: [spec.part1, drawings.single_line]
+    gate:
+      milestone: procurement_release
+      note: Order the controller after the electrical design confirms the source and the fault current
+    severity: critical
+
+  - id: if.21-fire-pump-room-hvac
+    a: ["21 30 00"]
+    a_trade: Fire pumps
+    b: ["23 34 00", "23 82 00"]
+    b_trade: HVAC fans and unit heaters
+    a_provides: Driver heat rejection, combustion and cooling air for diesel engines, and the room temperature the pump and water-filled piping need
+    b_provides: Ventilation, louvers and dampers that open when the engine runs, and heat that keeps the room above freezing
+    gate: {milestone: procurement_release}
+    severity: medium
+
+  # ── Fire alarm ────────────────────────────────────────────────
+  - id: if.21-supervision
+    a: ["21"]
+    a_trade: Fire suppression
+    b: ["28 46 00"]
+    b_trade: Fire detection and alarm
+    a_provides: The list and location of every supervised device and signal (tamper, waterflow, low air, pump running, power and phase failure, releasing panel outputs)
+    b_provides: A monitored point and module for each, programmed as alarm, supervisory or trouble, and power to the devices that need it
+    responsibility:
+      - item: Tamper, flow and pressure switches
+        typical: {furnish: "21 10 00", install: "21 10 00", connect: "28 46 00"}
+        confirm_in: [spec.part1, drawings.fire_alarm]
+    gate:
+      milestone: above_ceiling_close_in
+      note: Modules and wiring at devices above ceilings go in before the ceiling closes
+    severity: high
+
+  - id: if.21-release-control
+    a: ["21 13 00", "21 22 00"]
+    a_trade: Preaction, deluge and clean-agent systems
+    b: ["28 46 00"]
+    b_trade: Fire detection and alarm
+    a_provides: Release valve or actuator models, the releasing panels they are listed with, and the release logic (single or double interlock, cross-zoned detection, time delay and abort)
+    b_provides: Detection layout and zoning for release, the releasing panel or its interface, and the alarm and shutdown outputs
+    responsibility:
+      - item: Releasing control panel and its detection
+        typical: {furnish: "21 13 00, 21 22 00 or 28 46 00", install: "21 22 00 or 28 46 00"}
+        confirm_in: [spec.part1, drawings.fire_alarm, drawings.fire_protection]
+    gate:
+      milestone: procurement_release
+      note: The panel and the valve actuators must be listed together
+    severity: high

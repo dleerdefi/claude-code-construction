@@ -1,0 +1,146 @@
+schema_version: 1
+kind: division
+id: "21"
+title: Fire Suppression
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # sprinklers, standpipes, clean agent and bracing are laid out and calculated by the installer
+
+scope_summary: >
+  Sprinkler and standpipe systems, fire pumps, and gaseous and chemical
+  extinguishing systems. Most of it is performance-specified: the installing
+  contractor lays out and calculates the system from the engineer's criteria,
+  and the building official, the fire marshal and often the owner's insurer
+  each approve it, sometimes against different criteria. A system is not
+  complete until every valve and flow device is supervised by the fire alarm,
+  and it is tested in pieces before ceilings close and again as a whole before
+  occupancy.
+
+review_checks:
+  - id: d21.approvals-before-install
+    kind: completeness
+    check: >
+      The working plans and calculations carry every approval the project
+      needs before fabrication: the engineer of record's review, the building
+      or fire official's permit, and, where the owner's property insurer
+      reviews fire protection, the insurer's acceptance with its comments
+      incorporated. Insurer criteria can exceed the adopted standard (density,
+      sprinkler type, storage protection), so a design approved only by the
+      jurisdiction is not final.
+    trace_to: [spec.part1, spec.part1_submittals]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: d21.test-before-concealment
+    kind: completeness
+    check: >
+      Hydrostatic tests, air tests of dry and preaction piping, and flushing
+      are done and witnessed area by area before ceilings, shafts and soffits
+      conceal the piping, with a signed material and test certificate for
+      each area.
+    trace_to: [spec.part3, register.special_inspections]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: d21.existing-system-work
+    kind: constructability
+    check: >
+      Where new work extends or modifies an existing system, the existing
+      piping, water supply and hazard are re-evaluated (new heads on an old
+      system are calculated with the old pipe and a current supply), and each
+      shutdown follows the owner's impairment procedure with notice to the
+      fire department, the monitoring company and the insurer.
+    trace_to: [spec.part1, drawings.fire_protection, drawings.demolition]
+    severity: high
+    owner: gc
+
+reconciliations:
+  - id: d21.rc.supervised-devices
+    reflex: true
+    between: [drawings.fire_protection, drawings.fire_alarm]
+    key: Supervised device or signal (valve, flow switch, pressure switch, pump or release signal)
+    fields: [device type, location or zone, signal type (alarm, supervisory, trouble), monitoring module]
+    check: >
+      Every control valve tamper switch, waterflow switch, low-air or
+      low-pressure switch, fire pump signal and releasing panel output on the
+      fire protection drawings has a matching monitored point on the fire
+      alarm drawings, and the fire alarm drawings carry no device the fire
+      protection design has since dropped.
+    severity: high
+    owner: design_team
+    gate: above_ceiling_close_in
+
+failure_modes:
+  - id: d21.fm.insurer-late
+    what_happens: The owner's insurer reviews the sprinkler design after the jurisdiction approved it and requires a different density, sprinkler or storage protection
+    consequence: Redesign after fabrication; piping and heads changed in installed areas
+    caught_by: [d21.approvals-before-install]
+    source: industry_practice
+
+  - id: d21.fm.covered-untested
+    what_happens: Ceilings or soffits close over sprinkler piping before the hydrostatic test is witnessed
+    consequence: Ceilings opened for the inspector; leaks found after finishes are in
+    caught_by: [d21.test-before-concealment]
+    source: industry_practice
+
+  - id: d21.fm.unsupervised-devices
+    what_happens: Tamper and flow switches installed by the sprinkler contractor never reached the fire alarm design, or were added in the field without modules
+    consequence: Final acceptance fails; occupancy waits on fire alarm additions and reprogramming
+    caught_by: [d21.rc.supervised-devices, if.21-supervision]
+    source: industry_practice
+
+  - id: d21.fm.old-system-overloaded
+    what_happens: Renovation heads tied into an existing system without a calculation against the current supply and the existing pipe
+    consequence: The system fails plan review late, or underperforms unnoticed; mains replaced
+    caught_by: [d21.existing-system-work]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: d21.rh.plan-approval
+    topic: fire-suppression-plan-approval
+    question: >
+      Which authorities must approve fire suppression working plans and
+      calculations before installation (building official, fire marshal,
+      state fire marshal, water purveyor, and the owner's insurer where it
+      reviews fire protection), what qualification must the
+      designer hold (certification level, contractor license, engineer's
+      seal), and must the approved set be kept on site?
+    applies_when: Every fire suppression system
+    source_families: [fire_code, building_code, owner_insurer_standards]
+    severity: high
+
+  - id: d21.rh.supervision
+    topic: fire-suppression-supervision
+    question: >
+      Which valves, waterflow devices and pump and system conditions must be
+      electrically supervised and transmitted to a supervising station under
+      the adopted fire code, and where are locks or seals allowed instead?
+    applies_when: Every fire suppression system
+    source_families: [fire_code]
+    severity: high
+
+  - id: d21.rh.acceptance-testing
+    topic: fire-suppression-acceptance-testing
+    question: >
+      Which acceptance tests must the AHJ witness (underground flush and
+      hydrostatic test, aboveground hydrostatic test, trip tests, fire pump
+      field test, alarm tests), which certificates must be filed, and must
+      they be complete before the certificate of occupancy?
+    applies_when: Every fire suppression system
+    source_families: [fire_code]
+    severity: high
+
+  - id: d21.rh.impairment
+    topic: fire-protection-impairment-procedures
+    question: >
+      When an existing sprinkler or standpipe system is shut down for
+      tie-ins, what notice, fire watch and restoration steps do the fire code
+      and the fire department require?
+    applies_when: Work on or connected to an existing system
+    source_families: [fire_code]
+    severity: medium

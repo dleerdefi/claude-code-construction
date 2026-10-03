@@ -1,0 +1,242 @@
+schema_version: 1
+kind: section
+id: "21 30 00"
+title: Fire Pumps
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # the pump rating is often selected by the sprinkler contractor from the calculations
+
+scope_summary: >
+  Fire pumps, drivers, controllers, transfer switches, jockey pumps and their
+  rooms (21 31 00 through 21 34 00 inherit from here). The pump is selected
+  from the system demand and the supply test, and its power is the
+  reliability question: where it taps the service, whether it needs an
+  alternate source and transfer switch, and whether the feeder and
+  overcurrent protection let the motor run instead of trip. The field
+  acceptance test needs permanent power, the utility main and somewhere for
+  a full test flow to go, all on the same day.
+
+submittals:
+  - id: 21fp.sub.product-data
+    type: Product Data
+    must_show:
+      - Pump, driver and controller, each listed for fire pump service, with rated flow, pressure and speed
+      - Transfer switch listed for fire pump service where an alternate source is used, and the controller's short-circuit current rating
+      - Jockey pump and controller, relief valve, and test header or flow meter
+  - id: 21fp.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Pump room layout with suction and discharge piping, valves, test header or meter loop and its discharge, drains, and clearances
+      - For diesel drivers, the fuel tank, exhaust, cooling water, combustion and ventilation air, and batteries
+  - id: 21fp.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Certified shop test curve for the pump supplied
+  - id: 21fp.sub.field-reports
+    type: Manufacturer's Field Reports
+    must_show:
+      - Field acceptance test with the pump, controller and driver representatives present
+
+review_checks:
+  - id: 21fp.selection
+    kind: conformance
+    check: >
+      The pump's rated point and curve cover the highest system demand with
+      the spec's margin at the lowest suction pressure the supply gives, and
+      churn pressure plus the highest suction pressure stays within the
+      rating of the system's components, or the design adds the pressure
+      control the standard allows.
+    trace_to: [spec.part2, drawings.fire_protection, report.utility_requirements]
+    severity: critical
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 21fp.suction
+    kind: conformance
+    check: >
+      Suction piping, valves and fittings near the pump inlet, any backflow
+      assembly on the suction side, and the low-suction-pressure control
+      follow the standard, and the pump does not draw the public main below
+      what the purveyor allows (or a break tank is provided).
+    trace_to: [drawings.fire_protection, drawings.plumbing, report.utility_requirements]
+    severity: high
+    owner: subcontractor
+
+  - id: 21fp.power
+    kind: coordination
+    check: >
+      The electrical design gives the pump the source the code requires (a
+      tap ahead of the service main, a separate service, or an on-site source
+      through a transfer switch listed for fire pump service), routes and
+      protects the feeder as required, sizes overcurrent protection to carry
+      locked-rotor current rather than trip, and sizes any generator to start
+      the pump with the other loads it carries.
+    trace_to: [drawings.single_line, drawings.electrical, spec.part2]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: 21fp.controller
+    kind: conformance
+    check: >
+      The controller and transfer switch are listed for fire pump service,
+      rated for the available fault current at their location, within sight
+      of the driver, and their alarm and signal outputs match the points the
+      fire alarm design monitors.
+    trace_to: [drawings.single_line, spec.part2, drawings.fire_alarm]
+    severity: high
+    owner: subcontractor
+
+  - id: 21fp.room
+    kind: conformance
+    check: >
+      The pump room has the separation, direct or protected access, heat,
+      ventilation, lighting and drainage the code requires, with drains for
+      relief, packing and casing discharges, and for diesel drivers the fuel
+      storage, exhaust and cooling and combustion air the engine needs.
+    trace_to: [drawings.plans, drawings.mechanical, drawings.plumbing, drawings.life_safety]
+    severity: high
+    owner: design_team
+
+  - id: 21fp.test-flow
+    kind: constructability
+    check: >
+      The test header or flow meter loop discharges where a full test flow
+      can go without flooding the site, the sidewalk or the building, so the
+      acceptance test and every later annual test can be run the same way.
+    trace_to: [drawings.site, drawings.fire_protection, drawings.civil]
+    severity: medium
+    owner: gc
+
+  - id: 21fp.acceptance
+    kind: completeness
+    check: >
+      The field acceptance test is planned with its prerequisites in place:
+      permanent power and the alternate source, the utility supply able to
+      deliver full flow, the test water route, the AHJ and the manufacturers'
+      representatives, and the system already flushed and hydrostatically
+      tested.
+    trace_to: [spec.part3, schedule.master]
+    severity: high
+    owner: gc
+
+reconciliations:
+  - id: 21fp.rc.electrical
+    between: [drawings.fire_protection, drawings.single_line, schedule.electrical_panel]
+    key: Fire pump and jockey pump
+    fields: [motor horsepower, voltage and phase, locked-rotor current, feeder and overcurrent device, available fault current at the controller, alternate source]
+    check: >
+      Pump motor data in the fire protection submittal match the single-line
+      diagram and panel schedules, and the controller's short-circuit current
+      rating meets the fault current the electrical design shows at its
+      location.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 21fp.fm.trip-on-start
+    what_happens: Fire pump overcurrent protection sized like an ordinary motor feeder
+    consequence: The breaker trips on locked-rotor current during the acceptance test or a fire; electrical rework late
+    caught_by: [21fp.power, 21fp.rc.electrical]
+    source: industry_practice
+
+  - id: 21fp.fm.generator-short
+    what_happens: Generator sized without the fire pump's starting load
+    consequence: The generator stalls or sheds other emergency loads when the pump starts at the acceptance test
+    caught_by: [21fp.power, if.21-fire-pump-power]
+    source: industry_practice
+
+  - id: 21fp.fm.sccr
+    what_happens: Controller ordered with a short-circuit rating below the available fault current
+    consequence: Controller replaced, or the electrical inspection fails
+    caught_by: [21fp.controller, 21fp.rc.electrical]
+    source: industry_practice
+
+  - id: 21fp.fm.churn-overpressure
+    what_happens: A pump selected whose churn pressure, on top of the city pressure, exceeds the component ratings
+    consequence: The relief valve dumps water continuously, or components fail the hydrostatic test; pressure control added late
+    caught_by: [21fp.selection]
+    source: industry_practice
+
+  - id: 21fp.fm.test-water-nowhere
+    what_happens: Test header discharge aimed at landscaping, a sidewalk or a drain far too small for it
+    consequence: Acceptance test delayed, or the site and the building flooded during it
+    caught_by: [21fp.test-flow, if.21-drain-discharge]
+    source: industry_practice
+
+  - id: 21fp.fm.room-environment
+    what_happens: Diesel pump room built without the ventilation and heat the engine and the water-filled piping need
+    consequence: The engine overheats during the test, or the room freezes; louvers, dampers and heaters added afterward
+    caught_by: [21fp.room, if.21-fire-pump-room-hvac]
+    source: industry_practice
+
+  - id: 21fp.fm.acceptance-unready
+    what_happens: Acceptance test scheduled before permanent power, full utility flow or the test water route are ready
+    consequence: Repeated test mobilizations; the certificate of occupancy waits
+    caught_by: [21fp.acceptance]
+    source: industry_practice
+
+  - id: 21fp.fm.main-drawn-down
+    what_happens: The pump draws the public main below the purveyor's limit
+    consequence: The purveyor refuses the connection or requires a break tank late in the job
+    caught_by: [21fp.suction]
+    source: industry_practice
+
+standards:
+  - id: 21fp.std.nfpa-20
+    name: NFPA 20
+    title: Standard for the Installation of Stationary Pumps for Fire Protection
+    verify: Pump, driver, controller and transfer switch listings, suction arrangement and field acceptance test
+    note: Confirm the edition the jurisdiction adopted
+  - id: 21fp.std.nfpa-70
+    name: NFPA 70
+    title: National Electrical Code (NEC)
+    verify: Fire pump power source, feeder protection and overcurrent sizing under its fire pump article
+
+regulatory_hooks:
+  - id: 21fp.rh.power
+    topic: fire-pump-power-reliability
+    question: >
+      Under the adopted building, fire and electrical codes, does this fire
+      pump need an alternate power source (by building height or the
+      reliability of the utility), how must its feeder be routed and
+      protected, and is a diesel driver an acceptable alternative?
+    applies_when: Every electric fire pump
+    source_families: [electrical_code, fire_code, building_code]
+    severity: critical
+
+  - id: 21fp.rh.room
+    topic: fire-pump-room-requirements
+    question: >
+      What fire-resistance separation, access, heating, ventilation, drainage
+      and fuel storage does the adopted code require for the fire pump room
+      and its driver?
+    applies_when: Every fire pump installation
+    source_families: [building_code, fire_code]
+    severity: high
+
+  - id: 21fp.rh.suction
+    topic: fire-pump-water-supply-limits
+    question: >
+      Does the purveyor limit how far a fire pump may draw down the public
+      main, require a low-suction-pressure control or a break tank, or require
+      its own approval of the pump connection?
+    applies_when: Fire pumps taking suction from a public main
+    source_families: [utility_service_rules, fire_code]
+    severity: high
+
+extract_fields:
+  - id: 21fp.xf.pump
+    label: Pump rated flow, pressure, churn pressure and driver
+    type: string
+    per: package
+    reconcile_against: [spec.part2]
+  - id: 21fp.xf.motor
+    label: Motor horsepower, voltage, locked-rotor current and controller short-circuit rating
+    type: string
+    per: package
+    reconcile_against: [drawings.single_line, schedule.electrical_panel]

@@ -1,0 +1,230 @@
+schema_version: 1
+kind: section
+id: "22 40 00"
+title: Plumbing Fixtures
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+review_mode: per_element
+element_types: [plumbing_fixture_type]
+
+scope_summary: >
+  Water closets, urinals, lavatories, sinks, showers, drinking fountains and
+  their trim, carriers and supports (commercial, healthcare, security fixtures
+  and drinking fountains inherit from here). Reviewed by fixture tag: each
+  tag's complete package of fixture, trim and carrier against the schedule,
+  then each location against the architectural plans, elevations, casework
+  and accessories. The expensive misses are carriers and rough-ins that do
+  not fit the wall before it closes, and accessible fixtures whose controls,
+  heights and clearances fight the grab bars and casework around them.
+
+submittals:
+  - id: 22fx.sub.product-data
+    type: Product Data
+    must_show:
+      - Each fixture tag with every component (fixture, seat, flush valve or tank, faucet and trim, supplies and stops, trap and tailpiece, carrier) and its mounting height
+      - Accessible fixtures identified, with control type and location and under-lavatory pipe protection
+      - Flow and flush rates and the certifications the spec requires
+      - Power for sensor faucets and flush valves (battery, plug-in or hardwired transformer)
+
+review_checks:
+  - id: 22fx.tag-completeness
+    kind: completeness
+    submittal_types: [Product Data]
+    check: >
+      Each fixture tag's submittal covers every component in the schedule and
+      the rough-in it needs (wall or floor outlet, rough-in dimension, supply
+      height), matching the scheduled fixture and the wall it mounts on.
+    trace_to: [schedule.plumbing_fixture, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 22fx.carriers
+    kind: constructability
+    check: >
+      Wall-hung fixtures are on carriers whose type fits the chase or wall
+      depth on the partition types (single, back-to-back, offset), rated for
+      the load including bariatric fixtures where scheduled, and set with
+      their rough-in heights before the wall closes.
+    trace_to: [schedule.partition_type, drawings.enlarged_plans, drawings.details]
+    severity: high
+    owner: gc
+    gate: wall_close_in
+
+  - id: 22fx.accessible
+    kind: conformance
+    check: >
+      Designated accessible fixtures meet the adopted accessibility standard
+      as installed: rim and seat heights, flush controls on the open side,
+      faucet operation, knee and toe clearance at lavatories and sinks with
+      supply and drain piping protected or kept out of the knee space, shower
+      controls and hand shower, and drinking fountains at both heights where
+      required.
+    trace_to: [drawings.enlarged_plans, drawings.interior_elevations, schedule.plumbing_fixture]
+    severity: high
+    owner: subcontractor
+
+  - id: 22fx.temperature-limits
+    kind: conformance
+    check: >
+      Public lavatories, showers and other fixtures where the code limits
+      delivered temperature have a listed temperature-limiting device or
+      valve of the type the code requires, reachable for adjustment.
+    trace_to: [schedule.plumbing_fixture, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: 22fx.sensor-power
+    kind: coordination
+    check: >
+      Hardwired sensor faucets and flush valves have transformer and junction
+      box locations in the chase or under the counter on the electrical
+      drawings, roughed in before the walls close; battery units are confirmed
+      with the owner.
+    trace_to: [drawings.electrical, drawings.plumbing, spec.part2]
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: 22fx.water-efficiency
+    kind: conformance
+    check: >
+      Flow and flush rates meet the plumbing and energy codes and any green
+      building program the spec names, and low-flow faucets are checked
+      against the hot water design (delivery time, activation flow of local
+      heaters).
+    trace_to: [schedule.plumbing_fixture, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+reconciliations:
+  - id: 22fx.rc.fixtures-vs-arch
+    reflex: true
+    between: [schedule.plumbing_fixture, drawings.plumbing, drawings.enlarged_plans]
+    key: Fixture tag and room
+    fields: [count by type, location, accessible designation, mounting height]
+    check: >
+      Fixture counts, types and locations on the plumbing plans and schedule
+      match the current architectural enlarged plans room by room, in both
+      directions, including accessible designations and mounting heights.
+    severity: high
+    owner: design_team
+    gate: underslab_rough_in
+
+  - id: 22fx.rc.accessories
+    between: [drawings.enlarged_plans, drawings.interior_elevations, schedule.toilet_accessories, schedule.plumbing_fixture]
+    key: Accessible toilet room, stall or lavatory
+    fields: [water closet centerline to side wall, flush valve side and height against the grab bars, dispenser and toilet paper locations, mirror and lavatory, sink in casework]
+    check: >
+      In each accessible toilet room and stall, fixture centerlines, flush
+      valve and supply locations, grab bars, dispensers and mirror fit
+      together on the elevations without overlap, and sinks set in casework
+      match the casework elevations.
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
+failure_modes:
+  - id: 22fx.fm.arch-revised
+    what_happens: Toilet rooms revised on the architectural drawings by ASI while the plumbing drawings kept the old layout
+    consequence: Rough-ins in the wrong place under the slab or in the wall; fixture counts short at inspection
+    caught_by: [22fx.rc.fixtures-vs-arch]
+    source: industry_practice
+
+  - id: 22fx.fm.flush-valve-grab-bar
+    what_happens: Flush valve on the wall side, or at the height of the grab bar
+    consequence: The grab bar cannot be mounted where required; fixture or valve replaced
+    caught_by: [22fx.rc.accessories, 22fx.accessible, if.10-toilet-room-fixtures]
+    source: industry_practice
+
+  - id: 22fx.fm.exposed-piping
+    what_happens: Accessible lavatory installed with unprotected supplies and trap, or with piping in the knee space
+    consequence: Accessibility inspection finding; covers or offset drains added
+    caught_by: [22fx.accessible]
+    source: industry_practice
+
+  - id: 22fx.fm.sensor-no-power
+    what_happens: Hardwired sensor faucets bought with no transformer locations or boxes in the electrical design
+    consequence: Walls or counters opened to add power, or a switch to battery units after approval
+    caught_by: [22fx.sensor-power, if.22-sensor-fixtures-power]
+    source: industry_practice
+
+  - id: 22fx.fm.unlimited-temperature
+    what_happens: Public lavatories supplied with hot water and no temperature-limiting device
+    consequence: Scald risk; an inspection finding and devices added under finished counters
+    caught_by: [22fx.temperature-limits]
+    source: industry_practice
+
+standards:
+  - id: 22fx.std.asme-a112-6-1m
+    name: ASME A112.6.1M
+    title: Floor Affixed Supports for Off-the-Floor Plumbing Fixtures for Public Use
+    verify: Carrier type and load rating claimed
+  - id: 22fx.std.asse-1070
+    name: ASSE 1070 / ASME A112.1070 / CSA B125.70
+    title: Water Temperature Limiting Devices
+    verify: Listing of point-of-use temperature-limiting devices at lavatories and sinks
+  - id: 22fx.std.asse-1016
+    name: ASSE 1016 / ASME A112.1016 / CSA B125.16
+    title: Automatic Compensating Valves for Individual Showers and Tub/Shower Combinations
+    verify: Shower and tub valve listing where the code requires pressure-balancing or thermostatic valves
+
+regulatory_hooks:
+  - id: 22fx.rh.accessible
+    topic: accessible-plumbing-fixtures
+    question: >
+      Which fixtures must be accessible and how many, and what does the
+      adopted accessibility standard (with any state amendments) require for
+      their heights, controls, clearances and pipe protection?
+    applies_when: Every project with public or common-use plumbing fixtures
+    source_families: [accessibility]
+    severity: high
+
+  - id: 22fx.rh.temperature
+    topic: hot-water-temperature-limits
+    question: >
+      At which fixtures does the plumbing code limit delivered hot water
+      temperature (public lavatories, showers, tubs, healthcare or childcare
+      fixtures), and which device types and set points does it require?
+    applies_when: Fixtures supplied with hot water
+    source_families: [plumbing_code]
+    severity: high
+
+  - id: 22fx.rh.efficiency
+    topic: plumbing-fixture-water-efficiency
+    question: >
+      What maximum flow and flush rates apply under the plumbing code, the
+      energy or green building code and state water efficiency rules, and what
+      certification must each fixture carry?
+    applies_when: Every fixture
+    source_families: [plumbing_code, energy, environmental]
+    severity: medium
+
+extract_fields:
+  - id: 22fx.xf.model
+    label: Fixture and trim models
+    type: string
+    per: element
+    reconcile_against: [schedule.plumbing_fixture]
+  - id: 22fx.xf.mounting
+    label: Rim or seat height and mounting type
+    type: string
+    per: element
+    reconcile_against: [drawings.interior_elevations]
+  - id: 22fx.xf.accessible
+    label: Accessible fixture
+    type: boolean
+    per: element
+    reconcile_against: [drawings.enlarged_plans]
+  - id: 22fx.xf.flow
+    label: Flow or flush rate
+    type: string
+    per: element
+    reconcile_against: [schedule.plumbing_fixture]
+  - id: 22fx.xf.power
+    label: Control type and power source
+    type: string
+    per: element
+    reconcile_against: [drawings.electrical]
