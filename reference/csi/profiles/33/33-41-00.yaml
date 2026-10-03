@@ -1,0 +1,87 @@
+schema_version: 1
+kind: section
+id: "33 41 00"
+title: Subdrainage
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Foundation drains, underslab drainage, retaining wall drains and
+  underdrains for pavements, fields and stormwater facilities. A subdrain is
+  only as good as its outlet: it must discharge by gravity to a storm
+  structure, daylight or a sump, and a surcharged storm system or a buried
+  outlet turns it into a water supply for the foundation. The filter (fabric
+  or graded aggregate) has to suit the soil the geotechnical report
+  describes, and cleanouts are the only way to maintain it.
+
+submittals:
+  - id: sd.sub.product-data
+    type: Product Data
+    must_show:
+      - Perforated and solid pipe, perforation orientation, filter fabric and drainage aggregate gradation against the report
+      - Outlet, cleanout and connection details
+
+review_checks:
+  - id: sd.outlet
+    kind: absence
+    reflex: true
+    check: >
+      Every subdrain has a defined outlet (storm structure, daylight, or a
+      sump whose pump the plumbing drawings show) at an invert that drains
+      by gravity, and a connection to the storm system enters above the
+      system's design hydraulic grade or has backflow protection.
+    trace_to: [drawings.civil, drawings.plumbing, report.stormwater]
+    severity: high
+    owner: design_team
+
+  - id: sd.filter
+    kind: conformance
+    check: >
+      Filter fabric and drainage aggregate suit the retained soil the
+      report describes; fine silts clog fabric chosen for sand, and the
+      report's filter criteria govern over a generic detail.
+    trace_to: [report.geotechnical, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: sd.elevation
+    kind: conformance
+    check: >
+      Foundation and underslab drain inverts relative to the bottom of
+      footings and slabs, and their slopes, follow the report and details,
+      without the drain trench undermining the footing bearing zone.
+    trace_to: [report.geotechnical, drawings.foundation, drawings.details]
+    severity: medium
+    owner: design_team
+
+  - id: sd.cleanouts
+    kind: completeness
+    check: >
+      Cleanouts at the ends and turns of foundation and underdrain lines are
+      shown and brought to grade or to an accessible point.
+    trace_to: [drawings.civil, drawings.details]
+    severity: low
+    owner: design_team
+
+failure_modes:
+  - id: sd.fm.no-outlet
+    what_happens: Foundation drain installed with no outlet, or with its outlet buried by later grading
+    consequence: Water held against the foundation; basement leaks
+    caught_by: [sd.outlet]
+    source: industry_practice
+
+  - id: sd.fm.storm-backflow
+    what_happens: Subdrain tied into a storm structure that surcharges in heavy storms
+    consequence: Storm water backs up into the foundation drain and the basement
+    caught_by: [sd.outlet]
+    source: industry_practice
+
+  - id: sd.fm.clogged-filter
+    what_happens: Filter fabric chosen without regard to the fine soils it retains
+    consequence: The drain silts up and stops working
+    caught_by: [sd.filter]
+    source: industry_practice

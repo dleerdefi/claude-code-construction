@@ -1,0 +1,170 @@
+schema_version: 1
+kind: section
+id: "31 25 00"
+title: Erosion and Sedimentation Controls
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # the contractor often prepares or completes the SWPPP as an operator
+
+scope_summary: >
+  Temporary erosion and sediment control under the construction stormwater
+  permit: the SWPPP, perimeter controls, construction entrances, inlet
+  protection, sediment basins, stabilization and the inspections the permit
+  requires. The permit, not the spec, sets most of the rules, and owner and
+  contractor are often both operators liable for violations. Controls go in
+  before any disturbance and have to move with the grading, so the SWPPP is
+  amended as the site changes. The permit stays open until final
+  stabilization, which ties this section to landscaping at the end of the
+  job.
+
+submittals:
+  - id: es.sub.swppp
+    type: Design Data
+    must_show:
+      - The SWPPP or the contractor's completion of it, with operators, the responsible person and the qualified inspector named
+      - Controls for each grading phase, and how the plan is amended when the site changes
+      - Locations of concrete washout, fueling and material storage, soil stockpiles and dewatering discharge
+  - id: es.sub.product-data
+    type: Product Data
+    must_show:
+      - Silt fence, wattles or berms, inlet protection devices, construction entrance and erosion control blankets
+      - Temporary and permanent seed mixes by season, mulch and tackifier
+
+review_checks:
+  - id: es.permit-coverage
+    kind: completeness
+    check: >
+      Permit coverage is in effect for the right operators before any
+      clearing or grading, the SWPPP kept on site matches the permitted
+      plan, and any local land-disturbance permit is also in hand.
+    trace_to: [report.stormwater, spec.part1]
+    severity: critical
+    owner: gc
+    gate: excavation
+
+  - id: es.controls-before-disturbance
+    kind: constructability
+    check: >
+      Perimeter controls, the construction entrance, and inlet protection on
+      existing downstream inlets are installed and inspected before
+      clearing; sediment basins and diversions are built first where the
+      plan sequences them that way.
+    trace_to: [drawings.civil, report.stormwater, schedule.master]
+    severity: high
+    owner: gc
+    gate: excavation
+
+  - id: es.phasing
+    kind: coordination
+    check: >
+      Controls are shown for each grading phase (initial, interim, final),
+      and the SWPPP is amended when haul roads, stockpiles, basins or
+      discharge points move from where the plan shows them.
+    trace_to: [drawings.civil, report.stormwater]
+    severity: medium
+    owner: gc
+
+  - id: es.inlet-protection-new
+    kind: coordination
+    check: >
+      New storm inlets and structures get inlet protection as each is set,
+      and new storm pipe is not used to carry sediment-laden water to a
+      permanent facility or off site.
+    trace_to: [drawings.civil, spec.part3]
+    severity: high
+    owner: gc
+
+  - id: es.stabilization-timing
+    kind: constructability
+    check: >
+      Disturbed areas that will sit idle are temporarily stabilized within
+      the time the permit allows, with seed and mulch suited to the season,
+      and finished areas are permanently stabilized as they are completed
+      rather than all at the end.
+    trace_to: [report.stormwater, schedule.master]
+    severity: medium
+    owner: gc
+
+  - id: es.inspections
+    kind: completeness
+    check: >
+      Inspections happen at the interval and after the storm events the
+      permit sets, by a qualified inspector, with corrective actions closed
+      within the permit's deadline and the records kept on site.
+    trace_to: [report.stormwater, spec.part3]
+    severity: high
+    owner: gc
+
+  - id: es.dewatering-washout
+    kind: constructability
+    check: >
+      Dewatering discharge goes through a sediment control at the location
+      the SWPPP shows, concrete and stucco washout is contained, and
+      tracking onto public streets is controlled; pumping turbid water
+      straight to an inlet is the most common violation.
+    trace_to: [report.stormwater, drawings.civil]
+    severity: medium
+    owner: gc
+
+  - id: es.removal
+    kind: coordination
+    check: >
+      Temporary controls stay until the area reaches the permit's definition
+      of final stabilization, then come out with their trapped sediment, and
+      the permit termination is filed by the operator responsible for it.
+    trace_to: [report.stormwater, spec.part3]
+    severity: medium
+    owner: gc
+    gate: substantial_completion
+
+failure_modes:
+  - id: es.fm.disturbance-first
+    what_happens: Clearing starts before perimeter controls and the construction entrance are in
+    consequence: Sediment discharge in the first storm; notice of violation and fines
+    caught_by: [es.controls-before-disturbance, es.permit-coverage]
+    source: industry_practice
+
+  - id: es.fm.plan-not-amended
+    what_happens: Grading phases, haul roads and stockpiles move but the SWPPP and controls do not
+    consequence: Inspectors cite controls that do not match the plan; uncontrolled discharge points
+    caught_by: [es.phasing]
+    source: industry_practice
+
+  - id: es.fm.pumped-to-inlet
+    what_happens: An excavation dewatered by pumping turbid water to a street inlet
+    consequence: Permit violation and downstream cleanup
+    caught_by: [es.dewatering-washout]
+    source: industry_practice
+
+  - id: es.fm.new-storm-silted
+    what_happens: New storm pipe and structures fill with sediment before the site is stabilized
+    consequence: Jetting and cleaning before acceptance; underground detention or infiltration clogged
+    caught_by: [es.inlet-protection-new, if.31-erosion-stormwater]
+    source: industry_practice
+
+  - id: es.fm.missed-inspections
+    what_happens: Inspections skipped after storm events, or corrective actions left open
+    consequence: Violations found at an agency audit, with penalties that accrue per day
+    caught_by: [es.inspections]
+    source: industry_practice
+
+  - id: es.fm.permit-left-open
+    what_happens: Controls pulled before final stabilization, or left in place because stabilization was never reached and documented
+    consequence: Owner stays liable under an open permit; failed final site inspection
+    caught_by: [es.removal, if.31-final-stabilization]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: es.rh.construction-stormwater
+    topic: construction-stormwater-permit
+    question: >
+      Which construction stormwater permit covers this site (federal, state
+      or local program), who must be named as operators, and what does it
+      require for the SWPPP, inspection frequency, corrective action timing,
+      stabilization deadlines and permit termination?
+    applies_when: Any land disturbance the permit program covers
+    source_families: [environmental, public_works]
+    severity: high

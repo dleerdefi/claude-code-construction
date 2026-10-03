@@ -1,0 +1,67 @@
+schema_version: 1
+kind: division
+id: "32"
+title: Exterior Improvements
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Paving, site improvements, irrigation and planting. Exterior work comes
+  last and gets squeezed: it is built over trenches, utilities and backfill
+  placed months earlier, so whatever is wrong underneath is inherited when
+  surfacing starts. It is where the accessible route from parking and the
+  public way to the entrance is actually built, and small grade errors make
+  it fail. Much of it is governed by the land-use approval and by the public
+  agency's standards for work in the right-of-way, not by the spec alone.
+
+review_checks:
+  - id: d32.site-plan-approval
+    kind: conformance
+    check: >
+      Site elements that were conditions of the approved site plan or
+      land-use permit (parking counts, landscape quantities and species,
+      screening, fencing, paving materials, stormwater features) are not
+      changed by substitution or value engineering until the approval
+      conditions are checked; the approving agency inspects against them
+      before occupancy.
+    trace_to: [drawings.site, drawings.landscape, register.substitutions]
+    severity: high
+    owner: design_team
+
+  - id: d32.public-way
+    kind: conformance
+    check: >
+      Work in the public right-of-way (driveway aprons, sidewalks, curb
+      ramps, street cuts and restoration, utility connections) is built to
+      the agency's standard details and permit, which govern where they
+      differ from the project details, with the agency's inspections booked.
+    trace_to: [drawings.civil, drawings.site, spec.part1]
+    severity: high
+    owner: gc
+
+failure_modes:
+  - id: d32.fm.ve-breaks-approval
+    what_happens: Value-engineered site changes (fewer or smaller trees, different paving, another fence type) depart from the approved site plan
+    consequence: Final zoning or site inspection fails; certificate of occupancy held until the approved elements are restored
+    caught_by: [d32.site-plan-approval]
+    source: industry_practice
+
+  - id: d32.fm.public-way-rejected
+    what_happens: Apron, sidewalk or curb ramp in the right-of-way built to project details that differ from the agency's standards
+    consequence: Removed and replaced at the agency's inspection; permit closeout and bond release delayed
+    caught_by: [d32.public-way]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: d32.rh.public-way
+    topic: public-right-of-way-work
+    question: >
+      Which agency's standards, permits and inspections govern work in the
+      public right-of-way on this project (sidewalks, curb ramps, driveway
+      aprons, street cuts and restoration), and which accessibility
+      guidelines does that agency apply to pedestrian facilities?
+    applies_when: Any work in or connecting to the public right-of-way
+    source_families: [public_works, accessibility]
+    severity: high

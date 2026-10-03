@@ -1,0 +1,167 @@
+schema_version: 1
+kind: section
+id: "01 81 00"
+title: Facility Performance Requirements
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Sustainable design and indoor air quality requirements the contractor has
+  to document (01 81 19 inherits). Green building credits and code
+  requirements are earned through construction records: product data on
+  content, emissions and origin, waste diversion tickets, the construction
+  IAQ plan and its photos, and a flush-out or air test before occupancy.
+  Documentation collected at the end, or lost to an unchecked substitution,
+  cannot be recreated.
+
+submittals:
+  - id: 01sus.sub.product-documentation
+    type: LEED Submittals
+    must_show:
+      - For each product the credits rely on, the content, emissions, VOC or disclosure documentation the spec requires, for the product actually installed
+      - Quantities and costs where the credit calculation needs them
+  - id: 01sus.sub.iaq-plan
+    type: LEED Submittals
+    must_show:
+      - HVAC protection, source control, pathway interruption, housekeeping and scheduling measures, with how they are documented
+      - Storage and protection of absorptive materials
+      - Flush-out or air-testing procedure, timing and responsible party
+  - id: 01sus.sub.waste
+    type: LEED Submittals
+    must_show:
+      - Waste diverted and landfilled by material stream, with hauler and receiving-facility records
+
+review_checks:
+  - id: 01sus.documentation-with-product
+    kind: completeness
+    submittal_types: [Product Data, LEED Submittals]
+    check: >
+      Sustainability documentation arrives with each product submittal and
+      is reviewed then; a product submittal without it is incomplete, not
+      something to collect at closeout.
+    trace_to: [spec.part1_submittals, spec.division_01]
+    severity: medium
+    owner: subcontractor
+
+  - id: 01sus.credit-impact
+    kind: coordination
+    check: >
+      Every substitution and value-engineering change is checked against the
+      credits and code requirements the project is pursuing (emissions,
+      content, origin, energy), and the consequence is reported before the
+      change is accepted.
+    trace_to: [register.substitutions, spec.division_01]
+    severity: medium
+    owner: gc
+
+  - id: 01sus.interior-emissions
+    kind: conformance
+    check: >
+      Wet-applied products installed inside the weatherproofing (adhesives,
+      sealants, coatings, flooring) meet the VOC and emissions criteria in
+      the spec, including the products installers bring to site that were
+      never submitted.
+    trace_to: [spec.part2, spec.division_01]
+    severity: medium
+    owner: subcontractor
+
+  - id: 01sus.absorptive-materials
+    kind: constructability
+    check: >
+      Absorptive materials (insulation, gypsum board, ceiling tile, carpet)
+      are stored and installed dry, and material that got wet or shows
+      growth is replaced rather than dried in place.
+    trace_to: [spec.division_01]
+    severity: medium
+    owner: gc
+
+  - id: 01sus.flush-out-window
+    kind: constructability
+    check: >
+      Flush-out or indoor air testing is scheduled after finishes and
+      furniture and before occupancy, with the permanent HVAC able to supply
+      the outdoor air it needs, and the owner's move-in date leaves room for
+      it.
+    trace_to: [schedule.master, spec.division_01]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+  - id: 01sus.waste-records
+    kind: completeness
+    check: >
+      Waste diversion is tracked as loads leave, from hauler and facility
+      records, with commingled recycling counted at the facility's documented
+      recovery rate; totals reconstructed at the end of the job are not
+      accepted.
+    trace_to: [spec.division_01]
+    severity: low
+    owner: gc
+
+failure_modes:
+  - id: 01sus.fm.documentation-at-closeout
+    what_happens: Product sustainability documentation requested from subcontractors after they have demobilized
+    consequence: Documentation unobtainable; credits lost and the certification level at risk
+    caught_by: [01sus.documentation-with-product]
+    source: industry_practice
+
+  - id: 01sus.fm.value-engineering-loses-credit
+    what_happens: Value-engineered product changes accepted without checking the credits they supported
+    consequence: Certification level missed after the building is complete
+    caught_by: [01sus.credit-impact]
+    source: industry_practice
+
+  - id: 01sus.fm.unsubmitted-adhesive
+    what_happens: Installers use off-the-shelf adhesives and sealants that were never submitted
+    consequence: Emissions credit lost, or indoor air testing fails before occupancy
+    caught_by: [01sus.interior-emissions]
+    source: industry_practice
+
+  - id: 01sus.fm.wet-materials-installed
+    what_happens: Gypsum board or ceiling tile that got wet during storage installed anyway
+    consequence: Mold behind finishes, removal and replacement, and an indoor air quality complaint after occupancy
+    caught_by: [01sus.absorptive-materials]
+    source: industry_practice
+
+  - id: 01sus.fm.no-flush-out-window
+    what_happens: Owner move-in scheduled right after the last finishes
+    consequence: Flush-out skipped or air testing failed; credit lost or occupancy delayed
+    caught_by: [01sus.flush-out-window]
+    source: industry_practice
+
+standards:
+  - id: 01sus.std.smacna-008
+    name: ANSI/SMACNA 008
+    title: IAQ Guidelines for Occupied Buildings Under Construction
+    verify: Control measures the construction IAQ management plan claims
+
+regulatory_hooks:
+  - id: 01sus.rh.green-building-code
+    topic: green-building-code-applicability
+    question: >
+      Is the project subject to a mandatory green building code or ordinance
+      in addition to any voluntary certification, and what construction-
+      phase documentation does it require (waste diversion, VOC and
+      emissions limits, commissioning, IAQ measures)?
+    applies_when: Any project with sustainable design requirements, or in a jurisdiction with a green building code
+    source_families: [environmental, energy, building_code]
+    severity: medium
+
+  - id: 01sus.rh.interior-voc
+    topic: architectural-coatings-adhesives-voc
+    question: >
+      What VOC content limits apply to paints, coatings and adhesives under
+      the regional air quality rules where the project is built, independent
+      of any certification program?
+    applies_when: Interior and exterior paints, coatings and adhesives
+    source_families: [environmental]
+    severity: low
+
+extract_fields:
+  - id: 01sus.xf.credits
+    label: Credits or code requirements the product documentation supports
+    type: list
+    per: package
+    reconcile_against: [spec.division_01]

@@ -1,0 +1,105 @@
+schema_version: 1
+kind: interfaces
+id: div-02
+title: Interfaces involving Division 02
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Demolition and remediation hand the building to the trades that follow.
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+
+edges:
+  # ── Remediation and demolition ────────────────────────────────
+  - id: if.02-abatement-before-demolition
+    a: ["02 41 00"]
+    a_trade: Demolition
+    b: ["02 80 00"]
+    b_trade: Hazardous materials remediation
+    a_provides: Demolition areas and sequence, so remediation can be phased ahead of them
+    b_provides: Written, area-by-area release by the owner's consultant before general demolition enters
+    gate: {milestone: demolition_start}
+    severity: critical
+
+  # ── Existing services ─────────────────────────────────────────
+  - id: if.02-piping-disconnect
+    a: ["02 41 00"]
+    a_trade: Demolition
+    b: ["22 05 05", "23 05 05"]
+    b_trade: Plumbing and HVAC selective demolition
+    a_provides: Demolition extent and sequence by area
+    b_provides: Isolation, drain-down, capping and labeling of piping and ductwork; refrigerant recovery; re-feeds for areas staying in use; confirmation each service is isolated before demolition
+    responsibility:
+      - item: Capping and making safe piping and ductwork in the demolition area
+        typical: {install: "22 05 05 or 23 05 05, or 02 41 00"}
+        confirm_in: [spec.part3, drawings.demolition]
+    gate: {milestone: demolition_start}
+    severity: high
+
+  - id: if.02-electrical-make-safe
+    a: ["02 41 00"]
+    a_trade: Demolition
+    b: ["26 05 05", "27 05 05"]
+    b_trade: Electrical and communications selective demolition
+    a_provides: Demolition extent and sequence by area
+    b_provides: Circuits disconnected at the source and verified dead, circuits passing through to areas that stay in use traced and re-fed, abandoned cable removed back to its source where required
+    responsibility:
+      - item: Removal of abandoned wiring and cable back to the source
+        typical: {install: "26 05 05 or 27 05 05, or 02 41 00"}
+        confirm_in: [spec.part3, drawings.electrical]
+    gate: {milestone: demolition_start}
+    severity: critical
+
+  - id: if.02-fire-protection-impairment
+    a: ["02 41 00"]
+    a_trade: Demolition
+    b: ["21 05 05", "28 46 00"]
+    b_trade: Fire suppression and fire alarm
+    a_provides: Areas and dates where demolition affects sprinkler and alarm coverage or creates dust at detectors
+    b_provides: Impairment notices, drain-down and refill, detector protection and daily restoration, and temporary coverage for areas staying in use
+    gate: {milestone: demolition_start}
+    severity: high
+
+  - id: if.02-site-utility-abandonment
+    a: ["02 41 00"]
+    a_trade: Demolition (selective site demolition)
+    b: ["33"]
+    b_trade: Site utilities
+    a_provides: Site demolition extent and the utilities to be removed or abandoned
+    b_provides: Utility-company disconnects at the main or property line, abandoned lines capped or filled where specified, and new lines routed clear of abandoned ones and recorded
+    gate:
+      milestone: demolition_start
+      note: Utility-company disconnects precede demolition; abandoned lines are capped and recorded before excavation reaches them
+    severity: high
+
+  # ── Structure ─────────────────────────────────────────────────
+  - id: if.02-structural-removal
+    a: ["02 41 00"]
+    a_trade: Demolition
+    b: ["03 30 00", "04 20 00", "05 12 00"]
+    b_trade: Concrete, masonry and structural steel (new supports and connections to existing)
+    a_provides: Removal sequence and engineered temporary shoring for each load-bearing element
+    b_provides: New beams, columns, lintels or reinforcement in place before the element they replace is removed, and the engineer of record's acceptance of the sequence
+    gate: {milestone: demolition_start}
+    severity: critical
+
+  - id: if.02-asbestos-fireproofing
+    a: ["02 82 00"]
+    a_trade: Asbestos remediation
+    b: ["07 81 00"]
+    b_trade: Applied fireproofing
+    a_provides: Removal extent, the steel surface left after removal, and any lockdown sealer or encapsulant applied
+    b_provides: The surface condition and bond data the replacement fireproofing listing needs over that sealer, and the reapplication sequence
+    gate: {milestone: fireproofing_application}
+    severity: high
+
+  - id: if.02-lead-paint-hot-work
+    a: ["02 83 00"]
+    a_trade: Lead remediation
+    b: ["05 05 05", "05 12 00"]
+    b_trade: Metals selective demolition and structural steel alterations
+    a_provides: Paint test results, and stripping or exposure controls at each location before hot work
+    b_provides: Locations where existing painted steel will be cut, welded or prepared for new connections or coatings
+    gate: {milestone: demolition_start}
+    severity: high

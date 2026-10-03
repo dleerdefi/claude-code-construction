@@ -1,0 +1,141 @@
+schema_version: 1
+kind: section
+id: "01 33 00"
+title: Submittal Procedures
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  The submittal schedule and the procedures around it; the rules for each
+  individual submittal are in the global profile. The schedule is the first
+  place to see which submittals size each other and must be reviewed
+  together, which need design-team selections, which are deferred
+  submittals the AHJ has to approve before the work, and whether the review
+  time the design team is owed was planned for. Review time belongs to the
+  design team; resubmittal cycles are the contractor's risk.
+
+submittals:
+  - id: 01smt.sub.schedule
+    type: Schedule
+    must_show:
+      - Every action and informational submittal in the specifications, by section and type, including Division 01 plans and closeout items
+      - Submittals that depend on each other grouped into one package
+      - Submittal and required-return dates tied to the construction schedule
+      - Deferred submittals with the AHJ's review time ahead of installation
+      - Design-team selections needed (colors, finishes, patterns, keying) and the date each is needed
+
+review_checks:
+  - id: 01smt.grouped-packages
+    kind: coordination
+    check: >
+      Submittals that size or depend on each other are reviewed together:
+      doors, frames, hardware and access control; equipment with its
+      electrical, structural support and controls; structural steel with
+      connection design, deck and joists; steel primer with fireproofing;
+      curtain wall with perimeter fire containment; roofing with drains and
+      curbs. A partial package gets one half approved against an assumption
+      about the other.
+    trace_to: [register.submittal_log, spec.division_01]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 01smt.selections
+    kind: coordination
+    check: >
+      Items needing design-team selection (colors, finishes, patterns,
+      keying, signage text) carry the date the selection is needed for
+      procurement, and the request goes with the samples rather than after
+      approval of the product.
+    trace_to: [register.submittal_log, schedule.finish]
+    severity: medium
+    owner: design_team
+    gate: procurement_release
+
+  - id: 01smt.review-period
+    kind: conformance
+    check: >
+      Review durations in the submittal and construction schedules equal the
+      review period Division 01 grants, including longer periods for
+      consultant-reviewed items, and long-lead items allow for at least one
+      resubmittal cycle.
+    trace_to: [spec.division_01, schedule.master]
+    severity: medium
+    owner: gc
+
+reconciliations:
+  - id: 01smt.rc.spec-vs-log
+    between: [spec.part1_submittals, register.submittal_log]
+    key: Spec section and submittal article
+    fields: [submittal item, submittal type, action or informational]
+    check: >
+      Every submittal the specifications require, including those added by
+      addendum and those in Division 01, is in the log, and every log entry
+      maps back to a spec paragraph. Sections with no entry are listed.
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 01smt.rc.deferred-list
+    between: [drawings.life_safety, drawings.structural, register.submittal_log]
+    key: Deferred submittal item
+    fields: [item, designer, AHJ submission date, AHJ approval date, installation start]
+    check: >
+      Every deferred submittal listed on the permit documents is in the log
+      with an AHJ submission ahead of installation, and nothing the AHJ
+      treats as deferred is missing from the permit list.
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+failure_modes:
+  - id: 01smt.fm.split-package
+    what_happens: Door frames approved and fabricated before the hardware and access-control submittals were reviewed
+    consequence: Frames re-prepped or replaced for electrified hardware, different hinges or strikes
+    caught_by: [01smt.grouped-packages]
+    source: industry_practice
+
+  - id: 01smt.fm.deferred-late
+    what_happens: A deferred submittal (sprinklers, fire alarm, curtain wall anchorage, stairs) filed with the AHJ after the work started
+    consequence: Inspection refused or work stopped until approval; installed work revised to the approved design
+    caught_by: [01smt.rc.deferred-list]
+    source: industry_practice
+
+  - id: 01smt.fm.selections-late
+    what_happens: Color and finish selections returned after the procurement date
+    consequence: Finishes miss their installation window, and schedule pressure pushes substitutions
+    caught_by: [01smt.selections]
+    source: industry_practice
+
+  - id: 01smt.fm.missing-from-log
+    what_happens: A section's submittals never entered in the log, often a Division 01 plan or a section added by addendum
+    consequence: Work installed without an approved submittal, found at inspection or closeout
+    caught_by: [01smt.rc.spec-vs-log]
+    source: industry_practice
+
+  - id: 01smt.fm.no-resubmittal-time
+    what_happens: Long-lead submittal schedule assumes approval on the first review
+    consequence: One rejection pushes fabrication past the installation date
+    caught_by: [01smt.review-period]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 01smt.rh.deferred-submittals
+    topic: deferred-submittal-requirements
+    question: >
+      Which items does the AHJ accept as deferred submittals, must they be
+      listed on the permit documents, who must review them before they go to
+      the AHJ, and must the AHJ approve them before installation or only
+      before inspection?
+    applies_when: Any project with contractor-designed systems
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: 01smt.xf.deferred
+    label: Deferred submittals and their AHJ submission dates
+    type: list
+    per: package
+    reconcile_against: [drawings.life_safety, drawings.structural]

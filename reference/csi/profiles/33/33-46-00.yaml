@@ -1,0 +1,160 @@
+schema_version: 1
+kind: section
+id: "33 46 00"
+title: Stormwater Management
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # underground detention layouts and proprietary treatment devices are often designed by the manufacturer
+
+scope_summary: >
+  Detention and retention ponds, underground detention and infiltration
+  systems, bioretention, and proprietary treatment devices that meet the
+  stormwater approval's quantity and quality requirements. These are
+  permitted facilities: the agency often requires inspection during
+  construction and an engineer's as-built certification of volumes, outlet
+  elevations and infiltration before it releases the permit or the bond,
+  plus a recorded maintenance agreement. Infiltration practices are ruined
+  by construction sediment and compaction, so they are built or brought
+  online last.
+
+submittals:
+  - id: sm.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Layout with storage volume, inlet and outlet structures, orifice and weir sizes and elevations, pretreatment row or structure, and inspection ports
+      - Structural basis for the cover depth and the vehicle loads above, including construction equipment
+  - id: sm.sub.product-data
+    type: Product Data
+    must_show:
+      - Proprietary treatment device with the certification or verification the agency accepts, sized for the treatment flow
+  - id: sm.sub.record
+    type: Record Documents
+    must_show:
+      - As-built survey of volumes, bottom and outlet elevations, and infiltration test results, in the form the certifying engineer needs
+
+review_checks:
+  - id: sm.infiltration-protection
+    kind: constructability
+    check: >
+      Infiltration practices are excavated without compacting the bottom,
+      not used as sediment traps unless the plan restores them afterward,
+      protected or kept offline until the area draining to them is
+      stabilized, and tested for infiltration before acceptance.
+    trace_to: [report.stormwater, spec.part3]
+    severity: high
+    owner: gc
+
+  - id: sm.certification
+    kind: completeness
+    check: >
+      The inspections, as-built survey and engineer's certification the
+      agency requires are scheduled at their hold points (before backfill of
+      underground systems, before planting of bioretention), and the
+      maintenance plan and agreement reach the owner before closeout.
+    trace_to: [report.stormwater, spec.part1]
+    severity: high
+    owner: gc
+    gate: trench_backfill
+
+  - id: sm.underground-loads
+    kind: conformance
+    check: >
+      Underground chambers and vaults are designed for the actual cover and
+      the vehicles above them (fire apparatus, refuse and delivery trucks),
+      and construction traffic over them before full cover is controlled.
+    trace_to: [drawings.civil, drawings.site, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: sm.groundwater-separation
+    kind: conformance
+    check: >
+      The bottom of each infiltration practice is compared with the
+      seasonal high groundwater and rock in the report or test pits, and
+      with its distance from foundations, before it is built.
+    trace_to: [report.geotechnical, report.stormwater, drawings.civil]
+    severity: medium
+    owner: design_team
+
+reconciliations:
+  - id: sm.rc.outlet
+    between: [report.stormwater, drawings.civil, drawings.details]
+    key: Each facility and its outlet structure
+    fields: [storage volume, bottom elevation, orifice and weir sizes and elevations, emergency overflow elevation]
+    check: >
+      The storage volume and outlet controls in the submittal match the
+      stormwater report and civil details; a manufacturer's layout that
+      changes the footprint, depth or chamber count is recalculated for
+      volume before approval.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: sm.fm.clogged-infiltration
+    what_happens: Infiltration basin or chambers used as a sediment trap, or their bottom compacted by equipment
+    consequence: Fails infiltration testing; reconstruction and certification withheld
+    caught_by: [sm.infiltration-protection, if.31-erosion-stormwater]
+    source: industry_practice
+
+  - id: sm.fm.outlet-off
+    what_happens: Orifice or weir set at the wrong elevation or size
+    consequence: Facility fails certification; outlet structure rebuilt
+    caught_by: [sm.rc.outlet]
+    source: industry_practice
+
+  - id: sm.fm.volume-short
+    what_happens: Manufacturer rearranges chambers to fit the site and storage drops below the required volume
+    consequence: Added storage found at certification, late in the job
+    caught_by: [sm.rc.outlet]
+    source: industry_practice
+
+  - id: sm.fm.uncertifiable
+    what_happens: Underground system backfilled or bioretention planted before the as-built survey
+    consequence: Excavation to verify, and the permit or bond held at closeout
+    caught_by: [sm.certification]
+    source: industry_practice
+
+  - id: sm.fm.chambers-crushed
+    what_happens: Loaded equipment driven over chambers before full cover
+    consequence: Collapsed chambers and replacement
+    caught_by: [sm.underground-loads]
+    source: industry_practice
+
+standards:
+  - id: sm.std.astm-f2787
+    name: ASTM F2787
+    title: Structural Design of Thermoplastic Corrugated Wall Stormwater Collection Chambers
+    verify: Structural design basis for plastic chambers under the cover and loads shown
+
+regulatory_hooks:
+  - id: sm.rh.post-construction
+    topic: post-construction-stormwater-certification
+    question: >
+      What does the stormwater authority require to accept post-construction
+      stormwater facilities (inspections during construction, as-built
+      certification by an engineer, infiltration testing, recorded
+      maintenance agreement, bond release)?
+    applies_when: Any permanent stormwater management facility
+    source_families: [environmental, public_works]
+    severity: high
+
+  - id: sm.rh.infiltration-siting
+    topic: infiltration-practice-siting
+    question: >
+      What separation from seasonal high groundwater, bedrock, wells and
+      building foundations do the stormwater rules require for infiltration
+      practices, and how must it be verified?
+    applies_when: Infiltration basins, trenches, chambers or permeable pavement
+    source_families: [environmental, public_works]
+    severity: medium
+
+extract_fields:
+  - id: sm.xf.outlet-controls
+    label: Storage volume and outlet control elevations per facility
+    type: list
+    per: package
+    reconcile_against: [report.stormwater, drawings.civil]

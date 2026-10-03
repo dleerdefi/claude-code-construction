@@ -1,0 +1,187 @@
+schema_version: 1
+kind: section
+id: "01 32 00"
+title: Construction Progress Documentation
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  The baseline schedule, its updates and narratives. Review the logic, not
+  the bar chart: procurement chains behind long-lead items, inspection and
+  testing hold points, owner decisions and owner's separate work, weather and
+  dry-in dependencies, and the closeout activities that have to finish before
+  substantial completion. A schedule that meets the contract dates only
+  through constraints, missing review time or compressed closeout is not a
+  plan, and the owner's acceptance of it puts the owner's own dates on record.
+
+submittals:
+  - id: 01sch.sub.baseline
+    type: Schedule
+    must_show:
+      - Procurement chains for every long-lead item - submittal, review and resubmittal, fabrication, delivery - linked to the installation activity
+      - Inspection, testing and special inspection hold points as activities ahead of the work that covers them
+      - Owner activities - selections and decisions, owner-furnished deliveries, separate contractors, utility company work, move-in
+      - Start-up, testing and balancing, commissioning, training, AHJ finals and closeout documentation before substantial completion
+      - A narrative of the critical path, calendars, weather assumptions and every constraint used
+  - id: 01sch.sub.update
+    type: Schedule
+    must_show:
+      - Actual dates, remaining durations, and each logic or duration change since the last update identified
+      - Critical path and float compared with the baseline, with the cause of each slip
+
+review_checks:
+  - id: 01sch.procurement-logic
+    kind: completeness
+    submittal_types: [Schedule]
+    check: >
+      Each long-lead item has submittal, review, resubmittal, fabrication and
+      delivery activities tied by logic to the installation that needs it.
+      An item whose chain finishes after its installation starts is a
+      finding now, not at the update where it slips.
+    trace_to: [schedule.master, register.submittal_log]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 01sch.hold-points
+    kind: completeness
+    check: >
+      Inspections and tests that hold work (special inspections, AHJ rough-in
+      and above-ceiling inspections, testing before concealment, mock-up
+      approval, manufacturer pre-installation inspections) are activities
+      with logic ties to the work they release, so a missed inspection shows
+      as a delay instead of covered work.
+    trace_to: [schedule.master, register.special_inspections]
+    severity: high
+    owner: gc
+
+  - id: 01sch.weather-and-dry-in
+    kind: constructability
+    check: >
+      Weather-sensitive work (earthwork, concrete, roofing, sealants,
+      coatings) falls in a season that suits it or carries protection
+      activities, and interior finishes and woodwork follow dry-in and
+      permanent or temporary conditioning in the logic, not only drywall.
+    trace_to: [schedule.master, spec.division_01]
+    severity: medium
+    owner: gc
+    gate: interior_finish_start
+
+  - id: 01sch.owner-activities
+    kind: coordination
+    check: >
+      Owner selections and decisions, owner-furnished deliveries, owner's
+      separate contractors, utility company connections and the permanent
+      power date, and owner move-in appear with the dates the work needs
+      them.
+    trace_to: [schedule.master, spec.division_01]
+    severity: high
+    owner: gc
+
+  - id: 01sch.closeout-activities
+    kind: completeness
+    check: >
+      The activities between systems completion and substantial completion
+      have real durations and logic: start-up, testing and balancing, controls
+      checkout, commissioning functional tests, integrated life-safety
+      testing, AHJ final inspections, training and closeout documents.
+    trace_to: [schedule.master, spec.division_01]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+  - id: 01sch.constraints-and-float
+    kind: conformance
+    submittal_types: [Schedule]
+    check: >
+      The critical path is driven by logic. Hard constraints, open ends,
+      lags standing in for real activities, and negative float are listed
+      and justified, and float ownership follows the contract.
+    trace_to: [schedule.master, spec.division_01, contract.general_conditions]
+    severity: medium
+    owner: gc
+
+  - id: 01sch.update-changes
+    kind: conformance
+    submittal_types: [Schedule]
+    check: >
+      An update discloses every logic and duration change since the last
+      one; a recovered completion date produced by changed logic rather than
+      progress is identified before the update is accepted.
+    trace_to: [schedule.master]
+    severity: medium
+    owner: gc
+
+  - id: 01sch.phasing
+    kind: conformance
+    check: >
+      Phases, area turnovers, interim milestones and work windows in
+      occupied areas match the phasing drawings and the Division 01 work
+      restrictions.
+    trace_to: [drawings.plans, spec.division_01]
+    severity: medium
+    owner: gc
+
+reconciliations:
+  - id: 01sch.rc.submittal-dates
+    between: [schedule.master, register.submittal_log]
+    key: Submittal or procurement item
+    fields: [submittal date, review return date, required-on-site date, installation start]
+    check: >
+      Submittal dates in the log match the submittal activities in the
+      schedule, and every required-on-site date falls before the installation
+      activity it supports.
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+failure_modes:
+  - id: 01sch.fm.no-procurement-chain
+    what_happens: Switchgear, elevators or curtain wall shown as installation bars with no submittal and fabrication chain behind them
+    consequence: The slip appears only when the material fails to arrive, after the dates that depended on it have passed
+    caught_by: [01sch.procurement-logic, 01sch.rc.submittal-dates]
+    source: industry_practice
+
+  - id: 01sch.fm.inspection-not-scheduled
+    what_happens: Special or AHJ inspections are not activities, and the covering work follows straight on
+    consequence: Work covered uninspected; opened up or accepted only after testing and an engineer's evaluation
+    caught_by: [01sch.hold-points]
+    source: industry_practice
+
+  - id: 01sch.fm.closeout-compressed
+    what_happens: Commissioning, training and closeout documents squeezed between the last finishes and the contract date
+    consequence: Substantial completion withheld or certified with systems untested; occupancy slips and delay damages start
+    caught_by: [01sch.closeout-activities]
+    source: industry_practice
+
+  - id: 01sch.fm.permanent-power-late
+    what_happens: The utility company's permanent service date is never in the schedule
+    consequence: Start-up, testing and conditioning wait on temporary power; finishes and commissioning slide behind it
+    caught_by: [01sch.owner-activities]
+    source: industry_practice
+
+  - id: 01sch.fm.finishes-before-dry-in
+    what_happens: Finishes scheduled right behind drywall with no dry-in or conditioning predecessor
+    consequence: Wood, flooring and paint installed in an unconditioned building; rework and warranty disputes
+    caught_by: [01sch.weather-and-dry-in]
+    source: industry_practice
+
+  - id: 01sch.fm.manufactured-recovery
+    what_happens: An update recovers a slipped completion date by deleting logic or cutting remaining durations
+    consequence: The accepted schedule hides a real delay that later becomes a claim with no credible baseline
+    caught_by: [01sch.update-changes, 01sch.constraints-and-float]
+    source: industry_practice
+
+extract_fields:
+  - id: 01sch.xf.milestones
+    label: Data date and contract milestone dates shown
+    type: list
+    per: package
+    reconcile_against: [spec.division_01]
+  - id: 01sch.xf.critical-path
+    label: Critical path activities and total float to substantial completion
+    type: list
+    per: package
+    reconcile_against: [schedule.master]

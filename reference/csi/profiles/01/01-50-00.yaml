@@ -1,0 +1,173 @@
+schema_version: 1
+kind: section
+id: "01 50 00"
+title: Temporary Facilities and Controls
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # temporary enclosures, overhead protection, hoists and scaffolding
+
+scope_summary: >
+  Temporary utilities, heat and ventilation, enclosure, fire protection,
+  barriers, protection of installed work, and the use of permanent systems
+  during construction. Review the plan for each: who provides it, from when
+  to when, and whether it holds the conditions later trades need. Finishes,
+  woodwork and slabs depend on an enclosed, conditioned building; running
+  permanent HVAC early to get there pulls dust into the ductwork and starts
+  equipment warranties long before the owner accepts anything.
+
+submittals:
+  - id: 01tf.sub.plan
+    type: Shop Drawings
+    must_show:
+      - Site logistics - fencing, gates, cranes and hoists, staging, trailers, haul routes, pedestrian protection, fire department access
+      - Temporary power and water sources, capacity and distribution, and who pays for consumption
+      - Enclosure and conditioning by area and date, the temperature and humidity held, the heat source, and how conditions are monitored and recorded
+      - Temporary fire protection - water supply, standpipes as floors rise, extinguishers, hot-work control
+      - Barriers, dust partitions, pressure control and egress between work areas and occupied areas
+      - Permanent equipment to be used during construction, with filtration, cleaning and warranty arrangements
+
+review_checks:
+  - id: 01tf.conditioning-before-finishes
+    kind: constructability
+    reflex: true
+    check: >
+      The building is enclosed, wet work is dry, and temperature and humidity
+      are held within the limits the woodwork, flooring and finish sections
+      and their manufacturers require, continuously from before delivery
+      through installation and acclimation. Where permanent HVAC will not run
+      in time, temporary heat that adds no moisture (indirect-fired or
+      electric, where the spec requires it), dehumidification and recorded
+      monitoring are in the plan.
+    trace_to: [spec.division_01, spec.part1, schedule.master]
+    severity: high
+    owner: gc
+    gate: interior_finish_start
+
+  - id: 01tf.permanent-equipment-use
+    kind: conformance
+    check: >
+      If permanent HVAC or elevators run during construction, the conditions
+      Division 01 sets are met: manufacturer start-up before use, filtration
+      at returns and on equipment, ductwork protected, filters replaced and
+      coils cleaned before turnover, elevator cabs and doors protected, and a
+      written agreement on when equipment warranties start or how they are
+      extended to cover construction use.
+    trace_to: [spec.division_01, spec.part1]
+    severity: high
+    owner: gc
+
+  - id: 01tf.temporary-fire-protection
+    kind: completeness
+    check: >
+      Temporary fire protection keeps pace with the building: water supply
+      and hydrants before combustible materials arrive, standpipes extended
+      as floors rise where required, hot-work permits, extinguishers, and
+      fire department access maintained through every logistics phase.
+    trace_to: [spec.division_01, drawings.site, drawings.fire_protection]
+    severity: high
+    owner: gc
+
+  - id: 01tf.protection-of-work
+    kind: coordination
+    check: >
+      Protection of installed work (finished floors, roofing, glazing,
+      casework, equipment, elevator cabs) is assigned item by item: who
+      installs it, maintains it and removes it, and who repairs damage when
+      the damaging trade is unknown.
+    trace_to: [spec.division_01]
+    severity: medium
+    owner: gc
+
+  - id: 01tf.occupied-separation
+    kind: constructability
+    check: >
+      Where work adjoins occupied areas, barriers, negative pressure and HVAC
+      isolation (shared returns sealed, air handlers serving both areas
+      separated or shut down) are shown, occupants' exits stay open or are
+      replaced, and someone is named to monitor and answer complaints.
+    trace_to: [spec.division_01, drawings.life_safety, drawings.mechanical]
+    severity: high
+    owner: gc
+
+  - id: 01tf.temporary-power-capacity
+    kind: constructability
+    check: >
+      Temporary electrical service is sized for the loads the plan relies on
+      (electric heat, dehumidifiers, hoists, welding), and the date permanent
+      service takes over, and who pays consumption before and after, are
+      assigned.
+    trace_to: [spec.division_01, schedule.master]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: 01tf.fm.unconditioned-finishes
+    what_happens: Wood doors, casework, wood or resilient flooring delivered and installed before the building holds temperature and humidity
+    consequence: Cupping, gaps, warping and adhesive failure; the manufacturer denies the warranty for installation outside its limits
+    caught_by: [01tf.conditioning-before-finishes, if.01-temporary-conditions-woodwork, if.01-temporary-conditions-finishes]
+    source: industry_practice
+
+  - id: 01tf.fm.direct-fired-heat
+    what_happens: Direct-fired temporary heaters run in a closed building
+    consequence: Combustion moisture keeps slabs and drywall wet; slab moisture tests keep failing and paint and flooring fail later
+    caught_by: [01tf.conditioning-before-finishes]
+    source: industry_practice
+
+  - id: 01tf.fm.dirty-ductwork
+    what_happens: Permanent air handlers run during drywall sanding and floor preparation with no return filtration
+    consequence: Duct and coil cleaning before turnover, and an indoor air quality dispute with the owner
+    caught_by: [01tf.permanent-equipment-use, if.01-permanent-hvac-construction-use]
+    source: industry_practice
+
+  - id: 01tf.fm.warranty-consumed
+    what_happens: Equipment warranties start at start-up or shipment while the equipment runs for construction
+    consequence: Owner receives equipment with much of its warranty gone; an extended warranty bought at the contractor's cost
+    caught_by: [01tf.permanent-equipment-use, if.01-permanent-hvac-construction-use]
+    source: industry_practice
+
+  - id: 01tf.fm.unowned-damage
+    what_happens: Finished floors, glazing or roofing damaged by an unidentified trade
+    consequence: Repair argued among the trades and back-charged late, or absorbed by the general contractor
+    caught_by: [01tf.protection-of-work]
+    source: industry_practice
+
+  - id: 01tf.fm.dust-to-occupants
+    what_happens: Construction dust reaches occupied areas through shared return-air plenums or unsealed barriers
+    consequence: Complaints and work stoppages; in sensitive occupancies, health and regulatory consequences
+    caught_by: [01tf.occupied-separation]
+    source: industry_practice
+
+  - id: 01tf.fm.no-water-for-firefighting
+    what_happens: Combustible framing or stored materials rise ahead of hydrants and standpipes
+    consequence: A construction fire the fire department cannot fight, or a stop-work order from the AHJ
+    caught_by: [01tf.temporary-fire-protection]
+    source: industry_practice
+
+standards:
+  - id: 01tf.std.nfpa-241
+    name: NFPA 241
+    title: Standard for Safeguarding Construction, Alteration, and Demolition Operations
+    verify: Fire safety program, temporary heating, hot work and fire protection during construction, where the code or spec adopts it
+
+regulatory_hooks:
+  - id: 01tf.rh.construction-fire-safety
+    topic: construction-fire-safety
+    question: >
+      What does the adopted fire code require during construction and
+      alteration: a fire safety plan and program manager, water supply and
+      fire department access before combustible materials arrive, standpipes
+      as the building rises, hot-work permits, temporary heating equipment,
+      and exits kept open for occupied portions?
+    applies_when: Every project; multistory construction and occupied alterations especially
+    source_families: [fire_code]
+    severity: high
+
+extract_fields:
+  - id: 01tf.xf.conditioning
+    label: Enclosure and conditioning dates by area, and the temperature and humidity held
+    type: list
+    per: package
+    reconcile_against: [schedule.master]

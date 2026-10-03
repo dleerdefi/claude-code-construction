@@ -1,0 +1,117 @@
+schema_version: 1
+kind: section
+id: "32 14 00"
+title: Unit Paving
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Concrete pavers, clay pavers and stone on aggregate, sand or mortar beds,
+  including permeable interlocking pavers. Performance comes from the base
+  and the edge restraint, not the unit: vehicular areas need units, laying
+  pattern and base meant for traffic, every edge needs restraint, and joints
+  need the specified material. Permeable pavers are also a stormwater
+  facility, with an open-graded reservoir, often an underdrain, and an
+  infiltration requirement that construction sediment ruins.
+
+submittals:
+  - id: up.sub.product-data
+    type: Product Data
+    must_show:
+      - Unit, thickness and the product standard it meets for the traffic class (pedestrian or vehicular)
+      - Bedding and joint material gradations, and edge restraint
+  - id: up.sub.samples
+    type: Samples
+    must_show:
+      - Units in each color and finish, and the mock-up where the spec requires one
+
+review_checks:
+  - id: up.traffic-class
+    kind: conformance
+    check: >
+      In drives, crosswalks, fire lanes and loading areas, the unit,
+      thickness, laying pattern and base are those the details give for
+      vehicles; pedestrian units or a running-bond pattern in a drive lane
+      is raised.
+    trace_to: [drawings.site, drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: up.edges-and-bedding
+    kind: conformance
+    check: >
+      Every edge has restraint (curb, building, concrete band), especially
+      where pavers meet asphalt or turf, and the bedding and joint material
+      match the system: sand for standard pavers, open-graded aggregate for
+      permeable pavers, mortar only where the detail is mortar-set.
+    trace_to: [drawings.details, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: up.permeable-protection
+    kind: constructability
+    check: >
+      Permeable pavers and their reservoir go in after the area draining to
+      them is stabilized, or are protected from sediment until then, and are
+      infiltration-tested where the stormwater approval requires it.
+    trace_to: [report.stormwater, spec.part3, schedule.master]
+    severity: high
+    owner: gc
+    gate: site_paving
+
+  - id: up.accessible-surface
+    kind: conformance
+    check: >
+      Unit paving on accessible routes is firm, stable and slip resistant,
+      with joint widths and edge offsets within what the accessibility
+      standard allows; tumbled or split-face units and wide joints on a route
+      are raised.
+    trace_to: [drawings.site, spec.part2]
+    severity: medium
+    owner: design_team
+
+failure_modes:
+  - id: up.fm.pedestrian-units-in-drive
+    what_happens: Pedestrian-rated units or pattern installed where vehicles drive
+    consequence: Rutting, cracked units and a shifted field
+    caught_by: [up.traffic-class]
+    source: industry_practice
+
+  - id: up.fm.unrestrained-edge
+    what_happens: Pavers end against asphalt or soil with no edge restraint
+    consequence: The field spreads, joints open, and trip hazards form
+    caught_by: [up.edges-and-bedding]
+    source: industry_practice
+
+  - id: up.fm.permeable-clogged
+    what_happens: Permeable pavers installed before the site is stabilized; sediment fills the joints and reservoir
+    consequence: Fails infiltration; vacuum restoration or reconstruction, and stormwater certification withheld
+    caught_by: [up.permeable-protection, if.32-permeable-paving-stormwater]
+    source: industry_practice
+
+  - id: up.fm.route-offsets
+    what_happens: Unit paving with wide joints or settled units on the accessible route
+    consequence: Accessibility complaint and relaying
+    caught_by: [up.accessible-surface]
+    source: industry_practice
+
+standards:
+  - id: up.std.astm-c936
+    name: ASTM C936/C936M
+    title: Solid Concrete Interlocking Paving Units
+    verify: Concrete paver strength, absorption and durability claims
+  - id: up.std.astm-c1272
+    name: ASTM C1272
+    title: Heavy Vehicular Paving Brick
+    verify: Clay pavers used in vehicular areas
+
+extract_fields:
+  - id: up.xf.units
+    label: Paver unit, thickness and laying pattern per area
+    type: list
+    per: package
+    reconcile_against: [drawings.site, spec.part2]

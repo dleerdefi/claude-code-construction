@@ -1,0 +1,14 @@
+schema_version: 1
+kind: section
+id: "31 20 00"
+title: Earth Moving
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Earth moving is commonly specified as one section under 31 20 00 or under
+# 31 23 00. The knowledge lives in 31 23 00 so that 31 25 00 (erosion and
+# sedimentation controls), which sits under 31 20 00, does not inherit
+# excavation and compaction checks.
+same_as: "31 23 00"

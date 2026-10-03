@@ -1,0 +1,113 @@
+schema_version: 1
+kind: section
+id: "32 12 00"
+title: Flexible Paving
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Asphalt paving. Most commercial specs point to the state transportation
+  department's specifications for mixes, so the submittal is a mix approved
+  for that layer and traffic level from a certified plant. What fails is
+  placement: lifts too thick for the mix, density not measured at the
+  joints, and surface course laid over a binder course that served as the
+  construction road for months, with structures set to the wrong height.
+
+submittals:
+  - id: ap.sub.mix-design
+    type: Design Data
+    must_show:
+      - Job mix formula for each layer (base, binder, surface) with its agency approval or the lab design the spec allows
+      - Binder grade and recycled content
+      - Plant certification where the spec or agency requires it
+  - id: ap.sub.test-reports
+    type: Test Reports
+    must_show:
+      - In-place density and thickness by lot and location, including longitudinal joints, from cores or a gauge correlated to cores
+
+review_checks:
+  - id: ap.mix-approval
+    kind: conformance
+    submittal_types: [Design Data]
+    check: >
+      Each mix is a current approved mix for the layer and traffic level the
+      spec names, with the binder grade and recycled content limits; a mix
+      approved for another layer or a lighter traffic class is not an equal.
+    trace_to: [spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: ap.lift-thickness
+    kind: conformance
+    check: >
+      Lift thicknesses match the section and suit each mix's aggregate size,
+      and a two-lift section is not placed as one thick lift to save a
+      mobilization.
+    trace_to: [drawings.details, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: ap.density
+    kind: completeness
+    check: >
+      In-place density is measured by the method and frequency the spec
+      requires, against the mix's maximum theoretical density, with the
+      longitudinal joints included; failing lots are removed or adjusted as
+      the spec says rather than averaged into passing ones.
+    trace_to: [spec.part3]
+    severity: high
+    owner: gc
+
+  - id: ap.staged-paving
+    kind: constructability
+    check: >
+      Where the surface course is deferred to protect it from construction
+      traffic, the binder course is repaired and cleaned and tack-coated
+      before the surface course, and manhole, valve and inlet frames are set
+      to final surface grade, not to the binder.
+    trace_to: [spec.part3, drawings.civil, schedule.master]
+    severity: medium
+    owner: gc
+    gate: site_paving
+
+failure_modes:
+  - id: ap.fm.wrong-mix
+    what_happens: A mix approved for a lighter traffic class, or with more recycled content than allowed, is delivered
+    consequence: Raveling and early cracking; dispute over replacement
+    caught_by: [ap.mix-approval]
+    source: industry_practice
+
+  - id: ap.fm.single-lift
+    what_happens: A two-lift section placed as one thick lift
+    consequence: Low density through the lift and early rutting
+    caught_by: [ap.lift-thickness]
+    source: industry_practice
+
+  - id: ap.fm.joint-density
+    what_happens: Density never tested at longitudinal joints, or failing results averaged away
+    consequence: Joints open and ravel within a few seasons
+    caught_by: [ap.density]
+    source: industry_practice
+
+  - id: ap.fm.binder-as-road
+    what_happens: Binder course left as the construction road, then surfaced over damage and dirt with frames at binder height
+    consequence: Debonded surface course, raised or sunken frames, patching before turnover
+    caught_by: [ap.staged-paving]
+    source: industry_practice
+
+standards:
+  - id: ap.std.astm-d2950
+    name: ASTM D2950/D2950M
+    title: Density of Asphalt Mixtures in Place by Nuclear Methods
+    verify: Gauge density method and its correlation to cores where the spec allows gauges
+
+extract_fields:
+  - id: ap.xf.mixes
+    label: Mix per layer (designation, binder grade, recycled content)
+    type: list
+    per: package
+    reconcile_against: [spec.part2, drawings.details]

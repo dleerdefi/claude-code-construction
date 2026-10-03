@@ -1,0 +1,88 @@
+schema_version: 1
+kind: interfaces
+id: div-32
+title: Interfaces involving Division 32
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with lower divisions (22, 26, 28, 31) live in those files.
+
+edges:
+  # ── Paving over utilities ─────────────────────────────────────
+  - id: if.32-utilities-under-paving
+    reflex: true
+    a: ["32 10 00"]
+    a_trade: Paving
+    b: ["33", "32 84 00"]
+    b_trade: Site utilities and irrigation
+    a_provides: Paving sequence by area and the date base course starts in each
+    b_provides: Utilities, sleeves and structures under each paved area installed, tested, backfilled with passing tests and surveyed before base course; frames set for the final surface
+    responsibility:
+      - item: Irrigation and spare sleeves under paving
+        typical: {furnish: "32 84 00", install: "32 84 00 or 31 23 00"}
+        confirm_in: [spec.part3, drawings.landscape]
+      - item: Adjusting structure frames and covers to the finished surface
+        typical: {install: "Division 33 installer or 32 12 00"}
+        confirm_in: [spec.part3]
+    gate: {milestone: site_paving}
+    severity: high
+
+  - id: if.32-permeable-paving-stormwater
+    a: ["32 14 00", "32 12 00", "32 13 00"]
+    a_trade: Permeable pavements (pavers, porous asphalt, pervious concrete), where used
+    b: ["33 46 00"]
+    b_trade: Stormwater management
+    a_provides: Where the pavement is permeable, reservoir aggregate, underdrain and surface built after the contributing area is stabilized and kept free of sediment
+    b_provides: Reservoir depth and storage, underdrain and outlet elevations, and the infiltration testing and certification the stormwater approval requires
+    gate:
+      milestone: site_paving
+      note: Applies only where the pavement is a stormwater facility
+    severity: high
+
+  # ── Irrigation ────────────────────────────────────────────────
+  - id: if.32-irrigation-water-service
+    a: ["32 84 00"]
+    a_trade: Irrigation
+    b: ["33 10 00"]
+    b_trade: Water utilities
+    a_provides: Peak irrigation demand and the pressure needed at the point of connection
+    b_provides: Tap, meter or submeter and service size for irrigation, with static pressure and available flow
+    responsibility:
+      - item: Irrigation tap, meter and connection fees
+        typical: {furnish: "Owner or 33 10 00", install: "33 10 00 or the water purveyor"}
+        confirm_in: [spec.part1, report.utility_requirements]
+    gate:
+      milestone: procurement_release
+      note: Confirm pressure and flow before the irrigation design or equipment is released
+    severity: medium
+
+  - id: if.32-irrigation-planting
+    a: ["32 84 00"]
+    a_trade: Irrigation
+    b: ["32 90 00"]
+    b_trade: Planting
+    a_provides: Zones laid out by hydrozone, the system operating and accepted before planting, and schedule adjustments through establishment
+    b_provides: Final plant layout and hydrozones, and watering needs during establishment
+    responsibility:
+      - item: Watering during establishment and until acceptance
+        typical: {install: "32 90 00 or 32 84 00"}
+        confirm_in: [spec.part3]
+    severity: medium
+
+  # ── Detectable warnings ───────────────────────────────────────
+  - id: if.32-detectable-warnings
+    a: ["32 17 00"]
+    a_trade: Paving specialties (detectable warnings)
+    b: ["32 13 00", "32 16 00"]
+    b_trade: Concrete paving, curbs and walks
+    a_provides: Cast-in detectable warning panels on site before each curb ramp pour, with setting instructions
+    b_provides: Curb ramp forms checked for slope, and the panels set flush and aligned in the pour
+    responsibility:
+      - item: Setting cast-in detectable warning panels
+        typical: {furnish: "32 17 00", install: "32 13 00 or 32 17 00"}
+        confirm_in: [spec.part3, drawings.details]
+    gate: {milestone: site_paving}
+    severity: high

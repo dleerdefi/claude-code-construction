@@ -1,0 +1,124 @@
+schema_version: 1
+kind: section
+id: "33 70 00"
+title: Electrical Utilities
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Underground primary and secondary duct banks, manholes and handholes,
+  transformer pads and site grounding for the electrical service. The
+  serving utility's design and standards govern its part (conduit count,
+  size and material, bend radius, pull points, transformer pad and
+  clearances) and the service the electrical engineer designed has to match
+  it. Duct banks are encased and buried with the rest of the site, so the
+  conduit count, the spares and the utility's inspection have to be settled
+  before the encasement pour.
+
+submittals:
+  - id: eu.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Duct bank routing, sections with conduit arrangement and spares, depth, encasement and reinforcing, manholes and handholes
+      - Transformer pad and grounding to the utility's standard
+  - id: eu.sub.product-data
+    type: Product Data
+    must_show:
+      - Duct and conduit types, spacers, bends with the radius the utility requires, handholes with their load rating
+
+review_checks:
+  - id: eu.utility-design
+    kind: conformance
+    check: >
+      Primary duct, transformer pad and metering follow the serving
+      utility's issued design, which governs where it differs from the
+      contract drawings (bend radius, conduit type, pull points, pad
+      clearances), and the utility inspects before encasement or backfill.
+    trace_to: [report.utility_requirements, drawings.electrical, drawings.civil]
+    severity: high
+    owner: gc
+    gate: trench_backfill
+
+  - id: eu.pre-encasement
+    kind: completeness
+    check: >
+      Before the encasement pour, conduits are on spacers at the specified
+      separation and depth, reinforcing is placed where detailed, every duct
+      is proved clear with a mandrel and left with a pull line, and the
+      inspection is recorded.
+    trace_to: [spec.part3, drawings.details]
+    severity: medium
+    owner: subcontractor
+    gate: trench_backfill
+
+reconciliations:
+  - id: eu.rc.service-ducts
+    between: [drawings.civil, drawings.electrical, drawings.single_line]
+    key: Service duct bank and transformer
+    fields: [conduit count and size including spares, route and building entry, transformer location and pad, service size and voltage]
+    check: >
+      The duct bank on the civil utility plan matches the electrical site
+      plan and the single-line: enough conduits of the right size for the
+      service conductors, plus the spares the spec requires, entering the
+      building where the service equipment is.
+    severity: high
+    owner: design_team
+    gate: trench_backfill
+
+failure_modes:
+  - id: eu.fm.utility-rejects-duct
+    what_happens: Duct bank built to the contract drawings instead of the utility's design, or encased before its inspection
+    consequence: Utility will not pull cable; duct bank exposed or rebuilt and energization delayed
+    caught_by: [eu.utility-design]
+    source: industry_practice
+
+  - id: eu.fm.conduit-count-short
+    what_happens: Civil duct bank carries fewer or smaller conduits than the service needs
+    consequence: Second duct bank or lost spares; energization delayed
+    caught_by: [eu.rc.service-ducts]
+    source: industry_practice
+
+  - id: eu.fm.joint-trench
+    what_happens: Power, communications and gas placed in one trench without the separations each owner requires
+    consequence: A utility refuses to accept or energize its line until it is relaid
+    caught_by: [if.33-joint-trench]
+    source: industry_practice
+
+  - id: eu.fm.blocked-duct
+    what_happens: A duct crushed or filled with concrete during encasement, found when cable is pulled
+    consequence: Excavation of the duct bank to repair
+    caught_by: [eu.pre-encasement]
+    source: industry_practice
+
+standards:
+  - id: eu.std.nema-tc-6-8
+    name: NEMA TC 6 & 8
+    title: Polyvinyl Chloride (PVC) Plastic Utilities Duct for Underground Installations
+    verify: Duct type (encased or direct burial) where the spec or utility cites it
+  - id: eu.std.scte-77
+    name: ANSI/SCTE 77
+    title: Specification for Underground Enclosure Integrity
+    verify: Tier load rating of handholes and pull boxes against their location
+
+regulatory_hooks:
+  - id: eu.rh.utility-service
+    topic: utility-service-metering-requirements
+    question: >
+      What does the serving electric utility require for the site portion of
+      this service (who designs and installs primary duct, transformer pad
+      and clearances, inspections before backfill, easements), and has it
+      issued its design?
+    applies_when: New or modified electrical service
+    source_families: [utility_service_rules, electrical_code]
+    severity: high
+
+extract_fields:
+  - id: eu.xf.ducts
+    label: Conduit count and size per duct bank segment
+    type: list
+    per: package
+    reconcile_against: [drawings.electrical, drawings.single_line]

@@ -1,0 +1,111 @@
+schema_version: 1
+kind: section
+id: "32 13 00"
+title: Rigid Paving
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["32 16 00"]
+contractor_designed: never
+
+scope_summary: >
+  Concrete pavement, curbs, gutters and walks (also specified under
+  32 16 00). The joint layout is the design of a concrete pavement and is
+  often left to the finisher; joints have to meet structures, inlets and the
+  building without re-entrant cracks and be sawed in the short window before
+  random cracking starts. Exterior concrete needs air entrainment where it
+  freezes and sees deicers, and curb ramps and walks carry the tightest slope
+  tolerances on the site.
+
+submittals:
+  - id: cp.sub.mix-design
+    type: Design Data
+    must_show:
+      - Mix per pavement type with the strength measure the spec uses (compressive or flexural), air content where freeze-thaw applies, and placement method
+  - id: cp.sub.joint-layout
+    type: Shop Drawings
+    must_show:
+      - Contraction, isolation and construction joints for every pavement and walk area, with dowels and tie bars
+      - Joint alignment at inlets, manholes, light pole bases, building corners and other paving
+
+review_checks:
+  - id: cp.joint-layout
+    kind: completeness
+    check: >
+      A joint plan exists for every pavement and walk area, on the drawings
+      or as a submittal, with isolation at the building, pole bases and
+      structures, joints meeting inlets and corners without re-entrant
+      angles, dowels at construction joints in vehicular pavement, and
+      sawcutting crews planned for the window after each pour.
+    trace_to: [drawings.civil, drawings.details, spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: site_paving
+
+  - id: cp.exposure
+    kind: conformance
+    submittal_types: [Design Data]
+    check: >
+      Air content, strength and deicer resistance suit the exposure the spec
+      assigns; a mix designed for interior slabs is not used outside, and
+      exterior flatwork is not hard-troweled.
+    trace_to: [spec.part2, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: cp.ramp-forms
+    kind: constructability
+    check: >
+      Forms for curb ramps, landings and accessible-route walks are checked
+      with a level against the grading plan before each pour, with the
+      detectable warning panels on hand where they are cast in.
+    trace_to: [drawings.civil, drawings.details]
+    severity: high
+    owner: gc
+    gate: site_paving
+
+failure_modes:
+  - id: cp.fm.finisher-joints
+    what_happens: Joints laid out in the field by the finisher, or sawed too late
+    consequence: Random cracks at inlets, corners and structures across new pavement
+    caught_by: [cp.joint-layout]
+    source: industry_practice
+
+  - id: cp.fm.no-isolation
+    what_happens: Pavement placed tight against the building, pole bases or structures
+    consequence: Cracking and damage to the building or the structure
+    caught_by: [cp.joint-layout]
+    source: industry_practice
+
+  - id: cp.fm.interior-mix-outside
+    what_happens: Non-air-entrained or hard-troweled concrete placed outside where it freezes and sees deicers
+    consequence: Scaling after the first winter; removal and replacement
+    caught_by: [cp.exposure]
+    source: industry_practice
+
+  - id: cp.fm.ramp-out-of-slope
+    what_happens: Curb ramp poured without a form check
+    consequence: Ramp or landing over the slope limit; demolished and replaced
+    caught_by: [cp.ramp-forms, if.32-detectable-warnings]
+    source: industry_practice
+
+standards:
+  - id: cp.std.aci-prc-330
+    name: ACI PRC-330
+    title: Commercial Concrete Parking Lots and Site Paving Design and Construction—Guide
+    verify: Jointing, thickness and dowel practice the design or spec relies on
+    note: Formerly ACI 330R
+  - id: cp.std.aci-spec-330-1
+    name: ACI SPEC-330.1
+    title: Concrete Parking Lots and Site Paving—Specification
+    verify: Reference specification where the project spec adopts it
+    note: Earlier editions were titled Specification for Unreinforced Concrete Parking Lots and Site Paving
+
+extract_fields:
+  - id: cp.xf.mixes
+    label: Mix per pavement type (strength, air content)
+    type: list
+    per: package
+    reconcile_against: [spec.part2]

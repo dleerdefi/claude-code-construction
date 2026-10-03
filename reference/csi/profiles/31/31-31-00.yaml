@@ -1,0 +1,131 @@
+schema_version: 1
+kind: section
+id: "31 31 00"
+title: Soil Treatment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Pre-construction termite treatment of soil under slabs and along
+  foundations (liquid termiticide, bait systems or physical barriers). It
+  goes on in a narrow window: after fine grading and underslab trenches are
+  backfilled, before the vapor retarder, and again wherever a later trade
+  disturbs the treated soil. The exterior perimeter treatment comes months
+  later, after backfill and before paving and landscaping, and is the part
+  most often missed. The owner's protection depends on a treatment record
+  and a warranty or service agreement in the owner's name.
+
+submittals:
+  - id: st.sub.product-data
+    type: Product Data
+    must_show:
+      - Product label and registration, with the pre-construction application rate and concentration from the label
+      - Bait or physical barrier system and its installation requirements, where specified instead
+  - id: st.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Applicator license for the state and pest-control category
+  - id: st.sub.certificates
+    type: Certificates
+    must_show:
+      - Treatment record per application with date, areas, product, concentration and volume applied
+  - id: st.sub.warranty
+    type: Warranty
+    must_show:
+      - What the warranty covers (re-treatment only, or repair of damage), its term and renewal terms, in the owner's name
+
+review_checks:
+  - id: st.timing
+    kind: constructability
+    check: >
+      Underslab treatment is applied after fine grading and after underslab
+      plumbing and electrical trenches are backfilled, on soil that is not
+      saturated or frozen, and is covered by the vapor retarder before rain
+      reaches it; soil disturbed afterward is re-treated.
+    trace_to: [schedule.master, spec.part3]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: st.perimeter
+    kind: absence
+    check: >
+      Exterior treatment along foundation walls, at slab penetrations and
+      joints, and under attached slabs (stoops, porches, walks) is scheduled
+      after final grading and before paving and planting, and the trade that
+      calls the applicator back is named.
+    trace_to: [spec.part3, drawings.landscape]
+    severity: medium
+    owner: gc
+    gate: site_paving
+
+  - id: st.label-volumes
+    kind: conformance
+    check: >
+      Product, concentration and volume per area match the label's
+      pre-construction directions and the spec, and the recorded volume is
+      consistent with the area treated.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: st.foam-insulation
+    kind: coordination
+    check: >
+      Foam plastic insulation in contact with the ground (under slabs, at
+      foundation walls, slab edges) is checked against the termite hook
+      before it is bought, since some regions restrict it or require an
+      inspection gap.
+    trace_to: [drawings.wall_sections, drawings.foundation]
+    severity: medium
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: st.fm.disturbed-after
+    what_happens: Plumbers or electricians trench through treated soil after treatment and before the slab, with no re-treatment
+    consequence: Untreated paths under the slab and a warranty the applicator will dispute
+    caught_by: [st.timing]
+    source: industry_practice
+
+  - id: st.fm.perimeter-missed
+    what_happens: Exterior treatment never done because paving and planting finished first
+    consequence: Untreated perimeter; treatment by drilling through finished paving
+    caught_by: [st.perimeter]
+    source: industry_practice
+
+  - id: st.fm.washed-out
+    what_happens: Treatment applied, then rained on before the vapor retarder covered it
+    consequence: Ineffective treatment and re-application
+    caught_by: [st.timing]
+    source: industry_practice
+
+  - id: st.fm.foam-restricted
+    what_happens: Below-grade foam insulation installed where the code restricts it in heavy termite regions
+    consequence: Removal or a code modification request late in the job
+    caught_by: [st.foam-insulation]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: st.rh.termite-protection
+    topic: termite-protection-requirements
+    question: >
+      Does the adopted code or the jurisdiction require termite protection
+      for this building (soil treatment, bait, physical barrier or treated
+      wood), restrict foam plastic insulation in contact with the ground,
+      require a treatment certificate for the building official, or license
+      the applicator?
+    applies_when: Slabs on grade and foundations in termite-prone regions
+    source_families: [building_code, environmental]
+    severity: medium
+
+extract_fields:
+  - id: st.xf.product
+    label: Treatment product and method
+    type: string
+    per: package
+    reconcile_against: [spec.part2]

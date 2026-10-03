@@ -1,0 +1,152 @@
+schema_version: 1
+kind: interfaces
+id: div-01
+title: Interfaces involving Division 01
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Division 01 sets the rule; the other side does the work the rule governs.
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+
+edges:
+  # ── Quality requirements: special inspection and mock-ups ──────
+  - id: if.01-special-inspection-structure
+    a: ["01 40 00"]
+    a_trade: Quality requirements (testing agency and special inspection)
+    b: ["03 20 00", "03 30 00", "04 20 00", "05 05 19", "05 12 00", "05 40 00", "31 23 00", "31 60 00"]
+    b_trade: Structural and foundation trades (reinforcing, concrete, masonry, post-installed anchors, steel, cold-formed framing, fill, deep foundations)
+    a_provides: Engaged agency, inspection scope and frequency from the statement of special inspections, and the notice procedure
+    b_provides: Notice ahead of each inspected activity, access for the inspector, and work kept uncovered until the inspection is recorded
+    gate:
+      milestone: foundation_pour
+      note: The first cover point; masonry grout, steel erection, fireproofing and wall close-in each hold for their own inspections
+    severity: critical
+
+  - id: if.01-special-inspection-fire-resistance
+    a: ["01 40 00"]
+    a_trade: Quality requirements (testing agency and special inspection)
+    b: ["07 81 00", "07 84 00"]
+    b_trade: Applied fireproofing and firestopping
+    a_provides: Agency engaged for the fire-resistive inspections the statement lists, and the hold before ceilings, shafts and chases close
+    b_provides: Area-by-area completion notices and installation logs that let the inspector sample each area before it is concealed
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+
+  - id: if.01-envelope-mockup
+    a: ["01 40 00"]
+    a_trade: Quality requirements (mock-ups)
+    b: ["04 20 00", "07 27 00", "07 62 00", "07 92 00", "08 40 00", "08 50 00"]
+    b_trade: Envelope trades in an integrated wall mock-up (masonry, air barrier, flashing, sealants, curtain wall, storefront and windows)
+    a_provides: Mock-up extent, test procedures and approval process; the approved mock-up as the standard of acceptance for production
+    b_provides: Component submittals approved in time to build the mock-up, built by the production crews in the production sequence
+    gate:
+      milestone: opening_install
+      note: Release production fabrication of frames and panels after the mock-up's field tests pass
+    severity: high
+
+  # ── Temporary facilities: conditions later trades depend on ─────
+  - id: if.01-temporary-conditions-woodwork
+    a: ["01 50 00"]
+    a_trade: Temporary facilities (enclosure, heat and humidity control)
+    b: ["06 20 00", "06 40 00", "08 14 00", "12 30 00"]
+    b_trade: Finish carpentry, architectural woodwork, wood doors and casework
+    a_provides: Building enclosed, wet work dry, and temperature and humidity held within the woodwork and door limits continuously from before delivery
+    b_provides: The temperature and humidity range the woodwork standard and the manufacturers require for delivery, storage, acclimation and installation, and the delivery date
+    gate: {milestone: interior_finish_start}
+    severity: high
+
+  - id: if.01-temporary-conditions-finishes
+    a: ["01 50 00"]
+    a_trade: Temporary facilities (enclosure, heat and humidity control)
+    b: ["09 20 00", "09 60 00", "09 90 00"]
+    b_trade: Gypsum board finishing, flooring and painting
+    a_provides: Enclosure and conditioning that let slabs dry and hold application and cure limits, with heat that adds no moisture where specified
+    b_provides: Ambient, substrate and slab-moisture limits for application and cure, and the slab moisture testing that releases flooring
+    gate:
+      milestone: interior_finish_start
+      note: Slabs dry only in an enclosed, conditioned building, so conditioning has to start with drywall finishing, not with flooring
+    severity: high
+
+  - id: if.01-permanent-hvac-construction-use
+    a: ["01 50 00"]
+    a_trade: Temporary facilities (use of permanent systems)
+    b: ["23 50 00", "23 60 00", "23 70 00", "23 80 00"]
+    b_trade: HVAC heating, cooling and air-handling equipment
+    a_provides: Which equipment will run during construction, from when, with temporary filtration, protection and cleaning before turnover
+    b_provides: Manufacturer start-up before use, filter media, and the warranty terms that apply to construction use and how they are extended
+    gate:
+      milestone: final_connection
+      note: Agree warranty start and filtration before the equipment is started for construction use
+    severity: medium
+
+  # ── Execution: cutting and patching ───────────────────────────
+  - id: if.01-cutting-patching-mep
+    a: ["01 73 00"]
+    a_trade: Cutting and patching
+    b: ["21 10 00", "22 10 00", "23 20 00", "23 30 00", "26 05 00", "27 05 00", "27 10 00", "28 05 00", "28 46 00"]
+    b_trade: Penetrating trades (sprinkler, plumbing, HVAC piping and duct, electrical raceway, low voltage, fire alarm)
+    a_provides: Who cuts, who patches the substrate, who finishes the patch, and the standard the patch must meet
+    b_provides: Openings needed in existing or finished construction, located and sized before cutting, and kept within what the patch and firestop system allow
+    responsibility:
+      - item: Patching and refinishing openings the MEP trades cut in finished walls and ceilings
+        typical: {install: "01 73 00 (general contractor) or the cutting trade"}
+        confirm_in: [spec.division_01, spec.part3]
+    gate:
+      milestone: wall_close_in
+      note: Openings planned before close-in avoid cutting finished work
+    severity: high
+
+  - id: if.01-structural-cutting
+    a: ["01 73 00"]
+    a_trade: Cutting and patching
+    b: ["03 30 00", "03 38 00", "03 80 00", "05 12 00"]
+    b_trade: Concrete, post-tensioned concrete, concrete cutting and boring, structural steel
+    a_provides: Cutting proposal with locations, sizes, scan results and the engineer's acceptance
+    b_provides: Limits on openings and coring (reinforcing, tendons, beam webs and flanges) and the reinforcement new openings need
+    severity: critical
+
+  # ── Closeout ──────────────────────────────────────────────────
+  - id: if.01-extra-stock-finishes
+    a: ["01 78 00"]
+    a_trade: Closeout submittals (extra stock)
+    b: ["09 30 00", "09 50 00", "09 60 00"]
+    b_trade: Tile, ceilings and flooring
+    a_provides: Extra stock quantities, labeling, delivery location and the receipt procedure
+    b_provides: Extra stock ordered with, and from the same production run as, the installed material and delivered before turnover
+    gate: {milestone: procurement_release}
+    severity: medium
+
+  # ── Commissioning ─────────────────────────────────────────────
+  - id: if.01-cx-hvac
+    a: ["01 91 00"]
+    a_trade: Commissioning
+    b: ["23 05 93", "23 08 00", "23 09 00"]
+    b_trade: HVAC testing and balancing, HVAC commissioning, and controls
+    a_provides: Commissioning plan, construction checklists, functional test procedures and the issues log
+    b_provides: Start-up reports, completed checklists, the final balancing report, and controls point-to-point checkout and programmed sequences, before functional testing
+    gate:
+      milestone: substantial_completion
+      note: Balancing and controls have to finish ahead of functional testing, not alongside it
+    severity: high
+
+  - id: if.01-cx-electrical
+    a: ["01 91 00"]
+    a_trade: Commissioning
+    b: ["26 08 00", "26 09 00", "26 32 00", "26 36 00"]
+    b_trade: Electrical commissioning, lighting controls, generators and transfer switches
+    a_provides: Functional test procedures for lighting controls, emergency power transfer and the loads on emergency circuits
+    b_provides: Acceptance test reports, lighting control programming and sensor settings, and generator and transfer switch tests under the building's emergency loads
+    gate: {milestone: substantial_completion}
+    severity: high
+
+  - id: if.01-integrated-life-safety-testing
+    a: ["01 91 00"]
+    a_trade: Commissioning (integrated testing)
+    b: ["28 46 00", "21 13 00", "23 33 00", "14 20 00", "28 10 00"]
+    b_trade: Fire alarm, sprinklers, fire and smoke dampers, elevators and access control
+    a_provides: One integrated test plan, the input-output sequence matrix, and a test date with the AHJ
+    b_provides: Each system tested and accepted on its own first; interface relays and devices installed, programmed to the matrix and labeled
+    gate: {milestone: substantial_completion}
+    severity: critical

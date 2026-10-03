@@ -1,0 +1,141 @@
+schema_version: 1
+kind: section
+id: "31 66 00"
+title: Special Foundations
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["31 32 00", "31 45 00", "31 63 00"]
+contractor_designed: typical
+
+scope_summary: >
+  Ground improvement and proprietary foundation systems designed by the
+  specialty contractor to performance criteria: aggregate piers, rigid
+  inclusions, stone columns, soil mixing, and helical piles (which evaluation
+  reports also list under 31 63 00). The design is only as good as the
+  criteria the report and structural drawings give it (bearing pressure,
+  total and differential settlement, uplift, lateral load, slab support),
+  and it is verified by a modulus or load test plus a record for every
+  element. These systems sit under footings and slabs designed by someone
+  else, and that handoff is where the misses happen.
+
+submittals:
+  - id: gi.sub.delegated-design
+    type: Delegated Design
+    must_show:
+      - The bearing pressure, total and differential settlement, uplift and lateral capacity the design provides, and the report and structural loads it used
+      - Element layout under each footing and slab area, with depths or lengths and the criteria each element must reach
+      - Verification test plan and the production quality-control record for each element
+      - For helical piles, the evaluation report for the system and the installation torque each pile must reach
+  - id: gi.sub.test-results
+    type: Test Reports
+    must_show:
+      - Modulus or load test results compared with the design assumptions
+
+review_checks:
+  - id: gi.design-criteria
+    kind: completeness
+    check: >
+      The contract states the performance criteria the delegated design must
+      meet (bearing pressure, settlement and differential settlement limits,
+      slab support, uplift and lateral demand, liquefaction mitigation where
+      required), and they are the same values the structural design assumed.
+    trace_to: [report.geotechnical, drawings.structural, spec.part1]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: gi.coverage
+    kind: coordination
+    check: >
+      The element layout covers every footing and slab area that needs
+      improvement on the current structural drawings, including footings
+      added or enlarged by revisions after the design was submitted.
+    trace_to: [drawings.foundation, schedule.structural, drawings.revision_blocks]
+    severity: high
+    owner: gc
+    gate: foundation_pour
+
+  - id: gi.verification
+    kind: completeness
+    check: >
+      Modulus or load tests are run on elements installed with production
+      equipment before production, and every production element has a QC
+      record (depth, densification or stroke data, torque) against its
+      criteria.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: gi.element-tops
+    kind: constructability
+    check: >
+      Footing excavation over improved ground does not disturb the element
+      tops, and top preparation (re-tamping, leveling course) is observed
+      before reinforcing is set.
+    trace_to: [spec.part3]
+    severity: medium
+    owner: gc
+    gate: foundation_pour
+
+  - id: gi.helical-torque
+    kind: conformance
+    check: >
+      Helical pile capacity is accepted on installation torque only through
+      the correlation in the system's evaluation report or a site load test,
+      with torque and depth recorded for every pile.
+    trace_to: [spec.part3, spec.part2]
+    severity: high
+    owner: subcontractor
+
+failure_modes:
+  - id: gi.fm.criteria-assumed
+    what_happens: Delegated design submitted against criteria the contract never stated, so the designer assumed them
+    consequence: Settlement criteria that do not match the structural design, found late; redesign
+    caught_by: [gi.design-criteria]
+    source: industry_practice
+
+  - id: gi.fm.revised-footings
+    what_happens: Footings added or enlarged by a later revision with no improvement under them
+    consequence: Footings bearing on unimproved soil; settlement
+    caught_by: [gi.coverage]
+    source: industry_practice
+
+  - id: gi.fm.tops-disturbed
+    what_happens: Element tops loosened by footing excavation
+    consequence: Softer support than designed; settlement
+    caught_by: [gi.element-tops]
+    source: industry_practice
+
+  - id: gi.fm.torque-unbacked
+    what_happens: Helical piles accepted on torque with no correlation for that system
+    consequence: Capacity unproven; load tests after the fact
+    caught_by: [gi.helical-torque]
+    source: industry_practice
+
+standards:
+  - id: gi.std.icc-es-ac358
+    name: ICC-ES AC358
+    title: Acceptance Criteria for Helical Pile Systems and Devices
+    verify: Evaluation report basis for helical pile capacity and torque correlation
+
+regulatory_hooks:
+  - id: gi.rh.proprietary-approval
+    topic: proprietary-foundation-system-approval
+    question: >
+      Does the building official require an evaluation report, a
+      site-specific load test or a separate permit for this proprietary
+      ground improvement or helical pile system, and is its design a
+      deferred submittal?
+    applies_when: Ground improvement or helical piles designed by the specialty contractor
+    source_families: [building_code]
+    severity: medium
+
+extract_fields:
+  - id: gi.xf.criteria
+    label: Bearing, settlement, uplift and lateral criteria the design provides
+    type: list
+    per: package
+    reconcile_against: [report.geotechnical, drawings.structural]

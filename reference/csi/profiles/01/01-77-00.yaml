@@ -1,0 +1,130 @@
+schema_version: 1
+kind: section
+id: "01 77 00"
+title: Closeout Procedures
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Substantial completion, final completion and the steps between: the
+  contractor's list of incomplete work, the inspections, the certificate of
+  occupancy, changeover to the owner, final cleaning and final payment.
+  Substantial completion starts warranties and usually ends delay damages,
+  so what qualifies, area by area, matters commercially. The usual misses
+  are AHJ and life-safety prerequisites nobody scheduled, owner occupancy
+  without agreed terms, and punch lists that never close.
+
+review_checks:
+  - id: 01co.prerequisites
+    kind: completeness
+    check: >
+      The request for a substantial completion inspection shows each
+      prerequisite Division 01 lists as done: AHJ final inspections and the
+      certificate of occupancy or a temporary one, life-safety acceptance
+      tests, final special inspection report, commissioning functional tests,
+      training, O&M data, record documents, permanent keys and cores, and
+      removal of temporary facilities.
+    trace_to: [spec.division_01, register.special_inspections]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+  - id: 01co.partial-occupancy
+    kind: coordination
+    check: >
+      Owner use of any area before substantial completion of the whole is
+      covered by written terms: that area's substantial completion date,
+      warranty start for its systems, insurance, utilities, security,
+      maintenance, and access for the remaining work.
+    trace_to: [spec.division_01, contract.general_conditions]
+    severity: high
+    owner: owner
+
+  - id: 01co.contractor-punch-list
+    kind: completeness
+    check: >
+      The contractor's own list of incomplete and deficient items, with
+      completion dates, accompanies the request before the design team
+      inspects. A design-team punch list written from scratch means the area
+      was not ready.
+    trace_to: [spec.division_01]
+    severity: medium
+    owner: gc
+
+  - id: 01co.changeover
+    kind: coordination
+    check: >
+      Changeover is scheduled and assigned: utility accounts, permanent cores
+      and keys, security credentials, fire alarm and building automation
+      monitoring, elevator certificates and service, and maintenance
+      contracts, each with a signed receipt.
+    trace_to: [spec.division_01]
+    severity: medium
+    owner: gc
+
+  - id: 01co.final-cleaning
+    kind: coordination
+    check: >
+      Final cleaning covers the spaces no trade owns: inside ductwork and
+      air handlers, elevator hoistways and pits, telecom and electrical
+      rooms, above ceilings, roofs, gutters and drains.
+    trace_to: [spec.division_01]
+    severity: low
+    owner: gc
+
+  - id: 01co.final-completion
+    kind: completeness
+    check: >
+      Final completion and final payment are tied to closed punch lists,
+      accepted closeout submittals, lien releases or surety consent where the
+      contract requires them, and termination of construction permits still
+      in the contractor's name (stormwater, right-of-way, temporary use).
+    trace_to: [spec.division_01, contract.general_conditions]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: 01co.fm.occupancy-blocked
+    what_happens: Final special inspection report, elevator certificate or fire alarm acceptance missing at the planned occupancy date
+    consequence: Certificate of occupancy held; owner move-in slips while the contract date passes
+    caught_by: [01co.prerequisites]
+    source: industry_practice
+
+  - id: 01co.fm.occupancy-without-terms
+    what_happens: Owner moves furniture, staff or equipment into an area before substantial completion with no written terms
+    consequence: Disputes over damage, warranty start, utilities and delay damages
+    caught_by: [01co.partial-occupancy]
+    source: industry_practice
+
+  - id: 01co.fm.endless-punch
+    what_happens: Areas offered for inspection unfinished, so the design team writes the punch list
+    consequence: Repeated inspections, extra design fees charged back, and items that never close
+    caught_by: [01co.contractor-punch-list]
+    source: industry_practice
+
+  - id: 01co.fm.permit-left-open
+    what_happens: A construction stormwater or right-of-way permit never terminated after demobilization
+    consequence: Contractor stays liable for inspections and violations on a site it no longer controls
+    caught_by: [01co.final-completion]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 01co.rh.certificate-of-occupancy
+    topic: certificate-of-occupancy-prerequisites
+    question: >
+      Which inspections, acceptance tests, reports and approvals must the
+      building, fire, health, elevator and utility authorities have before a
+      certificate of occupancy, or a temporary one for part of the building,
+      is issued, and what conditions apply to partial occupancy?
+    applies_when: Every project that ends in occupancy or reoccupancy
+    source_families: [building_code, fire_code]
+    severity: high
+
+extract_fields:
+  - id: 01co.xf.completion-dates
+    label: Substantial completion date per area or phase
+    type: list
+    per: package
+    reconcile_against: [spec.division_01]

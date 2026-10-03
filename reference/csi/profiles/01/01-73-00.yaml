@@ -1,0 +1,109 @@
+schema_version: 1
+kind: section
+id: "01 73 00"
+title: Execution
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Installation requirements common to all work, chiefly cutting and patching
+  (01 73 29 inherits). Cutting and patching is the most disputed item in
+  Division 01: the trade that needs the opening is rarely the trade that can
+  restore the finish, and in an existing building the patch also has to
+  restore a fire rating, a smoke seal, a waterproofing layer or structure.
+  Structural elements are never cut on a field decision; the engineer
+  approves the location and the element is scanned first.
+
+submittals:
+  - id: 01cp.sub.cutting-proposal
+    type: Shop Drawings
+    must_show:
+      - Location, size and method of each cut or core in structure, rated assemblies, roofing, waterproofing and exterior walls
+      - Scan results for reinforcing, tendons, conduit and piping in the element
+      - Framing or reinforcement around new openings, with the engineer's acceptance
+      - Services in the way and how they are kept in service, rerouted or removed
+      - How each patch restores the rating, seal, waterproofing or finish, and which trade does it
+
+review_checks:
+  - id: 01cp.patching-assigned
+    kind: coordination
+    reflex: true
+    check: >
+      Cutting, patching the substrate, and finishing the patch to match are
+      assigned by trade in Division 01 or the subcontracts, including
+      openings the MEP and low-voltage trades make after walls and ceilings
+      are finished. "Each trade cuts and patches its own work" leaves the
+      finish patch with nobody.
+    trace_to: [spec.division_01, spec.part3]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 01cp.structural-cutting
+    kind: constructability
+    check: >
+      No slab, beam, joist, bearing wall, post-tensioned or precast member is
+      cut, cored or drilled without the engineer's acceptance of the location
+      and a scan of the element; openings in joists, beam webs and
+      post-tensioned slabs stay inside the limits the engineer sets.
+    trace_to: [drawings.structural, spec.division_01]
+    severity: critical
+    owner: gc
+
+  - id: 01cp.rated-patching
+    kind: conformance
+    check: >
+      Openings cut in fire-rated or smoke-rated walls, floors and shafts are
+      patched to the listed assembly (board type, layers, fastening and joint
+      treatment) and the penetrations through them firestopped. A cosmetic
+      patch in a rated wall is a life-safety deficiency, not a punch item.
+    trace_to: [drawings.life_safety, schedule.partition_type]
+    severity: high
+    owner: gc
+
+  - id: 01cp.envelope-patching
+    kind: constructability
+    check: >
+      Cuts through roofing, waterproofing, air barriers or exterior walls are
+      patched by the installer whose warranty covers that layer, or with
+      that installer's written acceptance.
+    trace_to: [spec.division_01, spec.part1]
+    severity: high
+    owner: gc
+
+  - id: 01cp.match-existing
+    kind: conformance
+    check: >
+      Patches in exposed finishes meet the standard Division 01 sets
+      (refinish to the next break or corner, refinish the whole surface), so
+      a visible patch is not argued as acceptable at punch list.
+    trace_to: [spec.division_01]
+    severity: low
+    owner: gc
+
+failure_modes:
+  - id: 01cp.fm.finish-patch-orphan
+    what_happens: An MEP trade cuts finished gypsum board and ceilings for late work and leaves the opening
+    consequence: Patching and repainting done by the general contractor at its own cost, or left open at punch list
+    caught_by: [01cp.patching-assigned, if.01-cutting-patching-mep]
+    source: industry_practice
+
+  - id: 01cp.fm.tendon-cut
+    what_happens: A core drilled through a post-tensioned slab without scanning or the engineer's acceptance
+    consequence: Severed tendon, structural repair and an engineering evaluation of the slab
+    caught_by: [01cp.structural-cutting, if.01-structural-cutting]
+    source: industry_practice
+
+  - id: 01cp.fm.rated-wall-patch
+    what_happens: An opening in a rated wall patched with one layer or the wrong board and left unfirestopped
+    consequence: The wall no longer matches its listed assembly; found at the fire marshal's inspection or never
+    caught_by: [01cp.rated-patching]
+    source: industry_practice
+
+  - id: 01cp.fm.patch-voids-warranty
+    what_happens: Roofing cut for a new penetration and patched by the mechanical trade
+    consequence: Roofing manufacturer excludes the area from the warranty; the next leak has no coverage
+    caught_by: [01cp.envelope-patching]
+    source: industry_practice

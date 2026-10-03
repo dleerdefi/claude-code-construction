@@ -1,0 +1,275 @@
+schema_version: 1
+kind: section
+id: "02 41 00"
+title: Demolition
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # engineered demolition sequences and temporary shoring
+
+scope_summary: >
+  Structure demolition, selective demolition and selective site demolition
+  (02 41 13, 02 41 16 and 02 41 19 inherit). The review is about what has to
+  be true before anything comes out: abatement cleared, services
+  disconnected while the ones feeding areas that stay in use are kept alive,
+  load-bearing elements shored to an engineered sequence, and
+  existing-to-remain work and occupants protected. Demolition sheets from
+  different disciplines often disagree on what is removed, abandoned or
+  kept.
+
+suppress:
+  - id: g.basis-of-design
+    reason: Demolition submittals are plans, engineered sequences and records; no product is selected
+  - id: g.lead-time
+    reason: Nothing is procured for demolition; sequence and hold points are what drive its dates
+
+submittals:
+  - id: 02dm.sub.plan
+    type: Shop Drawings
+    must_show:
+      - Sequence and methods by area, and how each load-bearing element is supported before it is removed
+      - Utility disconnects, caps and temporary re-feeds, and the services that stay live through the work area
+      - Protection of existing-to-remain work, adjacent property and occupied areas; dust, noise and vibration controls
+      - Salvaged, owner-retained and relocated items, and haul routes
+      - Pre-demolition photographs or video of existing-to-remain areas and adjacent structures
+  - id: 02dm.sub.shoring
+    type: Delegated Design
+    must_show:
+      - Temporary shoring and bracing designed by a licensed engineer wherever structure is removed or altered, with loads, sequence and removal criteria
+
+review_checks:
+  - id: 02dm.after-clearance
+    kind: constructability
+    check: >
+      General demolition in an area starts only after abatement there has
+      passed visual inspection and clearance, documented by the owner's
+      consultant, and the demolition area sequence follows the abatement
+      sequence.
+    trace_to: [report.hazmat_survey, schedule.master]
+    severity: critical
+    owner: gc
+    gate: demolition_start
+
+  - id: 02dm.services-live
+    kind: constructability
+    reflex: true
+    check: >
+      Every utility in the demolition area is marked as removed, capped and
+      abandoned, or kept live. Services that pass through to areas staying in
+      use are traced, protected and labeled before demolition, and each
+      disconnect is verified dead by the trade that made it.
+    trace_to: [drawings.demolition, drawings.plumbing, drawings.mechanical, drawings.electrical,
+               drawings.fire_protection]
+    severity: critical
+    owner: gc
+    gate: demolition_start
+
+  - id: 02dm.structural-sequence
+    kind: constructability
+    reflex: true
+    check: >
+      Load-bearing walls, columns, beams, slabs and bracing come out in an
+      engineered sequence: temporary shoring designed and installed, new
+      supporting members in place first where the design requires, and the
+      engineer of record's acceptance of the sequence. Elements that look
+      non-structural (infill walls, partitions under old transfer conditions,
+      roof bracing) are confirmed before removal.
+    trace_to: [drawings.structural, drawings.demolition]
+    severity: critical
+    owner: gc
+    gate: demolition_start
+
+  - id: 02dm.protect-remain
+    kind: constructability
+    check: >
+      Existing-to-remain construction, finishes, equipment and trees are
+      identified with their protection, and a dated photo or video record of
+      them and of adjacent structures is made before work starts.
+    trace_to: [drawings.demolition, report.existing_conditions]
+    severity: medium
+    owner: gc
+    gate: demolition_start
+
+  - id: 02dm.salvage
+    kind: coordination
+    check: >
+      Salvaged, owner-retained and relocated items are listed with who
+      removes, stores, protects and reinstalls each one; whether everything
+      else becomes the contractor's property is stated in the spec.
+    trace_to: [drawings.demolition, spec.part1]
+    severity: medium
+    owner: gc
+    gate: demolition_start
+
+  - id: 02dm.regulated-components
+    kind: completeness
+    check: >
+      Regulated components are removed and documented before demolition:
+      refrigerants recovered, and lamps, ballasts, mercury devices,
+      batteries and self-luminous exit signs taken out for separate handling.
+    trace_to: [report.hazmat_survey, spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: demolition_start
+
+  - id: 02dm.fire-protection-in-service
+    kind: constructability
+    check: >
+      Where sprinkler or fire alarm systems in an occupied building are taken
+      out of service or modified, impairment procedures, fire watch and
+      notifications are in place; detectors exposed to demolition dust are
+      protected and restored at the end of each shift, and coverage of areas
+      staying in use is maintained.
+    trace_to: [drawings.fire_protection, drawings.fire_alarm, spec.division_01]
+    severity: high
+    owner: gc
+    gate: demolition_start
+
+  - id: 02dm.occupant-notice
+    kind: coordination
+    check: >
+      The owner and occupants receive the notice Division 01 requires before
+      shutdowns, noisy or vibrating work, and changes to exits, and work
+      windows in occupied buildings match the Division 01 restrictions.
+    trace_to: [spec.division_01, drawings.life_safety]
+    severity: medium
+    owner: gc
+    gate: demolition_start
+
+reconciliations:
+  - id: 02dm.rc.disciplines
+    between: [drawings.demolition, drawings.structural, drawings.plumbing, drawings.mechanical,
+              drawings.electrical]
+    key: Element or service in the demolition area
+    fields: [remove, cap and abandon, relocate, remain, new connection]
+    check: >
+      Architectural, structural and MEP demolition plans agree on each
+      element and service: a wall removed on one sheet has no devices or
+      piping to remain on another, and a service shown capped is not one
+      that new work connects to.
+    severity: high
+    owner: design_team
+    gate: demolition_start
+
+failure_modes:
+  - id: 02dm.fm.live-service-cut
+    what_happens: A circuit or pipe feeding an occupied area runs through the demolition zone and is cut
+    consequence: Outage or flooding in the occupied building, and injury risk where the service was assumed dead
+    caught_by: [02dm.services-live, if.02-electrical-make-safe, if.02-piping-disconnect]
+    source: industry_practice
+
+  - id: 02dm.fm.disciplines-disagree
+    what_happens: Architectural demolition removes a wall the electrical sheets show with devices to remain, or MEP demolition caps a service the new work needs
+    consequence: Rework, re-feeds and RFIs in the most schedule-critical phase
+    caught_by: [02dm.rc.disciplines]
+    source: industry_practice
+
+  - id: 02dm.fm.unshored-removal
+    what_happens: A bearing wall or beam removed before shoring or the new support is in place
+    consequence: Deflection, cracking or collapse; engineering evaluation and repair of the structure above
+    caught_by: [02dm.structural-sequence, if.02-structural-removal]
+    source: industry_practice
+
+  - id: 02dm.fm.remain-damaged
+    what_happens: Existing-to-remain finishes or a neighboring building damaged, with no record of their condition before work
+    consequence: Owner and neighbor claims that cannot be disproved; repairs at the contractor's cost
+    caught_by: [02dm.protect-remain]
+    source: industry_practice
+
+  - id: 02dm.fm.salvage-hauled
+    what_happens: Owner-retained items hauled away with the debris
+    consequence: Replacement at the contractor's cost, sometimes of items that cannot be replaced
+    caught_by: [02dm.salvage]
+    source: industry_practice
+
+  - id: 02dm.fm.refrigerant-vented
+    what_happens: Equipment demolished without refrigerant recovery, or lamps and ballasts crushed with the debris
+    consequence: Environmental violation, fines and contaminated debris loads
+    caught_by: [02dm.regulated-components]
+    source: industry_practice
+
+  - id: 02dm.fm.detectors-dusted
+    what_happens: Smoke detectors left uncovered during demolition, or covered and never restored
+    consequence: Nuisance alarms and fire department responses, or an occupied area left without detection
+    caught_by: [02dm.fire-protection-in-service, if.02-fire-protection-impairment]
+    source: industry_practice
+
+  - id: 02dm.fm.demolition-before-clearance
+    what_happens: Demolition crews start in an area before abatement clearance
+    consequence: Contamination spread, the area re-cleaned and retested, workers exposed, regulatory citation
+    caught_by: [02dm.after-clearance, if.02-abatement-before-demolition]
+    source: industry_practice
+
+  - id: 02dm.fm.abandoned-utility
+    what_happens: Site utilities abandoned without capping, filling or recording, or disconnected at the building instead of at the main
+    consequence: Live gas or water hit during excavation, voids under paving, and conflicts with new utility routing
+    caught_by: [if.02-site-utility-abandonment]
+    source: industry_practice
+
+standards:
+  - id: 02dm.std.ansi-a10-6
+    name: ANSI/ASSP A10.6
+    title: Safety & Health Program Requirements for Demolition Operations
+    verify: Engineering survey and demolition practices the spec references
+  - id: 02dm.std.nfpa-25
+    name: NFPA 25
+    title: Standard for the Inspection, Testing, and Maintenance of Water-Based Fire Protection Systems
+    verify: Impairment procedures when sprinkler systems are taken out of service
+  - id: 02dm.std.nfpa-51b
+    name: NFPA 51B
+    title: Standard for Fire Prevention During Welding, Cutting, and Other Hot Work
+    verify: Hot-work permits and fire watch for torch cutting during demolition
+
+regulatory_hooks:
+  - id: 02dm.rh.regulated-components
+    topic: regulated-components-before-demolition
+    question: >
+      Which building components must be removed and handled separately
+      before demolition under environmental rules (refrigerants, lamps,
+      mercury devices, PCB ballasts, batteries, self-luminous exit signs),
+      who may do it, and what records must be kept?
+    applies_when: Demolition of buildings or of equipment, lighting and life-safety devices
+    source_families: [environmental]
+    severity: high
+
+  - id: 02dm.rh.fire-protection-impairment
+    topic: fire-protection-impairment-procedures
+    question: >
+      What does the adopted fire code require when fire protection or alarm
+      systems are impaired during alteration or demolition: notice to the
+      fire department and monitoring service, fire watch, and limits on how
+      long systems may stay out of service?
+    applies_when: Demolition or alteration in a building with sprinklers or fire alarm
+    source_families: [fire_code]
+    severity: high
+
+  - id: 02dm.rh.adjoining-property
+    topic: demolition-adjoining-property-protection
+    question: >
+      What does the adopted building code require to protect adjoining
+      property and the public during demolition (notice to adjoining owners,
+      who must support or underpin adjacent foundations, pedestrian
+      protection), and does the AHJ require utility disconnection
+      confirmation before issuing a demolition permit?
+    applies_when: Structure demolition, and selective demolition at property lines or public ways
+    source_families: [building_code]
+    severity: medium
+
+  - id: 02dm.rh.abandoned-cable
+    topic: abandoned-cable-removal
+    question: >
+      Does the adopted electrical code require removal of accessible
+      abandoned cable (power-limited, communications, fire alarm, optical
+      fiber), and in which spaces?
+    applies_when: Selective demolition with low-voltage or communications cabling above ceilings
+    source_families: [electrical_code]
+    severity: low
+
+extract_fields:
+  - id: 02dm.xf.disposition
+    label: Disposition of each element and service (remove, cap and abandon, relocate, salvage, remain)
+    type: list
+    per: package
+    reconcile_against: [drawings.demolition, drawings.plumbing, drawings.mechanical, drawings.electrical]

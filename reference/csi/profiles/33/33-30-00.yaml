@@ -1,0 +1,154 @@
+schema_version: 1
+kind: section
+id: "33 30 00"
+title: Sanitary Sewerage
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Building sewers, site sanitary mains, manholes and cleanouts to the
+  public sewer, and onsite wastewater systems where there is no public
+  sewer. Gravity governs: the invert at the building line, the slope
+  available and the invert of the public sewer at the connection must all
+  work, and an error at either end can leave the building without fall. The
+  connection is usually a permitted tap the sewer authority witnesses, and
+  acceptance depends on air or water tests, deflection testing and manhole
+  vacuum tests, plus video inspection before paving where the agency
+  requires it. Site grease and oil interceptors connect to the building's
+  plumbing design.
+
+submittals:
+  - id: sa.sub.product-data
+    type: Product Data
+    must_show:
+      - Pipe, fittings and joints for the depths and cover shown; manholes, frames and covers; cleanouts
+      - The method of connection to the public sewer (tap, saddle or manhole connection) accepted by the sewer authority
+  - id: sa.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Air or water tests, deflection tests, manhole vacuum tests, and video inspection where required
+
+review_checks:
+  - id: sa.connection-invert
+    kind: constructability
+    check: >
+      The invert and location of the public sewer at the connection are
+      verified in the field before any site sewer is laid, and the line is
+      laid upstream from the connection, so the slope back to the building
+      line is proven before the building end is fixed.
+    trace_to: [drawings.civil, report.existing_conditions]
+    severity: critical
+    owner: gc
+    gate: excavation
+
+  - id: sa.slope-and-cover
+    kind: conformance
+    check: >
+      Slopes between structures meet the minimum the code and agency
+      require, and shallow cover under traffic or in frost depth is
+      detailed (stronger pipe, insulation or encasement), rather than left
+      to the field.
+    trace_to: [drawings.civil, drawings.details]
+    severity: high
+    owner: design_team
+
+  - id: sa.acceptance-sequence
+    kind: completeness
+    check: >
+      Deflection testing of flexible pipe is done after backfill has
+      settled for the time the spec sets, and video inspection is run
+      before paving and before the agency's acceptance, so sags and debris
+      are found while the line is still reachable.
+    trace_to: [spec.part3, report.utility_requirements]
+    severity: high
+    owner: gc
+    gate: site_paving
+
+  - id: sa.interceptors
+    kind: coordination
+    check: >
+      Grease or oil interceptors on site match the plumbing design in size,
+      inlet and outlet inverts and venting, carry a traffic rating where
+      they sit in drives, and can be reached by a pump truck.
+    trace_to: [drawings.civil, drawings.plumbing]
+    severity: medium
+    owner: design_team
+
+  - id: sa.cleanouts
+    kind: absence
+    check: >
+      Cleanouts are shown where the plumbing code and the sewer authority
+      require them on the building sewer (near the building, at the property
+      line, at changes of direction), brought to grade with covers rated for
+      their location.
+    trace_to: [drawings.civil, drawings.plumbing]
+    severity: medium
+    owner: design_team
+
+failure_modes:
+  - id: sa.fm.no-fall
+    what_happens: Site sewer laid from the building outward, and the public sewer invert turns out higher than drawn
+    consequence: Re-laid at a flatter slope, a lift station, or the building plumbing redesigned
+    caught_by: [sa.connection-invert]
+    source: industry_practice
+
+  - id: sa.fm.deflected-pipe
+    what_happens: Flexible pipe deflected beyond its limit by poor haunching or compaction
+    consequence: Failed deflection test; dig up and re-lay
+    caught_by: [sa.acceptance-sequence]
+    source: industry_practice
+
+  - id: sa.fm.video-after-paving
+    what_happens: Video inspection run after paving finds sags or debris
+    consequence: Saw-cut repairs through new pavement
+    caught_by: [sa.acceptance-sequence]
+    source: industry_practice
+
+  - id: sa.fm.interceptor-mismatch
+    what_happens: Interceptor size or inverts on the civil drawings differ from the plumbing design
+    consequence: Interceptor replaced or reset, or building drain re-sloped
+    caught_by: [sa.interceptors]
+    source: industry_practice
+
+standards:
+  - id: sa.std.astm-f1417
+    name: ASTM F1417
+    title: Installation Acceptance of Plastic Non-pressure Sewer Lines Using Low-Pressure Air
+    verify: Air test procedure for plastic gravity sewer
+  - id: sa.std.astm-c1244
+    name: ASTM C1244/C1244M
+    title: Concrete Sewer Manholes by the Negative Air Pressure (Vacuum) Test Prior to Backfill
+    verify: Manhole vacuum test where specified
+
+regulatory_hooks:
+  - id: sa.rh.sewer-connection
+    topic: sanitary-sewer-connection
+    question: >
+      What do the sewer authority and the plumbing code require for the
+      building sewer and its connection (permit, tap method, witnessed
+      inspection, property-line cleanout, backwater valve, pretreatment or
+      interceptor)?
+    applies_when: Any connection to a public sewer
+    source_families: [plumbing_code, public_works]
+    severity: high
+
+  - id: sa.rh.onsite-wastewater
+    topic: onsite-wastewater-permit
+    question: >
+      Where wastewater is treated on site, which health or environmental
+      authority permits the system, who must design and install it, and
+      which inspections come before cover?
+    applies_when: Septic or other onsite wastewater systems
+    source_families: [public_health, environmental]
+    severity: high
+
+extract_fields:
+  - id: sa.xf.inverts
+    label: Inverts at the building line and at the public connection
+    type: list
+    per: package
+    reconcile_against: [drawings.civil, drawings.plumbing]

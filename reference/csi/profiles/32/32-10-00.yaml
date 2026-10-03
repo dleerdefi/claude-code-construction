@@ -1,0 +1,154 @@
+schema_version: 1
+kind: section
+id: "32 10 00"
+title: Bases, Ballasts, and Paving
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Aggregate bases and asphalt, concrete and unit paving for drives,
+  parking and walks; the type sections inherit from here. A pavement is a
+  section (subgrade, base and surface) designed in the geotechnical report
+  for the traffic it carries, and the section on the civil details is
+  sometimes a different one. Paving is the cover milestone for everything
+  underground on the site, so utilities, sleeves and pole bases must be in,
+  tested and backfilled first. The surface also has to drain and stay within
+  accessibility slopes, which leaves little room for grade errors.
+
+submittals:
+  - id: pv.sub.base
+    type: Product Data
+    must_show:
+      - Base aggregate source with gradation results against the spec
+      - Geotextile or geogrid where the section includes one
+
+review_checks:
+  - id: pv.base-acceptance
+    kind: completeness
+    check: >
+      Base course goes on accepted subgrade only, is compacted and tested at
+      the frequency the spec sets, and its thickness and grade are checked
+      before surfacing; base placed short over soft spots is the usual
+      shortcut.
+    trace_to: [spec.part3, drawings.details]
+    severity: high
+    owner: subcontractor
+    gate: site_paving
+
+  - id: pv.accessible-route
+    kind: absence
+    reflex: true
+    check: >
+      An accessible route is shown from accessible parking, passenger
+      loading zones, public sidewalks and transit stops to each accessible
+      entrance, without steps, with curb ramps where it crosses curbs, and
+      with spot elevations at ramps, landings and doors that prove the
+      slopes.
+    trace_to: [drawings.site, drawings.civil, drawings.plans]
+    severity: high
+    owner: design_team
+
+  - id: pv.slope-tolerance
+    kind: constructability
+    check: >
+      Where the grading plan puts running or cross slopes on walks, ramps,
+      curb ramps or accessible parking at or near the accessibility limit,
+      the design leaves no construction tolerance; raise it before forming,
+      and check slopes with a level before the pour and before acceptance.
+      Minimum drainage slopes and maximum accessible slopes have to fit in
+      the same surface.
+    trace_to: [drawings.civil, drawings.site]
+    severity: high
+    owner: design_team
+    gate: site_paving
+
+reconciliations:
+  - id: pv.rc.sections
+    between: [report.geotechnical, drawings.civil, drawings.details]
+    key: Pavement type and traffic area (light duty, heavy duty, truck route, dumpster approach, loading dock, fire apparatus road, walks)
+    fields: [subgrade preparation, base material and thickness, surface layers and thicknesses, concrete thickness and reinforcing, geosynthetic]
+    check: >
+      The sections on the civil details match the report's recommendations
+      for each traffic area, and heavy-duty sections are mapped where trucks
+      actually go: dumpster enclosures and their approach, loading docks,
+      fire apparatus roads, delivery drives and transformer access.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: pv.rc.grades-at-doors
+    between: [drawings.civil, drawings.plans, drawings.landscape]
+    key: Each exterior door and building entrance
+    fields: [finish floor elevation, exterior landing or walk elevation, landing slope, slope away from the building]
+    check: >
+      At every exterior door the walk or landing meets the finish floor
+      within the threshold the accessibility standard allows, has a level
+      landing where the door is on an accessible route, and slopes away from
+      the building; the civil and architectural floor elevations agree.
+    severity: high
+    owner: design_team
+    gate: site_paving
+
+failure_modes:
+  - id: pv.fm.wrong-section
+    what_happens: Civil details carry a generic section thinner than the report recommends, or a light-duty section where trucks and fire apparatus run
+    consequence: Rutting and cracking at docks, dumpster pads and fire lanes within the first seasons; owner claim
+    caught_by: [pv.rc.sections]
+    source: industry_practice
+
+  - id: pv.fm.thin-base
+    what_happens: Base placed short of thickness or over subgrade that was never re-accepted
+    consequence: Early fatigue cracking and potholes; repairs argued as maintenance
+    caught_by: [pv.base-acceptance, if.31-subgrade-paving]
+    source: industry_practice
+
+  - id: pv.fm.paved-over-untested
+    what_happens: Paving placed over trenches with missing or failing compaction tests, or over utilities not yet tested
+    consequence: Trench settlement in new pavement; saw-cut and patch to repair or test a line
+    caught_by: [if.32-utilities-under-paving]
+    source: industry_practice
+
+  - id: pv.fm.slope-over-limit
+    what_happens: Walks, curb ramps and accessible stalls built a little over the slope limit because the design left no tolerance
+    consequence: Removal and replacement after an accessibility inspection or complaint
+    caught_by: [pv.slope-tolerance, pv.accessible-route]
+    source: industry_practice
+
+  - id: pv.fm.step-at-door
+    what_happens: Exterior walk set below the door threshold at an accessible entrance
+    consequence: Walk removed and re-poured, or door and threshold reworked
+    caught_by: [pv.rc.grades-at-doors]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: pv.rh.accessible-route
+    topic: accessible-route-site
+    question: >
+      What does the adopted accessibility standard require of the exterior
+      accessible route here (elements it must connect, running and cross
+      slope, ramps and landings, surface, changes in level, curb ramps), and
+      does a state accessibility code add to it?
+    applies_when: Any site with walks, parking or an accessible entrance
+    source_families: [accessibility]
+    severity: high
+
+  - id: pv.rh.fire-access
+    topic: fire-apparatus-access-roads
+    question: >
+      What do the adopted fire code and the fire department require of fire
+      apparatus access roads (width, turning, grade, surface able to carry
+      apparatus loads, markings and signs, gates or barriers across them)?
+    applies_when: Fire apparatus access roads or fire lanes on the site
+    source_families: [fire_code]
+    severity: high
+
+extract_fields:
+  - id: pv.xf.sections
+    label: Pavement section per traffic area
+    type: list
+    per: package
+    reconcile_against: [report.geotechnical, drawings.civil]

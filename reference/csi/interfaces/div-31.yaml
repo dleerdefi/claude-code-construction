@@ -1,0 +1,104 @@
+schema_version: 1
+kind: interfaces
+id: div-31
+title: Interfaces involving Division 31
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with Division 03, 07 and other lower divisions live in those files.
+
+edges:
+  # ── Earthwork to paving and utilities ─────────────────────────
+  - id: if.31-subgrade-paving
+    a: ["31 23 00"]
+    a_trade: Excavation and fill
+    b: ["32 10 00"]
+    b_trade: Bases and paving
+    a_provides: Pavement subgrade at grade, proof-rolled and tested, soft areas undercut and replaced, accepted by the geotechnical engineer area by area
+    b_provides: Base and paving placed soon after acceptance, and notice when accepted subgrade has been rained on, frozen or rutted since
+    responsibility:
+      - item: Aggregate base course under paving
+        typical: {furnish: "31 23 00 or 32 11 00", install: "31 23 00 or 32 11 00"}
+        confirm_in: [spec.part1, spec.part3]
+      - item: Re-proofing and repair of subgrade disturbed after acceptance
+        typical: {install: "31 23 00 or 32 10 00"}
+        confirm_in: [spec.part3]
+    gate:
+      milestone: site_paving
+      note: Subgrade that sat exposed after acceptance is accepted again before base goes on
+    severity: high
+
+  - id: if.31-utility-trenches
+    a: ["31 23 00"]
+    a_trade: Excavation and fill
+    b: ["33"]
+    b_trade: Site utilities
+    a_provides: Trench backfill material, lift thickness, compaction and test frequency by location (under the building, under paving, in landscape areas)
+    b_provides: Bedding and initial backfill for each pipe type, line tests passed before final backfill, and the as-built survey
+    responsibility:
+      - item: Trench excavation, bedding and backfill for site utilities
+        typical: {install: "Division 33 installer or 31 23 00"}
+        confirm_in: [spec.part1, spec.part3]
+      - item: Compaction testing in utility trenches
+        typical: {furnish: "Owner's testing agency or the contractor, per Division 01"}
+        confirm_in: [spec.division_01, spec.part3]
+    gate:
+      milestone: trench_backfill
+      note: Trench tests under future paving are the ones the paving gate inherits
+    severity: high
+
+  # ── Erosion control to stormwater and planting ────────────────
+  - id: if.31-erosion-stormwater
+    a: ["31 25 00"]
+    a_trade: Erosion and sediment control
+    b: ["33 40 00"]
+    b_trade: Storm drainage and stormwater management
+    a_provides: Inlet protection on each new structure as it is set, sediment kept out of new pipe and permanent facilities, sediment basin conversion as the plan sequences it
+    b_provides: Structure installation sequence, which permanent facilities may serve as temporary sediment basins, and when infiltration practices are built and put online
+    responsibility:
+      - item: Converting a sediment basin to the permanent pond (cleanout, outlet structure, final grading)
+        typical: {install: "31 25 00 or 33 46 00"}
+        confirm_in: [spec.part3, report.stormwater]
+      - item: Cleaning sediment from new storm pipe and structures before acceptance
+        typical: {install: "31 25 00 or 33 40 00"}
+        confirm_in: [spec.part3]
+    severity: high
+
+  - id: if.31-final-stabilization
+    a: ["31 25 00"]
+    a_trade: Erosion and sediment control
+    b: ["32 90 00"]
+    b_trade: Planting, turf and grasses
+    a_provides: Temporary stabilization and controls maintained until permanent cover meets the permit's final stabilization definition, then removed
+    b_provides: Seeding, sod and planting done within the planting season and to the coverage the permit needs, with the date each area is established
+    responsibility:
+      - item: Maintaining erosion controls and seeded areas until final stabilization
+        typical: {install: "31 25 00 or 32 92 00"}
+        confirm_in: [spec.part3, report.stormwater]
+    gate:
+      milestone: substantial_completion
+      note: Permit termination needs final stabilization documented
+    severity: medium
+
+  # ── Clearing to planting ──────────────────────────────────────
+  - id: if.31-clearing-planting
+    a: ["31 10 00"]
+    a_trade: Site clearing and topsoil stripping
+    b: ["32 90 00"]
+    b_trade: Planting
+    a_provides: Trees to remain protected from clearing through completion; topsoil stockpiled separately, protected and available for testing
+    b_provides: Planting soil criteria the stockpile must meet, tree protection zones and any arborist work the landscape spec assigns
+    responsibility:
+      - item: Tree protection fencing and its upkeep until landscaping
+        typical: {install: "31 10 00 or general contractor"}
+        confirm_in: [spec.part3, drawings.landscape]
+      - item: Testing and amending stockpiled topsoil for reuse as planting soil
+        typical: {furnish: "31 10 00 or 32 91 00"}
+        confirm_in: [spec.part3]
+    gate:
+      milestone: excavation
+      note: Protection goes up before clearing and grading start
+    severity: medium

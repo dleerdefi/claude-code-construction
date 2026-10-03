@@ -1,0 +1,155 @@
+schema_version: 1
+kind: section
+id: "32 84 00"
+title: Planting Irrigation
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # irrigation is often design-build from a performance spec or a schematic layout
+
+scope_summary: >
+  Landscape irrigation from the point of connection to the heads and drip
+  zones. It depends on things outside its scope: a source with the flow and
+  pressure the design assumed, a backflow assembly the water purveyor and
+  plumbing code accept, sleeves placed under paving before paving, and
+  power to the controller. Zones have to follow the planting plan's
+  hydrozones, and the system has to work before plants arrive and through
+  the establishment period.
+
+submittals:
+  - id: ir.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Point of connection, meter and backflow assembly, mainline, valves and zones by hydrozone, heads and drip
+      - Sleeves under paving and walls, controller location and sensors
+      - Hydraulic calculation using the static pressure and flow measured or confirmed at the point of connection
+  - id: ir.sub.product-data
+    type: Product Data
+    must_show:
+      - Backflow assembly type and its approval for the hazard, heads, valves, drip components, controller and weather or soil-moisture sensor
+  - id: ir.sub.record
+    type: Record Documents
+    must_show:
+      - As-built mainline, valve and wire routing, and the controller zone chart
+
+review_checks:
+  - id: ir.poc-capacity
+    kind: conformance
+    check: >
+      The design flow and pressure use a measured static pressure and the
+      meter and service size actually available at the point of connection,
+      not an assumed value; the reading or flow test is on record.
+    trace_to: [drawings.civil, drawings.plumbing, drawings.landscape]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: ir.backflow
+    kind: conformance
+    check: >
+      The backflow assembly type suits the hazard (fertilizer injection
+      raises it), sits where the purveyor and code allow with freeze
+      protection and drainage for its discharge, and is tested and tagged by
+      a certified tester before the system is used.
+    trace_to: [drawings.plumbing, drawings.landscape, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: ir.hydrozones
+    kind: conformance
+    check: >
+      Zones follow the planting plan's hydrozones: spray only on turf, drip
+      or bubblers on shrubs and trees, separate zones for sun and shade and
+      for trees, and no irrigation where the planting plan says none.
+    trace_to: [drawings.landscape]
+    severity: medium
+    owner: subcontractor
+
+  - id: ir.controller-power
+    kind: coordination
+    check: >
+      The controller location has a power circuit, and its sensor and
+      communication wiring routes, on the electrical drawings, not only a
+      note on the irrigation plan.
+    trace_to: [drawings.electrical, drawings.landscape]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: ir.fm.low-pressure
+    what_happens: System designed on an assumed pressure that the point of connection does not deliver
+    consequence: Poor coverage; booster pump or rezoning after installation
+    caught_by: [ir.poc-capacity, if.32-irrigation-water-service]
+    source: industry_practice
+
+  - id: ir.fm.backflow-rejected
+    what_happens: Backflow assembly too low for the hazard, such as a double check or vacuum breaker where fertilizer injection calls for a reduced pressure assembly
+    consequence: Assembly replaced before the purveyor or inspector releases the system
+    caught_by: [ir.backflow]
+    source: industry_practice
+
+  - id: ir.fm.no-sleeves
+    what_happens: Paving placed before irrigation sleeves were set
+    consequence: Sawcut or bore under new paving
+    caught_by: [if.32-utilities-under-paving]
+    source: industry_practice
+
+  - id: ir.fm.spray-on-shrubs
+    what_happens: Spray heads on shrub beds, or trees left in turf spray zones
+    consequence: Plant loss and wasted water; rezoning
+    caught_by: [ir.hydrozones]
+    source: industry_practice
+
+  - id: ir.fm.no-power
+    what_happens: Controller location with no circuit on the electrical drawings
+    consequence: Late electrical change; hand watering in the meantime
+    caught_by: [ir.controller-power]
+    source: industry_practice
+
+  - id: ir.fm.dry-establishment
+    what_happens: Plants installed before irrigation works, with nobody assigned to water
+    consequence: Plant loss and a replacement dispute between trades
+    caught_by: [if.32-irrigation-planting]
+    source: industry_practice
+
+standards:
+  - id: ir.std.asse-backflow
+    name: ASSE 1013 / ASSE 1015 / ASSE 1020
+    title: Performance requirements for reduced pressure principle backflow preventers, double check backflow prevention assemblies, and pressure vacuum breaker assemblies
+    verify: Assembly type and listing against the hazard and the purveyor's approved list
+  - id: ir.std.asabe-icc-802
+    name: ASABE/ICC 802
+    title: Landscape Irrigation Sprinkler and Emitter Standard
+    verify: Sprinkler and emitter performance claims where the spec or a water-efficiency program cites it
+
+regulatory_hooks:
+  - id: ir.rh.backflow
+    topic: irrigation-backflow-prevention
+    question: >
+      What backflow prevention do the plumbing code and the water purveyor
+      require for landscape irrigation (assembly type for the hazard, with
+      or without chemical injection, location, testing at installation and
+      periodically, tester certification)?
+    applies_when: Any irrigation connected to a potable supply
+    source_families: [plumbing_code, public_works]
+    severity: high
+
+  - id: ir.rh.water-efficiency
+    topic: landscape-irrigation-efficiency
+    question: >
+      Do state or local rules, or a green building program on this project,
+      require irrigation efficiency measures (weather-based or soil-moisture
+      controllers, rain shutoff, a dedicated meter, drip in narrow areas, a
+      water budget)?
+    applies_when: New landscape irrigation
+    source_families: [public_works, environmental]
+    severity: medium
+
+extract_fields:
+  - id: ir.xf.poc
+    label: Static pressure and available flow at the point of connection
+    type: string
+    per: package
+    reconcile_against: [drawings.civil, drawings.plumbing]

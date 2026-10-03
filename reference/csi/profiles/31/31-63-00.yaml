@@ -1,0 +1,140 @@
+schema_version: 1
+kind: section
+id: "31 63 00"
+title: Bored Piles
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # drilled shafts are EOR-designed; micropiles and some auger-cast systems are delegated
+
+scope_summary: >
+  Drilled shafts, auger-cast (continuous flight auger) piles and
+  micropiles: concrete or grout placed in a drilled hole. Their integrity
+  depends on what nobody sees: a clean bottom on the right stratum, a hole
+  that stayed open (casing, slurry, groundwater), and concrete or grout that
+  displaced everything as it rose. The review is about the placement method
+  for the real groundwater condition, the per-element records that prove
+  it, and integrity testing whose method and acceptance criteria are still
+  enforceable.
+
+submittals:
+  - id: bp.sub.installation-plan
+    type: Shop Drawings
+    must_show:
+      - Drilling equipment, and casing or slurry method chosen for the groundwater and caving soils in the report
+      - Concrete or grout placement method (tremie, pump, through the auger) and the mix designed for it, with its workability retention
+      - Reinforcing cages with centralizers, lifting points and integrity-test access tubes or sensors
+  - id: bp.sub.records
+    type: Test Reports
+    must_show:
+      - Per element, depth, stratum at the bottom, bottom cleanliness and slurry tests where used
+      - Concrete or grout volume placed against theoretical volume, by depth increment for auger-cast piles
+
+review_checks:
+  - id: bp.groundwater-method
+    kind: conformance
+    check: >
+      The drilling method suits the groundwater and caving soils in the
+      report: temporary or permanent casing or slurry where the hole will
+      not stand, slurry tested before concreting, and tremie or pumped
+      placement wherever there is water in the hole.
+    trace_to: [report.geotechnical, spec.part3]
+    severity: critical
+    owner: subcontractor
+
+  - id: bp.bottom-and-bearing
+    kind: completeness
+    check: >
+      For drilled shafts, the inspector verifies the bottom is clean and on
+      the bearing stratum, and the geotechnical engineer confirms it where
+      the design relies on end bearing or a rock socket length, before
+      concrete.
+    trace_to: [spec.part3, report.geotechnical]
+    severity: high
+    owner: gc
+
+  - id: bp.volume-records
+    kind: completeness
+    check: >
+      Concrete or grout volume against theoretical hole volume is recorded
+      for every element; for auger-cast piles the grout head is kept above
+      the auger tip during withdrawal, recorded by increment, and an
+      undersupplied increment is treated as a defect.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: bp.integrity-testing
+    kind: completeness
+    check: >
+      The integrity tests the spec requires (crosshole, thermal, low-strain)
+      have tubes or sensors in the cages, a stated number and selection
+      method, and acceptance criteria written into the spec itself; several
+      ASTM methods specs still cite have been withdrawn without replacement.
+    trace_to: [spec.part3, spec.part2]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: bp.cage-placement
+    kind: constructability
+    check: >
+      Cages are centralized, supported and lifted without distortion; in
+      auger-cast piles they go in before the grout stiffens, and drilling
+      next to a freshly placed element waits for the time or distance the
+      spec sets.
+    trace_to: [spec.part3, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: bp.fm.necking
+    what_happens: The hole caves or groundwater enters before or during concreting
+    consequence: Necked element or soil inclusion, found by integrity testing or never; coring, repair or replacement
+    caught_by: [bp.groundwater-method, bp.volume-records]
+    source: industry_practice
+
+  - id: bp.fm.soft-bottom
+    what_happens: Debris or softened soil left at the base of an end-bearing shaft
+    consequence: Settlement under load or a failed load test
+    caught_by: [bp.bottom-and-bearing]
+    source: industry_practice
+
+  - id: bp.fm.auger-pulled-fast
+    what_happens: Auger withdrawn faster than grout is supplied, losing the grout head
+    consequence: Voids or soil inclusions in auger-cast piles
+    caught_by: [bp.volume-records]
+    source: industry_practice
+
+  - id: bp.fm.untestable
+    what_happens: Access tubes left out, crushed or not watertight, or the spec's test standard has been withdrawn with no criteria in the spec
+    consequence: Integrity cannot be shown, or every anomaly becomes a dispute; coring at someone's cost
+    caught_by: [bp.integrity-testing]
+    source: industry_practice
+
+  - id: bp.fm.cage-refused
+    what_happens: Reinforcing cage cannot be pushed into stiffened auger-cast grout
+    consequence: Pile abandoned and redrilled; cap redesign
+    caught_by: [bp.cage-placement]
+    source: industry_practice
+
+standards:
+  - id: bp.std.astm-d7949
+    name: ASTM D7949
+    title: Integrity Testing of Concrete Deep Foundations by Thermal Methods
+    verify: Thermal integrity test method and what the spec counts as an anomaly
+    note: Retitled in the 2025 edition; earlier editions were titled Thermal Integrity Profiling of Concrete Deep Foundations
+  - id: bp.std.withdrawn-integrity
+    name: ASTM D5882 / ASTM D6760
+    title: Low strain impact integrity testing; ultrasonic crosshole integrity testing of concrete deep foundations
+    verify: Whether the spec still cites these as the test method and acceptance basis
+    note: Both were withdrawn in 2025 with no replacement; the procedure and acceptance criteria then have to be stated in the spec
+
+extract_fields:
+  - id: bp.xf.volume-ratio
+    label: Placed volume as a ratio of theoretical volume, per element
+    type: list
+    per: package
+    reconcile_against: [spec.part3]

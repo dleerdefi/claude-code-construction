@@ -1,0 +1,85 @@
+schema_version: 1
+kind: section
+id: "02 82 00"
+title: Asbestos Remediation
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Asbestos removal, encapsulation and enclosure. Friable insulation,
+  fireproofing and surfacing need full containment; flooring, mastics,
+  roofing and cementitious products can be removed by other methods while
+  they stay intact, and become far more expensive once they are ground,
+  sanded or crushed. Each area is released by visual inspection and then
+  clearance sampling, to a criterion and analytical method set by the rules
+  and the spec, not chosen by the contractor.
+
+review_checks:
+  - id: 02asb.method-by-material
+    kind: conformance
+    check: >
+      The removal method for each material matches its condition and
+      friability in the survey (full containment for friable material,
+      intact-removal methods for flooring, mastics and roofing), and methods
+      that would make a non-friable material friable (grinding, sanding,
+      abrasive removal) are excluded or treated as friable work.
+    trace_to: [report.hazmat_survey, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 02asb.clearance-method
+    kind: conformance
+    check: >
+      Clearance follows a passed visual inspection and uses the analytical
+      method, sampling approach and acceptance criterion the spec and the
+      rules require, with the number and placement of samples per area
+      stated in the plan.
+    trace_to: [spec.part3]
+    severity: high
+    owner: owner
+    gate: demolition_start
+
+failure_modes:
+  - id: 02asb.fm.made-friable
+    what_happens: Non-friable floor tile or mastic removed by grinding or mechanical scraping outside containment
+    consequence: The material becomes friable; full containment, re-cleaning and clearance after the fact
+    caught_by: [02asb.method-by-material]
+    source: industry_practice
+
+  - id: 02asb.fm.weak-clearance
+    what_happens: An area released on a weaker analytical method or criterion than the spec or the rules require
+    consequence: Retesting after other trades or occupants are in, and possible re-abatement
+    caught_by: [02asb.clearance-method]
+    source: industry_practice
+
+  - id: 02asb.fm.sealer-blocks-fireproofing
+    what_happens: Lockdown sealer applied after fireproofing removal, and new fireproofing sprayed over it without bond data
+    consequence: Bond test failures; new fireproofing removed and the steel prepared again
+    caught_by: [if.02-asbestos-fireproofing]
+    source: industry_practice
+
+standards:
+  - id: 02asb.std.astm-e1368
+    name: ASTM E1368
+    title: Visual Inspection of Asbestos Abatement Projects
+    verify: Visual inspection procedure before clearance sampling
+
+regulatory_hooks:
+  - id: 02asb.rh.clearance-criteria
+    topic: asbestos-clearance-criteria
+    question: >
+      What clearance criteria and analytical methods apply to asbestos work
+      areas in this jurisdiction and building type (schools and public
+      buildings can differ), and who may collect and analyze the samples?
+    applies_when: Any asbestos work area that is released for reoccupancy or other trades
+    source_families: [environmental, occupational_safety]
+    severity: high
+
+extract_fields:
+  - id: 02asb.xf.materials
+    label: Asbestos-containing materials by category, quantity and removal method
+    type: list
+    per: package
+    reconcile_against: [report.hazmat_survey]

@@ -1,0 +1,40 @@
+schema_version: 1
+kind: interfaces
+id: div-33
+title: Interfaces involving Division 33
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Building-line edges (21, 22, 23, 26, 27 to 33) live in the lower divisions' files.
+
+edges:
+  - id: if.33-water-sewer-separation
+    a: ["33 10 00"]
+    a_trade: Water utilities
+    b: ["33 30 00", "33 40 00"]
+    b_trade: Sanitary and storm sewers
+    a_provides: Water main and service routes, depths and crossing locations
+    b_provides: Sewer routes, inverts and crossing elevations, and pressure-rated pipe or encasement where the required separation cannot be met
+    responsibility:
+      - item: Special construction at crossings that do not meet separation
+        typical: {install: "33 10 00 or 33 30 00"}
+        confirm_in: [drawings.civil, spec.part3]
+    gate: {milestone: trench_backfill}
+    severity: high
+
+  - id: if.33-joint-trench
+    a: ["33 70 00"]
+    a_trade: Electrical utilities
+    b: ["33 80 00", "33 50 00"]
+    b_trade: Communications and gas service
+    a_provides: Electrical duct route, depth and the separation the electric utility requires from other utilities
+    b_provides: Communications pathway and gas service routes with each owner's separation and joint-trench requirements
+    responsibility:
+      - item: Joint trench excavation and backfill shared by power, communications and gas
+        typical: {install: "33 70 00 or 31 23 00"}
+        confirm_in: [spec.part1, report.utility_requirements]
+    gate: {milestone: trench_backfill}
+    severity: medium

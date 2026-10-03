@@ -1,0 +1,228 @@
+schema_version: 1
+kind: section
+id: "31 50 00"
+title: Excavation Support and Protection
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["31 40 00", "31 41 00", "31 48 00"]
+contractor_designed: typical
+
+scope_summary: >
+  Temporary and permanent excavation support (soldier piles and lagging,
+  sheet piles, secant and slurry walls, soil nails, tiebacks, rakers and
+  bracing) and underpinning of adjacent foundations (31 40 00 and
+  31 48 00 resolve here). It is usually delegated design to criteria from
+  the geotechnical report, and the risk sits beyond the property line: neighbors'
+  foundations, streets and utilities. The review asks whether the design
+  used every load actually present, whether movement is measured against
+  thresholds with actions attached, whether the system clears the permanent
+  structure, waterproofing and utilities, and what stays in the ground when
+  the job is done.
+
+submittals:
+  - id: xs.sub.delegated-design
+    type: Delegated Design
+    must_show:
+      - Soil parameters, groundwater and the geotechnical report the design relies on
+      - Every surcharge used (adjacent footings with their depths and loads, street traffic, cranes, concrete trucks, stockpiles)
+      - Plan and elevations with tieback, nail, raker and brace locations, lengths and angles against property lines, utilities and the permanent structure
+      - Excavation stages, design deflections, monitoring points, and the action at each threshold
+      - Which elements are removed and which are abandoned, and how
+  - id: xs.sub.anchor-tests
+    type: Test Reports
+    must_show:
+      - Performance, proof and creep test results for each anchor tested, with lock-off loads
+  - id: xs.sub.underpinning
+    type: Shop Drawings
+    must_show:
+      - Pit sequence and widths, load transfer by dry-pack or grout, and the existing footing information assumed
+
+review_checks:
+  - id: xs.design-loads
+    kind: conformance
+    submittal_types: [Delegated Design]
+    check: >
+      The design uses the report's earth pressures and groundwater and
+      includes every surcharge actually present: neighboring footings at
+      their real depth from the existing-conditions survey, street traffic,
+      crane pads, concrete truck and pump positions, and stockpiles.
+    trace_to: [report.geotechnical, report.existing_conditions, spec.part1]
+    severity: critical
+    owner: subcontractor
+
+  - id: xs.offsite-anchors
+    kind: absence
+    check: >
+      Tiebacks or soil nails that extend under neighboring property or the
+      public right-of-way have written permission or an encroachment
+      permit, and utilities and vaults in that zone are located before
+      drilling.
+    trace_to: [drawings.civil, report.existing_conditions, spec.part1]
+    severity: high
+    owner: owner
+    gate: excavation
+
+  - id: xs.monitoring
+    kind: completeness
+    check: >
+      Instruments on the support system and on adjacent structures and
+      utilities (survey points, inclinometers, crack gauges, observation
+      wells) have baseline readings before excavation, a reading frequency,
+      threshold and limit values, and a named person who stops work and
+      calls the designer when a threshold is reached.
+    trace_to: [spec.part3, report.geotechnical]
+    severity: critical
+    owner: gc
+    gate: excavation
+
+  - id: xs.excavation-staging
+    kind: constructability
+    check: >
+      Excavation advances in the stages the design assumes: only to just
+      below each tieback or brace level until that level is installed,
+      tested and locked off. Digging ahead of the support is the usual
+      field shortcut.
+    trace_to: [spec.part3]
+    severity: high
+    owner: gc
+
+  - id: xs.anchor-testing
+    kind: completeness
+    check: >
+      Every production anchor is proof tested and the specified number
+      performance tested before excavation continues below it, and anchors
+      that fail are replaced or derated by the designer.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: xs.ground-loss
+    kind: constructability
+    check: >
+      Lagging goes in as the excavation advances with voids behind it
+      filled, and water and fines coming through lagging or sheet
+      interlocks are stopped at once; the drawings or spec say what the
+      contractor does when it happens.
+    trace_to: [spec.part3, report.geotechnical]
+    severity: high
+    owner: subcontractor
+
+  - id: xs.underpinning-sequence
+    kind: constructability
+    check: >
+      Underpinning pits are opened in the specified non-adjacent sequence,
+      load transfer is completed and inspected before neighboring pits
+      open, and existing footings that differ from what was assumed are
+      reported to the designer before work continues.
+    trace_to: [spec.part3, report.existing_conditions]
+    severity: critical
+    owner: subcontractor
+
+  - id: xs.removal-abandonment
+    kind: absence
+    check: >
+      The contract or design states which elements are removed and which
+      stay (soldier piles cut off below grade, tiebacks de-tensioned,
+      bracing removed in step with the permanent structure), and
+      abandoned elements under neighbors or the right-of-way have the owner's
+      or the agency's agreement.
+    trace_to: [spec.part3, drawings.civil]
+    severity: medium
+    owner: design_team
+
+reconciliations:
+  - id: xs.rc.support-vs-permanent
+    between: [drawings.foundation, drawings.structural, drawings.civil, drawings.plumbing]
+    key: Each tieback, nail, raker, brace and soldier pile on the shoring submittal
+    fields: [plan location, elevation and inclination, clearance to footings, pile caps and grade beams, clearance to service entries and underslab utilities, property line]
+    check: >
+      Overlaid on the foundation, structural and utility drawings, no
+      support element passes through a footing, pile cap, grade beam,
+      service entry or existing utility, and raker footings and braces do
+      not occupy the place where the permanent slab, walls or columns go
+      before they can be removed.
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+failure_modes:
+  - id: xs.fm.surcharge-missed
+    what_happens: A neighboring footing, crane pad or truck lane left out of the design loads
+    consequence: Wall movement beyond design, damage next door, emergency bracing
+    caught_by: [xs.design-loads]
+    source: industry_practice
+
+  - id: xs.fm.anchor-through-utility
+    what_happens: A tieback drilled through an existing utility or into the location of a future pile cap
+    consequence: Utility damage, or a foundation redesign around the anchor
+    caught_by: [xs.rc.support-vs-permanent, xs.offsite-anchors]
+    source: industry_practice
+
+  - id: xs.fm.no-baseline
+    what_happens: Monitoring starts after excavation has begun, with no baseline readings
+    consequence: Movement cannot be measured or attributed; neighbor claims cannot be answered
+    caught_by: [xs.monitoring, d31.adjacent-monitoring]
+    source: industry_practice
+
+  - id: xs.fm.dug-ahead
+    what_happens: Excavation taken below the next support level before anchors are installed and locked off
+    consequence: Wall deflection beyond design and cracking in adjacent structures
+    caught_by: [xs.excavation-staging]
+    source: industry_practice
+
+  - id: xs.fm.ground-loss
+    what_happens: Water and fines run through lagging gaps or open sheet interlocks
+    consequence: Voids and settlement behind the wall, under sidewalks, streets and neighbors
+    caught_by: [xs.ground-loss]
+    source: industry_practice
+
+  - id: xs.fm.rakers-in-the-way
+    what_happens: Raker footings and braces sit where the permanent slab, walls or columns go
+    consequence: Re-sequencing, temporary re-support and delay to the structure
+    caught_by: [xs.rc.support-vs-permanent]
+    source: industry_practice
+
+  - id: xs.fm.left-in-place
+    what_happens: Tiebacks and soldier piles abandoned under a neighbor or the right-of-way without agreement
+    consequence: Claims when the neighbor or the agency later excavates; removal demanded
+    caught_by: [xs.removal-abandonment, xs.offsite-anchors]
+    source: industry_practice
+
+  - id: xs.fm.adjacent-pits
+    what_happens: Adjacent underpinning pits opened at the same time, or load transfer skipped
+    consequence: Settlement of the building being underpinned
+    caught_by: [xs.underpinning-sequence]
+    source: industry_practice
+
+standards:
+  - id: xs.std.pti-dc35-1
+    name: PTI DC35.1
+    title: Recommendations for Prestressed Rock and Soil Anchors
+    verify: Anchor performance, proof and creep test procedures and acceptance criteria the spec cites
+
+regulatory_hooks:
+  - id: xs.rh.right-of-way
+    topic: right-of-way-encroachment
+    question: >
+      What does the adopted building code and the agency that owns the
+      adjacent right-of-way require for excavation support, tiebacks or soil
+      nails beneath the public way (permit, design review, removal or
+      de-tensioning afterward)?
+    applies_when: Excavation support next to a street, alley or sidewalk
+    source_families: [building_code, public_works]
+    severity: high
+
+extract_fields:
+  - id: xs.xf.design-basis
+    label: Earth pressures, groundwater and surcharges used in the design
+    type: list
+    per: package
+    reconcile_against: [report.geotechnical, report.existing_conditions]
+  - id: xs.xf.thresholds
+    label: Monitoring threshold and limit values by instrument type
+    type: list
+    per: package
+    reconcile_against: [spec.part3]
