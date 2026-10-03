@@ -1,0 +1,207 @@
+schema_version: 1
+kind: section
+id: "07 81 00"
+title: Applied Fireproofing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # thickness by listing; some specs delegate the design selection
+
+scope_summary: >
+  Sprayed fire-resistive materials and intumescent coatings on structural
+  steel. Ratings come from the construction type and from the rated walls,
+  shafts and floors a member supports; the protection comes from a listed design whose thickness depends on member size and on whether the
+  designer classified the assembly as restrained. It goes on after the steel
+  and before most MEP work, so the expensive misses are a shop primer the
+  listing does not allow, hangers added afterward, and ceilings closed before
+  testing.
+
+submittals:
+  - id: fp.sub.product-data
+    type: Product Data
+    must_show:
+      - Each product with its listings, and its exposure suitability
+  - id: fp.sub.design-data
+    type: Design Data
+    must_show:
+      - Listed design for each member type and rating
+      - Thickness schedule for every member size protected
+      - Primer or bonding-agent compatibility documentation for the steel as it will be delivered
+  - id: fp.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Applicator approval by the manufacturer
+      - Inspection and test plan, and patching procedure
+
+review_checks:
+  - id: fp.ul-designs
+    kind: conformance
+    reflex: true
+    check: >
+      Each rating on the structural and life safety drawings maps to a listed
+      design cited in the submittal, for each member type (beams, columns,
+      joists, deck). Beams, joists and floor or roof assemblies carry the
+      restrained or unrestrained classification the designer of record
+      assigned; columns carry a single rating.
+    trace_to: [drawings.structural, drawings.life_safety, spec.part2]
+    severity: critical
+    owner: subcontractor
+
+  - id: fp.thickness-schedule
+    kind: completeness
+    submittal_types: [Design Data, Shop Drawings]
+    check: >
+      A thickness schedule covers every member size to be protected, derived
+      from the cited designs and any size-adjustment method the listing
+      permits.
+    trace_to: [drawings.structural]
+    severity: high
+    owner: subcontractor
+
+  - id: fp.primer-compatibility
+    kind: coordination
+    check: >
+      The steel's shop primer or coating, or its absence, is accepted by the
+      fireproofing listing and manufacturer; where steel will arrive primed,
+      compatibility or bond data is in this submittal and the steel submittal
+      agrees.
+    trace_to: [spec.part2, spec.part3]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: fp.hangers-first
+    kind: constructability
+    check: >
+      Hangers, clips, deck welding, shear studs and attachments for MEP,
+      ceilings and cladding are installed before application, or a patching
+      procedure with a listed patch material and re-inspection is assigned to
+      the trade that disturbs it.
+    trace_to: [spec.part3, schedule.master]
+    severity: high
+    owner: gc
+    gate: fireproofing_application
+
+  - id: fp.inspection
+    kind: completeness
+    check: >
+      Thickness, density and bond testing the spec or code requires is
+      scheduled area by area before overhead ductwork, piping and ceilings
+      block access, with who tests and how failures are repaired and retested.
+    trace_to: [spec.part3, register.special_inspections]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: fp.floor-assembly-match
+    kind: conformance
+    check: >
+      The conditions of each listed floor or roof design (concrete type and
+      density, topping over the flutes, deck type, protected or unprotected
+      deck) match the structural drawings. A mismatch changes the beam
+      thickness or means the deck itself needs protection.
+    trace_to: [drawings.structural, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: fp.exposure
+    kind: conformance
+    check: >
+      The product suits its exposure (interior or exterior, humidity, plenum
+      airflow, physical abuse), and intumescent topcoats are compatible and
+      covered by the listing.
+    trace_to: [spec.part2, drawings.structural]
+    severity: medium
+    owner: subcontractor
+
+reconciliations:
+  - id: fp.rc.ratings
+    between: [drawings.life_safety, drawings.structural, spec.part2]
+    key: Member type and location
+    fields: [required rating, restrained or unrestrained, listed design, thickness]
+    check: >
+      Required ratings agree across the life safety plans, structural drawings
+      and spec, and each one is covered by a listed design and thickness in the
+      submittal.
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: fp.fm.primed-steel
+    what_happens: Steel shop-primed by default under the steel section when the fireproofing listing needs bare steel or a tested primer
+    consequence: Bond test failures, bonding agent or blasting in the field, and schedule loss
+    caught_by: [fp.primer-compatibility, if.fireproofing-steel-primer]
+    source: industry_practice
+
+  - id: fp.fm.hangers-after
+    what_happens: MEP trades attach hangers after fireproofing is applied
+    consequence: Every hanger becomes cut, patch and re-inspect; damage above ceilings is left unrepaired
+    caught_by: [fp.hangers-first, if.fireproofing-hangers]
+    source: industry_practice
+
+  - id: fp.fm.covered-untested
+    what_happens: Overhead MEP work and ceilings go in before fireproofing is tested and repaired
+    consequence: Work removed to reach failed areas, or failures found at the end of the job
+    caught_by: [fp.inspection]
+    source: industry_practice
+
+  - id: fp.fm.classification-assumed
+    what_happens: Restrained ratings assumed without the designer's determination
+    consequence: Under-protected members; resubmittal and added thickness
+    caught_by: [fp.ul-designs, fp.rc.ratings]
+    source: industry_practice
+
+  - id: fp.fm.cold-application
+    what_happens: Applied without the temperature, enclosure or ventilation the product needs
+    consequence: Poor cure and bond; failed tests and reapplication
+    caught_by: [d07.application-limits]
+    source: industry_practice
+
+standards:
+  - id: fp.std.listings
+    name: Fire resistance directory listings
+    title: Listed designs for the rated assemblies (e.g. UL Fire Resistance Directory)
+    verify: Design numbers, member types and restrained or unrestrained ratings cited
+  - id: fp.std.astm-e605
+    name: ASTM E605
+    title: Thickness and Density of Sprayed Fire-Resistive Material Applied to Structural Members
+    verify: Field thickness and density test method
+  - id: fp.std.astm-e736
+    name: ASTM E736
+    title: Cohesion/Adhesion of Sprayed Fire-Resistive Materials Applied to Structural Members
+    verify: Bond strength test method
+
+regulatory_hooks:
+  - id: fp.rh.special-inspection
+    topic: sprayed-fireproofing-special-inspection
+    question: >
+      What special inspections and tests does the adopted building code
+      require for sprayed fire-resistive materials and intumescent coatings
+      (thickness, density, bond strength), how often, and by whom?
+    applies_when: Any applied fireproofing
+    source_families: [building_code]
+    severity: high
+
+  - id: fp.rh.structural-ratings
+    topic: structural-fire-resistance-ratings
+    question: >
+      What ratings does the construction type require for primary and
+      secondary structural members, and are any members exempt?
+    applies_when: Any applied fireproofing
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: fp.xf.designs
+    label: Listed design per member type and rating
+    type: list
+    per: package
+    reconcile_against: [drawings.structural, drawings.life_safety]
+  - id: fp.xf.primer
+    label: Steel surface condition the listing requires
+    type: string
+    per: package
+    reconcile_against: [spec.part2]

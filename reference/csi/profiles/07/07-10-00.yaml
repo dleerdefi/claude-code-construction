@@ -1,0 +1,174 @@
+schema_version: 1
+kind: section
+id: "07 10 00"
+title: Dampproofing and Waterproofing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Below-grade waterproofing and dampproofing, and horizontal waterproofing
+  under overburden (plaza decks, split slabs, planters, vegetated roofs).
+  The groundwater condition decides the system. Almost all of it becomes
+  permanently inaccessible at the pour or the backfill, so the review is
+  about terminations, penetrations, the joints in the concrete, and testing
+  before cover.
+
+submittals:
+  - id: wp.sub.product-data
+    type: Product Data
+    must_show:
+      - Membrane, primers, flashing and transition products, termination bars
+      - Protection board and drainage composite
+      - Waterstop product and the membrane manufacturer's acceptance of it
+  - id: wp.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Details at every termination, corner, penetration, expansion joint and change of substrate
+      - Top-of-wall termination and its connection to the above-grade barrier
+      - For pre-applied systems, laps, seams and penetration treatment against shoring
+
+review_checks:
+  - id: wp.hydrostatic-condition
+    kind: conformance
+    check: >
+      The system type matches the groundwater condition in the geotechnical
+      report: a membrane suited to hydrostatic pressure wherever the water
+      table or perched water can reach the structure, and dampproofing only
+      where it cannot.
+    trace_to: [report.geotechnical, drawings.foundation, spec.part2]
+    severity: critical
+    owner: design_team
+
+  - id: wp.blindside-sequence
+    kind: constructability
+    submittal_types: [Shop Drawings]
+    check: >
+      Where the membrane is pre-applied against shoring, lagging or a mud slab,
+      the shop drawings show laps, terminations, penetration treatments and
+      protection during reinforcing placement, and inspection and repair are
+      sequenced before the pour.
+    trace_to: [drawings.details, drawings.foundation, spec.part3]
+    severity: critical
+    owner: subcontractor
+    gate: foundation_pour
+
+  - id: wp.waterstops
+    kind: coordination
+    check: >
+      Waterstops at below-grade construction and expansion joints are located
+      on placement or shop drawings, and the waterstop type is compatible with
+      the membrane and accepted under its warranty.
+    trace_to: [drawings.foundation, drawings.details, spec.part2]
+    severity: high
+    owner: gc
+    gate: foundation_pour
+
+  - id: wp.protection-drainage
+    kind: completeness
+    check: >
+      Protection board or drainage composite, its connection to the foundation
+      drain, and backfill material limits next to the membrane are shown and
+      match the contract documents.
+    trace_to: [drawings.foundation, drawings.details]
+    severity: medium
+    owner: subcontractor
+    gate: backfill
+
+  - id: wp.flood-test
+    kind: completeness
+    check: >
+      Horizontal waterproofing under pavers, soil, topping slabs or vegetation
+      has a flood or electronic leak test before overburden, with who performs
+      and who witnesses it. Electronic testing needs a conductive substrate or
+      layer suited to the method, installed with the membrane.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: overburden_placement
+
+  - id: wp.pits-and-sumps
+    kind: absence
+    reflex: true
+    check: >
+      Elevator pits, sumps, tunnels and other below-grade depressions are
+      inside the waterproofing scope, with details, wherever the groundwater
+      condition calls for it.
+    trace_to: [drawings.foundation, drawings.details]
+    severity: high
+    owner: design_team
+
+failure_modes:
+  - id: wp.fm.adhesion-blocked
+    what_happens: Concrete cured or released with products that block membrane adhesion
+    consequence: Membrane disbonds; water tracks behind it and the leak source is hard to find
+    caught_by: [if.waterproofing-concrete]
+    source: industry_practice
+
+  - id: wp.fm.blindside-damage
+    what_happens: Pre-applied membrane punctured during reinforcing and formwork with no inspection before the pour
+    consequence: Leaks through a membrane that can never be reached again; injection grouting from the inside
+    caught_by: [wp.blindside-sequence]
+    source: industry_practice
+
+  - id: wp.fm.backfilled-uninspected
+    what_happens: Backfill placed before membrane, protection and drain are inspected, or with material that damages them
+    consequence: Excavation to repair, or leaks accepted as permanent
+    caught_by: [wp.protection-drainage, if.waterproofing-backfill]
+    source: industry_practice
+
+  - id: wp.fm.overburden-untested
+    what_happens: Pavers, soil or topping placed over horizontal waterproofing without a leak test
+    consequence: Finding a leak means removing the overburden
+    caught_by: [wp.flood-test]
+    source: industry_practice
+
+  - id: wp.fm.pit-left-out
+    what_happens: Elevator pit below the water table left out of the waterproofing scope
+    consequence: Water in the pit; elevator inspection and turnover delayed
+    caught_by: [wp.pits-and-sumps]
+    source: industry_practice
+
+  - id: wp.fm.early-hydration
+    what_happens: Bentonite-based system wetted by rain before it is confined
+    consequence: Lost swelling capacity where it is needed; leaks after backfill
+    caught_by: [d07.application-limits]
+    source: industry_practice
+
+standards:
+  - id: wp.std.astm-d5957
+    name: ASTM D5957
+    title: Flood Testing Horizontal Waterproofing Installations
+    verify: Flood test procedure and duration the spec requires
+    note: Excludes roofing; applies to low-slope horizontal waterproofing
+  - id: wp.std.astm-d7877
+    name: ASTM D7877
+    title: Electronic Methods for Detecting and Locating Leaks in Roofing and Waterproofing Membranes
+    verify: Electronic leak testing method where specified instead of a flood test
+    note: Earlier editions are titled "...Detecting and Locating Leaks in Waterproof Membranes"
+
+regulatory_hooks:
+  - id: wp.rh.foundation-waterproofing
+    topic: foundation-dampproofing-waterproofing
+    question: >
+      Where does the adopted building code require foundation waterproofing
+      rather than dampproofing (hydrostatic pressure, groundwater
+      investigation), and what does it require of the membrane and its extent?
+    applies_when: Below-grade walls and slabs
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: wp.xf.system
+    label: Waterproofing system type and product
+    type: string
+    per: package
+    reconcile_against: [spec.part2, report.geotechnical]
+  - id: wp.xf.waterstop
+    label: Waterstop product at each joint type
+    type: list
+    per: package
+    reconcile_against: [drawings.foundation]

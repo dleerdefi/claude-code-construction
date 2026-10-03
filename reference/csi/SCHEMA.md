@@ -31,6 +31,7 @@ reference/csi/
 │   ├── 07/
 │   │   ├── _division.yaml       ← Division 07 baseline
 │   │   ├── 07-10-00.yaml        ← Dampproofing and Waterproofing
+│   │   ├── 07-20-00.yaml        ← Thermal Protection (wall assembly as a tested whole)
 │   │   ├── 07-27-00.yaml        ← Air Barriers
 │   │   ├── 07-50-00.yaml        ← Membrane Roofing
 │   │   ├── 07-81-00.yaml        ← Applied Fireproofing
@@ -284,6 +285,7 @@ edges:
 - `responsibility.typical` is a **prompt to confirm**, never an answer — furnish / install / connect splits are project-specific and are where coordination money is lost.
 - `gate.milestone` must be an id in `milestones.yaml`. `gate.inspect_before` (optional) lists inspections specific to this interface, on top of the milestone's own.
 - `reflex: true` on an edge puts it in the always-on list.
+- `failure` is for an interface no failure mode covers. When a profile's failure mode names the edge in `caught_by`, leave `failure` off the edge so the consequence has one home.
 
 ### 6.1 Milestones (`milestones.yaml`)
 
@@ -298,6 +300,8 @@ milestones:
 ```
 
 The order is approximate and applies within one area of the building. Add a milestone only when an existing one cannot carry the gate.
+
+`inspect_before` lists formal hold points only: AHJ inspections, special inspections, third-party and manufacturer inspections, surveys. Coordination items compile from gates and are never restated here. Concealment is literal: penetration firestopping in gypsum walls is installed after both faces are boarded and is concealed at `above_ceiling_close_in`, not at `wall_close_in`.
 
 ---
 

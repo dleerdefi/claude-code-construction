@@ -1,0 +1,298 @@
+schema_version: 1
+kind: interfaces
+id: div-07
+title: Interfaces involving Division 07
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+
+edges:
+  # ── Firestopping ──────────────────────────────────────────────
+  - id: if.firestop-rated-walls
+    reflex: true
+    a: ["07 84 00"]
+    a_trade: Firestopping
+    b: ["09 21 16", "09 22 16", "09 29 00"]
+    b_trade: Gypsum board assemblies and framing
+    a_provides: Listed systems that assume clean openings in finished boards; installation and inspection area by area
+    b_provides: Rated walls boarded full height to structure before penetrating trades pass through them
+    gate: {milestone: overhead_rough_in}
+    severity: critical
+
+  - id: if.firestop-mep-penetrations
+    a: ["07 84 00"]
+    a_trade: Firestopping
+    b: ["21 10 00", "22 10 00", "23 20 00", "23 30 00", "26 05 00", "27 05 00", "28 05 00"]
+    b_trade: Penetrating trades (sprinkler, plumbing, HVAC piping and duct, electrical, low voltage)
+    a_provides: Listed system per penetrant and assembly, with annular space and opening limits
+    b_provides: Penetrant types, materials, sizes and insulation through each rated assembly; openings sized within system limits
+    responsibility:
+      - item: Firestopping of MEP penetrations through rated assemblies
+        typical: {furnish: "07 84 00", install: "07 84 00 or each penetrating trade"}
+        confirm_in: [spec.part1, spec.part3]
+    gate:
+      milestone: procurement_release
+      note: Settle the installer and the system matrix before rough-in starts
+    severity: high
+
+  - id: if.firestop-dampers
+    a: ["07 84 00"]
+    a_trade: Firestopping
+    b: ["23 33 00"]
+    b_trade: Fire and smoke dampers
+    a_provides: No firestop material in the damper's sleeve clearance unless the damper's listed installation instructions allow it
+    b_provides: Damper listing, sleeve, retaining angles and expansion clearance per the manufacturer's installation instructions
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+
+  - id: if.head-of-wall-joints
+    a: ["07 84 00"]
+    a_trade: Firestopping
+    b: ["09 22 16", "09 21 16"]
+    b_trade: Framing and gypsum board assemblies
+    a_provides: Listed joint system whose movement rating covers the structural design deflection, for the wall type and deck orientation
+    b_provides: Deflection track type, installed joint width, and deck profile and orientation at each head of wall
+    gate:
+      milestone: procurement_release
+      note: The design deflection comes from the structural drawings, not from the framer
+    severity: high
+
+  - id: if.perimeter-fire-containment
+    a: ["07 84 00"]
+    a_trade: Firestopping
+    b: ["08 44 00"]
+    b_trade: Curtain wall
+    a_provides: Listed perimeter fire containment system and the spandrel conditions it requires
+    b_provides: Spandrel construction (backpan, insulation, framing members) that meets the listing; slab-edge gap dimensions
+    responsibility:
+      - item: Safing and smoke seal at the slab edge
+        typical: {furnish: "07 84 00 or 08 44 00", install: "07 84 00 or 08 44 00"}
+        confirm_in: [spec.part1, drawings.details]
+    gate:
+      milestone: procurement_release
+      note: The curtain wall shop drawings have to carry the listing's spandrel requirements
+    severity: critical
+
+  # ── Fireproofing ──────────────────────────────────────────────
+  - id: if.fireproofing-steel-primer
+    a: ["07 81 00"]
+    a_trade: Applied fireproofing
+    b: ["05 12 00", "05 31 00"]
+    b_trade: Structural steel and steel deck
+    a_provides: Steel surface condition the fireproofing listing allows (bare, tested primer, or bonding agent)
+    b_provides: Which members will be shop-primed or painted, and with what
+    gate:
+      milestone: procurement_release
+      note: Settle before steel fabrication starts
+    severity: high
+
+  - id: if.fireproofing-hangers
+    reflex: true
+    a: ["07 81 00"]
+    a_trade: Applied fireproofing
+    b: ["21 05 00", "22 05 00", "23 05 00", "26 05 00", "09 50 00", "05 50 00"]
+    b_trade: MEP hangers, ceiling suspension and cladding supports
+    a_provides: Application sequence by area, and the patching procedure for later attachments
+    b_provides: Hangers, clips and supports attached to steel before application in each area
+    gate: {milestone: fireproofing_application}
+    severity: high
+
+  - id: if.rated-roof-assembly
+    a: ["07 50 00", "07 22 00"]
+    a_trade: Roofing and roof insulation
+    b: ["07 81 00", "09 50 00"]
+    b_trade: Fireproofing or rated ceiling of a listed roof-ceiling design
+    a_provides: Insulation, cover board, membrane and attachment as submitted
+    b_provides: The listed roof-ceiling design and the limits it places on the roofing components above
+    gate: {milestone: procurement_release}
+    severity: high
+    failure: Roofing components substituted outside the listed design; the roof-ceiling assembly loses its rating
+
+  # ── Roofing ───────────────────────────────────────────────────
+  - id: if.roof-drains
+    a: ["07 50 00"]
+    a_trade: Roofing
+    b: ["22 14 00"]
+    b_trade: Storm drainage
+    a_provides: Finished-roof elevation at each drain, sump details and the membrane clamping method
+    b_provides: Primary and overflow drain bodies set at that elevation before the roofer reaches them
+    gate: {milestone: roof_membrane}
+    severity: high
+
+  - id: if.roof-equipment-curbs
+    a: ["07 50 00", "07 72 00"]
+    a_trade: Roofing and roof accessories
+    b: ["23 74 00", "23 34 00", "05 12 00", "05 50 00", "06 10 53"]
+    b_trade: Rooftop equipment, deck-opening framing, dunnage and wood nailers
+    a_provides: Curb and support heights and flashing details compatible with the roof assembly
+    b_provides: Equipment curb dimensions and weights, framing at deck openings, dunnage, and the setting schedule
+    responsibility:
+      - item: Equipment curbs and supports
+        typical: {furnish: "23 74 00 or 07 72 00", install: "06 10 53 (GC carpentry) or 23 74 00"}
+        confirm_in: [spec.part1, drawings.details]
+      - item: Flashing curbs and supports into the membrane
+        typical: {install: "07 50 00"}
+        confirm_in: [spec.part3]
+    gate: {milestone: roof_membrane}
+    severity: high
+    failure: Curbs furnished by nobody, or set after the membrane and flashed in as patches
+
+  - id: if.roof-edge-nailers
+    a: ["07 50 00", "07 71 00"]
+    a_trade: Roofing and roof specialties
+    b: ["06 10 53"]
+    b_trade: Rough carpentry
+    a_provides: Nailer size, height and fastening that the edge system and its test require
+    b_provides: Nailers installed and fastened to that design before edge metal and copings
+    gate: {milestone: roof_membrane}
+    severity: high
+    failure: Edge metal fastened to undersized or under-fastened nailers; roof edge lifts in high wind
+
+  - id: if.roof-attachments-lp-pv
+    a: ["07 50 00"]
+    a_trade: Roofing
+    b: ["26 41 00", "48 14 00"]
+    b_trade: Lightning protection and photovoltaics
+    a_provides: Manufacturer-accepted attachment and penetration details, and protection requirements
+    b_provides: Attachment locations, ballast or anchorage, conduit routing and the installation schedule
+    gate: {milestone: equipment_set}
+    severity: medium
+    failure: Attachments made through the membrane without approved details; warranty exclusion
+
+  - id: if.roof-wall-air-barrier
+    a: ["07 50 00"]
+    a_trade: Roofing
+    b: ["07 27 00"]
+    b_trade: Air barrier
+    a_provides: Roof membrane or roof vapor retarder carried to the wall and up the parapet, with the transition product
+    b_provides: Wall air barrier carried up to meet it, and deck flutes sealed where the wall line crosses the deck
+    responsibility:
+      - item: Air-barrier connection at the roof-to-wall transition
+        typical: {install: "07 27 00 or 07 50 00"}
+        confirm_in: [drawings.details, spec.part3]
+    gate:
+      milestone: roof_membrane
+      note: Base flashing and coping cover this transition before the wall cladding does
+    severity: high
+    failure: Air leakage path at the roof edge that neither trade carried
+
+  # ── Air barrier and wall assembly ─────────────────────────────
+  - id: if.air-barrier-openings
+    a: ["07 27 00", "07 62 00"]
+    a_trade: Air barrier and sheet metal flashing
+    b: ["08 40 00", "08 50 00"]
+    b_trade: Storefront, curtain wall and windows
+    a_provides: Rough opening wrap, sill pan where the system uses one, and transition membrane ready for the frame
+    b_provides: Frame installation sequence, perimeter seal design and the surfaces the transition bonds to
+    responsibility:
+      - item: Sill pan flashing
+        typical: {furnish: "07 27 00, 07 62 00 or 08 50 00", install: "07 27 00, 07 62 00 or 08 50 00"}
+        confirm_in: [drawings.details, spec.part3]
+      - item: Transition from air barrier to frame
+        typical: {install: "07 27 00, 08 40 00 or 08 50 00"}
+        confirm_in: [drawings.details, spec.part3]
+    gate: {milestone: opening_install}
+    severity: critical
+
+  - id: if.air-barrier-cladding
+    a: ["07 27 00"]
+    a_trade: Air barrier
+    b: ["04 20 00", "07 42 00", "07 46 00", "09 24 00"]
+    b_trade: Cladding (masonry veneer, wall panels, siding, plaster)
+    a_provides: Sealing method for attachment penetrations
+    b_provides: Attachment type and pattern, and the cladding sequence
+    gate: {milestone: envelope_close_in}
+    severity: medium
+    failure: Attachment penetrations left unsealed behind the cladding
+
+  - id: if.exterior-wall-fire-test
+    a: ["07 20 00"]
+    a_trade: Weather barrier, air barrier and continuous insulation
+    b: ["07 42 00", "07 46 00", "04 20 00", "09 24 00"]
+    b_trade: Cladding
+    a_provides: Barrier, insulation and sheathing products as submitted
+    b_provides: Cladding product and attachment as submitted
+    gate:
+      milestone: procurement_release
+      note: Review the wall layers together against the tested assembly or engineering analysis
+    severity: critical
+
+  # ── Waterproofing ─────────────────────────────────────────────
+  - id: if.waterproofing-concrete
+    a: ["07 10 00"]
+    a_trade: Waterproofing
+    b: ["03 30 00", "03 15 00"]
+    b_trade: Cast-in-place concrete and accessories
+    a_provides: Substrate requirements (curing method, release agents, form-tie treatment, surface profile) and waterstop compatibility
+    b_provides: Curing and release products used, construction joint locations, waterstop installation
+    responsibility:
+      - item: Waterstops at below-grade joints
+        typical: {furnish: "03 15 00", install: "03 30 00"}
+        confirm_in: [spec.part2, drawings.foundation]
+    gate: {milestone: foundation_pour}
+    severity: high
+
+  - id: if.blindside-shoring
+    a: ["07 10 00"]
+    a_trade: Pre-applied waterproofing
+    b: ["31 50 00"]
+    b_trade: Excavation support
+    a_provides: Substrate preparation over lagging and pile flanges, and details at tiebacks, rakers and other shoring penetrations
+    b_provides: Tieback and raker locations, cut-off method and lagging surface
+    gate: {milestone: foundation_pour}
+    severity: high
+    failure: Membrane cannot be made watertight at shoring penetrations or over rough lagging
+
+  - id: if.waterproofing-utility-entries
+    a: ["07 10 00"]
+    a_trade: Below-grade waterproofing
+    b: ["21 10 00", "22 10 00", "26 05 00", "27 05 00", "33"]
+    b_trade: Utility services entering below grade
+    a_provides: Membrane-compatible sleeve and seal details for every below-grade entry
+    b_provides: Entry locations, sleeve sizes and seal products, set before the pour
+    gate: {milestone: foundation_pour}
+    severity: high
+    failure: Unsealed or incompatible seals at service entries; leaks at each one
+
+  - id: if.waterproofing-backfill
+    a: ["07 10 00"]
+    a_trade: Waterproofing
+    b: ["31 23 00", "33 41 00"]
+    b_trade: Excavation and fill; subdrainage
+    a_provides: Inspection release of membrane, protection and drainage composite
+    b_provides: Foundation drain installation, backfill material and compaction method next to the wall
+    gate: {milestone: backfill}
+    severity: high
+
+  - id: if.waterproofing-to-air-barrier
+    a: ["07 10 00"]
+    a_trade: Below-grade waterproofing
+    b: ["07 27 00"]
+    b_trade: Above-grade air and water barrier
+    a_provides: Termination at grade and the lap the above-grade barrier will join
+    b_provides: Barrier carried down to overlap the below-grade termination
+    responsibility:
+      - item: Transition at the grade line
+        typical: {install: "07 10 00 or 07 27 00"}
+        confirm_in: [drawings.details, spec.part3]
+    gate: {milestone: backfill}
+    severity: high
+    failure: Gap at the grade line covered by backfill on one side and cladding on the other
+
+  # ── Sealants ──────────────────────────────────────────────────
+  - id: if.sealant-substrates
+    a: ["07 92 00"]
+    a_trade: Joint sealants
+    b: ["08 40 00", "08 50 00", "07 27 00", "07 42 00"]
+    b_trade: Frames, air barrier and wall panels
+    a_provides: Sealant and primer per substrate, and adhesion test requests
+    b_provides: Actual finish and coating samples for adhesion testing
+    responsibility:
+      - item: Perimeter sealant at windows, storefront and curtain wall
+        typical: {install: "07 92 00 or the glazing trade"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: procurement_release}
+    severity: medium

@@ -1,0 +1,150 @@
+schema_version: 1
+kind: section
+id: "07 27 00"
+title: Air Barriers
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  The continuous air barrier, which on most projects is also the water-
+  resistive barrier. The membrane itself is rarely the problem; the
+  transitions, the openings and the hundreds of cladding-attachment
+  penetrations are. It is covered by cladding soon after it goes on, so
+  inspection and testing have to happen while it is still visible.
+
+submittals:
+  - id: ab.sub.product-data
+    type: Product Data
+    must_show:
+      - Membrane, primers, transition membranes, tapes, sealants and fastener-sealing products
+      - Air permeance, vapor permeance and assembly test data the spec requires
+  - id: ab.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Manufacturer details for every transition and penetration type on the project
+      - Sequence at openings, including sill pans and the connection to frames
+  - id: ab.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Installer certification and third-party quality assurance program the spec names
+
+review_checks:
+  - id: ab.transition-details
+    kind: completeness
+    submittal_types: [Shop Drawings, Product Data]
+    check: >
+      Manufacturer details exist for every transition and penetration type in
+      the contract documents (foundation, roof, openings, slab edges,
+      expansion joints, cladding attachments, MEP penetrations), using that
+      manufacturer's own transition products.
+    trace_to: [drawings.details, drawings.wall_sections]
+    severity: high
+    owner: subcontractor
+
+  - id: ab.opening-integration
+    kind: coordination
+    reflex: true
+    check: >
+      At every punched opening, storefront and curtain wall the sequence is
+      defined: rough opening wrapped, sill pan installed where the system uses
+      one, air barrier joined to the frame with the specified transition, and
+      who performs each step.
+    trace_to: [drawings.details, spec.part3]
+    severity: critical
+    owner: gc
+    gate: opening_install
+
+  - id: ab.attachment-penetrations
+    kind: constructability
+    check: >
+      Penetrations by cladding attachments (ties, clips, girts, brackets,
+      fasteners) are sealed by the manufacturer's method, and the attachment
+      system matches the thermal bridging the energy compliance assumed.
+    trace_to: [drawings.details, report.energy_compliance]
+    severity: medium
+    owner: subcontractor
+    gate: envelope_close_in
+
+  - id: ab.vapor-permeance
+    kind: conformance
+    check: >
+      A proposed barrier keeps the basis-of-design vapor permeance class
+      (vapor-permeable or vapor-impermeable). Changing it changes which way
+      the wall dries and is a design-team decision, not an equal.
+    trace_to: [spec.part2, drawings.wall_sections]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: ab.testing
+    kind: completeness
+    check: >
+      Field testing the spec or code requires (adhesion, mock-up air and water
+      testing, whole-building air leakage testing) is scheduled while failures
+      can still be repaired, and retest responsibility is defined.
+    trace_to: [spec.part3, schedule.master]
+    severity: high
+    owner: gc
+    gate: envelope_close_in
+
+failure_modes:
+  - id: ab.fm.covered-unverified
+    what_happens: Cladding installed over an air barrier never inspected at transitions and penetrations
+    consequence: Air and water paths can only be found and repaired by removing cladding
+    caught_by: [ab.transition-details, ab.testing]
+    source: industry_practice
+
+  - id: ab.fm.window-before-sill-pan
+    what_happens: Windows set before the sill pan and the air barrier return into the opening
+    consequence: Water enters at the sill; the opening has to be taken apart to fix it
+    caught_by: [ab.opening-integration, if.air-barrier-openings]
+    source: industry_practice
+
+  - id: ab.fm.permeance-swap
+    what_happens: A vapor-impermeable membrane substituted outside an insulated stud cavity designed to dry outward
+    consequence: Hidden condensation and decay in the wall cavity, found years later
+    caught_by: [ab.vapor-permeance]
+    source: industry_practice
+
+  - id: ab.fm.late-air-test
+    what_happens: Whole-building air leakage test scheduled after interior finishes
+    consequence: Leak sources are concealed when the test fails; retesting delays occupancy
+    caught_by: [ab.testing]
+    source: industry_practice
+
+standards:
+  - id: ab.std.astm-e2357
+    name: ASTM E2357
+    title: Air Leakage Rate of Air Barrier Assemblies
+    verify: Assembly test data the spec or energy code compliance path relies on
+  - id: ab.std.astm-e779-e3158
+    name: ASTM E779 / ASTM E3158
+    title: Whole-building air leakage by fan pressurization (E3158 for large or multizone buildings)
+    verify: Test method for a required whole-building test
+  - id: ab.std.astm-d4541
+    name: ASTM D4541
+    title: Pull-Off Strength of Coatings Using Portable Adhesion Testers
+    verify: Field adhesion testing where the spec uses it for fluid-applied membranes
+
+regulatory_hooks:
+  - id: ab.rh.air-barrier-testing
+    topic: air-barrier-continuity-testing
+    question: >
+      Does the adopted energy code require a continuous air barrier, which
+      compliance path does the design use (materials, assemblies or
+      whole-building testing), and is a whole-building air leakage test
+      required with a pass criterion?
+    applies_when: Any building envelope with an air barrier
+    source_families: [energy]
+    severity: high
+
+extract_fields:
+  - id: ab.xf.products
+    label: Air barrier and transition products
+    type: list
+    per: package
+    reconcile_against: [spec.part2]

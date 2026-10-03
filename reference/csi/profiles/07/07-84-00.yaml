@@ -1,0 +1,287 @@
+schema_version: 1
+kind: section
+id: "07 84 00"
+title: Firestopping
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # performance-specified; the contractor selects listed systems
+
+scope_summary: >
+  Penetration firestopping, fire-resistive joint systems (head of wall, slab
+  edge) and perimeter fire containment at curtain walls. Every condition needs
+  a listed system that matches the assembly, the penetrant and the opening as
+  built. Most systems go in at both faces after walls are boarded and
+  penetrations are made, and are concealed when ceilings, shafts and chases
+  close, so who installs it, whether walls were boarded before the trades
+  went through them, and when it is inspected matter as much as the products.
+
+submittals:
+  - id: fs.sub.product-data
+    type: Product Data
+    must_show:
+      - Each firestop product and the listed systems it is used in
+  - id: fs.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - A matrix of penetrant type by rated assembly type, with the listed system for each
+      - Joint systems for head-of-wall and slab-edge conditions, with their movement capability
+      - Perimeter fire containment system and the spandrel conditions its listing requires
+  - id: fs.sub.engineering-judgments
+    type: Design Data
+    must_show:
+      - Manufacturer's engineering judgment for each condition with no listed system
+  - id: fs.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Installer approval or third-party contractor qualification the spec names
+
+review_checks:
+  - id: fs.installer-named
+    kind: absence
+    reflex: true
+    check: >
+      The installing trade for firestopping is named in the contract documents
+      (this section, Division 01, or the MEP sections). If no section names
+      it, this is a scope gap to resolve, not an assumption to make.
+    trace_to: [spec.part1, spec.part3]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: fs.listed-system-per-penetration
+    kind: conformance
+    submittal_types: [Product Data, Shop Drawings]
+    check: >
+      A listed system is identified for every penetration type on the project
+      (metallic and plastic pipe, insulated pipe, conduit, cable and cable
+      tray, duct, combined penetrants) in each rated assembly type it passes
+      through, distinguishing through-penetrations from membrane
+      penetrations.
+    trace_to: [drawings.plans, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: fs.engineering-judgments
+    kind: completeness
+    check: >
+      Every condition with no listed system has a manufacturer's engineering
+      judgment prepared to the industry guideline the spec cites, and the
+      AHJ accepts it before installation.
+    trace_to: [spec.part1, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: fs.annular-space
+    kind: constructability
+    check: >
+      Openings and sleeves the penetrating trades create fall within the
+      annular space and opening limits of the selected systems; oversized
+      cored or cut openings are corrected before firestopping.
+    trace_to: [spec.part3]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: fs.joint-systems
+    kind: conformance
+    check: >
+      Head-of-wall, slab-edge and other fire-resistive joints use listed
+      joint systems whose movement capability covers the structural design
+      deflection, whose installed width is within the listed range, and
+      whose listing matches the wall type and the deck profile and orientation.
+    trace_to: [drawings.details, schedule.partition_type, drawings.structural]
+    severity: high
+    owner: subcontractor
+
+  - id: fs.perimeter-containment
+    kind: conformance
+    reflex: true
+    check: >
+      Where curtain wall or other exterior walls meet rated floors, a listed
+      perimeter fire containment system is selected and the curtain wall's
+      spandrel construction meets that listing's conditions.
+    trace_to: [drawings.wall_sections, drawings.details]
+    severity: critical
+    owner: gc
+
+  - id: fs.membrane-penetrations
+    kind: conformance
+    check: >
+      Membrane penetrations in rated walls (device boxes, recessed fixtures,
+      access panels) are protected by a listed method or fall within the
+      adopted code's membrane-penetration allowances.
+    trace_to: [drawings.electrical, schedule.partition_type]
+    severity: medium
+    owner: subcontractor
+
+  - id: fs.inspection-documentation
+    kind: completeness
+    check: >
+      Penetrations and joints are inspected before ceilings, shafts or chases
+      conceal them (special inspection where required), labeled, and logged
+      with the system used at each location, area by area.
+    trace_to: [spec.part3, register.special_inspections]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: fs.re-entry
+    kind: constructability
+    check: >
+      Where cabling will be added after turnover (telecom, security,
+      audiovisual pathways), re-enterable devices or sleeves are used instead
+      of one-time sealants.
+    trace_to: [spec.part2]
+    severity: low
+    owner: gc
+
+reconciliations:
+  - id: fs.rc.rated-assemblies
+    reflex: true
+    between: [drawings.life_safety, schedule.partition_type, drawings.plans]
+    key: Wall or floor segment
+    fields: [fire rating, smoke rating, extends to structure]
+    check: >
+      Every rated wall and floor on the life safety plans is a rated partition
+      or floor type with the same rating on the architectural drawings, and
+      rated walls continue to the structure where required.
+    severity: critical
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: fs.rc.penetration-matrix
+    between: [drawings.plumbing, drawings.mechanical, drawings.electrical, schedule.partition_type]
+    key: Penetrant type by assembly type
+    fields: [penetrant material and size, insulation, assembly rating, listed system]
+    check: >
+      Every penetrant type crossing a rated assembly on the MEP drawings has a
+      listed system or engineering judgment in the submittal matrix.
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+failure_modes:
+  - id: fs.fm.closed-before-firestop
+    what_happens: Ceilings, shafts or chases closed over rated-wall and floor penetrations before firestopping is installed and inspected
+    consequence: Ceilings and shaft walls opened to verify or install; one of the costliest rework patterns
+    caught_by: [fs.inspection-documentation]
+    source: industry_practice
+
+  - id: fs.fm.penetrated-before-boarded
+    what_happens: MEP trades rough through rated walls before the walls are boarded to structure
+    consequence: Ragged, oversized openings cut around installed pipe and duct that fit no listed system
+    caught_by: [if.firestop-rated-walls, fs.annular-space]
+    source: industry_practice
+
+  - id: fs.fm.wrong-listing
+    what_happens: A system listed for bare metallic pipe used on insulated or plastic pipe
+    consequence: Non-compliant penetrations found at inspection; removal and reinstallation
+    caught_by: [fs.listed-system-per-penetration, fs.rc.penetration-matrix]
+    source: industry_practice
+
+  - id: fs.fm.oversized-openings
+    what_happens: Openings cored or cut larger than the system's annular space limits
+    consequence: No listed system fits; patching or engineering judgments under schedule pressure
+    caught_by: [fs.annular-space]
+    source: industry_practice
+
+  - id: fs.fm.every-trade-firestops
+    what_happens: Each MEP trade firestops its own penetrations with its own products
+    consequence: Mixed systems, gaps nobody owns, and documentation the inspector rejects
+    caught_by: [fs.installer-named, if.firestop-mep-penetrations]
+    source: industry_practice
+
+  - id: fs.fm.joint-track-mismatch
+    what_happens: Head-of-wall joint system not rated for the movement of the deflection track below it
+    consequence: Joints fail inspection; head-of-wall rework across the floor
+    caught_by: [fs.joint-systems, if.head-of-wall-joints]
+    source: industry_practice
+
+  - id: fs.fm.damper-clearance-packed
+    what_happens: Firestop installer packs the expansion clearance around a fire or smoke damper sleeve
+    consequence: Damper installation no longer matches its listing; removal and reinstallation at inspection
+    caught_by: [if.firestop-dampers]
+    source: industry_practice
+
+  - id: fs.fm.perimeter-gap
+    what_happens: Slab-edge containment at the curtain wall left out, or installed without the listed spandrel conditions
+    consequence: Fire and smoke path between floors, found late; curtain wall rework
+    caught_by: [fs.perimeter-containment, if.perimeter-fire-containment]
+    source: industry_practice
+
+standards:
+  - id: fs.std.penetration-tests
+    name: ASTM E814 / UL 1479
+    title: Fire tests of penetration firestop systems
+    verify: F and T ratings claimed for each listed system
+  - id: fs.std.joint-tests
+    name: UL 2079 / ASTM E1966
+    title: Fire-resistive joint systems
+    verify: Joint system ratings and movement capability
+  - id: fs.std.astm-e2307
+    name: ASTM E2307
+    title: Fire resistance of perimeter fire barriers (intermediate-scale multi-story apparatus)
+    verify: Perimeter fire containment listing
+  - id: fs.std.inspection
+    name: ASTM E2174 / ASTM E2393
+    title: On-site inspection of installed firestop systems, and of joint systems and perimeter fire barriers
+    verify: Inspection method where special inspection is required
+  - id: fs.std.ifc-ej
+    name: International Firestop Council guidelines
+    title: Recommended IFC Guidelines for Evaluating Firestop System Engineering Judgments
+    verify: Engineering judgments submitted for conditions without a listed system
+
+regulatory_hooks:
+  - id: fs.rh.t-rating
+    topic: firestop-t-rating-threshold
+    question: >
+      Which penetrations require a T rating in addition to an F rating under
+      the adopted building code, and does the submittal provide it there?
+    applies_when: Floor and wall penetrations of rated assemblies
+    source_families: [building_code]
+    severity: medium
+
+  - id: fs.rh.special-inspection
+    topic: firestop-special-inspection
+    question: >
+      Does the adopted code require special inspection of penetration
+      firestops and fire-resistant joints for this building (by height, risk
+      category or another trigger), and to which inspection standards?
+    applies_when: Any building with rated assemblies
+    source_families: [building_code]
+    severity: high
+
+  - id: fs.rh.membrane-penetrations
+    topic: membrane-penetration-allowances
+    question: >
+      Which membrane penetrations of rated walls (device boxes by material,
+      size, area and spacing) does the adopted code allow without a listed
+      system, and which need listed boxes or protective pads?
+    applies_when: Electrical and low-voltage boxes in rated walls
+    source_families: [building_code]
+    severity: medium
+
+  - id: fs.rh.smoke-barriers
+    topic: smoke-barrier-penetrations
+    question: >
+      Which assemblies are smoke barriers or smoke partitions, and does the
+      code require air-leakage (L) ratings for their penetrations and joints?
+    applies_when: Smoke barriers or smoke partitions on the life safety plans
+    source_families: [building_code]
+    severity: medium
+
+extract_fields:
+  - id: fs.xf.systems
+    label: Listed system per penetrant and assembly type
+    type: list
+    per: package
+    reconcile_against: [drawings.plumbing, drawings.mechanical, drawings.electrical, schedule.partition_type]
+  - id: fs.xf.engineering-judgments
+    label: Conditions covered by engineering judgments
+    type: list
+    per: package
+    reconcile_against: [spec.part2]

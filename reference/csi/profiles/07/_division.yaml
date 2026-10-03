@@ -1,0 +1,118 @@
+schema_version: 1
+kind: division
+id: "07"
+title: Thermal and Moisture Protection
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  The building's control layers (water, air, thermal, vapor) plus fire
+  protection of structure and assemblies and joint protection. Envelope review
+  is continuity review: each layer has to run unbroken across every
+  transition, and most of it is concealed by the next trade within weeks.
+  Roofing, waterproofing and some air barriers carry manufacturer system
+  warranties that require the manufacturer's own components and approved
+  installers, so one substituted product can void the warranty.
+
+review_checks:
+  - id: d07.control-layer-continuity
+    kind: absence
+    reflex: true
+    check: >
+      On each wall section and every transition detail (foundation, slab edge,
+      openings, roof edge and parapet, penetrations, changes of material),
+      trace the water, air, thermal and vapor layers across the transition.
+      Any layer that stops without a detail showing how it joins the next is a
+      finding, even when the submittal itself is correct.
+    trace_to: [drawings.wall_sections, drawings.details, drawings.roof_plan]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: d07.transition-ownership
+    kind: coordination
+    reflex: true
+    check: >
+      Where layers installed by different trades meet (below-grade
+      waterproofing to wall air barrier, wall air barrier to roofing, air
+      barrier to window and curtain wall frames), the trade that makes the
+      connection and the transition material are assigned in the contract
+      documents or subcontracts.
+    trace_to: [spec.part1, drawings.details]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: d07.system-compatibility
+    kind: conformance
+    submittal_types: [Product Data, Certificates]
+    check: >
+      Products that touch in the assembly (membranes, primers, flashings,
+      tapes, sealants, adhesives, insulation, coatings) are confirmed
+      compatible by their manufacturers, in writing where the spec requires.
+      Transitions between two manufacturers' products are the usual gap.
+    trace_to: [spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: d07.warranty-conditions
+    kind: completeness
+    check: >
+      Where a manufacturer's system warranty is specified, the submittal shows
+      the installer's approval by that manufacturer, that every component in
+      the assembly is accepted under the warranty, and any pre-approval or
+      inspection the manufacturer requires before and after installation.
+    trace_to: [spec.part1, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: d07.application-limits
+    kind: constructability
+    check: >
+      Application limits in the product data (substrate and ambient
+      temperature, moisture, cure time, maximum weather or UV exposure before
+      cover) are compared with the season and sequence in the schedule.
+      Conflicts are raised before installation, not discovered during it.
+    trace_to: [schedule.master, spec.part3]
+    severity: medium
+    owner: gc
+
+
+failure_modes:
+  - id: d07.fm.orphan-transition
+    what_happens: Two trades each install their own layer and neither makes the connection between them
+    consequence: Leak or air path at the transition, found after cladding or backfill has covered it
+    caught_by: [d07.transition-ownership, d07.control-layer-continuity]
+    source: industry_practice
+
+  - id: d07.fm.substitution-voids-warranty
+    what_happens: A substituted component (insulation, cover board, sealant, flashing tape) is not accepted under the specified system warranty
+    consequence: Manufacturer declines the system warranty at closeout; remove-and-replace or an owner claim
+    caught_by: [d07.warranty-conditions]
+    source: industry_practice
+
+  - id: d07.fm.exposure-exceeded
+    what_happens: Membrane or barrier left exposed past the manufacturer's limit while cladding or overburden is delayed
+    consequence: Degraded membrane and a warranty exclusion; rework under schedule pressure
+    caught_by: [d07.application-limits]
+    source: industry_practice
+
+  - id: d07.fm.incompatible-products
+    what_happens: Sealant, tape or primer from one manufacturer applied to another's membrane without confirmation
+    consequence: Adhesion loss or chemical attack at the joint; leaks at transitions
+    caught_by: [d07.system-compatibility]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: d07.rh.energy-envelope
+    topic: energy-code-envelope
+    question: >
+      Which energy code and compliance path govern the envelope, what
+      insulation, continuous insulation, roof reflectance and fenestration
+      criteria apply in this climate zone, and do the submitted assemblies
+      match the compliance documentation?
+    applies_when: Insulation, air barrier, roofing and wall assembly submittals
+    source_families: [energy]
+    severity: high
