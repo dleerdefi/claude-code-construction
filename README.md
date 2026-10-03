@@ -72,6 +72,7 @@ To check that everything works on your machine, follow [Validating your install]
 | `/construction:code-researcher` | Research applicable building codes, standards, and jurisdiction requirements |
 | `/construction:subcontract-writer` | Generate a scope-specific subcontract from your firm's template |
 | `/construction:rfi-drafter` | Draft RFIs and review the issues other skills have flagged |
+| `/construction:submittal-review` | Review a submittal against specs, drawings, code questions and trade coordination, with trade routing, a completeness gate and a draft GC review |
 | `/construction:pe-review` | Review drawings, specs, submittals or RFIs with Project Engineer judgment |
 | `/construction:tag-audit-and-takeoff` | Count tagged elements across sheets and audit tag completeness |
 | `/construction:viewport-highlighter` | Find and highlight the views on drawing sheets (requires AgentCM) |
