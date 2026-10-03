@@ -24,7 +24,7 @@ review_checks:
       owner's or tenant's storage program. A speculative building records the
       basis it was designed for, so the first tenant can be checked against
       it before move-in.
-    trace_to: [drawings.fire_protection, spec.part2, drawings.equipment]
+    trace_to: [drawings.fire_protection, spec.part2, drawings.storage_racks]
     severity: critical
     owner: design_team
     gate: procurement_release
@@ -46,7 +46,7 @@ reconciliations:
 
   - id: ind.rc.rack-plan
     sections: ["03 3*", "21 1*", "41 5*"]
-    between: [drawings.equipment, drawings.structural, drawings.fire_protection, spec.part3]
+    between: [drawings.storage_racks, drawings.structural, drawings.fire_protection, spec.part3]
     key: Rack row or storage aisle
     fields: [lift-truck type and aisle width, floor tolerance along the wheel paths, slab joints relative to rack base plates, in-rack sprinklers and flue spaces, rack anchorage]
     check: >
@@ -90,7 +90,7 @@ regulatory_hooks:
       access doors, smoke removal, detection), and which sprinkler criteria in
       the adopted NFPA 13 edition apply to the commodity and arrangement?
     applies_when: Storage above the high-piled threshold, or a speculative building marketed for it
-    source_families: [fire_code]
+    source_families: [fire_code, owner_insurer_standards]
     severity: critical
 
   - id: ind.rh.rack-permits

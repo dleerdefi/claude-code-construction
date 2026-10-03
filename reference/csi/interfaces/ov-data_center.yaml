@@ -7,25 +7,11 @@ maintainers: [dleerdefi]
 reviewed_by: []
 last_reviewed: null
 
-# Facility-filtered edges. An edge carries `failure` only when no failure mode
-# covers it.
+# Facility-filtered edges. Clean-agent HVAC shutdown is the general edge
+# if.21-clean-agent-hvac in div-21.yaml. An edge carries `failure` only when no
+# failure mode names it.
 
 edges:
-  - id: if.dc-agent-release
-    a: ["21 22 00"]
-    a_trade: Clean-agent fire extinguishing
-    b: ["23 33 00", "23 09 00", "28 46 00"]
-    b_trade: Dampers, HVAC controls and fire alarm
-    a_provides: Release sequence, protected enclosure boundary, damper and HVAC shutdown points, abort and manual release locations
-    b_provides: Motorized dampers at the enclosure boundary that close on release, HVAC shutdown or recirculation as the design states, and releasing panel or fire alarm interface wiring
-    responsibility:
-      - item: Dampers that close on agent release in ducts crossing the enclosure boundary
-        typical: {furnish: "23 33 00", install: "23 33 00", connect: "21 22 00 or 28 46 00"}
-        confirm_in: [spec.part1, drawings.fire_protection]
-    gate: {milestone: above_ceiling_close_in}
-    severity: high
-    facility_types: [data_center]
-
   - id: if.dc-floor-bonding
     a: ["09 69 00"]
     a_trade: Access flooring

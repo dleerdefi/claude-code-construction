@@ -8,25 +8,10 @@ reviewed_by: []
 last_reviewed: null
 
 # Facility-filtered edges. Lab casework, fume hood and lab equipment service
-# edges live in div-11.yaml and div-12.yaml. An edge carries `failure` only
-# when no failure mode covers it.
+# edges live in div-11.yaml and div-12.yaml. An edge carries `failure` only when
+# no failure mode names it.
 
 edges:
-  - id: if.lab-bsc-exhaust
-    a: ["11 53 53"]
-    a_trade: Biological safety cabinets
-    b: ["23 31 00", "23 09 00"]
-    b_trade: Lab exhaust duct and controls
-    a_provides: Cabinet class and type at each location, exhaust connection type (canopy or hard-ducted), required exhaust airflow and static pressure, alarm contacts and interlock needs
-    b_provides: Exhaust connection and flow control sized to the cabinet type, alarm and interlock wiring, and the exhaust available when the certifier tests the cabinet
-    responsibility:
-      - item: Canopy connections, exhaust airflow alarms and interlocks for ducted cabinets
-        typical: {furnish: "11 53 53", install: "23 31 00", connect: "23 09 00"}
-        confirm_in: [spec.part1, schedule.equipment]
-    gate: {milestone: above_ceiling_close_in}
-    severity: high
-    facility_types: [laboratory]
-
   - id: if.lab-gas-detection
     a: ["22 63 00"]
     a_trade: Laboratory gas systems

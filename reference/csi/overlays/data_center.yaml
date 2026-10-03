@@ -11,8 +11,10 @@ last_reviewed: null
 # The owner's basis of design states a redundancy topology for power and
 # cooling; every submittal is checked against that topology, not only against
 # its ratings. The failures are shared components that defeat redundancy, water
-# over the white space, rooms that will not hold their suppression agent, and
-# testing nobody resourced. Topology labels and loads are project facts.
+# over the white space, suppression that ignores the IT load, and testing
+# nobody resourced. Topology labels and loads are project facts; general
+# clean-agent, access floor and generator knowledge lives in 21 22 00, 09 69 00
+# and 26 32 00.
 # Default scope: electrical and HVAC.
 sections: ["26", "23"]
 
@@ -29,7 +31,7 @@ review_checks:
       can be maintained the way the basis of design claims. Equipment
       submittals (UPS bypass arrangement, switchgear ties, transfer schemes) are
       checked against that topology, not only against ratings.
-    trace_to: [drawings.single_line, spec.division_01, spec.part2]
+    trace_to: [report.basis_of_design, drawings.single_line, spec.part2]
     severity: critical
     owner: design_team
 
@@ -44,7 +46,7 @@ review_checks:
       through a utility outage: which fans and pumps ride on UPS, whether
       thermal storage carries the load, and how long chillers take to restart
       on generator.
-    trace_to: [drawings.mechanical, schedule.mechanical_equipment, drawings.single_line]
+    trace_to: [report.basis_of_design, drawings.mechanical, schedule.mechanical_equipment]
     severity: critical
     owner: design_team
 
@@ -61,33 +63,20 @@ review_checks:
     severity: high
     owner: gc
 
-  - id: dc.clean-agent
-    kind: conformance
-    sections: ["21 2*"]
+  - id: dc.agent-in-it-spaces
+    kind: coordination
+    sections: ["21 2*", "07 84*", "09 69*", "27 1*"]
     check: >
-      The clean-agent design uses the protected volume as built (including
-      under-floor and above-ceiling spaces if protected) and the design
-      concentration the spec requires, with pressure relief venting for the
-      enclosure where the agent needs it, abort and manual release stations,
-      cross-zoned detection, HVAC shutdown and damper closure, and an enclosure
-      integrity test before acceptance.
-    trace_to: [drawings.fire_protection, drawings.mechanical, spec.part3]
-    severity: critical
-    owner: subcontractor
-
-  - id: dc.room-integrity
-    kind: constructability
-    sections: ["21 2*", "07 84*", "09 2*", "08 7*", "23 33*"]
-    check: >
-      Rooms protected by clean agent are built to hold it: walls to the deck or
-      sealed where the design assumes, every penetration sealed including
-      through non-rated walls and the floor, doors with closers and seals, and
-      dampers that close on discharge. Who seals what is assigned, and sealing
-      is complete before the ceiling closes and the integrity test is run.
-    trace_to: [drawings.plans, drawings.details, spec.part3]
+      For clean agent in IT rooms, the design states what happens to IT power
+      and cooling on release (whether the emergency power-off trips, whether
+      in-room cooling units stop or recirculate through the hold time and how
+      the IT heat is carried meanwhile). Cable cutouts in access floor panels
+      and cabling added during IT fit-out are treated as leakage paths: sealed
+      with re-enterable devices, and enclosure integrity re-tested after the IT
+      fit-out rather than only at turnover.
+    trace_to: [drawings.fire_protection, drawings.mechanical, report.basis_of_design]
     severity: high
     owner: gc
-    gate: above_ceiling_close_in
 
   - id: dc.epo
     kind: conformance
@@ -143,7 +132,7 @@ review_checks:
       cooling restart, loss of any single component), and assigns the load
       banks, their power and heat rejection, the fuel and the test sequence,
       all before IT move-in.
-    trace_to: [spec.division_01, report.commissioning, schedule.master]
+    trace_to: [report.basis_of_design, report.commissioning, schedule.master]
     severity: high
     owner: gc
     gate: substantial_completion
@@ -152,12 +141,12 @@ review_checks:
     kind: conformance
     sections: ["09 69*"]
     check: >
-      Panels and pedestals are rated for the heaviest cabinets and for rolling
-      loads along the route from the loading dock (concentrated, uniform and
-      rolling), with seismic bracing where required, perforated tiles placed to
-      the cooling design, sealed cable cutouts, and pedestals bonded to the
-      computer room bonding network.
-    trace_to: [drawings.plans, spec.part2, schedule.equipment]
+      In the white space, perforated panels sit where the cooling design and
+      the current rack layout put them, cable cutouts have brush or gasket seals
+      against bypass air, pedestals are bonded to the computer room bonding
+      network, and panel ratings cover cabinets at the build-out density the
+      basis of design states, not only the day-one load.
+    trace_to: [report.basis_of_design, drawings.plans, spec.part2]
     severity: high
     owner: subcontractor
 
@@ -249,6 +238,11 @@ escalate:
     severity: medium
     reason: Cabling in IT spaces changes through the building's life; one-time sealants reopened at each change break rated and clean-agent enclosures
 
+  - target: 26gn.acceptance-test
+    sections: ["26 32*"]
+    severity: critical
+    reason: In a data center the generator acceptance test under load is the first proof that the plant carries the critical load the topology promises
+
 failure_modes:
   - id: dc.fm.hidden-single-point
     sections: ["26"]
@@ -271,12 +265,19 @@ failure_modes:
     caught_by: [dc.containment-sprinklers, if.dc-containment-fire]
     source: field_experience
 
-  - id: dc.fm.integrity-test-fails
-    sections: ["21 2*", "07 84*", "09 2*", "08 7*", "23 33*"]
-    what_happens: Room fails the enclosure integrity test because penetrations above the ceiling, in non-rated walls or at the floor were never sealed
-    consequence: Leak hunting with ceilings closed; acceptance and move-in slip
-    caught_by: [dc.room-integrity]
+  - id: dc.fm.integrity-lost-in-fit-out
+    sections: ["21 2*", "07 84*", "09 69*", "27 1*"]
+    what_happens: The room passes its enclosure integrity test at turnover; IT fit-out then adds unsealed floor cutouts and cable penetrations
+    consequence: The agent cannot hold concentration in a real discharge; resealing and retesting in an operating room
+    caught_by: [dc.agent-in-it-spaces]
     source: field_experience
+
+  - id: dc.fm.hold-time-heat
+    sections: ["21 22*"]
+    what_happens: In-room cooling units shut down on agent release for the whole hold time while the IT load keeps running
+    consequence: Equipment overheats during a discharge, or units are rewired to recirculate after the agent design assumed shutdown
+    caught_by: [dc.agent-in-it-spaces, if.21-clean-agent-hvac]
+    source: industry_practice
 
   - id: dc.fm.epo-accidental
     sections: ["26", "28 46*", "23 09*"]
@@ -359,21 +360,11 @@ regulatory_hooks:
     question: >
       What fire protection do the adopted fire code, NFPA 75 or NFPA 76 where
       they apply, and the owner's insurer require for the IT spaces (sprinkler
-      type, clean agent, detection in containment and under floors), and how
-      must aisle containment interact with it?
+      type, clean agent, detection in containment and under floors), must IT
+      power and cooling shut down on agent release, and how must aisle
+      containment interact with it?
     applies_when: White space, telecom rooms and their support spaces
-    source_families: [fire_code]
-    severity: high
-
-  - id: dc.rh.clean-agent
-    topic: clean-agent-system-requirements
-    sections: ["21 2*"]
-    question: >
-      What do the adopted fire code and NFPA 2001 edition require for this
-      agent: design concentration, hold time, enclosure integrity testing,
-      pressure relief venting, and safeguards for normally occupied spaces?
-    applies_when: Clean-agent protected rooms
-    source_families: [fire_code]
+    source_families: [fire_code, owner_insurer_standards]
     severity: high
 
   - id: dc.rh.battery-ess
@@ -390,7 +381,7 @@ regulatory_hooks:
 
   - id: dc.rh.underfloor-plenum
     topic: underfloor-air-space-wiring
-    sections: ["09 69*", "26 05*", "27 05*"]
+    sections: ["26 05*", "27 05*"]
     question: >
       Is the space under the access floor or above the ceiling used for air
       handling, and which cables, wiring methods and materials do the adopted
@@ -412,7 +403,7 @@ regulatory_hooks:
 
   - id: dc.rh.rack-seismic
     topic: seismic-nonstructural-anchorage
-    sections: ["09 69*", "27 1*", "26 05*", "27 05*"]
+    sections: ["27 1*", "26 05*", "27 05*"]
     question: >
       Do access floor pedestals, equipment racks and overhead cable supports
       need seismic bracing or anchorage in this seismic design category, and has

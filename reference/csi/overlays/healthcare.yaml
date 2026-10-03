@@ -12,8 +12,10 @@ last_reviewed: null
 # agency against the FGI Guidelines edition it adopts, and often again for
 # every change made during construction. Space type drives finishes, doors,
 # ventilation, power and communications room by room. Work in occupied
-# facilities adds infection control and interim life safety. Hospital-only
-# items are in healthcare.hospital.yaml.
+# facilities adds infection control and interim life safety. Nurse call,
+# radiation shielding and medical gas sources carry their own knowledge in
+# 27 52 23, 13 49 00 and 22 60 00. Hospital-only items are in
+# healthcare.hospital.yaml.
 # Default scope for items without their own `sections`: casework.
 sections: ["12 3*", "06 41*"]
 
@@ -111,7 +113,7 @@ review_checks:
       trim, toilet accessories, grilles, light fixtures, sprinkler heads,
       ceilings) is the ligature-resistant product the owner's risk assessment
       assigns to that room's risk level, with tamper-resistant fasteners.
-    trace_to: [drawings.plans, schedule.door_hardware, schedule.plumbing_fixture]
+    trace_to: [report.risk_assessment, schedule.door_hardware, schedule.plumbing_fixture]
     severity: critical
     owner: design_team
 
@@ -142,7 +144,7 @@ review_checks:
       routes, the facility's above-ceiling access permits, monitoring by
       infection prevention, and each impairment of exits, fire alarm,
       sprinklers or fire and smoke barriers with its compensating measures.
-    trace_to: [spec.division_01, drawings.plans, drawings.life_safety]
+    trace_to: [report.risk_assessment, spec.division_01, drawings.life_safety]
     severity: critical
     owner: gc
 
@@ -173,29 +175,16 @@ review_checks:
     severity: critical
     owner: design_team
 
-  - id: hc.nurse-call
-    kind: conformance
-    sections: ["27 52*"]
-    check: >
-      Nurse call and code devices match the program room by room (bed
-      stations, toilet and shower emergency stations, staff and duty stations,
-      code call, dome lights), the system carries the listing the spec and
-      agency require, and integration with phones, locating and other clinical
-      systems is assigned to a party.
-    trace_to: [drawings.technology, drawings.plans, spec.part2]
-    severity: high
-    owner: design_team
-
   - id: hc.radiation-shielding
     kind: constructability
-    sections: ["13 49*", "09 2*", "08 1*"]
+    sections: ["09 2*", "08 1*"]
     check: >
-      Shielding follows the qualified expert's shielding report for the imaging
-      equipment actually purchased: lead equivalence by wall, door, frame and
-      view window, height, floor and ceiling protection, overlaps at joints, and
-      continuity behind device boxes, penetrations and frame anchors. The
-      expert or the spec's inspector reviews it before walls close.
-    trace_to: [drawings.plans, drawings.details, spec.part3]
+      Lead-lined board, doors, frames and view windows submitted under the
+      gypsum and door sections meet the qualified expert's shielding report
+      barrier by barrier (equivalence, height, laps at joints, floor and deck,
+      frame overlap), and the boxes and penetrations other trades cut into
+      those walls are backed before the walls close and the lead is reviewed.
+    trace_to: [report.radiation_shielding, schedule.partition_type, drawings.details]
     severity: critical
     owner: gc
     gate: wall_close_in
@@ -245,11 +234,11 @@ reconciliations:
     sections: ["22 6*"]
     between: [drawings.lab_gas, drawings.interior_elevations, schedule.equipment]
     key: Room and bed location
-    fields: [outlets by gas and vacuum service, count, wall or boom or headwall mounting, zone valve box and area alarm serving it]
+    fields: [outlets by gas and vacuum service, count, wall or boom or headwall mounting]
     check: >
       Outlets per bed location on the medical gas drawings match the headwall
-      elevations and any boom or headwall unit submittal by service and count,
-      and every outlet is downstream of a shown zone valve box and area alarm.
+      elevations and any boom or headwall unit submittal by service and count;
+      a boom or headwall unit chosen after the piping design is the usual gap.
     severity: high
     owner: design_team
     gate: in_wall_rough_in
@@ -263,6 +252,16 @@ escalate:
     sections: ["07 84*"]
     severity: high
     reason: Healthcare occupancies defend patients in place behind smoke barriers, so their penetration ratings decide whether the compartments work
+
+  - target: d26.emergency-separation
+    sections: ["26"]
+    severity: critical
+    reason: Separation of the essential electrical system branches is a licensing and life-safety requirement in healthcare; a mixed branch fails inspection after walls close
+
+  - target: 01tf.occupied-separation
+    sections: ["01"]
+    severity: critical
+    reason: Next to patients, construction dust and air migration are an infection risk, not a nuisance; barrier failures stop the work
 
 failure_modes:
   - id: hc.fm.licensing-heights
@@ -335,7 +334,7 @@ failure_modes:
     source: field_experience
 
   - id: hc.fm.shielding-gaps
-    sections: ["13 49*", "09 2*", "08 1*"]
+    sections: ["09 2*", "08 1*"]
     what_happens: Electricians and plumbers cut boxes and penetrations into lead-lined walls after the shielding installer has left, with no lead backing behind them
     consequence: Radiation survey fails after finishes; walls opened and shielding patched
     caught_by: [hc.radiation-shielding]
@@ -494,31 +493,20 @@ regulatory_hooks:
     source_families: [electrical_code]
     severity: high
 
-  - id: hc.rh.nurse-call
-    topic: health-facility-nurse-call
-    sections: ["27 52*"]
-    question: >
-      Which nurse call, emergency call and code call devices does the adopted
-      FGI edition require by room type, and must the system be listed to UL
-      1069?
-    applies_when: Nurse call and emergency call systems
-    source_families: [fgi_guidelines, health_facility_licensing]
-    severity: high
-
   - id: hc.rh.radiation-shielding
-    topic: radiation-shielding-plan-review
-    sections: ["13 49*", "09 2*", "08 1*"]
+    topic: radiation-shielding-review
+    sections: ["09 2*", "08 1*"]
     question: >
       For shielded rooms built under this permit, must the qualified expert's
       shielding design be filed with the state radiation program, and who
       inspects the lead before walls close?
     applies_when: Rooms for X-ray, CT, fluoroscopy, nuclear medicine or radiation therapy
-    source_families: [health_facility_licensing, occupational_safety]
+    source_families: [radiation_control, health_facility_licensing]
     severity: critical
 
   - id: hc.rh.essential-facility-seismic
     topic: seismic-equipment-certification
-    sections: ["11 7*", "21", "22", "23", "26", "27", "28"]
+    sections: ["11 7*", "21", "22", "27", "28"]
     question: >
       Is the facility an essential facility (Risk Category IV) under the
       adopted building code, and if so which mechanical, electrical and medical

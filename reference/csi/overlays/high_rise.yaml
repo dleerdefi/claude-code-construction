@@ -74,7 +74,7 @@ review_checks:
       anchorage designs use the current study's pressure zones, which can
       exceed code-calculated values at corners, setbacks and the roof, and
       name the study revision they used.
-    trace_to: [drawings.structural, spec.part2]
+    trace_to: [report.wind_tunnel, spec.part2]
     severity: high
     owner: subcontractor
     gate: procurement_release
@@ -180,6 +180,12 @@ escalate:
   - target: fs.rh.special-inspection
     severity: critical
     reason: Building height is a common trigger for firestop special inspection
+  - target: 14el.rh.fire-service-access
+    severity: critical
+    reason: >
+      At high-rise heights these elevators are how firefighters reach the
+      fire floor, and their lobby, water protection and power involve trades
+      beyond the elevator contractor
 
 regulatory_hooks:
   - id: hr.rh.smoke-control

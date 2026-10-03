@@ -29,7 +29,7 @@ review_checks:
       before fabrication, not only to the architect. Replacement in kind
       matches the original; new additions are meant to be compatible but
       distinguishable, so review against the approval, not a generic match.
-    trace_to: [spec.division_01, drawings.details, drawings.exterior_elevations]
+    trace_to: [report.preservation_approval, drawings.details, drawings.exterior_elevations]
     severity: critical
     owner: gc
     gate: procurement_release
@@ -60,7 +60,7 @@ review_checks:
       where required. Abrasive blasting and high-pressure water are excluded
       unless the approval allows them, and chemical products are checked for
       staining, etching and residue on each substrate.
-    trace_to: [spec.part3, spec.part1]
+    trace_to: [spec.part3, report.preservation_approval]
     severity: high
     owner: subcontractor
 
@@ -183,6 +183,7 @@ regulatory_hooks:
       must they approve before historic fabric is changed, and what
       conditions did they set?
     applies_when: Listed or eligible buildings, local landmarks, buildings in historic districts, or tax credit projects
+    source_families: [historic_preservation]
     severity: critical
 
   - id: hist.rh.historic-code-alternatives

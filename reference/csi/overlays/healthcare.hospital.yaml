@@ -9,9 +9,11 @@ reviewed_by: []
 last_reviewed: null
 
 # Loads after healthcare.yaml. What a hospital adds: equipment that must keep
-# working after an earthquake, ceiling-mounted surgical and patient-handling
-# equipment, and an emergency power supply that is tested and surveyed before
-# licensure. Default scope: generators and transfer switches.
+# working after an earthquake, ceilings around ceiling-mounted surgical and
+# patient-handling equipment (supports are 11 70 00 and
+# if.05-suspended-equipment-supports), and an emergency power supply that is
+# tested and surveyed before licensure. Default scope: generators and transfer
+# switches.
 sections: ["26 3*"]
 
 review_checks:
@@ -27,21 +29,21 @@ review_checks:
       certification of operability and an anchorage design, not a generic
       mounting detail.
     trace_to: [spec.part2, spec.part1_submittals, drawings.structural]
-    severity: high
+    severity: critical
     owner: subcontractor
     gate: procurement_release
 
   - id: hc.ceiling-mounted-equipment
     kind: coordination
-    sections: ["05 5*", "09 5*"]
+    sections: ["09 5*"]
     check: >
-      Support steel and ceilings in operating, procedure, imaging and patient
-      rooms are laid out from the selected vendors' drawings for ceiling-mounted
-      equipment (surgical lights, booms, imaging rails, patient lift tracks):
-      support plates set level at the vendor's elevation and inspected before
-      the ceiling, and grid, lights, diffusers, sprinklers and medical gas drops
-      kept clear of the mounting zones.
-    trace_to: [drawings.structural, drawings.rcp, schedule.equipment]
+      Ceilings in operating, procedure, imaging and patient rooms are laid out
+      from the selected vendors' drawings for ceiling-mounted equipment
+      (surgical lights, booms, imaging rails, patient lift tracks): grid, lights,
+      diffusers, sprinkler heads and medical gas drops stay clear of each
+      mounting zone, and the ceiling height and opening at each mount match the
+      vendor's finished-ceiling reference.
+    trace_to: [drawings.rcp, schedule.equipment, drawings.mechanical]
     severity: high
     owner: gc
     gate: overhead_rough_in
@@ -50,12 +52,11 @@ review_checks:
     kind: completeness
     sections: ["26 3*"]
     check: >
-      Generator and transfer switch submittals and the test plan meet the
-      emergency power supply system class, level and type the design states:
-      transfer time for the life safety and critical branches, on-site fuel
-      duration, remote annunciation where staff will see it, and acceptance
-      testing under building load and load bank, witnessed as the AHJ and the
-      agency require.
+      Generator and transfer switch submittals meet the emergency power supply
+      system class, level and type the design states for the hospital: transfer
+      time for the life safety and critical branches, a transfer switch per
+      branch, on-site fuel for the duration the agency requires, and the
+      agency's own witness of acceptance testing where it requires one.
     trace_to: [drawings.single_line, spec.part3, report.commissioning]
     severity: critical
     owner: gc
@@ -67,6 +68,16 @@ escalate:
     severity: high
     reason: A hospital that must stay operational after an earthquake cannot have tall casework and storage that topples into corridors and patient rooms
 
+  - target: d23.rh.seismic-certification
+    sections: ["23"]
+    severity: critical
+    reason: In an essential-facility hospital, mechanical equipment without certification of post-earthquake operability is rejected at inspection, often after long-lead units have shipped
+
+  - target: d26.rh.seismic-certification
+    sections: ["26"]
+    severity: critical
+    reason: Hospital generators, transfer switches and distribution must stay operable after the design earthquake; uncertified long-lead gear is rejected at inspection
+
 failure_modes:
   - id: hc.fm.uncertified-equipment
     sections: ["11 7*", "21", "22", "23", "26", "27", "28"]
@@ -76,7 +87,7 @@ failure_modes:
     source: field_experience
 
   - id: hc.fm.ceiling-over-mounts
-    sections: ["05 5*", "09 5*"]
+    sections: ["09 5*"]
     what_happens: Ceiling grid, lights, diffusers or sprinkler heads laid out over the mounting zones of booms, surgical lights or lift tracks
     consequence: Ceiling and MEP devices relocated in a finished operating or patient room before the equipment can be hung
     caught_by: [hc.ceiling-mounted-equipment]
@@ -84,8 +95,8 @@ failure_modes:
 
   - id: hc.fm.epss-not-proven
     sections: ["26 3*"]
-    what_happens: Branch transfer times, fuel duration or remote annunciation not demonstrated at acceptance
-    consequence: AHJ or agency finding before licensure; retest and added annunciation while occupancy waits
+    what_happens: Branch transfer times or on-site fuel duration not demonstrated to the agency at acceptance
+    consequence: Agency finding before licensure; retest or added fuel storage while occupancy waits
     caught_by: [hc.epss-acceptance]
     source: industry_practice
 

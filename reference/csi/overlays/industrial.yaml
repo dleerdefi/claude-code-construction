@@ -135,6 +135,12 @@ escalate:
     reason: >
       On long-span, lightly framed industrial roofs a drainage shortfall
       becomes a structural ponding problem
+  - target: 05jst.attachment-rules
+    severity: critical
+    reason: >
+      Storage sprinkler mains, unit heaters, conveyors and process piping hang
+      from long-span joists in quantity; without written attachment rules each
+      trade loads the chords as it sees fit
 
 regulatory_hooks:
   - id: ind.rh.smoke-heat-removal

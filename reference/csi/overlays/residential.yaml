@@ -256,6 +256,11 @@ escalate:
   - target: cw.appliance-openings
     severity: high
     reason: An opening error repeats in every unit of the type
+  - target: 08wn.operable-limits
+    severity: critical
+    reason: >
+      Window falls from dwelling units involve children, and the same window
+      often has to stay an escape opening
   - target: fs.membrane-penetrations
     severity: high
     reason: >

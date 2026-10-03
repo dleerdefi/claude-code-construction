@@ -197,6 +197,18 @@ escalate:
     reason: >
       In a parking deck, joint sealants are part of the waterproofing and
       keep chlorides off connections and reinforcement
+  - target: 03spc.parking-durability
+    severity: critical
+    reason: >
+      Flange connectors and tee joints in a garage live with deicing salts for
+      the life of the structure; corroded connections lose diaphragm capacity
+      and are repaired under traffic
+  - target: 03pt.encapsulation
+    severity: critical
+    reason: >
+      Unencapsulated anchorages in a chloride-exposed deck corrode out of
+      sight, and tendon replacement means closing levels of an operating
+      garage
 
 regulatory_hooks:
   - id: park.rh.open-or-enclosed

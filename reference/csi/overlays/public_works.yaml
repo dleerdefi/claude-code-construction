@@ -132,6 +132,7 @@ regulatory_hooks:
       equivalents), which products and materials do they cover, and what
       certification and waiver process applies?
     applies_when: Projects with federal or state funding that carries domestic-content conditions
+    source_families: [public_funding]
     severity: critical
 
   - id: pw.rh.agency-jurisdiction
@@ -142,7 +143,7 @@ regulatory_hooks:
       submittal and inspection authority apply in place of the local
       jurisdiction's?
     applies_when: Federal, state and some local agency projects
-    source_families: [building_code]
+    source_families: [public_works, building_code]
     severity: high
 
   - id: pw.rh.security-criteria
@@ -155,4 +156,5 @@ regulatory_hooks:
       agency-specific criteria), at what protection level, and to which
       building elements?
     applies_when: Federal, military and other agency facilities with security criteria
+    source_families: [federal_security_criteria]
     severity: critical

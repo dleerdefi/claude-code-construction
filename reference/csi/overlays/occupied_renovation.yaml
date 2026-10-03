@@ -199,5 +199,5 @@ regulatory_hooks:
       reoccupied, and what interim measures apply while fire protection
       systems are being cut over?
     applies_when: Phased fire alarm, sprinkler or smoke control work in occupied buildings
-    source_families: [fire_code]
+    source_families: [fire_code, owner_insurer_standards]
     severity: high

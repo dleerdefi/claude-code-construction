@@ -310,7 +310,7 @@ regulatory_hooks:
       pre-opening inspection and permit to operate separate from the
       certificate of occupancy; which Food Code edition has the state adopted?
     applies_when: Any new or remodeled food establishment
-    source_families: [food_code]
+    source_families: [food_code, public_health]
     severity: high
 
   - id: food.rh.hand-sinks
@@ -357,7 +357,7 @@ regulatory_hooks:
       rating, sampling point and pumping frequency does the sewer authority's
       grease program require?
     applies_when: Any kitchen discharging grease-laden waste
-    source_families: [plumbing_code, environmental]
+    source_families: [plumbing_code, public_works]
     severity: high
 
   - id: food.rh.grease-shaft
