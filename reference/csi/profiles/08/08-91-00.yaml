@@ -1,0 +1,167 @@
+schema_version: 1
+kind: section
+id: "08 91 00"
+title: Louvers
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # structural design for wind load is often the manufacturer's
+
+scope_summary: >
+  Fixed, operable and motorized wall louvers and the blank-off panels behind
+  them (08 91 13 through 08 91 26 inherit from here). The mechanical
+  engineer sizes a louver for airflow, but the architectural section buys it,
+  so free area, pressure drop and water penetration at the actual
+  free-area velocity are where the two disciplines drift apart. Water that
+  passes the blades has to drain out through a sill or plenum, and the duct
+  or plenum connection, the blank-offs on unused area and the dampers
+  behind the louver belong to different trades.
+
+review_mode: per_element
+element_types: [louver]
+
+suppress:
+  - id: d08.rh.safety-glazing
+    reason: Louvers are not glazed
+  - id: d08.rh.energy-openings
+    reason: Air leakage at louvers is controlled by the dampers behind them, reviewed under Division 23
+  - id: d08.labeled-assemblies
+    reason: Louvers are not listed opening protectives; louver openings in rated walls are protected by fire dampers under Division 23
+  - id: d08.rh.opening-protectives
+    reason: Louvers are not opening protectives; protection of the opening is a damper question under Division 23
+  - id: d08.field-modification
+    reason: Louvers carry no fire label to void
+  - id: d08.fm.label-voided
+    reason: Louvers carry no fire label to void
+  - id: d08.fm.mixed-listing
+    reason: Louvers are not listed opening protectives
+
+submittals:
+  - id: 08lv.sub.product-data
+    type: Product Data
+    must_show:
+      - Certified free area, pressure drop and water penetration ratings, and wind-driven rain ratings where specified, for the model and size submitted
+  - id: 08lv.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Each louver by mark with size, free area, blade type, mullions, screen, blank-off panels, sill flashing or drain pan, and the duct or plenum connection
+  - id: 08lv.sub.design-data
+    type: Design Data
+    must_show:
+      - Structural design at the design pressure, with mullion reinforcing and anchorage to the wall
+
+review_checks:
+  - id: 08lv.rating-basis
+    kind: conformance
+    check: >
+      Water penetration and pressure drop are certified ratings at the
+      free-area velocity this louver will actually see, not catalog figures
+      at nominal face area; intakes in exposed locations or where the spec
+      asks for it carry a wind-driven rain rating, and screens are counted in
+      the free area and pressure drop.
+    trace_to: [spec.part2, schedule.mechanical_equipment]
+    severity: high
+    owner: subcontractor
+
+  - id: 08lv.drainage
+    kind: constructability
+    check: >
+      Each intake louver has a drainable path: sill flashing or a drain pan
+      sloped to the exterior and joined to the air barrier, and a plenum or
+      duct transition that drains, because water past the blades lands
+      somewhere.
+    trace_to: [drawings.details, drawings.mechanical]
+    severity: high
+    owner: gc
+    gate: opening_install
+
+  - id: 08lv.blank-off
+    kind: completeness
+    check: >
+      Unused louver area, where the duct or plenum is smaller than the louver,
+      has insulated blank-off panels sealed to the wall's air barrier, shown
+      on the shop drawings.
+    trace_to: [drawings.mechanical, drawings.details]
+    severity: medium
+    owner: subcontractor
+
+  - id: 08lv.intake-location
+    kind: absence
+    check: >
+      Intake louvers keep the separation the mechanical code requires from
+      exhaust outlets, plumbing vents, cooling towers, loading docks,
+      parking and other contaminant sources; louvers moved on the elevations
+      for appearance are checked again.
+    trace_to: [drawings.exterior_elevations, drawings.mechanical, drawings.plumbing, drawings.roof_plan]
+    severity: high
+    owner: design_team
+
+reconciliations:
+  - id: 08lv.rc.louver-schedule
+    between: [drawings.exterior_elevations, drawings.mechanical, schedule.mechanical_equipment]
+    key: Louver mark
+    fields: [function (intake, exhaust or relief), size, free area, airflow, free-area velocity, connected equipment]
+    check: >
+      Each louver on the elevations appears on the mechanical drawings with
+      the same function, size and airflow, and the free area at the
+      submitted size gives a free-area velocity within the water penetration
+      rating. Louvers resized to suit the façade are the usual mismatch.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 08lv.fm.water-ingestion
+    what_happens: Louver selected at face area or downsized for the façade, so intake velocity exceeds its water rating
+    consequence: Rain and snow drawn into ducts and air handlers; wet filters, corrosion and microbial growth
+    caught_by: [08lv.rc.louver-schedule, 08lv.rating-basis]
+    source: field_experience
+
+  - id: 08lv.fm.no-drain-path
+    what_happens: No sill pan or drainable plenum behind an intake louver
+    consequence: Water runs into the wall cavity or the ceiling below; rot, corrosion and interior damage
+    caught_by: [08lv.drainage]
+    source: field_experience
+
+  - id: 08lv.fm.blank-off-missing
+    what_happens: Unused louver area left open behind the face because neither the louver nor the duct trade provided blank-offs
+    consequence: Outside air into the wall or ceiling; frozen pipes, condensation and energy loss
+    caught_by: [08lv.blank-off, if.08-louvers-ductwork]
+    source: field_experience
+
+  - id: 08lv.fm.intake-near-exhaust
+    what_happens: Intake louver placed near an exhaust, vent or dock on the final elevations
+    consequence: Exhaust re-entrained into the building; louver or exhaust relocated after construction
+    caught_by: [08lv.intake-location]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: 08lv.rh.intake-separation
+    topic: outdoor-air-intake-separation
+    question: >
+      What separation does the adopted mechanical code require between this
+      intake louver and each nearby contaminant source (exhaust and relief
+      outlets, plumbing vents, streets, parking, loading, cooling towers), and
+      does the louver location meet it?
+    applies_when: Outdoor air intake louvers
+    source_families: [mechanical_code]
+    severity: high
+
+  - id: 08lv.rh.opening-screens
+    topic: outdoor-air-opening-protection
+    question: >
+      What screen or mesh does the adopted mechanical code require over
+      outdoor air intake and exhaust openings, and does the submitted
+      screen meet it?
+    applies_when: Louvers serving intakes and exhausts
+    source_families: [mechanical_code]
+    severity: low
+
+extract_fields:
+  - id: 08lv.xf.performance
+    label: Size, free area, free-area velocity, water penetration and pressure drop
+    type: string
+    per: element
+    reconcile_against: [schedule.mechanical_equipment, drawings.mechanical]

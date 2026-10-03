@@ -1,0 +1,288 @@
+schema_version: 1
+kind: interfaces
+id: div-08
+title: Interfaces involving Division 08
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Edges with Divisions 03, 04, 06 and 07 live in those divisions' files.
+
+edges:
+  # ── Within Division 08 ────────────────────────────────────────
+  - id: if.08-doors-hardware
+    a: ["08 10 00"]
+    a_trade: Doors and frames
+    b: ["08 71 00"]
+    b_trade: Door hardware
+    a_provides: Door and frame material, core, rating and construction per mark, and the prep and reinforcement drawings returned for the hardware supplier's check
+    b_provides: Approved hardware schedule and templates, including electrified items, power transfer method, concealed closers and holders, before doors and frames are released
+    responsibility:
+      - item: Hardware templates to the door and frame fabricators
+        typical: {furnish: "08 71 00"}
+        confirm_in: [spec.part1, spec.part2]
+      - item: Installing electrified hardware and the wire between frame and device
+        typical: {install: "08 71 00 installer or the door installer", connect: "28 10 00 or 26 05 00"}
+        confirm_in: [spec.part3, schedule.door_hardware]
+    gate:
+      milestone: procurement_release
+      note: Doors and frames are machined to the hardware; release them only against the approved sets
+    severity: high
+
+  - id: if.08-framing-glazing
+    a: ["08 10 00", "08 40 00", "08 50 00", "08 62 00"]
+    a_trade: Door lites, glazed framing systems, windows and skylights
+    b: ["08 80 00"]
+    b_trade: Glazing
+    a_provides: Glass type per lite on the elevations, glazing pocket depth and bite, setting blocks, gaskets and glazing method (shop or field)
+    b_provides: Glass makeup, thickness and weight per type, any thickness or heat treatment change from the strength or thermal stress analysis, and compatibility of glazing materials with the insulating glass edge seal
+    responsibility:
+      - item: Furnishing and setting glass in framing systems, windows and door lites
+        typical: {furnish: "08 80 00 or the framing, window or door section", install: "08 80 00 or the framing installer"}
+        confirm_in: [spec.part1, spec.part2]
+    gate: {milestone: procurement_release}
+    severity: high
+
+  # ── Division 09 ───────────────────────────────────────────────
+  - id: if.08-frames-partitions
+    a: ["08 10 00"]
+    a_trade: Doors and frames
+    b: ["09 21 00", "09 22 00", "09 29 00"]
+    b_trade: Gypsum board assemblies and metal framing
+    a_provides: Frame profile, throat and anchor type per opening, and whether each frame is set before board (welded) or after (knock-down)
+    b_provides: Partition type at each opening (stud size, board layers each side, added finishes), jamb and header framing for the door's weight and hardware, and frames set and braced before the first board where welded
+    responsibility:
+      - item: Setting welded frames in stud partitions
+        typical: {install: "08 11 13 installer or 09 22 00"}
+        confirm_in: [spec.part3]
+      - item: Grouting frames in stud partitions where the spec requires it
+        typical: {install: "09 21 00 or 08 11 13 installer"}
+        confirm_in: [spec.part3, schedule.door]
+    gate:
+      milestone: procurement_release
+      note: Throat and anchors are fabricated in; welded frames must then be set before the first layer of board
+    severity: high
+
+  - id: if.08-thresholds-flooring
+    a: ["08 71 00", "08 10 00"]
+    a_trade: Door hardware (thresholds) and doors (undercuts)
+    b: ["09 60 00", "09 30 00"]
+    b_trade: Flooring and tile
+    a_provides: Threshold type, height, bevel and setting method at each door, and the undercut each door is machined to
+    b_provides: Finish and setting-bed thickness on each side of each door, where a change of level or material falls (under the door, at the threshold, at the frame face), and the transition or reducer at each one
+    responsibility:
+      - item: Transition strips and reducers at doors
+        typical: {furnish: "09 60 00, 09 30 00 or 08 71 00", install: "09 60 00 or 09 30 00"}
+        confirm_in: [spec.part2, schedule.finish, schedule.door_hardware]
+    gate:
+      milestone: procurement_release
+      note: Thresholds are bought by set and doors premachined to an undercut, so floor thickness at each door must be known first
+    severity: medium
+
+  # ── Division 10 ───────────────────────────────────────────────
+  - id: if.08-door-signage
+    a: ["08 10 00", "08 71 00"]
+    a_trade: Doors, frames and door hardware
+    b: ["10 14 00"]
+    b_trade: Signage
+    a_provides: Final hand and swing at each door, sidelites, borrowed lites and vision lites beside or in the door, latch-side wall devices the hardware sets bring (card readers, actuators, hold-open magnets), and which doors are rated
+    b_provides: Sign location and mounting at each door, confirmed against that door's final swing and latch-side devices before rough-in; signs kept off rated door leaves except as the fire door standard allows them to be attached
+    responsibility:
+      - item: Field confirmation of sign locations at pairs, sidelites and doors with latch-side devices
+        typical: {install: "10 14 00"}
+        confirm_in: [schedule.signage, schedule.door, drawings.security]
+    gate:
+      milestone: in_wall_rough_in
+      note: Card reader and actuator boxes fix the latch-side wall before signs are made
+    severity: low
+    failure: A door's swing or hardware changed after the sign schedule; the sign has no wall at the latch side and ends up on glass or a rated door leaf
+
+  # ── Division 11 ───────────────────────────────────────────────
+  - id: if.08-dock-equipment
+    a: ["08 33 00", "08 36 00"]
+    a_trade: Coiling and sectional doors
+    b: ["11 13 00"]
+    b_trade: Loading dock equipment
+    a_provides: Door guides and tracks, jamb and header conditions, door height against the shelter or seal head, bottom seal and where the closed door lands on the leveler or pit edge, and operator controls at each dock position
+    b_provides: Leveler, restraint, bumper and seal or shelter mounting on the door jambs and header, clear of the guides, and the interlocks the spec requires among restraint, leveler and door operator (door cannot open until the trailer is restrained; leveler cannot deploy with the door closed)
+    responsibility:
+      - item: Interlock wiring between dock equipment and door operators
+        typical: {furnish: "11 13 00 or 08 33 00", install: "26 05 00", connect: "26 05 00"}
+        confirm_in: [spec.part1, drawings.electrical]
+    gate: {milestone: procurement_release}
+    severity: medium
+    failure: Seals or shelters clash with door guides, or interlocks left unwired at turnover
+
+  # ── Division 12 ───────────────────────────────────────────────
+  - id: if.08-glass-shading
+    a: ["08 80 00", "08 44 00", "08 50 00"]
+    a_trade: Glazing, curtain wall and windows
+    b: ["12 20 00"]
+    b_trade: Window treatments
+    a_provides: Glass makeup and the thermal stress limits it was analyzed for; head, jamb and mullion conditions available for mounting; operable sash and hardware clearances
+    b_provides: Shade or blind type, color and openness, distance from the glass, and mounting location, early enough for the thermal stress analysis
+    gate: {milestone: procurement_release}
+    severity: medium
+
+  # ── Division 13 ───────────────────────────────────────────────
+  - id: if.08-radiation-shielding
+    a: ["08 10 00", "08 34 00", "08 56 00", "08 88 00"]
+    a_trade: Lead-lined doors and frames, view windows and lead glass
+    b: ["13 49 00"]
+    b_trade: Radiation protection
+    a_provides: Lead equivalence of each door, frame and view window; frame lining and its overlap onto the wall lead; shielded hardware preparations; and door weight for hinges, closers and operators
+    b_provides: Required lead equivalence and shielding height for each barrier from the physicist's design, the wall lead the frames and window frames must overlap, and inspection before the openings are covered
+    responsibility:
+      - item: Lead-lined door frames and view window frames
+        typical: {furnish: "08 10 00 or 13 49 00", install: "08 10 00 installer or 13 49 00"}
+        confirm_in: [spec.part1, schedule.door, drawings.details]
+    gate:
+      milestone: procurement_release
+      note: Review the door, frame and window submittals with the shielding submittal
+    severity: high
+    failure: Unlined frames, unshielded hardware preps or a view window below the barrier's equivalence; leakage found at the physicist's survey and frames or doors replaced
+
+  # ── Division 21 ───────────────────────────────────────────────
+  - id: if.08-sprinklered-glazing
+    a: ["08 80 00", "08 40 00"]
+    a_trade: Glazing and glazed framing
+    b: ["21 13 00"]
+    b_trade: Sprinklers
+    a_provides: Where the design protects ordinary glazing with sprinklers instead of fire-rated glazing, glass type and size, and framing and window treatments kept out of the zone between sprinklers and glass
+    b_provides: Sprinklers listed for protecting glazing, at the spacing and distance from the glass their listing requires, on the sides required
+    gate: {milestone: procurement_release}
+    severity: high
+    failure: Blinds, deep mullions or a different glass type installed where sprinklers protect the glazing; the protection no longer matches its listing
+
+  - id: if.08-overhead-door-clearances
+    a: ["08 33 00", "08 36 00"]
+    a_trade: Coiling and sectional doors
+    b: ["21 13 00", "23 31 00", "23 82 00", "26 51 00"]
+    b_trade: Sprinklers, ductwork, unit heaters and lighting above the opening
+    a_provides: Hood, guide, track, spring and operator envelope in section at each door, with the door both open and closed
+    b_provides: Routing kept out of that envelope, and sprinkler coverage below open doors and tracks where the sprinkler standard treats them as obstructions
+    gate: {milestone: overhead_rough_in}
+    severity: high
+
+  # ── Division 23 ───────────────────────────────────────────────
+  - id: if.08-door-airflow
+    a: ["08 10 00", "08 71 00"]
+    a_trade: Doors and door hardware
+    b: ["23 37 00", "23 05 93", "23 34 00"]
+    b_trade: Air outlets and transfer grilles, testing and balancing, smoke-control fans
+    a_provides: Undercut, door louvers, gasketing, door bottoms and closer sizes per opening
+    b_provides: Doors the air design relies on for transfer or return air, room pressure relationships, and stair and smoke-zone pressure differences that set door opening and closing forces
+    gate:
+      milestone: procurement_release
+      note: Doors are premachined to an undercut and seals are bought by set
+    severity: high
+
+  - id: if.08-louvers-ductwork
+    a: ["08 91 00"]
+    a_trade: Louvers
+    b: ["23 31 00", "23 33 00", "23 37 00", "23 70 00"]
+    b_trade: Ductwork, plenums, dampers and the air-handling equipment the louver serves
+    a_provides: Louver size and free area, certified water penetration and pressure drop at the free-area velocity the scheduled airflow produces, sill or drain pan, blank-off panel layout, and the frame the duct or plenum attaches to
+    b_provides: Airflow and function (intake, exhaust or relief) per louver mark, connection size and location, a plenum sloped and drained to the exterior or to a drain, and the motorized or backdraft dampers behind the louver
+    responsibility:
+      - item: Insulated blank-off panels on unused louver area
+        typical: {furnish: "08 91 00 or 23 33 00", install: "08 91 00 or 23 31 00"}
+        confirm_in: [spec.part2, drawings.mechanical]
+      - item: Plenum or duct connection to the louver and its drain
+        typical: {furnish: "23 31 00", install: "23 31 00"}
+        confirm_in: [drawings.mechanical, drawings.details]
+    gate: {milestone: procurement_release}
+    severity: high
+
+  - id: if.08-louvers-equipment-rooms
+    a: ["08 91 00"]
+    a_trade: Louvers
+    b: ["26 32 00", "23 50 00", "21 30 00", "22 30 00"]
+    b_trade: Generators, boilers, fire pumps and fuel-fired water heaters that breathe through wall louvers
+    a_provides: Free area and pressure drop of intake and discharge louvers at the airflow the equipment needs, and motorized louver actuators, end switches and fail position
+    b_provides: Combustion, ventilation and radiator airflow, the pressure drop the equipment allows across its louvers, and the start interlock and fail position for motorized louvers
+    responsibility:
+      - item: Motorized louver actuators, end switches and interlock wiring to the equipment
+        typical: {furnish: "08 91 00", install: "08 91 00", connect: "26 05 00 or 23 09 00"}
+        confirm_in: [spec.part2, drawings.electrical, drawings.mechanical]
+    gate: {milestone: procurement_release}
+    severity: high
+    failure: Louvers sized to the façade instead of the equipment airflow, or motorized louvers that stay shut when the engine or burner starts; equipment overheats or starves of combustion air at its acceptance test
+
+  # ── Divisions 21 to 26: access doors ──────────────────────────
+  - id: if.08-access-doors-mep
+    a: ["08 31 00"]
+    a_trade: Access doors and panels
+    b: ["21 05 00", "21 13 00", "22 05 00", "22 10 00", "23 21 00", "23 33 00", "23 36 00", "26 05 00", "09 21 00"]
+    b_trade: Sprinkler, plumbing, hydronic and air-side trades with concealed valves, dampers and terminal units; electrical junction boxes; the board installer
+    a_provides: Door sizes, ratings and frame types for each substrate
+    b_provides: Location and required size of every concealed device that needs service, taken from approved MEP submittals; framed openings in board walls and ceilings
+    responsibility:
+      - item: Furnishing access doors for MEP devices
+        typical: {furnish: "08 31 00 or each MEP trade", install: "09 21 00"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: above_ceiling_close_in}
+    severity: high
+
+  # ── Divisions 26 and 28 ───────────────────────────────────────
+  - id: if.08-electrified-openings
+    reflex: true
+    a: ["08 71 00", "08 42 29"]
+    a_trade: Electrified door hardware and automatic entrances
+    b: ["26 05 00", "28 10 00", "28 30 00"]
+    b_trade: Electrical raceway and wiring, access control and intrusion detection
+    a_provides: Each electrified opening's devices, voltage, load, fail-safe or fail-secure, power supply location and the frame and header boxes its wiring needs, issued before in-wall rough-in
+    b_provides: Circuits to power supplies and operators; conduit and boxes from each frame and header to an accessible ceiling, in place before the wall is closed; readers, request-to-exit and position switches where security furnishes them; the cable, terminations and programming
+    responsibility:
+      - item: Lock power supplies
+        typical: {furnish: "08 71 00 or 28 10 00", install: "08 71 00 or 28 10 00", connect: "26 05 00"}
+        confirm_in: [spec.part1, schedule.door_hardware, drawings.electrical]
+      - item: Conduit and back boxes from frame to ceiling
+        typical: {furnish: "26 05 00 or 28 10 00", install: "26 05 00 or 28 10 00"}
+        confirm_in: [drawings.electrical, drawings.security]
+      - item: Door position switches and request-to-exit devices
+        typical: {furnish: "08 71 00 or 28 10 00", install: "08 71 00 or 28 10 00"}
+        confirm_in: [schedule.door_hardware, drawings.security]
+      - item: Cable from electrified hardware to the access control panel, termination and testing of each opening
+        typical: {install: "28 10 00 or 26 05 00", connect: "28 10 00"}
+        confirm_in: [spec.part1, drawings.security]
+    gate:
+      milestone: wall_close_in
+      note: Openings and their devices are frozen at hardware approval; cable to the frame goes in before board
+    severity: critical
+
+  - id: if.08-motorized-door-power
+    a: ["08 33 00", "08 36 00"]
+    a_trade: Coiling and sectional door operators
+    b: ["26 05 00", "26 28 00"]
+    b_trade: Electrical raceway, wiring and disconnects
+    a_provides: Operator voltage, phase and load, control station and safety device locations, and the control wiring diagram
+    b_provides: Circuit and disconnect at each operator, and conduit to control stations, photo eyes and edges
+    responsibility:
+      - item: Control wiring from operator to control stations and safety devices
+        typical: {install: "26 05 00 or the door installer", connect: "26 05 00"}
+        confirm_in: [spec.part1, drawings.electrical]
+    gate: {milestone: wall_close_in}
+    severity: medium
+    failure: Operators delivered with no circuit or disconnect, or with control wiring nobody carried; doors run on temporary power or hand chain at turnover
+
+  - id: if.08-fire-alarm-doors
+    a: ["08 71 00", "08 33 00", "08 42 29"]
+    a_trade: Door hardware, coiling fire doors and automatic entrances
+    b: ["28 46 00"]
+    b_trade: Fire detection and alarm
+    a_provides: The doors that release, unlock, close or stop on alarm (hold-opens, fail-safe locks, delayed egress, stair re-entry, rolling fire doors and shutters, operators), with the input or contact each needs
+    b_provides: Release relays, holder circuits and detectors at each of those doors, programmed to the sequence, and acceptance testing with the door trades present
+    responsibility:
+      - item: Magnetic door holders
+        typical: {furnish: "08 71 00 or 28 46 00", install: "08 71 00 or 28 46 00", connect: "28 46 00"}
+        confirm_in: [spec.part1, schedule.door_hardware, drawings.fire_alarm]
+      - item: Detectors and release devices for rolling fire doors
+        typical: {furnish: "08 33 00 or 28 46 00", connect: "28 46 00"}
+        confirm_in: [spec.part2, drawings.fire_alarm]
+    gate:
+      milestone: wall_close_in
+      note: Acceptance testing of every release follows at substantial completion
+    severity: critical

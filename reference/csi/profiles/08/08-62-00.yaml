@@ -1,0 +1,129 @@
+schema_version: 1
+kind: section
+id: "08 62 00"
+title: Unit Skylights
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # wind and snow load design is often the manufacturer's
+
+scope_summary: >
+  Factory-assembled unit skylights and tubular daylighting devices on curbs
+  (08 62 13 through 08 62 23 inherit from here). Each unit joins two
+  warranted systems, the roof and the skylight, at a curb whose height,
+  insulation, air seal and flashing are often assigned to nobody. Glass
+  overhead has its own code rules, a skylight is a fall hazard for anyone
+  working on the roof, and warm humid rooms below turn the unit into a
+  condensation source.
+
+review_mode: per_element
+element_types: [skylight_type]
+
+submittals:
+  - id: 08sk.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Curb type and height above the finished roof, curb insulation and air seal, and the flashing to the roof membrane
+      - Glazing makeup of each lite, condensation gutters or weeps, and fall-protection screens or guards
+  - id: 08sk.sub.product-data
+    type: Product Data
+    must_show:
+      - Design pressure and snow load rating, and certified U-factor, SHGC and VT for the unit as submitted
+
+review_checks:
+  - id: 08sk.curb-integration
+    kind: coordination
+    check: >
+      The curb (integral or site-built) rises above the finished roof surface
+      by the height the roofing details need, is insulated and air-sealed to
+      the roof's air barrier, and its flashing is accepted under the roof
+      warranty; who furnishes the curb and who flashes it are assigned.
+    trace_to: [drawings.roof_plan, drawings.details, spec.part1]
+    severity: high
+    owner: gc
+    gate: roof_membrane
+
+  - id: 08sk.fall-protection
+    kind: conformance
+    check: >
+      Each skylight has the screen, guard or cover the fall-protection hook
+      requires, as part of the unit or under the skylight protection section,
+      and something protects the opening while the roof is being built.
+    trace_to: [spec.part2, drawings.roof_plan]
+    severity: high
+    owner: gc
+
+  - id: 08sk.overhead-glazing
+    kind: conformance
+    check: >
+      The glazing makeup meets the sloped-glazing rules the hook returns:
+      laminated or another permitted interior lite, or screens below
+      tempered or heat-strengthened glass where those are used.
+    trace_to: [spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 08sk.condensation
+    kind: constructability
+    check: >
+      Over humid spaces (pools, kitchens, showers, natatoriums) the unit's
+      condensation gutters or weeps, the insulated curb and a continuous air
+      seal from the roof's air barrier to the frame are detailed.
+    trace_to: [drawings.details, drawings.mechanical]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 08sk.fm.curb-orphan
+    what_happens: Skylight curb flashed by nobody, or the roofer will not flash a curb kit the roofing manufacturer never accepted
+    consequence: Leaks at the curb and a warranty exclusion; curbs reflashed under another trade's warranty
+    caught_by: [08sk.curb-integration]
+    source: field_experience
+
+  - id: 08sk.fm.fall-through
+    what_happens: Skylights left without screens, guards or covers during roofing and later maintenance
+    consequence: Fall-through hazard to workers; screens retrofitted after a citation or an incident
+    caught_by: [08sk.fall-protection]
+    source: industry_practice
+
+  - id: 08sk.fm.dripping
+    what_happens: Unit over a humid space with no condensation gutter or a curb that is not insulated and air-sealed
+    consequence: Condensation drips on finishes and occupants; stained ceilings and corroded frames
+    caught_by: [08sk.condensation]
+    source: field_experience
+
+standards:
+  - id: 08sk.std.nafs
+    name: AAMA/WDMA/CSA 101/I.S.2/A440
+    title: North American Fenestration Standard/Specification for windows, doors, and skylights
+    verify: Skylight performance grade and design pressure for the unit and size submitted
+
+regulatory_hooks:
+  - id: 08sk.rh.fall-protection
+    topic: skylight-fall-protection
+    question: >
+      What fall protection do the occupational safety rules require at
+      skylights for construction and maintenance work (screens, guardrails,
+      covers rated for the load), and does the unit's screen meet it?
+    applies_when: Roofs with skylights that workers can reach
+    source_families: [occupational_safety]
+    severity: high
+
+  - id: 08sk.rh.sloped-glazing
+    topic: sloped-glazing-protection
+    question: >
+      What glazing materials and screens does the adopted code require for
+      skylights and sloped glazing, and are any unit skylights exempt by
+      height, size or occupancy?
+    applies_when: Glass unit skylights
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: 08sk.xf.unit
+    label: Curb height, glazing makeup and fall-protection screen
+    type: string
+    per: element
+    reconcile_against: [drawings.roof_plan, drawings.details]

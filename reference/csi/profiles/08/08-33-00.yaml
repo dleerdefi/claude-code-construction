@@ -1,0 +1,173 @@
+schema_version: 1
+kind: section
+id: "08 33 00"
+title: Coiling Doors and Grilles
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # wind-load design and operator selection are often left to the manufacturer
+
+scope_summary: >
+  Overhead and counter coiling doors and grilles, including rated coiling
+  fire doors and counter shutters (08 33 13 through 08 33 26 inherit from
+  here). The door is fixed early by its headroom, side room and supports:
+  the coil and hood grow with door height and wind rating, the guides need
+  structure that can take wind and operating loads, and the space above the
+  opening is wanted by ducts, sprinklers and lights. Rated doors add an
+  automatic-closing release tied to the fire alarm and a drop test before
+  occupancy.
+
+review_mode: per_element
+element_types: [door_opening]
+
+suppress:
+  - id: d08.rh.safety-glazing
+    reason: Coiling slats and curtains are not glazed
+
+submittals:
+  - id: 08cd.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Opening size, mounting (face of wall or between jambs), headroom and side room, and hood and guide dimensions in section
+      - The jamb, header and bracket support each door needs, with reactions
+      - Operator type and location, controls, entrapment protection and wiring diagrams
+      - For rated doors, the label, release devices, closing mechanism and fire alarm connection
+  - id: 08cd.sub.design-data
+    type: Design Data
+    must_show:
+      - Wind-load rating or calculation for each exterior door at its design pressure, with the guide and anchor design
+  - id: 08cd.sub.field-reports
+    type: Manufacturer's Field Reports
+    must_show:
+      - Drop test and reset of each rated door with its release devices activated, witnessed and recorded
+
+review_checks:
+  - id: 08cd.headroom
+    kind: constructability
+    check: >
+      Coil, hood, brackets, guides and operator fit the headroom and side
+      room at each opening as built (ceiling height, beams, bulkheads); a door
+      upsized or given a higher wind rating after layout gets a larger coil
+      and hood, and needs the clearances checked again.
+    trace_to: [drawings.details, drawings.building_sections, drawings.rcp]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: 08cd.jamb-support
+    kind: constructability
+    check: >
+      Jambs and header carry the guides, brackets and wind reactions: steel
+      jambs or plates in grouted masonry, or framing designed for the door's
+      loads in stud walls, shown on the structural or architectural details
+      and assigned to a trade.
+    trace_to: [drawings.structural, drawings.details]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 08cd.fire-door-release
+    kind: coordination
+    check: >
+      Each rated coiling door and counter shutter shows the listed release
+      (fusible links, smoke detector or fire alarm release through a listed
+      device), controlled-speed automatic closing, an operator that cannot
+      hold the door open on alarm, and its behavior on power loss; the fire
+      alarm drawings show the release circuit or detector at that door.
+    trace_to: [drawings.fire_alarm, drawings.life_safety, spec.part2]
+    severity: critical
+    owner: gc
+    gate: procurement_release
+
+  - id: 08cd.drop-test
+    kind: completeness
+    check: >
+      Each rated door is drop-tested and reset at acceptance with its release
+      devices activated, witnessed and documented, and the periodic testing
+      the owner now owes is handed over with the closeout documents.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: substantial_completion
+
+  - id: 08cd.operator-safety
+    kind: conformance
+    check: >
+      Motor operators carry the entrapment protection the operator standard
+      requires for the control mode (monitored photo eyes or edges for
+      momentary-contact or timer-to-close operation), controls sit where the
+      door is in view, and the operator is interlocked with any slide bolt or
+      lock so it cannot drive against it.
+    trace_to: [spec.part2, drawings.electrical]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 08cd.fm.hood-clash
+    what_happens: Ductwork, sprinkler mains or lights installed in the zone the coil hood and operator need
+    consequence: Door cannot be installed until MEP is relocated, or the door is reordered with a different mounting
+    caught_by: [08cd.headroom, if.08-overhead-door-clearances]
+    source: field_experience
+
+  - id: 08cd.fm.no-jamb-steel
+    what_happens: Guides fastened to studs or hollow masonry with no steel jamb or grouted cells
+    consequence: Guides pull loose under wind and operation; jamb steel added through finished walls
+    caught_by: [08cd.jamb-support, if.05-overhead-door-supports]
+    source: field_experience
+
+  - id: 08cd.fm.release-not-wired
+    what_happens: Rated coiling door's release never tied to the fire alarm, or its operator holds the door open on alarm
+    consequence: Fails acceptance testing; occupancy delayed while release devices and wiring are added
+    caught_by: [08cd.fire-door-release, if.08-fire-alarm-doors]
+    source: field_experience
+
+  - id: 08cd.fm.drop-test-late
+    what_happens: Drop tests left to the last week with the fire alarm not ready to release the doors
+    consequence: Failed or incomplete acceptance; temporary certificate conditions or delayed occupancy
+    caught_by: [08cd.drop-test]
+    source: industry_practice
+
+  - id: 08cd.fm.entrapment-unmonitored
+    what_happens: Operators shipped without the monitored entrapment devices their control mode requires
+    consequence: Operators refuse to run in the specified mode, or run without protection; devices added at turnover
+    caught_by: [08cd.operator-safety]
+    source: industry_practice
+
+standards:
+  - id: 08cd.std.ul-325
+    name: UL 325
+    title: Door, Drapery, Gate, Louver, and Window Operators and Systems
+    verify: Operator listing and the entrapment protection type for its control mode
+  - id: 08cd.std.dasma-108
+    name: ANSI/DASMA 108
+    title: "Standard Method for Testing Sectional Garage Doors and Rolling Doors: Determination of Structural Performance Under Uniform Static Air Pressure Difference"
+    verify: Wind-load test basis for exterior coiling doors
+  - id: 08cd.std.ul-10b
+    name: UL 10B / NFPA 252
+    title: Standard for Fire Tests of Door Assemblies; Standard Methods of Fire Tests of Door Assemblies
+    verify: Listing of rolling fire doors and counter shutters
+
+regulatory_hooks:
+  - id: 08cd.rh.fire-door-testing
+    topic: fire-door-assembly-inspection
+    question: >
+      Does the adopted fire code require acceptance testing and periodic
+      inspection and drop testing of rolling fire doors and shutters, who may
+      perform it, and how must it be documented before occupancy?
+    applies_when: Rated coiling doors, counter shutters and fire curtains
+    source_families: [fire_code]
+    severity: high
+
+extract_fields:
+  - id: 08cd.xf.door
+    label: Opening size, mounting, hood size and headroom required
+    type: string
+    per: element
+    reconcile_against: [drawings.details, schedule.door]
+  - id: 08cd.xf.rating
+    label: Fire rating and release type, or wind-load rating
+    type: string
+    per: element
+    reconcile_against: [schedule.door, drawings.life_safety, drawings.structural]
