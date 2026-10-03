@@ -127,34 +127,10 @@ These criteria decide what can ship under the repo's rules: an eval must pass be
 
 ## 5. Sketches of the top candidates
 
-### 1. revision-compare ("git diff for drawings")
-This restores the lost revision tracking.
-- **Inputs:** two issues of a set (e.g. "Bid Set 2024-01-05" → "Bulletin 01"), as split sheets or as bound sets via sheet-splitter. Optionally two versions of the specs.
-- **Steps:**
-  1. Pair sheets by number to find added, removed and reissued sheets.
-  2. Rasterize both versions at the same DPI. Align them by matching vector-text anchors. Find changed regions by pixel diff, using Pillow `ImageChops` and a grid flood-fill (no numpy, so no new dependencies).
-  3. Diff the word-level text in each region. Vector-text before/after values are authoritative.
-  4. Use vision only to describe each region and to decide whether it is **clouded or unclouded**, from the clouds, deltas and revision block.
-  5. Diff the spec versions section by section, on `spec_text/` directories.
-  6. Map impact: discipline from the sheet prefix; trades via `csi_masterformat.yaml`; affected rows in `Submittal_Log.xlsx`; a potential cost/schedule flag (Y / Possible / N) with a reason, and no pricing.
-- **Differentiator:** unclouded changes are written to the issue registry. Architects often issue them, and Overlay alone doesn't separate them from clouded changes. Revisions that now conflict with documents that didn't change are logged as `conflict`.
-- **Outputs:**
-  - **Deliverables** in `Revisions/{label}/`: `Revision_Log_{label}.xlsx` (tabs Summary, Sheet Changes, Change Items, Spec Changes), red/green overlay PDFs, and new sheets clouded with native markups that Bluebeam can read.
-  - **Working data** in `.construction/skills/revision-compare/{label}/`, plus a `revision_history.yaml` keyed by sheet. Keeping it there leaves sheet-splitter's index format unchanged.
-- **Scripts:** `pair_sheets.py`, `diff_pages.py`, `diff_spec_text.py`, `export_revision_log.py`, all skill-local.
-- **Fixture:** `_fixtures/revision/make_revision_set.py`, following the `make_addendum.py` pattern, with every page stamped "EVAL FIXTURE" identically in both issues. Planted edits:
-  1. A500 door 220, 3'-0" → 3'-6", clouded, with a delta. This matches Addendum 01.
-  2. A101: one door tag removed, clouded.
-  3. One note changed with **no cloud**.
-  4. One sheet removed and one added.
-  5. One control sheet left unchanged.
-  6. Spec 09 65 13: one value changed and one paragraph added.
-- **Assertions:**
-  1. Every planted change is found, with its before/after values.
-  2. The unclouded change is flagged and recorded in the registry.
-  3. The added and removed sheets are reported, and the control sheet has 0 items.
-  4. No sheet or section is cited from outside the two sets.
-  5. The spec change is captured.
+### 1. revision-compare → specified as two skills
+Superseded by the full spec in [`docs/specs/revision-history.md`](specs/revision-history.md) (design chosen 2026-10-02, implementation deferred). Revision history isn't stored anywhere a script can read, including Bluebeam, so:
+- **`revision-history`** (new builder): Claude's record of every formal change (Addenda, Bulletins, ASIs, PRs, CCDs, COs). It's built cheaply from revision blocks, change-document covers, existing logs and `.bex` files, then refreshed as new files arrive. It raises discrepancies such as a document naming a sheet whose revision block wasn't updated, or a cited ASI that isn't on file.
+- **`revision-compare`** (comparing only): compares a new package against the PE's current set. Reports text-based before/after values, unclouded changes, impact and contract status. Never slip-sheets, stamps or edits the PE's set; the PE's Bluebeam set stays the record of what's current.
 
 ### 2. document-set-audit ("lint for the drawing set")
 This replaces `_dev/qa-qc-auditor`.
@@ -203,14 +179,14 @@ This restores spec-parser: per-section product requirements, manufacturers, stan
 3. **Per-sheet drawing text index** (`sheet_text/`), shared by #1 and #2.
 
 ## 7. Suggested order
-1. **revision-compare.** Highest value among the whitespace candidates, and the clearest codebase analogy. Planted-edit fixtures meet the SOP's "100% of seeded conflicts" bar.
+1. **revision-compare** (now `revision-history` + a compare-only `revision-compare`, see `docs/specs/revision-history.md`). Highest value among the whitespace candidates, and the clearest codebase analogy. Planted-edit fixtures meet the SOP's "100% of seeded conflicts" bar.
 2. **document-set-audit.** Testable today, becomes the registry's first producer, and shares `sheet_text/` with #1.
 3. **closeout-qc-register** and **project-requirements-digest.** Cheap, and testable today.
 4. **submittal-reviewer.** Highest raw value, but needs a fixture and faces crowded competition.
 5. **change-event-manager.** Depends on #1 and #4.
 
 ## 8. Decisions to make
-- [ ] Which skill(s) to build first. The recommendation is revision-compare. The alternative is document-set-audit, if a skill testable today matters more.
+- [x] Which skill(s) to build first: revision-compare, specified in `docs/specs/revision-history.md` as two skills. document-set-audit is next.
 - [ ] Whether to fix the prerequisites (registry producers, register helper) before or alongside the first new skill.
 - [ ] Whether `reference/pe_expertise/` should ship (un-ignore it) to support scope-package-writer and submittal-reviewer.
 - [ ] Whether to write this roadmap into the repo (`docs/SKILL_ROADMAP.md`) and fix the SOP's stale "planned" list.
