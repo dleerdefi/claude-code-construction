@@ -1,0 +1,145 @@
+schema_version: 1
+kind: section
+id: "06 18 00"
+title: Glued-Laminated Construction
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # connections are sometimes delegated to the fabricator's engineer
+
+scope_summary: >
+  Glued-laminated beams, columns and arches, often exposed as finish and
+  increasingly part of mass timber frames. Members are cut, cambered and
+  drilled for connections in the shop, so any later hole for MEP or
+  attachments needs the engineer's approval. Exposed glulam is judged on
+  appearance grade and finish and is easily damaged by weather and handling
+  before the building is closed in. The fire resistance of exposed timber
+  comes from member size or a char calculation and protected connections,
+  not from protection added later.
+
+suppress:
+  - id: 06rc.blocking-master-list
+    reason: Glulam submittals do not carry blocking; the master list is reviewed under 06 10 00
+  - id: 06rc.backing-in-rated-walls
+    reason: Blocking inside partitions is reviewed under 06 10 00
+  - id: 06rc.rc.blocking-sources
+    reason: Blocking reconciliation is reviewed under 06 10 00
+  - id: 06rc.fm.backing-missed
+    reason: Its catching checks are reviewed under 06 10 00
+  - id: 06rc.fm.blocking-voids-listing
+    reason: Its catching check is reviewed under 06 10 00
+
+submittals:
+  - id: 06gl.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Member sizes, camber, appearance grade and combination symbol or layup, with the top face marked on unbalanced members
+      - Connection hardware and every shop-drilled hole, notch and penetration
+  - id: 06gl.sub.product-data
+    type: Product Data
+    must_show:
+      - Connection hardware and its finish, end sealers, sealers or finish coats, and protective wrapping
+  - id: 06gl.sub.certificates
+    type: Certificates
+    must_show:
+      - Quality mark or certificate of conformance to the product standard for each member
+
+review_checks:
+  - id: 06gl.layup-camber
+    kind: conformance
+    check: >
+      Combination symbol or layup, species, appearance grade and camber of
+      each member match the structural drawings and spec, and unbalanced
+      members show which face is the tension face so they are not installed
+      upside down.
+    trace_to: [drawings.structural, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 06gl.penetrations
+    kind: coordination
+    check: >
+      Every hole, notch and attachment for MEP, sprinklers, lighting and
+      cladding through or into the glulam is located on the shop drawings and
+      approved by the engineer of record before fabrication; field drilling
+      beyond that is not allowed without approval.
+    trace_to: [drawings.structural, drawings.mechanical, drawings.electrical, drawings.fire_protection]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 06gl.protection
+    kind: constructability
+    check: >
+      Members arrive wrapped and end-sealed, are stored off the ground and
+      covered, and are unwrapped only as each area is enclosed, so exposed
+      faces are not checked, stained or raised by weather.
+    trace_to: [spec.part3, schedule.master]
+    severity: medium
+    owner: gc
+
+  - id: 06gl.fire-resistance
+    kind: conformance
+    check: >
+      Where exposed members are part of rated construction, the design shows
+      how each member achieves its rating (heavy timber sizes or a calculated
+      char depth) and how connections and concealed steel are protected, and
+      the submitted sizes and connections match that basis.
+    trace_to: [drawings.structural, drawings.life_safety]
+    severity: high
+    owner: design_team
+
+failure_modes:
+  - id: 06gl.fm.upside-down
+    what_happens: An unbalanced member installed with its tension face up
+    consequence: Capacity below design; member replaced after erection
+    caught_by: [06gl.layup-camber]
+    source: industry_practice
+
+  - id: 06gl.fm.field-drilled
+    what_happens: Sprinkler, electrical or cladding trades drill exposed glulam without approval
+    consequence: Engineer's review of each hole, reinforcement or replacement, and visible damage on finish surfaces
+    caught_by: [06gl.penetrations]
+    source: industry_practice
+
+  - id: 06gl.fm.weathered
+    what_happens: Exposed members left unwrapped or wet before close-in
+    consequence: Checking, staining and raised grain on finish faces; sanding and refinishing in place
+    caught_by: [06gl.protection]
+    source: industry_practice
+
+  - id: 06gl.fm.connections-exposed
+    what_happens: Steel connectors in a rated timber frame left exposed with no protection the rating allows
+    consequence: Connections do not meet the rating; protection added after the frame is up
+    caught_by: [06gl.fire-resistance]
+    source: industry_practice
+
+standards:
+  - id: 06gl.std.ansi-a190-1
+    name: ANSI A190.1
+    title: Product Standard for Structural Glued Laminated Timber
+    verify: Manufacturing and quality marks on the members
+  - id: 06gl.std.ansi-117
+    name: ANSI 117
+    title: Standard Specification for Structural Glued Laminated Timber of Softwood Species
+    verify: Combination symbols, layups and appearance grades
+
+regulatory_hooks:
+  - id: 06gl.rh.timber-fire
+    topic: exposed-timber-fire-resistance
+    question: >
+      For this construction type, does the adopted code permit exposed
+      structural timber, under which minimum sizes or calculated fire
+      resistance, and how must connections and concealed spaces be protected?
+    applies_when: Exposed glulam or mass timber in rated construction
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: 06gl.xf.members
+    label: Combination symbol, appearance grade and camber per member type
+    type: list
+    per: package
+    reconcile_against: [drawings.structural]

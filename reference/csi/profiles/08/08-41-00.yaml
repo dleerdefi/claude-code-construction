@@ -1,0 +1,59 @@
+schema_version: 1
+kind: section
+id: "08 41 00"
+title: Entrances and Storefronts
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["08 43 00"]   # Storefronts, specified separately from entrances on some projects
+
+scope_summary: >
+  Storefront framing and its entrances, at grade and inside the building
+  (08 41 13 and the other framing materials inherit from here). Storefront
+  is a lighter system than curtain wall, usually drained only at the sill,
+  with limits on span, stacked height and water resistance. The trouble
+  starts when it is used as a multi-story wall, when the whole system
+  depends on a sill receptor and sealant at a slab edge that slopes the
+  wrong way, and at the threshold where the entrance meets the paving.
+
+review_checks:
+  - id: 08sf.system-limits
+    kind: conformance
+    check: >
+      Spans, lite sizes and stacked heights are within what the storefront
+      system and its reinforcing can carry at the design pressure, and the
+      system is not carried across a floor line or used where the drawings
+      need a curtain wall; elevations that need steel reinforcing or a deeper
+      system go back to the design team, not into a field fix.
+    trace_to: [drawings.exterior_elevations, drawings.wall_sections, spec.part2]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 08sf.at-grade-sill
+    kind: constructability
+    check: >
+      At-grade sills and entrance thresholds sit on a slab edge or recess
+      detailed for them, with a sill pan or receptor draining outward, paving
+      sloped away from the door, and a threshold that meets the accessibility
+      limits; the slab and paving elevations on the civil and structural
+      drawings agree with that detail.
+    trace_to: [drawings.details, drawings.structural, drawings.civil]
+    severity: high
+    owner: design_team
+    gate: slab_pour
+
+failure_modes:
+  - id: 08sf.fm.storefront-as-curtain-wall
+    what_happens: Storefront stacked across floor lines or spanning beyond its system limits to save cost
+    consequence: Mullion deflection, leaks at stack joints and broken glass; steel reinforcing or a curtain wall added after the order
+    caught_by: [08sf.system-limits]
+    source: field_experience
+
+  - id: 08sf.fm.water-at-threshold
+    what_happens: Entrance slab poured flat or sloped inward, or paving set high against the threshold
+    consequence: Water under the threshold into the floor finish; slab ground or paving removed and reset
+    caught_by: [08sf.at-grade-sill]
+    source: field_experience

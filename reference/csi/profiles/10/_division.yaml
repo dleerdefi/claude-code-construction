@@ -1,0 +1,124 @@
+schema_version: 1
+kind: division
+id: "10"
+title: Specialties
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Specialties are high-count, low-cost items installed last, against finished
+  walls and floors, but each one depends on something decided weeks earlier:
+  backing in the wall before close-in, a rough opening and enough wall depth
+  for anything recessed, a rated unit or a protected box-out where the wall is
+  rated, support steel for anything hung overhead, and a circuit for anything
+  powered. Accessibility governs where most of them are mounted and how far
+  they may project, so the review is about the wall and the location as much
+  as the product.
+
+review_checks:
+  - id: d10.backing-list
+    kind: absence
+    check: >
+      Every wall-mounted specialty (grab bars, accessories, compartment
+      pilasters and headrails, cabinets, display boards, wall protection,
+      lockers) has its backing type, height and extent on the drawings or in a
+      backing schedule, and that list reaches the framer before second-side
+      board. Items whose locations first appear on the specialty submittal,
+      after close-in, are the usual miss.
+    trace_to: [drawings.interior_elevations, drawings.details, schedule.partition_type]
+    severity: high
+    owner: gc
+    gate: wall_close_in
+
+  - id: d10.recess-in-rated-walls
+    kind: conformance
+    reflex: true
+    check: >
+      Each recessed or semi-recessed specialty (extinguisher and valve
+      cabinets, recessed dispensers and waste receptacles, hand dryers) that
+      falls in a rated wall on the life safety plans is a unit listed for that
+      wall's rating, or the wall is boxed out behind it with construction that
+      keeps the listed assembly. A standard recessed unit in a rated wall is a
+      finding even when the specialty submittal is otherwise correct.
+    trace_to: [drawings.life_safety, drawings.plans, schedule.partition_type]
+    severity: high
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: d10.wall-depth
+    kind: constructability
+    check: >
+      Recessed units fit the wall they are drawn in: rough opening against stud
+      depth and spacing, the partition type at that location, plumbing or
+      conduit sharing the cavity, back-to-back units, and chase or furred
+      walls. Rough opening sizes go to the framer from the approved product
+      data, not from the basis of design.
+    trace_to: [schedule.partition_type, drawings.plans, drawings.plumbing]
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: d10.protrusions
+    kind: conformance
+    check: >
+      Surface-mounted and semi-recessed units along circulation paths
+      (cabinets, dryers, dispensers, waste receptacles, projecting signs) are
+      checked against the protruding-object limits for their mounting height.
+      Wherever a recessed unit is swapped for a semi-recessed or surface unit,
+      the projection is checked again.
+    trace_to: [drawings.plans, drawings.interior_elevations]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: d10.fm.backing-after-close-in
+    what_happens: Specialty locations are confirmed only when the accessory, board or locker submittal arrives, after the walls are boarded
+    consequence: Walls opened to add backing, then patched and repainted; tiled walls cut and re-tiled
+    caught_by: [d10.backing-list]
+    source: industry_practice
+
+  - id: d10.fm.standard-unit-rated-wall
+    what_happens: Recessed towel, waste or hand dryer units are scheduled in a toilet room wall that is also a rated corridor or shaft wall
+    consequence: Fails the in-wall inspection; surface units substituted that then project into the clear floor space or the corridor
+    caught_by: [d10.recess-in-rated-walls]
+    source: industry_practice
+
+  - id: d10.fm.semi-recessed-swap
+    what_happens: A recessed unit doesn't fit a shallow or crowded wall, so a semi-recessed or surface unit is installed instead
+    consequence: The unit projects into the corridor beyond the accessibility limit; relocated, or the wall furred out after finishes
+    caught_by: [d10.wall-depth, d10.protrusions]
+    source: industry_practice
+
+regulatory_hooks:
+  - id: d10.rh.membrane-penetrations
+    topic: membrane-penetration-allowances
+    question: >
+      Which recessed specialties in rated walls does the adopted code treat as
+      membrane penetrations, and which need a listed rated unit or rated
+      construction behind them?
+    applies_when: Recessed or semi-recessed specialties in rated walls
+    source_families: [building_code]
+    severity: high
+
+  - id: d10.rh.protruding-objects
+    topic: accessibility-protruding-objects
+    question: >
+      What projection limits does the adopted accessibility standard set for
+      wall-mounted objects along circulation paths at each mounting height, and
+      which specialties on this project exceed them?
+    applies_when: Surface or semi-recessed specialties in corridors and other circulation paths
+    source_families: [accessibility]
+    severity: medium
+
+  - id: d10.rh.reach-ranges
+    topic: accessibility-reach-ranges
+    question: >
+      What reach ranges and clear floor space does the adopted accessibility
+      standard require for the operable parts of specialties (dispensers,
+      dryers, cabinet latches and extinguisher handles, locker hardware), and
+      do the submitted mounting heights put each operable part within them?
+    applies_when: Specialties with operable parts that occupants must reach
+    source_families: [accessibility]
+    severity: medium

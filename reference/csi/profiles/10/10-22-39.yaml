@@ -1,0 +1,206 @@
+schema_version: 1
+kind: section
+id: "10 22 39"
+title: Folding Panel Partitions
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # track suspension is often delegated; the support structure is the EOR's
+
+scope_summary: >
+  Operable partitions that divide rooms: folding panel partitions here, and
+  accordion folding, coiling and sliding partitions, which are reviewed with
+  this profile. The partition hangs from a track or coil housing that hangs
+  from structure, so the panel weight, the support member and its
+  deflection under the floor or roof above have to be settled before steel
+  is fabricated. The acoustic rating on the product data is a laboratory
+  number for one panel construction; the divided rooms only approach it if a
+  barrier above the ceiling closes the plenum and nothing short-circuits it.
+  Track, pockets and the stacking path have to be kept clear of everything
+  else in the ceiling.
+
+review_mode: per_element
+element_types: [operable_partition]
+
+submittals:
+  - id: 10op.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Track layout, switches, stacking or pocket location and pocket dimensions, keyed to each partition tag
+      - Hanger spacing and the load at each hanger, and the support member each hanger attaches to
+      - Head, sound barrier, closure and floor seal details, and pass door location, size and hardware
+      - Power, key switch and safety sensor locations for motorized partitions
+  - id: 10op.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Laboratory sound transmission test of the same panel construction, faces and seals as submitted
+  - id: 10op.sub.design-data
+    type: Design Data
+    must_show:
+      - Panel weight and the support deflection limit the manufacturer requires at the track
+
+review_checks:
+  - id: 10op.support-structure
+    kind: coordination
+    check: >
+      The submitted panel weight and hanger loads are confirmed by the EOR
+      against the support member, and the member's deflection under the
+      partition and under live and snow load on the floor or roof above is
+      within the manufacturer's limit at the track. The support is shown and
+      installed before overhead MEP crowds the line.
+    trace_to: [drawings.structural, drawings.details, spec.part2]
+    severity: critical
+    owner: design_team
+    gate: overhead_rough_in
+
+  - id: 10op.acoustic-rating
+    kind: conformance
+    check: >
+      The rating claimed comes from a laboratory test of the panel construction,
+      faces and seals actually submitted, not a heavier panel in the same
+      family. A field performance requirement in the spec is flagged as
+      depending on the plenum barrier and flanking paths outside this
+      submittal.
+    trace_to: [spec.part2, report.acoustical]
+    severity: high
+    owner: subcontractor
+
+  - id: 10op.plenum-barrier
+    kind: absence
+    check: >
+      A sound barrier from the track to the structure above is detailed, with
+      its rating and its installer assigned (often the gypsum board trade, not
+      the partition installer), and ducts, pipes and return-air paths that
+      cross the partition line above the ceiling are treated.
+    trace_to: [drawings.details, drawings.rcp, drawings.mechanical]
+    severity: high
+    owner: design_team
+    gate: above_ceiling_close_in
+
+  - id: 10op.ceiling-coordination
+    kind: coordination
+    check: >
+      The track, ceiling closure and stacking path agree with the reflected
+      ceiling plan: lights, diffusers, sprinklers, speakers and detectors are
+      off the track line and out of the stack, and the pocket fits the plan
+      and the wall depth.
+    trace_to: [drawings.rcp, drawings.plans, drawings.fire_protection]
+    severity: medium
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 10op.floor-path
+    kind: constructability
+    check: >
+      The floor under the partition path is level and flat within the
+      manufacturer's tolerance for the bottom seals, with no floor boxes,
+      transitions or finish changes in the path.
+    trace_to: [spec.part3, drawings.plans, schedule.finish]
+    severity: medium
+    owner: gc
+    gate: floor_finish_install
+
+  - id: 10op.pass-doors-egress
+    kind: conformance
+    check: >
+      Where a divided room needs its own exits, the pass door, its hardware and
+      the exit signage meet the egress and accessibility requirements, and the
+      partition does not block an exit access path the life safety plan relies
+      on.
+    trace_to: [drawings.life_safety, drawings.plans, spec.part2]
+    severity: high
+    owner: design_team
+
+  - id: 10op.motorized-controls
+    kind: coordination
+    check: >
+      Motorized partitions have the circuit, key switch location (with a view
+      of the path) and obstruction sensors the manufacturer requires, and the
+      electrical drawings carry them.
+    trace_to: [drawings.electrical, spec.part2]
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
+reconciliations:
+  - id: 10op.rc.track-support
+    between: [drawings.rcp, drawings.structural]
+    key: Each partition track run
+    fields: [track location, support member, design partition load]
+    check: >
+      Every track run on the reflected ceiling plan has a support member at the
+      same location on the structural drawings, designed for a stated
+      partition load.
+    severity: high
+    owner: design_team
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 10op.fm.heavier-panel
+    what_happens: A higher-rated, heavier panel is selected or substituted after the support steel was designed for a lighter one
+    consequence: Support redesigned and reinforced in the field; delay to the ceiling
+    caught_by: [10op.support-structure, 10op.rc.track-support]
+    source: industry_practice
+
+  - id: 10op.fm.deflection-binding
+    what_happens: The support deflects under load on the floor or roof above beyond the track's tolerance
+    consequence: Panels bind or the top seals gap; the partition is hard to operate and leaks sound
+    caught_by: [10op.support-structure]
+    source: field_experience
+
+  - id: 10op.fm.open-plenum
+    what_happens: No barrier above the track, or a barrier penetrated by ducts and return-air openings
+    consequence: Divided rooms perform far below the partition's rating; owner complaint with no cheap fix
+    caught_by: [10op.plenum-barrier, if.10-operable-partition-air-paths]
+    source: field_experience
+
+  - id: 10op.fm.lab-versus-field
+    what_happens: The owner expects the laboratory rating between the divided rooms
+    consequence: Dispute at turnover over acoustic performance no partition alone can deliver
+    caught_by: [10op.acoustic-rating]
+    source: industry_practice
+
+  - id: 10op.fm.device-in-stack
+    what_happens: A sprinkler, light or diffuser installed in the track line or stacking area
+    consequence: Panels can't stack or pass; devices relocated after the ceiling is finished
+    caught_by: [10op.ceiling-coordination]
+    source: industry_practice
+
+standards:
+  - id: 10op.std.astm-e90
+    name: ASTM E90
+    title: Standard Test Method for Laboratory Measurement of Airborne Sound Transmission Loss of Building Partitions and Elements
+    verify: Laboratory test behind the rating claimed
+  - id: 10op.std.astm-e413
+    name: ASTM E413
+    title: Classification for Rating Sound Insulation
+    verify: How the single-number rating was derived from the test
+  - id: 10op.std.astm-e336
+    name: ASTM E336
+    title: Standard Test Method for Measurement of Airborne Sound Attenuation between Rooms in Buildings
+    verify: Field test method where the spec requires field performance
+
+regulatory_hooks:
+  - id: 10op.rh.divided-room-egress
+    topic: operable-partition-egress
+    question: >
+      When the partition is closed, what exits and exit access does each
+      divided space need under the adopted building code, and must a pass door
+      meet egress door and accessibility requirements?
+    applies_when: Operable partitions dividing assembly or meeting rooms
+    source_families: [building_code, accessibility]
+    severity: high
+
+extract_fields:
+  - id: 10op.xf.rating
+    label: Acoustic rating and laboratory test report for the panel submitted
+    type: string
+    per: element
+    reconcile_against: [spec.part2]
+  - id: 10op.xf.loads
+    label: Panel weight and maximum hanger load
+    type: string
+    per: element
+    reconcile_against: [drawings.structural]

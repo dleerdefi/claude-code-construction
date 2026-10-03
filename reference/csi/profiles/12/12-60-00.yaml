@@ -1,0 +1,148 @@
+schema_version: 1
+kind: section
+id: "12 60 00"
+title: Multiple Seating
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # telescoping stands and their anchorage are often designed by the manufacturer
+
+scope_summary: >
+  Fixed audience seating, telescoping stands and bleachers, and other
+  multiple-use seating (the subtype sections inherit from here). Seating is
+  laid out against the egress design: row spacing, seats per row and aisle
+  widths are code-governed and shift when the submitted chair's width or
+  back depth differs from the basis of design. Wheelchair spaces and
+  companion seats have counts, dispersion and sightline rules. Fixed seats
+  anchor into stepped concrete, and aisle lights need conduit cast into the
+  risers; telescoping stands need their floor reactions, wall attachment and
+  power settled with the structure.
+
+submittals:
+  - id: 12ms.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Seating plan with every row, seats per row, chair widths, row spacing, aisle and cross-aisle widths, and wheelchair and companion locations
+      - Chair anchorage to treads, risers or floor, with the riser dimensions assumed
+      - Aisle lights, seat numbering and end panels, and the power they need
+      - For telescoping stands, stacked and extended footprints, wall attachment, and power and controls for motorized operation
+  - id: 12ms.sub.design-data
+    type: Design Data
+    must_show:
+      - Telescoping stand or bleacher structural design with floor and wall reactions, where the spec or code requires it
+
+review_checks:
+  - id: 12ms.egress-layout
+    kind: conformance
+    check: >
+      Row spacing, seats per row, aisle widths and cross-aisles on the seating
+      plan meet the egress design for the chair actually submitted. A chair
+      with a deeper back, a wider arm or a different tablet arm changes the
+      clear row width and has to be rechecked against the life safety plan.
+    trace_to: [drawings.life_safety, drawings.plans]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 12ms.wheelchair-spaces
+    kind: conformance
+    check: >
+      Wheelchair spaces and companion seats are provided in the number,
+      dispersion, sightlines and level floor the accessibility research
+      requires, with designated aisle seats where required.
+    trace_to: [drawings.plans, drawings.building_sections]
+    severity: high
+    owner: design_team
+
+  - id: 12ms.riser-embeds
+    kind: coordination
+    check: >
+      Chair anchor types and locations suit the riser dimensions and slab
+      construction (post-tensioned tendons, in-slab conduit), and conduit and
+      boxes for aisle and step lights are cast into the risers before the pour.
+    trace_to: [drawings.structural, drawings.electrical, drawings.details]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 12ms.telescoping-structure
+    kind: coordination
+    check: >
+      Floor reactions of telescoping stands are accepted by the EOR, wall
+      attachment points have backing or structure, the floor finish suits the
+      wheel loads, and motorized units have their circuit and controls on the
+      electrical drawings.
+    trace_to: [drawings.structural, drawings.electrical, drawings.details]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+reconciliations:
+  - id: 12ms.rc.seat-counts
+    between: [drawings.plans, drawings.life_safety]
+    key: Each seating section
+    fields: [seat count, row count, aisle widths, occupant load]
+    check: >
+      Seat counts on the seating plan agree with the occupant load and the
+      egress capacity the life safety plan was designed for.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 12ms.fm.chair-substitution
+    what_happens: A chair with a deeper back or wider arm replaces the basis of design
+    consequence: Clear row width or aisle width falls short; seats removed from every row at inspection
+    caught_by: [12ms.egress-layout, 12ms.rc.seat-counts]
+    source: industry_practice
+
+  - id: 12ms.fm.aisle-lights-no-conduit
+    what_happens: Aisle lights specified but no conduit cast into the stepped concrete
+    consequence: Surface raceway on the treads, or cores and saw cuts in the risers
+    caught_by: [12ms.riser-embeds, if.12-seating-aisle-power]
+    source: field_experience
+
+  - id: 12ms.fm.wheelchair-clustered
+    what_happens: Wheelchair spaces grouped in one row or at one level to simplify the layout
+    consequence: Fails the accessibility review for dispersion; rows reworked
+    caught_by: [12ms.wheelchair-spaces]
+    source: industry_practice
+
+standards:
+  - id: 12ms.std.icc-300
+    name: ICC 300
+    title: Standard on Bleachers, Folding and Telescopic Seating, and Grandstands
+    verify: Guard, footboard, structural and inspection claims for bleachers and telescopic seating
+
+regulatory_hooks:
+  - id: 12ms.rh.assembly-egress
+    topic: assembly-seating-egress
+    question: >
+      What do the adopted building and fire codes require for row spacing,
+      seats per row, aisle and cross-aisle widths, aisle handrails and aisle
+      lighting in this assembly seating?
+    applies_when: Fixed and telescoping assembly seating
+    source_families: [building_code, fire_code]
+    severity: high
+
+  - id: 12ms.rh.wheelchair-spaces
+    topic: accessibility-assembly-seating
+    question: >
+      How many wheelchair spaces and companion seats does the adopted
+      accessibility standard require for this seating, and what dispersion,
+      sightline and floor slope requirements apply?
+    applies_when: Assembly seating
+    source_families: [accessibility]
+    severity: high
+
+  - id: 12ms.rh.bleachers
+    topic: bleacher-telescopic-seating
+    question: >
+      Does the adopted code require telescopic seating and bleachers to comply
+      with the bleacher standard, which edition, and what periodic inspection
+      does it impose?
+    applies_when: Telescoping stands, bleachers and grandstands
+    source_families: [building_code]
+    severity: medium

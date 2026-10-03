@@ -1,0 +1,135 @@
+schema_version: 1
+kind: section
+id: "09 67 00"
+title: Fluid-Applied Flooring
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Resinous (epoxy, urethane, urethane cement, methyl methacrylate) and other
+  fluid-applied floors (09 67 23 inherits). They are systems built in layers
+  in the field, so surface preparation, slab moisture, slope to drains and
+  joints decide performance more than the product. They go where floors are
+  hosed, heated or splashed (kitchens, labs, mechanical and wash-down
+  rooms), so thermal shock, chemicals, integral cove and drains matter, and
+  some systems' odor and cure affect occupied space.
+
+submittals:
+  - id: 09fa.sub.product-data
+    type: Product Data
+    must_show:
+      - Each layer of the system (primer, moisture-mitigating primer, body coats, broadcast, topcoat, cove) with thickness and cure times
+      - Chemical, thermal shock and abrasion resistance data for the exposures scheduled
+      - Joint and crack treatment, and termination details at drains, walls and penetrations
+  - id: 09fa.sub.samples
+    type: Samples
+    must_show:
+      - Color and texture samples in the specified slip-resistant finish; field mock-up where specified
+
+review_checks:
+  - id: 09fa.surface-prep
+    kind: conformance
+    check: >
+      Surface preparation produces the concrete surface profile the system
+      needs by mechanical means (shot blasting or grinding, not acid
+      etching), removes curing compounds, sealers and laitance, and is
+      verified by profile comparison and pull-off tests before the primer goes
+      down.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 09fa.slope-to-drains
+    kind: constructability
+    check: >
+      Floors that must drain get their slope in the slab or in a sloped
+      mortar or screed under the resin, not in the topcoat, and the resin
+      terminates into drain flanges or clamping rings so water cannot reach
+      under the system.
+    trace_to: [drawings.plumbing, drawings.structural, drawings.enlarged_plans, drawings.details]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 09fa.joints
+    kind: conformance
+    check: >
+      Slab control and construction joints are treated by the system's
+      method (filled with semi-rigid filler, honored with sealant, or
+      reinforced) and building expansion joints are carried through, with
+      every joint shown on the submittal.
+    trace_to: [drawings.structural, spec.part3]
+    severity: medium
+    owner: subcontractor
+
+  - id: 09fa.service-exposure
+    kind: conformance
+    check: >
+      The system's chemical, thermal shock (hot-water or steam wash-down,
+      oven and kettle areas) and abrasion resistance match each room's
+      exposure, and the integral cove height and terminations at walls,
+      equipment bases and penetrations are detailed.
+    trace_to: [schedule.finish, spec.part2, drawings.details, drawings.foodservice]
+    severity: medium
+    owner: subcontractor
+
+  - id: 09fa.odor-cure
+    kind: constructability
+    check: >
+      Odor, ventilation and cure times (critical for rapid-cure and
+      solvent-borne systems) are planned for occupied or adjacent spaces and
+      for air intakes, and equipment setting and traffic wait for the cure the
+      system needs.
+    trace_to: [spec.part3, schedule.master]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: 09fa.fm.poor-profile
+    what_happens: Resin applied over an acid-etched, sealed or under-profiled slab
+    consequence: Delamination in sheets; floor removed and slab blasted again
+    caught_by: [09fa.surface-prep]
+    source: industry_practice
+
+  - id: 09fa.fm.slope-in-resin
+    what_happens: Slope built in resin over a flat slab
+    consequence: Ponding, and cracking where the build-up is thick
+    caught_by: [09fa.slope-to-drains]
+    source: field_experience
+
+  - id: 09fa.fm.thermal-shock
+    what_happens: Epoxy system specified or substituted in a kitchen with hot-water wash-down
+    consequence: Cracking and disbonding; replaced with a system rated for thermal shock
+    caught_by: [09fa.service-exposure]
+    source: field_experience
+
+  - id: 09fa.fm.reflected-joints
+    what_happens: Slab joints coated over without treatment
+    consequence: Cracks reflect through the resin along every joint
+    caught_by: [09fa.joints]
+    source: industry_practice
+
+  - id: 09fa.fm.odor-occupied
+    what_happens: Odor drawn into occupied areas through air intakes or open returns during installation
+    consequence: Complaints or evacuation; work moved to nights or weekends
+    caught_by: [09fa.odor-cure]
+    source: field_experience
+
+standards:
+  - id: 09fa.std.icri-310-2r
+    name: ICRI 310.2R
+    title: Selecting and Specifying Concrete Surface Preparation for Sealers, Coatings, Polymer Overlays, and Concrete Repair
+    verify: Concrete surface profile the system requires
+  - id: 09fa.std.astm-d7234
+    name: ASTM D7234
+    title: Pull-Off Strength of Coatings on Concrete Using Portable Pull-Off Adhesion Testers
+    verify: Field adhesion testing of the prepared slab or applied system
+
+extract_fields:
+  - id: 09fa.xf.system
+    label: System type, layers and total thickness per room
+    type: list
+    per: package
+    reconcile_against: [schedule.finish, spec.part2]

@@ -1,0 +1,160 @@
+schema_version: 1
+kind: section
+id: "08 44 00"
+title: Curtain Wall and Glazed Assemblies
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Stick-built and unitized curtain wall, structural silicone glazing and
+  point-supported glass (08 44 13 and the other curtain wall sections
+  inherit from here). Curtain wall is anchored to embeds cast months before
+  its engineer finishes, proven by a performance mock-up before production,
+  and it closes the floor-line fire and smoke path with the perimeter
+  containment at each slab edge. Most of its problems are fixed or locked
+  at three moments: the embed layout before each pour, mock-up testing
+  before fabrication, and the first floors installed before the rest.
+
+submittals:
+  - id: 08cw.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Anchor and embed layout by floor with loads, edge distances and the tolerance the anchors can absorb, keyed to the structural drawings
+      - Stack joint, splice, perimeter, spandrel and floor-line details, including the conditions the perimeter fire containment listing requires
+      - Façade access provisions (tie-back anchors, restraint points, mullion guides) where the building has them
+  - id: 08cw.sub.design-data
+    type: Design Data
+    must_show:
+      - Thermal and condensation analysis for vision and spandrel areas at the project's interior and exterior design conditions
+      - Thermal stress analysis for spandrel, shadow box and tinted or coated glass
+  - id: 08cw.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Performance mock-up test results in the sequence the spec requires, with every failure, fix and retest
+  - id: 08cw.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Testing agency, delegated engineer and installer qualifications the spec names
+
+review_checks:
+  - id: 08cw.embed-layout
+    kind: coordination
+    scope: package
+    check: >
+      Anchor layout, embed type and loads reach the concrete or steel trade
+      and the structural engineer before each slab edge is formed, and
+      installed embeds and slab edges are surveyed against the anchor
+      tolerance before production units are fabricated for that floor.
+    trace_to: [drawings.structural, drawings.details, schedule.master]
+    severity: critical
+    owner: gc
+    gate: slab_pour
+
+  - id: 08cw.mock-up-before-production
+    kind: completeness
+    scope: package
+    check: >
+      The performance mock-up is built from production-intent shop drawings
+      and tested in the spec's sequence before fabrication is released, and
+      every fix it needed is carried into the shop drawings, not only into
+      the mock-up.
+    trace_to: [spec.part1, spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 08cw.structural-silicone
+    kind: conformance
+    scope: package
+    check: >
+      Structural silicone glazing carries the sealant manufacturer's
+      project-specific review: adhesion and compatibility tests on the actual
+      frame finish, gaskets, setting blocks, spacers and insulating glass
+      edge seal; joint bite and thickness checked against the calculation;
+      and a fabrication quality-control program with recorded adhesion checks.
+    trace_to: [spec.part2, spec.part3]
+    severity: critical
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 08cw.spandrel
+    kind: conformance
+    check: >
+      Spandrel and shadow box areas follow the design for backpan,
+      insulation, vapor control and venting or sealing of the cavity; the
+      condensation analysis covers them at the interior design humidity; and
+      spandrel glass is heat-treated as the thermal stress analysis requires.
+    trace_to: [drawings.wall_sections, drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 08cw.facade-access
+    kind: coordination
+    scope: package
+    check: >
+      Where the building's façade access plan needs tie-back anchors,
+      restraint or stabilization points, or guides in the mullions, they are
+      in the curtain wall shop drawings and calculations, located to the
+      access equipment the owner will use.
+    trace_to: [drawings.roof_plan, drawings.exterior_elevations, spec.part2]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+failure_modes:
+  - id: 08cw.fm.embeds-missed
+    what_happens: Embed design lags the slab pours, or embeds are cast outside the anchor tolerance
+    consequence: Post-installed anchors designed and reviewed under schedule pressure, edge-distance conflicts with reinforcing or tendons
+    caught_by: [08cw.embed-layout, if.03-cladding-embeds, if.05-cladding-anchorage]
+    source: field_experience
+
+  - id: 08cw.fm.production-before-mock-up
+    what_happens: Production fabrication released before the performance mock-up passed
+    consequence: Fixes found in testing retrofitted across units already fabricated or installed
+    caught_by: [08cw.mock-up-before-production, if.01-envelope-mockup]
+    source: field_experience
+
+  - id: 08cw.fm.ssg-adhesion
+    what_happens: Structural silicone applied to a finish or accessory never adhesion- and compatibility-tested
+    consequence: Adhesion loss and a glass-retention risk; units deglazed and reglazed
+    caught_by: [08cw.structural-silicone]
+    source: industry_practice
+
+  - id: 08cw.fm.spandrel-condensation
+    what_happens: Spandrel cavity sealed or vented contrary to the design, or spandrel glass left annealed against the thermal stress analysis
+    consequence: Condensation staining behind spandrel glass, or cracked spandrel lites in the first sunny season
+    caught_by: [08cw.spandrel]
+    source: industry_practice
+
+  - id: 08cw.fm.no-tieback-provisions
+    what_happens: Façade access anchors and mullion restraint points left out of the curtain wall design
+    consequence: Window cleaning and façade maintenance cannot be done safely; anchors added through the finished roof and wall
+    caught_by: [08cw.facade-access]
+    source: industry_practice
+
+standards:
+  - id: 08cw.std.astm-c1184
+    name: ASTM C1184
+    title: Standard Specification for Structural Silicone Sealants
+    verify: Structural sealant claimed for structurally glazed units, with the manufacturer's project-specific adhesion and compatibility results
+
+regulatory_hooks:
+  - id: 08cw.rh.facade-access
+    topic: facade-access-anchorage
+    question: >
+      Do the occupational safety rules for building maintenance require
+      permanent anchorages, stabilization and a certified façade access plan
+      for this building (rope descent, powered platforms), and has the
+      anchorage been designed and certified?
+    applies_when: Buildings whose façades cannot be maintained from the ground or a lift
+    source_families: [occupational_safety]
+    severity: medium
+
+extract_fields:
+  - id: 08cw.xf.anchors
+    label: Anchor and embed types, loads and tolerance
+    type: list
+    per: package
+    reconcile_against: [drawings.structural]

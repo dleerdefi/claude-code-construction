@@ -1,0 +1,170 @@
+schema_version: 1
+kind: section
+id: "08 80 00"
+title: Glazing
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # glass thickness and heat treatment are often confirmed by the glazing contractor's analysis
+
+scope_summary: >
+  Glass and glazing for framed openings, doors and interior lites (08 81 00
+  through 08 88 00 inherit from here). Each glass type is a makeup
+  (thicknesses, heat treatment, interlayer, coatings and the surface they
+  are on, spacer, gas, edge seal) chosen to meet strength, safety, fire,
+  thermal, acoustic, bird-safety and security criteria at once, and the
+  framing sections often furnish it under their own submittals. The misses
+  are a makeup changed to satisfy one criterion that breaks another, glass
+  in the wrong lite, and fire-rated glazing confused with safety glazing.
+
+review_mode: per_element
+element_types: [glass_type]
+
+submittals:
+  - id: 08gl.sub.product-data
+    type: Product Data
+    must_show:
+      - Each glass type's full makeup surface by surface (lite thickness, heat treatment, interlayer, coating and its surface, frit, spacer, gas, edge seal)
+      - Performance for the makeup (U-factor, SHGC, VT, reflectance, acoustic rating where scheduled) by the calculation method the spec names
+  - id: 08gl.sub.design-data
+    type: Design Data
+    must_show:
+      - Load-resistance analysis for each type at its largest lite, design pressure and support condition, and thermal stress analysis where shading or backpans apply
+  - id: 08gl.sub.certificates
+    type: Certificates
+    must_show:
+      - Safety glazing and fire-rated glazing listings and markings for each type and location
+  - id: 08gl.sub.samples
+    type: Samples
+    must_show:
+      - Coated, tinted and fritted glass samples, viewed against the visual mock-up where one is required
+
+review_checks:
+  - id: 08gl.makeup-per-type
+    kind: conformance
+    check: >
+      Each glass type matches the scheduled makeup surface by surface (coating
+      on the specified surface, heat treatment, interlayer, spacer, gas), and
+      any change made to pass strength, thermal stress or safety is rechecked
+      against everything else it affects: appearance, U-factor and SHGC,
+      acoustic rating, weight and glazing pocket depth.
+    trace_to: [spec.part2, drawings.exterior_elevations, report.energy_compliance]
+    severity: high
+    owner: subcontractor
+
+  - id: 08gl.strength-thermal-stress
+    kind: conformance
+    check: >
+      Thickness and heat treatment are supported by a load-resistance
+      analysis for the largest lite of the type in the highest pressure zone
+      it occurs in, with its actual support condition (four sides, two sides,
+      point-supported), and by a thermal stress analysis where tint,
+      coatings, spandrel backpans, deep shadows or interior shades can heat
+      the glass unevenly.
+    trace_to: [drawings.structural, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 08gl.fire-vs-safety
+    kind: conformance
+    check: >
+      Fire-rated glazing is identified as fire-protective or fire-resistive
+      with the marking each location needs (door, sidelite or transom,
+      temperature rise, wall), stays within its listed size, and also carries
+      an impact safety classification where the location is hazardous;
+      ordinary glass in a rated wall and wired glass at a hazardous location
+      are both findings.
+    trace_to: [drawings.life_safety, schedule.door, spec.part2]
+    severity: critical
+    owner: subcontractor
+
+  - id: 08gl.safety-marking
+    kind: completeness
+    check: >
+      Every lite at a hazardous location is safety glazing with a permanent
+      mark where the code requires one, and the shop drawings and glazing
+      schedule identify those lites so the right glass is set and the
+      inspector can verify it.
+    trace_to: [drawings.exterior_elevations, drawings.interior_elevations, spec.part2]
+    severity: high
+    owner: subcontractor
+
+failure_modes:
+  - id: 08gl.fm.wired-glass
+    what_happens: Traditional wired glass used in rated doors and sidelites at hazardous locations
+    consequence: Glass replaced with a product rated for both fire and impact
+    caught_by: [08gl.fire-vs-safety]
+    source: industry_practice
+
+  - id: 08gl.fm.thermal-break
+    what_happens: Tinted, coated or spandrel glass left annealed with interior shades or backpans that trap heat, and no thermal stress analysis
+    consequence: Cracked lites from the edge in the first cold sunny days; reglazing with heat-strengthened glass
+    caught_by: [08gl.strength-thermal-stress, if.08-glass-shading]
+    source: field_experience
+
+  - id: 08gl.fm.makeup-drift
+    what_happens: Fabricator moves the low-e coating to another surface or changes a lite to meet strength without rechecking performance and appearance
+    consequence: SHGC and appearance differ from the compliance documentation and the mock-up; glass remade
+    caught_by: [08gl.makeup-per-type]
+    source: field_experience
+
+  - id: 08gl.fm.unmarked-tempered
+    what_happens: Safety glass set in the wrong lites or without the marks the inspector looks for
+    consequence: Lites replaced or relabeled at inspection
+    caught_by: [08gl.safety-marking]
+    source: industry_practice
+
+  - id: 08gl.fm.pocket-too-shallow
+    what_happens: Glass thickness or makeup increased after the framing was ordered
+    consequence: Pockets, gaskets and bite no longer fit; framing reworked or glass redesigned
+    caught_by: [if.08-framing-glazing]
+    source: field_experience
+
+standards:
+  - id: 08gl.std.astm-e1300
+    name: ASTM E1300
+    title: Standard Practice for Determining Load Resistance of Glass in Buildings
+    verify: Load-resistance analysis method behind each thickness and heat treatment
+  - id: 08gl.std.astm-c1048
+    name: ASTM C1048
+    title: Standard Specification for Heat-Strengthened and Fully Tempered Flat Glass
+    verify: Heat treatment kind claimed for each lite
+  - id: 08gl.std.safety
+    name: ANSI Z97.1 / 16 CFR 1201
+    title: Safety glazing materials used in buildings; safety standard for architectural glazing materials
+    verify: Impact classification and permanent marking for lites at hazardous locations
+  - id: 08gl.std.fire-glazing
+    name: NFPA 257 / NFPA 252 / ASTM E119
+    title: Fire tests of window assemblies, door assemblies, and building construction (fire-resistive glazing)
+    verify: Whether a fire-rated glazing is fire-protective or fire-resistive, and its listed size and use
+
+regulatory_hooks:
+  - id: 08gl.rh.bird-safe
+    topic: bird-safe-glazing
+    question: >
+      Does a local ordinance, state law or green building program the
+      project follows require bird-safe glazing, on which façade zones and
+      heights, and to what threat-factor or pattern criterion?
+    applies_when: Exterior glazing, especially near vegetation, water and at the lower floors
+    source_families: [building_code, environmental]
+    severity: medium
+
+extract_fields:
+  - id: 08gl.xf.makeup
+    label: Glass makeup surface by surface
+    type: string
+    per: element
+    reconcile_against: [spec.part2]
+  - id: 08gl.xf.performance
+    label: U-factor, SHGC and VT for the makeup
+    type: string
+    per: element
+    reconcile_against: [report.energy_compliance]
+  - id: 08gl.xf.ratings
+    label: Safety classification and fire rating with marking
+    type: string
+    per: element
+    reconcile_against: [drawings.life_safety, spec.part2]

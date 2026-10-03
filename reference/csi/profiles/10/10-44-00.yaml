@@ -1,0 +1,112 @@
+schema_version: 1
+kind: section
+id: "10 44 00"
+title: Fire Protection Specialties
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Portable fire extinguishers, extinguisher and fire-department valve
+  cabinets, brackets and fire blankets. Locations and types are set by the
+  fire code from travel distance and hazard, and fire marshals often add
+  locations at final when the drawings show too few. Each cabinet location
+  then needs a cabinet type that suits its wall: rated where the wall is
+  rated, deep enough to recess, and not projecting into the corridor. Who
+  furnishes the extinguishers themselves is a frequent gap.
+
+submittals:
+  - id: 10fe.sub.product-data
+    type: Product Data
+    must_show:
+      - Each cabinet type with trim style, depth, rough opening and door, and the rated cabinets with their listing
+      - Each extinguisher type with its rating and agent
+  - id: 10fe.sub.schedule
+    type: Schedule
+    must_show:
+      - Cabinet and bracket schedule by location, with the wall type and rating at each
+
+review_checks:
+  - id: 10fe.cabinet-selection
+    kind: conformance
+    check: >
+      At each location the cabinet type (fully recessed, semi-recessed,
+      surface, rated) suits that wall: its rating on the life safety plan, its
+      stud depth and what else is in the cavity, and the corridor projection
+      the type creates. A schedule by location makes the selection visible;
+      one cabinet type for the whole job usually hides a mismatch.
+    trace_to: [drawings.plans, drawings.life_safety, schedule.partition_type]
+    severity: high
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: 10fe.locations-types
+    kind: conformance
+    check: >
+      Extinguisher locations, ratings and types match the drawings and the fire
+      code research, including types for commercial cooking, electrical rooms,
+      laboratories and other special hazards. Plans that show few or no
+      extinguishers are raised with the design team, not left for the fire
+      marshal.
+    trace_to: [drawings.life_safety, drawings.plans, drawings.foodservice]
+    severity: high
+    owner: design_team
+
+  - id: 10fe.furnished-by
+    kind: coordination
+    check: >
+      Who furnishes and services the extinguishers (the contractor, or the
+      owner or its fire-safety vendor), and who furnishes cabinets, brackets and
+      location signs, is defined; the extinguishers specified fit the cabinet
+      interiors.
+    trace_to: [spec.part1, spec.part2]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: 10fe.fm.fire-marshal-adds
+    what_happens: Fire marshal adds extinguisher locations at final because the drawings showed too few or the wrong types
+    consequence: Surface brackets and cabinets added to finished corridors under occupancy pressure
+    caught_by: [10fe.locations-types]
+    source: industry_practice
+
+  - id: 10fe.fm.empty-cabinets
+    what_happens: Cabinets installed, but the owner-furnished extinguishers are not delivered before final inspection
+    consequence: Final fire inspection fails or is rescheduled
+    caught_by: [10fe.furnished-by]
+    source: field_experience
+
+  - id: 10fe.fm.one-type-for-all
+    what_happens: One recessed cabinet type submitted for every location regardless of wall rating and depth
+    consequence: Standard cabinets in rated walls, or semi-recessed substitutes projecting into corridors
+    caught_by: [10fe.cabinet-selection, d10.recess-in-rated-walls]
+    source: industry_practice
+
+standards:
+  - id: 10fe.std.nfpa-10
+    name: NFPA 10
+    title: Standard for Portable Fire Extinguishers
+    verify: Extinguisher types, ratings, travel distance and mounting the spec and fire code rely on
+    note: Use the edition the adopted fire code references
+
+regulatory_hooks:
+  - id: 10fe.rh.extinguisher-placement
+    topic: portable-fire-extinguisher-placement
+    question: >
+      What do the adopted fire code and the portable extinguisher standard
+      require for extinguisher locations, travel distance, ratings and types by
+      hazard (including commercial cooking and special hazards), mounting
+      height and location signage?
+    applies_when: Every building
+    source_families: [fire_code]
+    severity: high
+
+extract_fields:
+  - id: 10fe.xf.cabinet-types
+    label: Cabinet type and rating per location
+    type: list
+    per: package
+    reconcile_against: [drawings.life_safety, schedule.partition_type]

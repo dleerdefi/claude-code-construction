@@ -1,0 +1,145 @@
+schema_version: 1
+kind: section
+id: "08 11 13"
+title: Hollow Metal Doors and Frames
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+equivalents: ["08 12 13", "08 13 13"]   # Hollow Metal Frames / Hollow Metal Doors, specified separately on some projects
+
+contractor_designed: never
+
+scope_summary: >
+  Steel doors and the steel frames for most openings on the job, including
+  the frames that receive wood doors. Frames are set early, with the studs,
+  ahead of the masonry or slipped on after board, so profile, anchors,
+  reinforcement and every electrified prep are fixed long before the
+  hardware ships. Beyond the opening-by-opening checks inherited from
+  Doors and Frames, the review here is the steel itself: door level and
+  gauge for the use, galvanized material where moisture reaches it,
+  insulated doors and frames at the exterior, and frames that will be
+  filled with grout.
+
+submittals:
+  - id: 08hm.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Frame construction by type (welded, set-up and welded, or knock-down) with corner and mullion joints
+      - Door level, model, gauge, core, edge seam and top and bottom channel construction
+      - Galvanized material and coating designation where scheduled, and factory priming
+      - Grout or mortar guards at every hardware prep and electrical box in frames that will be filled
+  - id: 08hm.sub.product-data
+    type: Product Data
+    must_show:
+      - Door and frame series with the performance level and the fire, smoke, thermal or acoustic listings claimed
+
+review_checks:
+  - id: 08hm.door-level
+    kind: conformance
+    check: >
+      Door level, model and gauge suit the use the spec assigns (exterior,
+      stairs, service corridors, heavy-use, security) under the steel door
+      classification it cites, and doors and frames at the exterior, in wet
+      areas and in corrosive locations are galvanized to the coating the spec
+      requires, not primed cold-rolled steel.
+    trace_to: [spec.part2, schedule.door]
+    severity: medium
+    owner: subcontractor
+
+  - id: 08hm.frame-construction
+    kind: constructability
+    check: >
+      Knock-down frames (set after board) and welded frames (set with the
+      studs or the masonry) are chosen per opening to match the wall and the
+      sequence: knock-down frames cannot be grouted solid, anchor differently
+      and are limited in rated, heavy-use and electrified openings, while
+      welded frames in drywall must be set and braced before the first board.
+    trace_to: [spec.part2, drawings.details, schedule.door]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+  - id: 08hm.grout-guards
+    kind: constructability
+    submittal_types: [Shop Drawings]
+    check: >
+      Frames that will be grouted (in masonry, or where the spec requires it
+      for rigidity or sound) have guards over every hardware prep and
+      junction box, the electrified preps' boxes and conduit connections are
+      made before grouting, and the grout carries no corrosive admixtures.
+    trace_to: [spec.part3, drawings.details, schedule.door_hardware]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 08hm.exterior-thermal
+    kind: conformance
+    check: >
+      Exterior doors and frames carry the insulated core, thermally broken
+      frame and weatherstripping that the opaque door values in the energy
+      compliance documentation assume; an uninsulated door or a continuous
+      steel frame is a condensation and frost path in cold climates.
+    trace_to: [report.energy_compliance, spec.part2, schedule.door_hardware]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 08hm.fm.grouted-preps
+    what_happens: Frames grouted without guards at preps and boxes, or before conduit was connected to electrified preps
+    consequence: Grout in strike pockets, hinge preps and conduit; electrified hardware cannot be installed until frames are cored out or replaced
+    caught_by: [08hm.grout-guards, if.04-frames-in-masonry]
+    source: field_experience
+
+  - id: 08hm.fm.knock-down-misused
+    what_happens: Knock-down frames ordered for masonry, heavy-use or electrified openings
+    consequence: Frames cannot be grouted or anchored properly; loose frames, sagging doors and cracked finishes around the opening
+    caught_by: [08hm.frame-construction]
+    source: field_experience
+
+  - id: 08hm.fm.ungalvanized-exterior
+    what_happens: Primed cold-rolled frames and doors installed at exterior doors or wet areas
+    consequence: Rust-through at frame bottoms and door bottoms within a few years, worst where de-icing salt is tracked in
+    caught_by: [08hm.door-level]
+    source: field_experience
+
+  - id: 08hm.fm.frosted-frames
+    what_happens: Uninsulated doors and non-thermally-broken frames at exterior openings in cold climates
+    consequence: Condensation and frost on the interior face, damaged finishes, doors freezing to frames
+    caught_by: [08hm.exterior-thermal]
+    source: field_experience
+
+standards:
+  - id: 08hm.std.sdi-a250-8
+    name: ANSI/SDI A250.8
+    title: Specifications for Standard Steel Doors and Frames (SDI-100)
+    verify: Door level and model, gauges and construction claimed for each use
+  - id: 08hm.std.sdi-a250-4
+    name: ANSI/SDI A250.4
+    title: Test Procedure and Acceptance Criteria for Physical Endurance for Steel Doors, Frames and Frame Anchors
+    verify: Endurance level claimed for heavy-use doors and their anchors
+  - id: 08hm.std.sdi-a250-6
+    name: ANSI/SDI A250.6
+    title: Recommended Practice for Hardware Reinforcing on Standard Steel Doors and Frames
+    verify: Reinforcement gauges for hinges, locks, closers and exit devices
+  - id: 08hm.std.sdi-a250-11
+    name: ANSI/SDI A250.11
+    title: Recommended Erection Instructions for Steel Frames
+    verify: Frame setting, anchoring and bracing where the spec references it
+  - id: 08hm.std.astm-a653
+    name: ASTM A653/A653M
+    title: Standard Specification for Steel Sheet, Zinc-Coated (Galvanized) or Zinc-Iron Alloy-Coated (Galvannealed) by the Hot-Dip Process
+    verify: Coating designation for galvanized doors and frames
+
+extract_fields:
+  - id: 08hm.xf.level
+    label: Door level, model and gauge
+    type: string
+    per: element
+    reconcile_against: [spec.part2]
+  - id: 08hm.xf.coating
+    label: Galvanized coating designation, where required
+    type: string
+    per: element
+    reconcile_against: [spec.part2, schedule.door]

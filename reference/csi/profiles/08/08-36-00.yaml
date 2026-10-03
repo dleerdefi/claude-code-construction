@@ -1,0 +1,107 @@
+schema_version: 1
+kind: section
+id: "08 36 00"
+title: Panel Doors
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # wind-load design and operator selection are often left to the manufacturer
+
+scope_summary: >
+  Sectional and other panel doors, mostly at loading docks, service bays
+  and garages (08 36 13 sectional doors inherit from here). The track type
+  (standard, high-lift or vertical) is picked from the headroom and decides
+  where the open door sits inside the building, so tracks, springs, hangers
+  and operators compete with lights, sprinklers, unit heaters and ducts.
+  Exterior doors carry wind-load and energy requirements, and dock doors
+  interlock with the dock equipment in front of them.
+
+review_mode: per_element
+element_types: [door_opening]
+
+submittals:
+  - id: 08pd.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Section at each door showing track type, the open-door envelope, springs, operator and track hangers to structure
+      - Section construction, perimeter seals, glazed sections and their glazing
+      - Operator, controls, entrapment protection and interlocks with dock equipment
+  - id: 08pd.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Whole-door thermal transmittance and air leakage where the energy compliance uses them, and wind-load test results for exterior doors
+
+review_checks:
+  - id: 08pd.track-envelope
+    kind: coordination
+    check: >
+      The open-door envelope (horizontal or high-lift track, springs, operator
+      and the door panel itself) is drawn in section at each door and kept
+      clear of lights, sprinklers, unit heaters and ducts, and the track
+      hangers land on structure that is shown and able to carry them.
+    trace_to: [drawings.details, drawings.rcp, drawings.mechanical, drawings.structural]
+    severity: high
+    owner: gc
+    gate: overhead_rough_in
+
+  - id: 08pd.whole-door-thermal
+    kind: conformance
+    check: >
+      Thermal and air leakage values are whole-door ratings by the test the
+      energy code accepts, not the insulation value of a section, and they
+      meet the non-swinging door values in the energy compliance
+      documentation.
+    trace_to: [report.energy_compliance, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 08pd.operator-interlocks
+    kind: conformance
+    check: >
+      Operators carry monitored entrapment protection suited to their control
+      mode, and at dock doors the interlocks with vehicle restraints and
+      levelers the spec requires are shown with who wires them.
+    trace_to: [spec.part2, drawings.electrical]
+    severity: medium
+    owner: subcontractor
+
+failure_modes:
+  - id: 08pd.fm.high-lift-clash
+    what_happens: High-lift or horizontal track drawn only in elevation; unit heaters, lights or sprinkler lines installed in its path
+    consequence: MEP relocated after installation, or a door that cannot open fully
+    caught_by: [08pd.track-envelope, if.08-overhead-door-clearances]
+    source: field_experience
+
+  - id: 08pd.fm.section-r-value
+    what_happens: Door submitted on the insulation value of its sections instead of a whole-door rating
+    consequence: Rejected at energy plan review or inspection; doors replaced or the compliance path reworked
+    caught_by: [08pd.whole-door-thermal]
+    source: industry_practice
+
+standards:
+  - id: 08pd.std.ul-325
+    name: UL 325
+    title: Door, Drapery, Gate, Louver, and Window Operators and Systems
+    verify: Operator listing and entrapment protection for its control mode
+  - id: 08pd.std.dasma-108
+    name: ANSI/DASMA 108
+    title: "Standard Method for Testing Sectional Garage Doors and Rolling Doors: Determination of Structural Performance Under Uniform Static Air Pressure Difference"
+    verify: Wind-load test basis for exterior sectional doors
+  - id: 08pd.std.dasma-105
+    name: ANSI/DASMA 105
+    title: Test Method for Thermal Transmittance and Air Infiltration of Garage Doors
+    verify: Whole-door U-factor and air infiltration the energy compliance relies on
+
+extract_fields:
+  - id: 08pd.xf.track
+    label: Track type and headroom required
+    type: string
+    per: element
+    reconcile_against: [drawings.details, drawings.building_sections]
+  - id: 08pd.xf.thermal
+    label: Whole-door U-factor and air leakage
+    type: string
+    per: element
+    reconcile_against: [report.energy_compliance]

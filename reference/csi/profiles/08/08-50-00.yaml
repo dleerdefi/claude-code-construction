@@ -1,0 +1,187 @@
+schema_version: 1
+kind: section
+id: "08 50 00"
+title: Windows
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # anchorage and mulled assemblies are often engineered by the supplier
+
+scope_summary: >
+  Punched and ribbon windows of any material (08 51 00 through 08 56 00
+  inherit from here). Windows are rated products: performance class,
+  grade, design pressure and thermal values come from tested sizes, so a
+  larger unit or a mulled assembly can fall outside its rating. Most leaks
+  are at the installation, not through the unit: the rough opening, sill
+  pan, air-barrier connection, attachment through the continuous
+  insulation and the perimeter seal, built by two or three trades.
+  Operable units can carry fall-protection and emergency escape rules.
+
+review_mode: per_element
+element_types: [window_type]
+
+submittals:
+  - id: 08wn.sub.product-data
+    type: Product Data
+    must_show:
+      - Each type's performance class, grade and design pressure under the fenestration standard, with test reports covering the largest size and each mulled configuration used
+      - Certified U-factor, SHGC, visible transmittance and air leakage for each type with the glass actually submitted
+  - id: 08wn.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Elevations by window type with sizes, operation, mulled assemblies and mullion reinforcing, and glass type per lite
+      - Installation details at head, jamb and sill for each wall type, with sill pan, air-barrier transition, anchorage, shims and the support through continuous insulation
+  - id: 08wn.sub.design-data
+    type: Design Data
+    must_show:
+      - Anchorage and mullion calculations where units or mulls exceed the tested configuration
+
+review_checks:
+  - id: 08wn.rating-coverage
+    kind: conformance
+    check: >
+      Each window type's tested class, grade and design pressure cover the
+      size and configuration on the elevations: the largest unit of the type
+      and every mulled assembly. A unit larger than the tested size, or a mull
+      with no tested or engineered mullion, is not covered by the rating on
+      the cut sheet.
+    trace_to: [drawings.exterior_elevations, schedule.window, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 08wn.installation-by-wall
+    kind: constructability
+    submittal_types: [Shop Drawings]
+    check: >
+      Installation details exist for every wall type the windows go into
+      (stud and sheathing, masonry, rainscreen with continuous insulation,
+      precast), showing where the window sits in the wall and how it is
+      supported when it is outboard of the structure (bucks, clips or
+      sub-frames through the insulation), not only fastened through it.
+    trace_to: [drawings.wall_sections, drawings.details]
+    severity: high
+    owner: subcontractor
+    gate: opening_install
+
+  - id: 08wn.field-testing
+    kind: completeness
+    scope: package
+    check: >
+      Field air and water tests of installed windows follow the spec's
+      method and sampling, start on the first units installed in each wall
+      type with the sill pan and perimeter included, and failures trigger
+      the added sampling the spec requires before the next areas are closed.
+    trace_to: [spec.part3, schedule.master]
+    severity: high
+    owner: gc
+    gate: opening_install
+
+  - id: 08wn.operable-limits
+    kind: conformance
+    check: >
+      Operable units where fall-protection rules apply have the opening
+      control devices or sill heights the hook requires, and those devices
+      still release to the full opening at windows that are emergency escape
+      openings.
+    trace_to: [schedule.window, drawings.exterior_elevations, drawings.plans]
+    severity: high
+    owner: design_team
+
+reconciliations:
+  - id: 08wn.rc.types-vs-elevations
+    between: [schedule.window, drawings.exterior_elevations, drawings.plans]
+    key: Window type tag and location
+    fields: [type, size, operation, glass type, sill height, count per type]
+    check: >
+      Every window tag on the elevations and plans is a type in the window
+      schedule with the same size, operation and glass, the count per type
+      agrees across the documents, and sill heights on the elevations suit
+      the operable-limit and escape-opening hooks at the rooms they serve.
+    severity: medium
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 08wn.fm.mull-unrated
+    what_happens: Mulled assemblies or oversized units installed beyond what the product was tested for
+    consequence: Mullion deflection and leaks at mulls; reinforcing added or units replaced after the AHJ or engineer rejects them
+    caught_by: [08wn.rating-coverage]
+    source: field_experience
+
+  - id: 08wn.fm.hung-on-insulation
+    what_happens: Windows fastened through thick continuous insulation with no bucks, clips or sub-frame
+    consequence: Frames sag and rack, air seals tear, and sashes bind
+    caught_by: [08wn.installation-by-wall, if.06-openings-in-framing]
+    source: field_experience
+
+  - id: 08wn.fm.unit-only-test
+    what_happens: Field tests mask the perimeter and test only the window unit, so the sill pan and perimeter seal are never tested as installed
+    consequence: Installation leaks pass testing and appear in the first storm, repeated at every window of that wall type
+    caught_by: [08wn.field-testing]
+    source: field_experience
+
+  - id: 08wn.fm.no-opening-limiters
+    what_happens: Operable windows in dwelling units or other covered locations installed without opening control devices
+    consequence: Devices retrofitted at final inspection, sometimes conflicting with emergency escape openings
+    caught_by: [08wn.operable-limits]
+    source: industry_practice
+
+standards:
+  - id: 08wn.std.nafs
+    name: AAMA/WDMA/CSA 101/I.S.2/A440
+    title: North American Fenestration Standard/Specification for windows, doors, and skylights
+    verify: Performance class, grade and design pressure claimed, and the tested size
+  - id: 08wn.std.field-tests
+    name: ASTM E1105
+    title: Standard Test Method for Field Determination of Water Penetration of Installed Exterior Windows, Skylights, Doors, and Curtain Walls, by Uniform or Cyclic Static Air Pressure Difference
+    verify: Field test method, test pressure and sampling
+  - id: 08wn.std.astm-e2112
+    name: ASTM E2112
+    title: Standard Practice for Installation of Exterior Windows, Doors and Skylights
+    verify: Installation sequence and flashing where the spec references it
+
+regulatory_hooks:
+  - id: 08wn.rh.opening-control
+    topic: window-fall-protection
+    question: >
+      Where does the adopted code require minimum sill heights or window
+      opening control devices on operable windows (dwelling units, other
+      occupancies), and what opening limit and release do the devices need?
+    applies_when: Operable windows above grade in residential or other covered occupancies
+    source_families: [building_code]
+    severity: high
+
+  - id: 08wn.rh.escape-openings
+    topic: emergency-escape-rescue-openings
+    question: >
+      Which rooms need emergency escape and rescue openings under the adopted
+      code, and does the scheduled window type at those rooms provide the
+      required clear opening and sill height?
+    applies_when: Sleeping rooms and other rooms that require escape openings
+    source_families: [building_code]
+    severity: high
+
+  - id: 08wn.rh.blast-forced-entry
+    topic: blast-forced-entry-criteria
+    question: >
+      Do federal, agency or owner security criteria require blast-resistant
+      or forced-entry windows at this project, and are the window, its
+      anchorage and the surrounding wall designed together to that level?
+    applies_when: Government, institutional or owner-designated secure facilities
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: 08wn.xf.rating
+    label: Performance class, grade, design pressure and tested size
+    type: string
+    per: element
+    reconcile_against: [schedule.window, drawings.structural]
+  - id: 08wn.xf.thermal
+    label: Certified U-factor, SHGC and VT
+    type: string
+    per: element
+    reconcile_against: [report.energy_compliance, schedule.window]

@@ -1,0 +1,20 @@
+schema_version: 1
+kind: section
+id: "09 29 00"
+title: Gypsum Board
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Board, accessories and finishing are reviewed as part of the gypsum board assembly.
+same_as: "09 21 16"
+equivalents: ["09 21 16", "09 28 00"]   # tile backers are sometimes specified as backing boards
+
+scope_summary: >
+  Gypsum board, trim, joint treatment and finishing, reviewed with the
+  partition types and ceilings they build (09 21 16). The board-specific
+  decisions are the board type per exposure and per listed design, the
+  finish level under critical light, control joints, and backers behind tile
+  in wet areas, which may be specified here, in backing boards (09 28 00) or
+  with the tile.

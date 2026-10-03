@@ -1,0 +1,330 @@
+schema_version: 1
+kind: section
+id: "12 30 00"
+title: Casework
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+legacy_numbers: ["12300"]   # MasterFormat 1995: Manufactured Casework
+equivalents: ["06 41 00", "12 32 00", "12 35 70", "12 36 00"]
+
+scope_summary: >
+  Manufactured and architectural casework, including countertops when they are
+  specified with it. Shop drawing review is element by element: each CD
+  elevation and every section or detail cut on it. Most expensive misses are not
+  materials (spec and casework schedule make those easy) but what the
+  casework demands of other trades and of the regulations: backing and in-wall
+  supports before close-in, cutouts for fixtures furnished by others, and
+  counter heights that must satisfy accessibility and, in regulated facilities,
+  licensing rules the drawings may not show.
+
+review_mode: per_element
+element_types: [casework_elevation, casework_section_detail, countertop_run]
+
+submittals:
+  - id: cw.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Plan layout keyed to every CD elevation tag and room
+      - Elevations with overall dimensions, counter and work-surface heights AFF, knee spaces, toe kick
+      - Sections showing box construction, materials, grade and attachment
+      - Countertop material, thickness, edges, backsplash and sidesplash, seam locations, cutouts
+      - In-wall supports and backing with type, height and load, per elevation
+      - Hardware keyed to the hardware schedule, with quantity per unit
+      - Fillers, scribes and field-verify dimensions
+      - Items by others (sinks, faucets, appliances, devices) with the model each cutout is sized for
+  - id: cw.sub.product-data
+    type: Product Data
+    must_show:
+      - Every hardware item, marked to the scheduled function and finish
+      - Laminate, solid surface or other surfacing and edge materials
+      - Adhesives and sealants where the spec limits VOC content
+  - id: cw.sub.samples
+    type: Samples
+    must_show:
+      - Each finish, laminate, edge band and countertop material, in the selected color
+  - id: cw.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Fabricator and installer qualifications or certification program the spec names
+
+review_checks:
+  - id: d12.element-coverage
+    override: true
+    check: >
+      Every casework elevation, plan location and room in the CDs has a
+      corresponding shop drawing elevation, and every shop elevation maps to a
+      CD tag. Build the trace first (plan tag → elevation → sections and
+      details cut on it → casework schedule → spec article) and list any
+      element on either side with no match.
+    trace_to: [drawings.plans, drawings.interior_elevations, drawings.details, schedule.casework]
+
+  - id: cw.detail-trace
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      For each elevation, every section and detail cut on the CD elevation is
+      located and compared to the shop drawing: construction type, profiles,
+      support, countertop edge, backsplash, and scribe conditions.
+    trace_to: [drawings.interior_elevations, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: cw.counter-heights
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Counter and work-surface heights AFF match the CD elevations; designated
+      accessible units are identified on the shops with their heights and knee
+      and toe clearances. Check the applicable regulatory hooks independently
+      of the drawings.
+    trace_to: [drawings.interior_elevations, drawings.details, schedule.casework]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: cw.knee-clearance
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Knee and toe space at accessible sinks and work surfaces is not reduced
+      by aprons, drawers, sink bowl depth, or exposed piping; pipe protection
+      is assigned where required.
+    trace_to: [drawings.interior_elevations, drawings.details, drawings.plumbing]
+    severity: high
+    owner: subcontractor
+
+  - id: cw.grade-construction
+    kind: conformance
+    submittal_types: [Shop Drawings, Product Data]
+    check: >
+      Quality grade, box construction, core materials, door and drawer style,
+      and edge treatment match Part 2, under the AWI standard the spec
+      actually cites.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: cw.hardware
+    kind: conformance
+    submittal_types: [Product Data, Shop Drawings]
+    check: >
+      Each hardware type (hinges, pulls, slides, locks, shelf supports,
+      grommets, catches) matches the spec or schedule by function, grade and
+      finish, with quantity per unit; keying matches the owner's requirement.
+    trace_to: [spec.part2, schedule.casework_hardware]
+    severity: medium
+    owner: subcontractor
+
+  - id: cw.countertops
+    kind: conformance
+    submittal_types: [Shop Drawings, Samples]
+    check: >
+      Countertop material, thickness, edge profile, backsplash and sidesplash
+      heights, and seam locations match the CDs; no seam falls at a sink or
+      cooktop cutout.
+    trace_to: [drawings.interior_elevations, drawings.details, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: cw.cutouts-by-others
+    kind: coordination
+    submittal_types: [Shop Drawings]
+    check: >
+      Cutouts for sinks, faucets, appliances and devices furnished by others
+      are sized to the current approved model of that item, not the scheduled
+      basis of design if it has since changed.
+    trace_to: [schedule.plumbing_fixture, schedule.equipment, drawings.plumbing, drawings.electrical]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: cw.appliance-openings
+    kind: constructability
+    submittal_types: [Shop Drawings]
+    check: >
+      Openings for undercounter appliances fit the scheduled appliance plus the
+      manufacturer's ventilation and service clearances.
+    trace_to: [schedule.equipment]
+    severity: medium
+    owner: subcontractor
+
+  - id: cw.in-wall-support
+    kind: constructability
+    submittal_types: [Shop Drawings]
+    check: >
+      Wall-hung casework, countertop brackets and support frames show support
+      type, location, height and load, with every in-wall component flagged
+      for installation before close-in and routed to the framer.
+    trace_to: [drawings.details, drawings.interior_elevations, spec.part3]
+    severity: critical
+    owner: gc
+    gate: wall_close_in
+
+  - id: cw.electrical-in-casework
+    kind: coordination
+    submittal_types: [Shop Drawings]
+    check: >
+      Receptacles, data, and under-cabinet or in-cabinet lighting are located
+      on the shops with cutouts and wiring access, and match the electrical
+      drawings and backsplash heights.
+    trace_to: [drawings.electrical, drawings.interior_elevations]
+    severity: high
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: cw.base-toe-kick
+    kind: absence
+    check: >
+      Toe kick height and finish, and who provides base at casework (casework
+      fabricator or resilient base installer), are defined somewhere in the
+      contract documents.
+    trace_to: [drawings.details, spec.part2]
+    severity: low
+    owner: design_team
+
+  - id: cw.fillers-scribes
+    kind: constructability
+    submittal_types: [Shop Drawings]
+    check: >
+      Fillers and scribes are shown at walls, corners and ends, and dimensions
+      needing field verification are flagged before release.
+    trace_to: [drawings.plans, drawings.interior_elevations]
+    severity: medium
+    owner: subcontractor
+
+reconciliations:
+  - id: cw.rc.sinks
+    between: [drawings.interior_elevations, schedule.plumbing_fixture, drawings.plumbing]
+    key: Each sink location in casework
+    fields: [fixture tag, sink type and mounting, bowl depth, faucet holes, accessible designation]
+    check: >
+      Every sink on the casework elevations has a fixture tag on the plumbing
+      plans and schedule, and the scheduled sink's mounting, bowl depth and
+      faucet holes suit the top and, at accessible units, the knee space.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: cw.rc.devices
+    between: [drawings.interior_elevations, drawings.electrical]
+    key: Each casework elevation
+    fields: [device type, location, height relative to backsplash and upper cabinets, under-cabinet lighting]
+    check: >
+      Receptacles, switches, data outlets and under-cabinet lights on the
+      electrical drawings land where the elevations leave wall exposed: above
+      the backsplash, below upper cabinets, and not behind tall units or
+      appliances.
+    severity: medium
+    owner: design_team
+    gate: in_wall_rough_in
+
+failure_modes:
+  - id: cw.fm.in-wall-brackets-missed
+    what_happens: In-wall brackets and backing for wall-hung counters were never identified or never reached the framer before drywall
+    consequence: Finished walls opened, patched and repainted; casework install slips behind finishes
+    caught_by: [cw.in-wall-support]
+    source: field_experience
+
+  - id: cw.fm.elevations-only
+    what_happens: Shops checked against elevations only; sections and details cut on the elevations never pulled
+    consequence: Construction, support or edge conditions differ from design; discovered at install
+    caught_by: [cw.detail-trace, d12.element-coverage]
+    source: field_experience
+
+  - id: cw.fm.heights-drawings-only
+    what_happens: Counter heights verified against the drawings but not against the governing accessibility or licensing rule
+    consequence: Fabricated or installed casework fails inspection; rework after install
+    caught_by: [cw.counter-heights]
+    source: field_experience
+
+  - id: cw.fm.sink-model-changed
+    what_happens: Plumbing fixture substitution approved after casework tops were cut for the original sink
+    consequence: Recut or replace tops; schedule hit at the end of the job
+    caught_by: [cw.cutouts-by-others]
+    source: industry_practice
+
+  - id: cw.fm.hardware-short
+    what_happens: Hardware quantities per unit undercounted across hundreds of units
+    consequence: Short shipment discovered at install; punch list drags
+    caught_by: [cw.hardware]
+    source: field_experience
+
+standards:
+  - id: cw.std.awi
+    name: AWI standards
+    title: AWS Edition 2, or ANSI/AWI 0641 (Architectural Wood Casework), 1232 (Manufactured Wood Casework), 1236 (Countertops)
+    verify: Grade, construction and finish claims on shops and product data
+    note: The ANSI/AWI series replaced parts of AWS Edition 2; review against whichever the spec cites
+
+  - id: cw.std.bhma-a156-9
+    name: ANSI/BHMA A156.9
+    title: Cabinet Hardware
+    verify: Hardware grade and function claims on product data
+    note: Confirm the edition the spec cites
+
+  - id: cw.std.nema-ld3
+    name: NEMA LD 3
+    title: High-Pressure Decorative Laminates
+    verify: Laminate grade and performance claims
+    note: Older specs cite this; if the cited edition is no longer published, ask which criteria govern
+
+regulatory_hooks:
+  - id: cw.rh.accessibility-work-surfaces
+    topic: accessibility-work-surfaces
+    question: >
+      Do designated accessible work surfaces, sinks and service counters meet
+      the adopted accessibility standard for height, knee and toe clearance,
+      and reach, and how many of each type must be accessible?
+    applies_when: Any casework with accessible units, sinks or public service counters
+    source_families: [accessibility]
+    severity: high
+
+  - id: cw.rh.seismic-anchorage
+    topic: seismic-nonstructural-anchorage
+    question: >
+      Does the seismic design category or occupancy require engineered
+      anchorage for tall or heavy casework, and does the submittal include it?
+    applies_when: Tall storage units, heavy tops, or projects in higher seismic design categories
+    source_families: [building_code_seismic]
+    severity: medium
+
+extract_fields:
+  - id: cw.xf.counter-height
+    label: Counter / work-surface height AFF
+    type: number
+    unit: in
+    per: element
+    reconcile_against: [drawings.interior_elevations]
+
+  - id: cw.xf.accessible-unit
+    label: Designated accessible unit
+    type: boolean
+    per: element
+    reconcile_against: [drawings.interior_elevations, drawings.plans]
+
+  - id: cw.xf.in-wall-supports
+    label: In-wall supports (type, height, load)
+    type: list
+    per: element
+    reconcile_against: [drawings.details]
+
+  - id: cw.xf.cutout-models
+    label: Fixture or appliance model each cutout is sized for
+    type: list
+    per: element
+    reconcile_against: [schedule.plumbing_fixture, schedule.equipment]
+
+  - id: cw.xf.devices
+    label: Electrical devices and lights in casework
+    type: list
+    per: element
+    reconcile_against: [drawings.electrical]
+
+  - id: cw.xf.hardware-counts
+    label: Hardware type and quantity per unit
+    type: list
+    per: element
+    reconcile_against: [schedule.casework_hardware]

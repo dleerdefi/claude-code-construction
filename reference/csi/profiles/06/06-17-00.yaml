@@ -1,0 +1,207 @@
+schema_version: 1
+kind: section
+id: "06 17 00"
+title: Shop-Fabricated Structural Wood
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical
+
+scope_summary: >
+  Metal-plate-connected wood trusses, and shop-fabricated I-joists and
+  structural composite lumber (06 17 53 trusses inherit from here). Trusses
+  are designed by the fabricator's engineer from loads someone else has to
+  supply, so the review is about loads: mechanical units, solar arrays,
+  hanging piping and ceilings, snow drift at steps and parapets, attic
+  equipment. Bracing is both a design item and an installation item:
+  temporary during erection, and permanent restraint the truss designer calls
+  for but the building designer and installer have to provide. Girder
+  reactions go back to the engineer of record.
+
+suppress:
+  - id: 06rc.blocking-master-list
+    reason: Truss submittals do not carry blocking; the master list is reviewed under 06 10 00
+  - id: 06rc.backing-in-rated-walls
+    reason: Blocking inside partitions is reviewed under 06 10 00
+  - id: 06rc.rc.blocking-sources
+    reason: Blocking reconciliation is reviewed under 06 10 00
+  - id: 06rc.fm.backing-missed
+    reason: Its catching checks are reviewed under 06 10 00
+  - id: 06rc.fm.blocking-voids-listing
+    reason: Its catching check is reviewed under 06 10 00
+
+submittals:
+  - id: 06tr.sub.delegated-design
+    type: Delegated Design
+    must_show:
+      - Sealed design for every truss, listing the dead, live, snow and drift, wind, concentrated and hanging loads it carries
+      - Reactions and uplift at every bearing, including girder-to-girder connections
+  - id: 06tr.sub.placement
+    type: Shop Drawings
+    must_show:
+      - Placement plan keyed to the designs, with girders, hangers, bearings, and the permanent lateral restraint and diagonal bracing each design calls for
+  - id: 06tr.sub.product-data
+    type: Product Data
+    must_show:
+      - Hangers and connectors with capacities that cover the reactions
+
+review_checks:
+  - id: 06tr.design-loads
+    kind: conformance
+    submittal_types: [Delegated Design]
+    check: >
+      Each truss design lists the loads from the structural design criteria
+      plus every concentrated and hanging load at its location: rooftop and
+      attic mechanical units, solar arrays, sprinkler mains, hung ceilings and
+      equipment, and snow drift at parapets, roof steps and units. A design
+      with only uniform loads is incomplete.
+    trace_to: [drawings.structural, schedule.mechanical_equipment, drawings.mechanical, drawings.roof_plan]
+    severity: critical
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 06tr.reactions-to-eor
+    kind: coordination
+    check: >
+      Reactions, uplift and girder loads from the truss designs go back to the
+      engineer of record, who confirms the walls, beams, headers, posts and
+      connections below carry them, and girder-to-girder hangers are
+      specified.
+    trace_to: [drawings.structural, spec.part1_submittals]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 06tr.bracing
+    kind: completeness
+    check: >
+      Permanent lateral restraint and diagonal bracing that the truss designs
+      call for is designed into the building by whoever the spec and code
+      assign it to, shown on the placement plan, and installed before ceilings
+      close; temporary bracing during erection follows the industry guide or
+      the truss designer's plan.
+    trace_to: [drawings.structural, spec.part3]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 06tr.layout-vs-mep
+    kind: coordination
+    check: >
+      The truss layout (spacing, depth, web pattern, girders) leaves room for
+      the duct mains, plumbing vents, attic equipment and access path the MEP
+      drawings route through the truss space; conflicts are solved in the
+      truss design, not by cutting webs in the field.
+    trace_to: [drawings.mechanical, drawings.plumbing, drawings.structural]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 06tr.attic-access
+    kind: absence
+    check: >
+      Equipment in the truss space has the access opening, walkway and service
+      platform the mechanical code requires, framed into the truss layout and
+      counted in its loads.
+    trace_to: [drawings.mechanical, drawings.structural]
+    severity: medium
+    owner: design_team
+    gate: procurement_release
+
+  - id: 06tr.field-modification
+    kind: constructability
+    check: >
+      No truss is cut, notched, drilled or repaired in the field without a
+      repair detail from the truss designer, and trusses damaged in handling
+      are reported before they are covered.
+    trace_to: [spec.part3]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+reconciliations:
+  - id: 06tr.rc.equipment-loads
+    reflex: true
+    between: [schedule.mechanical_equipment, submittals.approved, drawings.mechanical, drawings.structural]
+    key: Each unit or load supported by trusses
+    fields: [operating weight, location, support method (curb, platform, hung), load in the truss design at that location]
+    check: >
+      Every mechanical unit, fan and heater set on or hung from trusses
+      appears in the truss designs at its location and operating weight,
+      using the approved equipment, not the basis of design if it has since
+      changed.
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+failure_modes:
+  - id: 06tr.fm.loads-missing
+    what_happens: Trusses designed for uniform loads only; a rooftop unit, solar array or sprinkler main added later
+    consequence: Field reinforcement designed by the truss engineer, or trusses replaced
+    caught_by: [06tr.design-loads, 06tr.rc.equipment-loads, if.06-truss-mep-loads]
+    source: industry_practice
+
+  - id: 06tr.fm.girder-unchecked
+    what_happens: Girder truss reactions never sent back to the engineer of record
+    consequence: Overloaded headers, posts or bearing walls; posts and footings added after framing
+    caught_by: [06tr.reactions-to-eor]
+    source: industry_practice
+
+  - id: 06tr.fm.bracing-left-out
+    what_happens: Permanent restraint shown on the truss designs but designed or installed by nobody, or trusses erected without temporary bracing
+    consequence: Buckled webs found later and retrofit through a finished ceiling, or collapse during erection
+    caught_by: [06tr.bracing]
+    source: industry_practice
+
+  - id: 06tr.fm.webs-cut
+    what_happens: Webs or chords cut in the field for a duct, vent or attic access
+    consequence: Engineered repairs for each truss and a held-up cover inspection
+    caught_by: [06tr.field-modification, 06tr.layout-vs-mep]
+    source: industry_practice
+
+standards:
+  - id: 06tr.std.tpi-1
+    name: ANSI/TPI 1
+    title: National Design Standard for Metal Plate Connected Wood Truss Construction
+    verify: Design and quality basis the truss designs cite, and how it divides bracing responsibility
+  - id: 06tr.std.bcsi
+    name: BCSI
+    title: Guide to Good Practice for Handling, Installing, Restraining and Bracing of Metal Plate Connected Wood Trusses
+    verify: Temporary and permanent bracing practice the installer follows
+
+regulatory_hooks:
+  - id: 06tr.rh.truss-bracing-inspection
+    topic: wood-truss-bracing-inspection
+    question: >
+      Under the adopted code, who must design permanent individual truss
+      member restraint and bracing, must the truss design drawings be on site
+      at inspection, and above what span does truss installation and bracing
+      need special inspection?
+    applies_when: Metal-plate-connected wood trusses
+    source_families: [building_code]
+    severity: high
+
+  - id: 06tr.rh.attic-equipment
+    topic: mechanical-equipment-access-clearance
+    question: >
+      For equipment in an attic or truss space, what access opening,
+      passageway, service platform, lighting and receptacle do the adopted
+      mechanical and electrical codes require, so the truss layout can frame
+      and carry them?
+    applies_when: Mechanical equipment located in attics or truss spaces
+    source_families: [mechanical_code]
+    severity: medium
+
+extract_fields:
+  - id: 06tr.xf.loads
+    label: Uniform, concentrated and hanging loads listed on each truss design
+    type: list
+    per: item
+    reconcile_against: [drawings.structural, schedule.mechanical_equipment]
+  - id: 06tr.xf.reactions
+    label: Girder and bearing reactions and uplift
+    type: list
+    per: package
+    reconcile_against: [drawings.structural]

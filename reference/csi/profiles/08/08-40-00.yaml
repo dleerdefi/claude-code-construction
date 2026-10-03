@@ -1,0 +1,271 @@
+schema_version: 1
+kind: section
+id: "08 40 00"
+title: Entrances, Storefronts, and Curtain Walls
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: typical   # delegated structural design to the project's performance criteria
+
+scope_summary: >
+  Glazed framing systems: entrances, storefront, curtain wall and window
+  wall (08 41 00 through 08 46 00 inherit from here). They are designed by
+  the contractor's engineer to the project's design pressures, anchored to
+  structure someone else designed, glazed with glass that another section
+  may specify, and they are the main water and thermal path through the
+  wall. Review is by elevation and by condition: anchorage and movement at
+  the head, the sill and its drainage, the connection to the air barrier,
+  the glass in each lite, and the entrance doors and their hardware.
+
+review_mode: per_element
+element_types: [glazed_system_elevation]
+
+submittals:
+  - id: 08gf.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Elevations keyed to every CD elevation and system type, with mullion and lite sizes, glass type per lite (safety, spandrel and fire-rated lites marked), operable units and doors
+      - Head, sill, jamb, mullion and transition details at every distinct condition, including the air-barrier connection, sill receptor or pan with end dams, internal drainage path and weeps
+      - Anchor types, locations and loads, with the embed, clip, steel or framing each needs and who provides it
+      - Entrance doors with their hardware source, electrified hardware raceway and power transfer, thresholds and floor recesses
+  - id: 08gf.sub.delegated-design
+    type: Delegated Design
+    must_show:
+      - Structural calculations sealed as the spec requires, using design pressures by zone, deflection limits, and the building movements from the structural drawings
+  - id: 08gf.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Laboratory air, water, structural and thermal test reports for the system, on configurations comparable to the project's
+  - id: 08gf.sub.samples
+    type: Samples
+    must_show:
+      - Finish samples in the specified coating or anodic class
+
+review_checks:
+  - id: 08gf.thermal-values
+    kind: conformance
+    scope: package
+    check: >
+      Thermal values are for the framing and glass as submitted: whole-
+      assembly U-factor, SHGC and condensation resistance by an accepted
+      rating or simulation method for the project's configuration, not
+      center-of-glass numbers or a different frame depth or thermal break.
+      Compare them with the energy compliance documentation and with any
+      condensation criterion in the spec.
+    trace_to: [report.energy_compliance, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 08gf.water-management
+    kind: constructability
+    check: >
+      Every sill has a receptor or subsill with end dams and sealed corners
+      and a path to the exterior, the internal drainage (gutters, weeps,
+      baffles) is shown, and the drainage concept holds at sloped sills, at
+      corners and where the system meets another system or the cladding.
+    trace_to: [drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 08gf.movement
+    kind: constructability
+    check: >
+      Head and stack joints take the floor and beam deflection, slab-edge
+      movement and story drift from the structural drawings, and long runs
+      take thermal movement. A head fastened tight under a beam or slab edge
+      that will deflect breaks glass and binds doors.
+    trace_to: [drawings.structural, drawings.details]
+    severity: high
+    owner: subcontractor
+
+  - id: 08gf.glass-per-lite
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      The glass type in each lite on the elevations matches the glazing
+      schedule, including safety glazing at hazardous locations, spandrel
+      lites, and fire-rated glazing where the elevation crosses a rated
+      condition.
+    trace_to: [drawings.exterior_elevations, spec.part2, drawings.life_safety]
+    severity: high
+    owner: subcontractor
+
+  - id: 08gf.field-water-test
+    kind: completeness
+    scope: package
+    check: >
+      Field water testing is scheduled on the first installed areas, early
+      enough that fixes carry into the rest of the work, by the method and
+      pressure the spec names; who performs, who witnesses, how many retests
+      and who pays for them are defined.
+    trace_to: [spec.part3, schedule.master]
+    severity: high
+    owner: gc
+    gate: opening_install
+
+  - id: 08gf.entrance-hardware
+    kind: coordination
+    check: >
+      For each entrance door in the system, the hardware comes from either
+      the framing manufacturer or the door hardware sets, and that source is
+      confirmed for every mark; narrow stiles and mullions have the raceway,
+      power transfer and preps electrified hardware needs, and the bottom
+      rail or a kick surface meets the accessibility hook.
+    trace_to: [schedule.door_hardware, schedule.door, spec.part2]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 08gf.floor-recesses
+    kind: coordination
+    check: >
+      Floor closers, pivots, sliding door tracks, recessed thresholds and the
+      depressed slab at entrances are located on the slab drawings before the
+      pour, not cored afterward through reinforcing or post-tensioning.
+    trace_to: [drawings.structural, drawings.details, drawings.plans]
+    severity: high
+    owner: gc
+    gate: slab_pour
+
+  - id: 08gf.finish-class
+    kind: conformance
+    submittal_types: [Product Data, Samples]
+    check: >
+      Coating or anodic class matches the spec; a lower-performance coating
+      class or anodic class offered as an equal is a substitution, not a
+      color selection.
+    trace_to: [spec.part2]
+    severity: medium
+    owner: subcontractor
+
+reconciliations:
+  - id: 08gf.rc.elevations-vs-plans
+    between: [drawings.exterior_elevations, drawings.plans, drawings.wall_sections]
+    key: Glazed system elevation tag
+    fields: [system type, extent and floor lines crossed, door locations and swing, operable units, glass types, rated portions]
+    check: >
+      Each storefront and curtain wall elevation agrees with the plans and
+      wall sections on system type, extent, the floor lines it crosses, door
+      locations and swing, operable units and glass types; entrance doors
+      drawn on the elevations appear in the door schedule with a mark.
+    severity: medium
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: 08gf.fm.center-of-glass
+    what_happens: Center-of-glass U-factor and SHGC submitted as if they were the assembly values
+    consequence: Assembly fails the energy compliance; thermal break, frame or glass changed after release
+    caught_by: [08gf.thermal-values]
+    source: industry_practice
+
+  - id: 08gf.fm.sill-leaks
+    what_happens: Sill receptor without end dams or with unsealed corners, or weeps sealed over by the perimeter sealant
+    consequence: Interior leaks at sills, usually found after finishes are in
+    caught_by: [08gf.water-management]
+    source: field_experience
+
+  - id: 08gf.fm.head-crushed
+    what_happens: Storefront or window wall head anchored rigidly under a slab or beam that deflects
+    consequence: Cracked glass and binding doors months after installation; head receptors retrofitted
+    caught_by: [08gf.movement]
+    source: field_experience
+
+  - id: 08gf.fm.late-water-test
+    what_happens: First field water test run after most of the system is installed and the interior finished
+    consequence: A systemic defect repaired on every elevation instead of the first bay
+    caught_by: [08gf.field-water-test, if.01-envelope-mockup]
+    source: field_experience
+
+  - id: 08gf.fm.entrance-orphan
+    what_happens: Entrance doors with no hardware in either the storefront or the hardware submittal, or electrified hardware with no path through narrow stiles
+    consequence: Doors installed on temporary hardware; frames and doors modified in the field for wiring
+    caught_by: [08gf.entrance-hardware]
+    source: field_experience
+
+  - id: 08gf.fm.cored-slab
+    what_happens: Floor closers and sliding door tracks located after the slab was poured
+    consequence: Cores through reinforcing or tendons, engineering review, and a patched entrance slab
+    caught_by: [08gf.floor-recesses]
+    source: field_experience
+
+  - id: 08gf.fm.annealed-in-hazard
+    what_happens: Annealed lites installed at hazardous locations because the elevations never marked them
+    consequence: Glass replaced after the inspector finds no safety glazing mark
+    caught_by: [08gf.glass-per-lite]
+    source: industry_practice
+
+standards:
+  - id: 08gf.std.aama-501-1
+    name: AAMA 501.1
+    title: Standard Test Method for Water Penetration of Windows, Curtain Walls and Doors Using Dynamic Pressure
+    verify: Laboratory dynamic water test basis where the spec requires it
+  - id: 08gf.std.lab-tests
+    name: ASTM E283 / ASTM E330 / ASTM E331
+    title: Laboratory air leakage, structural performance and static water penetration of exterior windows, skylights, doors and curtain walls
+    verify: Test pressures and results on the submitted test reports
+  - id: 08gf.std.field-tests
+    name: AAMA 503 / AAMA 501.2 / ASTM E1105
+    title: Field testing of installed storefronts and curtain walls; diagnostic hose test; field water penetration under static or cyclic pressure
+    verify: Field test method, pressure, sample size and timing
+  - id: 08gf.std.coatings
+    name: AAMA 2605 / AAMA 2604 / AAMA 611
+    title: Superior performing and high performance organic coatings on aluminum extrusions and panels; Specification for Anodized Architectural Aluminum
+    verify: Coating or anodic class claimed against the class specified
+  - id: 08gf.std.aama-501-6
+    name: AAMA 501.6
+    title: Recommended Dynamic Test Method for Determining the Seismic Lateral Inter-Story Movement Causing Glass Fallout
+    verify: Drift capacity where seismic glass fallout criteria apply
+
+regulatory_hooks:
+  - id: 08gf.rh.glass-drift
+    topic: glazing-seismic-drift
+    question: >
+      Does the adopted code's seismic design require glass in curtain walls,
+      storefronts and partitions to accommodate the design story drift
+      without fallout, by test or by clearance, and which systems are exempt?
+    applies_when: Glazed framing in buildings assigned to seismic design categories where nonstructural glazing requirements apply
+    source_families: [building_code_seismic]
+    severity: high
+
+  - id: 08gf.rh.entrance-clearances
+    topic: accessible-door-clearances
+    question: >
+      For entrance doors in storefront and curtain wall, what clear width,
+      maneuvering clearance, threshold and push-side bottom surface does the
+      adopted accessibility standard require, and do narrow-stile doors with
+      low bottom rails comply?
+    applies_when: Entrance doors on accessible routes
+    source_families: [accessibility]
+    severity: high
+
+  - id: 08gf.rh.blast-forced-entry
+    topic: blast-forced-entry-criteria
+    question: >
+      Do federal, agency or owner security criteria that apply to this
+      project require blast-resistant, forced-entry or ballistic glazing and
+      framing, at which elevations and to what level, and has the anchorage
+      and supporting structure been designed for those loads?
+    applies_when: Government, institutional or owner-designated secure facilities
+    source_families: [building_code]
+    severity: high
+
+extract_fields:
+  - id: 08gf.xf.design-pressure
+    label: Design pressure used per elevation or zone
+    type: string
+    per: element
+    reconcile_against: [drawings.structural, drawings.exterior_elevations]
+  - id: 08gf.xf.thermal
+    label: Assembly U-factor, SHGC and condensation resistance, and their method
+    type: string
+    per: package
+    reconcile_against: [report.energy_compliance]
+  - id: 08gf.xf.glass-per-lite
+    label: Glass type per lite, with safety and fire-rated lites
+    type: list
+    per: element
+    reconcile_against: [drawings.exterior_elevations, spec.part2]

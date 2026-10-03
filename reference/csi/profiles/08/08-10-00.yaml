@@ -1,0 +1,219 @@
+schema_version: 1
+kind: section
+id: "08 10 00"
+title: Doors and Frames
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Swinging doors and their frames (08 11 00 through 08 17 00 inherit from
+  here), reviewed opening by opening. Each door mark is a frame profile
+  matched to its wall, a leaf, a rating, a hardware set and sometimes
+  electrified devices, and all of it is fabricated, machined and labeled
+  before the hardware arrives. So the door and frame shops are checked
+  against the approved hardware sets, the partition types, the finish
+  schedule and the life safety plans before release, because after that
+  every correction on a rated opening is a field modification.
+
+review_mode: per_element
+element_types: [door_opening]
+
+submittals:
+  - id: 08df.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Opening list keyed to every door mark with door and frame type, size, hand and swing, rating and label, frame profile and throat, anchor type and hardware set number
+      - Frame and door elevations by type with lite and louver cutouts, glazing type and stops, transoms, sidelites and mullions
+      - Preparation and reinforcement for every hardware item in the opening's set, including electrified items, power transfers, position switches, raceways and junction boxes
+      - Anchors per wall condition (studs, masonry, concrete, existing construction, floor) and grout or mortar guards where frames will be filled
+      - Undercut and clearances to the scheduled floor finish
+  - id: 08df.sub.product-data
+    type: Product Data
+    must_show:
+      - Door and frame construction, core, and the fire, smoke and acoustic ratings claimed, with the listing behind each
+
+review_checks:
+  - id: 08df.opening-data
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Size, type, hand and swing, rating, lite and louver, and frame type for
+      each mark match the door schedule and the plan. Check hand and swing
+      against the plan itself, including enlarged plans: a reversed swing
+      changes the hardware, the maneuvering clearance and sometimes the
+      direction of egress.
+    trace_to: [schedule.door, drawings.plans, drawings.enlarged_plans]
+    severity: high
+    owner: subcontractor
+
+  - id: 08df.frame-wall-match
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Each frame's profile, throat and anchors match the wall at that
+      opening: stud size, board layers on each side, finishes that add
+      thickness (tile, wainscot, abuse-resistant board), shaft wall, masonry,
+      concrete or existing construction, and a change of wall type across the
+      opening. Wraparound, butt and slip-on profiles match the details.
+    trace_to: [schedule.partition_type, drawings.plans, drawings.details]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 08df.clear-width
+    kind: conformance
+    check: >
+      Clear opening width is taken with the door open, net of the stop and of
+      hardware that projects into the opening (exit devices, pulls, hold-open
+      arms), and checked on accessible routes and for egress capacity.
+      Doors at the minimum size, and pairs whose active leaf alone has to
+      provide the width, are where hardware makes a compliant opening fail.
+    trace_to: [schedule.door, schedule.door_hardware, drawings.life_safety]
+    severity: high
+    owner: design_team
+
+  - id: 08df.sound-doors
+    kind: conformance
+    check: >
+      Doors scheduled with an acoustic rating are submitted as a tested
+      assembly (leaf, frame, perimeter seals, door bottom or threshold), with
+      the rating for the whole assembly, and the seals and bottoms in the
+      hardware set are the ones in that test.
+    trace_to: [schedule.door, schedule.door_hardware, report.acoustical]
+    severity: medium
+    owner: subcontractor
+
+reconciliations:
+  - id: 08df.rc.preps-vs-sets
+    between: [schedule.door_hardware, schedule.door]
+    key: Door mark
+    fields: [hardware set, hinge type and count, lock function and backset, strike type, electrified items and power transfer, closer and holder mounting, reinforcements]
+    check: >
+      The preparations and reinforcements on each door and frame match the
+      approved hardware set for that mark, including electrified items,
+      concealed closers and holders, continuous hinges and exit device
+      mounting. Shops drawn before the hardware schedule was approved are
+      checked again against it.
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 08df.rc.floor-finish
+    between: [schedule.door, schedule.finish, drawings.plans]
+    key: Door mark
+    fields: [floor finish each side, floor elevation change, undercut, threshold, rating]
+    check: >
+      The undercut and threshold for each door suit the floor finish on both
+      sides. Rated and smoke doors stay within the bottom clearance their
+      listing allows over the actual finish, and doors the air design relies
+      on for transfer air keep the undercut the mechanical design assumed.
+    severity: medium
+    owner: subcontractor
+    gate: procurement_release
+
+failure_modes:
+  - id: 08df.fm.released-before-hardware
+    what_happens: Doors and frames released for fabrication before the hardware schedule was approved, or from an earlier revision of it
+    consequence: Missing or wrong preps, worst at electrified openings; rated doors and frames field-cut or replaced
+    caught_by: [08df.rc.preps-vs-sets, if.08-doors-hardware]
+    source: field_experience
+
+  - id: 08df.fm.hand-reversed
+    what_happens: Door hand or swing on the shops differs from the plan, or the plan changed after the shops were approved
+    consequence: Wrong-hand frames and hardware; maneuvering clearance or egress direction lost at that door
+    caught_by: [08df.opening-data]
+    source: field_experience
+
+  - id: 08df.fm.throat-wrong
+    what_happens: Frame throat sized to the nominal stud without the board layers or added finishes on each side
+    consequence: Frames that do not fit the wall; shimmed casings, furred walls, or rated frames replaced
+    caught_by: [08df.frame-wall-match, if.08-frames-partitions]
+    source: field_experience
+
+  - id: 08df.fm.finish-changed
+    what_happens: Floor finish changed (carpet to tile, added underlayment or walk-off mat) after doors were premachined to an undercut
+    consequence: Rated doors over their listed clearance or dragging on the floor; trimming a rated door voids its label
+    caught_by: [08df.rc.floor-finish, if.08-thresholds-flooring]
+    source: field_experience
+
+  - id: 08df.fm.leaf-only-stc
+    what_happens: Acoustically rated door leaves bought without the seals, bottom and threshold of the tested assembly
+    consequence: Sound complaints at occupancy; seals and thresholds retrofitted
+    caught_by: [08df.sound-doors]
+    source: industry_practice
+
+  - id: 08df.fm.width-lost
+    what_happens: Exit device or a narrow active leaf reduces clear width below what the accessible route or egress capacity needs
+    consequence: Door or frame replaced, or the opening fails inspection
+    caught_by: [08df.clear-width]
+    source: industry_practice
+
+  - id: 08df.fm.transfer-path-sealed
+    what_happens: The air design returns air through door undercuts, but the doors are gasketed smoke or acoustic doors with seals and bottoms
+    consequence: Rooms pressurize or starve; transfer grilles cut in after finishes, sometimes in rated walls that then need dampers
+    caught_by: [08df.rc.floor-finish, if.08-door-airflow]
+    source: field_experience
+
+standards:
+  - id: 08df.std.nfpa-252
+    name: NFPA 252 / UL 10C
+    title: Fire tests of door assemblies (UL 10C positive pressure)
+    verify: Fire-protection rating and positive-pressure basis of the listed door and frame
+  - id: 08df.std.ul-1784
+    name: UL 1784
+    title: Air Leakage Tests of Door Assemblies and Other Opening Protectives
+    verify: Smoke and draft control (S label) where the life safety plans require it
+  - id: 08df.std.bhma-a156-115
+    name: ANSI/BHMA A156.115
+    title: Hardware Preparation in Steel Doors and Steel Frames
+    verify: Prep dimensions the frame and door shops use for each hardware item
+
+regulatory_hooks:
+  - id: 08df.rh.accessible-clearances
+    topic: accessible-door-clearances
+    question: >
+      What clear opening width, maneuvering clearances on each side (by
+      approach and swing, including latch-side clearance), door surface at
+      the bottom of the push side and vision lite height does the adopted
+      accessibility standard require at doors on accessible routes, and how
+      are hardware projections into the clear width treated?
+    applies_when: Doors on accessible routes
+    source_families: [accessibility]
+    severity: high
+
+  - id: 08df.rh.field-modifications
+    topic: fire-door-field-modifications
+    question: >
+      Which field preparations and changes to labeled fire door assemblies
+      (holes for added hardware, protective plates, signs, trimming,
+      replacement glazing) does the adopted fire code and its fire door
+      standard edition allow without the manufacturer's field relabeling?
+    applies_when: Rated doors and frames modified after delivery
+    source_families: [fire_code]
+    severity: medium
+
+extract_fields:
+  - id: 08df.xf.door-data
+    label: Door size, hand and swing, type and rating
+    type: string
+    per: element
+    reconcile_against: [schedule.door, drawings.plans]
+  - id: 08df.xf.frame
+    label: Frame type, profile, throat and anchor type
+    type: string
+    per: element
+    reconcile_against: [schedule.partition_type, drawings.details]
+  - id: 08df.xf.hardware-set
+    label: Hardware set number and electrified preps
+    type: list
+    per: element
+    reconcile_against: [schedule.door_hardware]
+  - id: 08df.xf.undercut
+    label: Undercut and threshold
+    type: string
+    per: element
+    reconcile_against: [schedule.finish]

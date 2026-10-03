@@ -1,0 +1,341 @@
+schema_version: 1
+kind: section
+id: "08 71 00"
+title: Door Hardware
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Hardware sets for every opening, including electrified locking, exit
+  devices, closers and holders, operators, seals and thresholds (08 71 13
+  automatic door operators inherit from here). At each door the hardware is
+  where egress, fire rating, accessibility, security and the owner's
+  operations meet: free egress without special knowledge, rated doors that
+  close and latch, closers that open easily, locks on the owner's keying and
+  access control standards. The submittal is reviewed opening by opening,
+  and its electrified openings drive work by the frame fabricator,
+  electrician, security contractor and fire alarm contractor that must be in
+  the walls months before the hardware ships.
+
+review_mode: per_element
+element_types: [door_opening]
+
+suppress:
+  - id: d08.rh.safety-glazing
+    reason: Hardware carries no glass; glazing in and beside doors is reviewed under 08 10 00 and 08 80 00
+  - id: d08.rh.exterior-opening-protection
+    reason: Hardware does not change whether an exterior opening must be protected; reviewed with the doors and framing
+
+submittals:
+  - id: 08hw.sub.hardware-schedule
+    type: Schedule
+    must_show:
+      - Hardware sets in the format the spec cites, each listing every door mark it applies to with hand, door and frame material, rating, and each item's function, finish and quantity
+      - Electrified items flagged per opening, with voltage, fail-safe or fail-secure, and the devices furnished by others (reader, request-to-exit, position switch)
+  - id: 08hw.sub.wiring
+    type: Shop Drawings
+    must_show:
+      - Point-to-point wiring diagram and riser for each electrified opening type, with power supply location and fire alarm inputs
+      - Elevation of each electrified opening type locating devices, power transfer and junction boxes
+  - id: 08hw.sub.keying
+    type: Schedule
+    must_show:
+      - Keying schedule from the keying conference with keyway, hierarchy, construction keying and core type, signed off by the owner
+  - id: 08hw.sub.product-data
+    type: Product Data
+    must_show:
+      - Each product with its grade, function and finish marked, and the fire exit hardware, panic hardware and electrified listings claimed
+
+review_checks:
+  - id: 08hw.rated-function
+    kind: conformance
+    reflex: true
+    check: >
+      Every rated opening's set has a closer (or listed automatic closing),
+      positive latching on every leaf (automatic or self-latching bolts on
+      the inactive leaf of rated pairs, never manual bolts unless the listing
+      and code allow them) and a coordinator where the astragal needs one,
+      fire exit hardware rather than panic hardware where an exit device is
+      used, no mechanical dogging or kick-down holders, the gasketing the
+      label requires, and labeled protective plates where plates run higher
+      than the fire door standard allows unlabeled. Hold-opens on rated doors
+      release by the fire alarm or detection.
+    trace_to: [schedule.door_hardware, schedule.door, drawings.life_safety]
+    severity: critical
+    owner: subcontractor
+
+  - id: 08hw.egress-hardware
+    kind: conformance
+    check: >
+      Every door in the means of egress opens from the egress side without a
+      key, tool or special knowledge; panic or fire exit hardware is provided
+      where the occupancy and occupant load require it; and any special
+      locking (delayed egress, sensor release, controlled egress, elevator
+      lobby or stair door locking with re-entry) is one the code allows for
+      this occupancy, with its signage and release conditions.
+    trace_to: [drawings.life_safety, schedule.door_hardware]
+    severity: critical
+    owner: design_team
+
+  - id: 08hw.accessible-operation
+    kind: conformance
+    check: >
+      Operable hardware on accessible doors works without tight grasping or
+      twisting and sits within the reach range; closers can be set to the
+      opening force and closing speed the hook requires; thresholds stay
+      within the height and bevel limits; and where the force cannot be met
+      (exterior doors, pressurized stairs, heavy doors) a power operator is
+      in the set.
+    trace_to: [schedule.door_hardware, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 08hw.keying
+    kind: completeness
+    scope: package
+    check: >
+      A keying conference with the owner sets the keyway, hierarchy,
+      construction keying and permanent or interchangeable cores, and any
+      existing key system or patented keyway the owner controls, before
+      cylinders are ordered; the keying schedule is approved by the owner as
+      its own submittal.
+    trace_to: [spec.part1, spec.part2]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 08hw.owner-standards
+    kind: conformance
+    scope: package
+    check: >
+      Locks, cylinders, electrified devices and credentials match the owner's
+      hardware and access control standards where they exist (keyway, lock
+      platform, reader technology and protocol); an alternate that changes
+      the keyway or the access control platform is not an equal.
+    trace_to: [spec.part2_manufacturers, spec.part1]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 08hw.power-supplies
+    kind: constructability
+    scope: package
+    check: >
+      Power supplies are sized for the devices on them, including lock inrush
+      and operators, sit in accessible conditioned rooms within the wire
+      length the devices allow, have fire alarm release inputs where locks
+      must release on alarm, and have battery backup where the security
+      design calls for it.
+    trace_to: [drawings.electrical, drawings.security, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 08hw.operators
+    kind: conformance
+    check: >
+      Door operators are low-energy or full-energy as the traffic requires,
+      actuators sit outside the door swing and within reach, the electric
+      lock releases before the operator drives, and operators on rated doors
+      are listed for them and let the door close and latch on alarm.
+    trace_to: [schedule.door_hardware, drawings.plans, drawings.electrical]
+    severity: high
+    owner: subcontractor
+
+reconciliations:
+  - id: 08hw.rc.sets-vs-schedule
+    between: [schedule.door_hardware, schedule.door, drawings.plans]
+    key: Door mark
+    fields: [hardware set, openings per set, rating, hand, door and frame material, electrified]
+    check: >
+      Every door mark on the plans and in the door schedule is in exactly one
+      hardware set, every mark listed under a set exists on the plans, and
+      each set suits the rating, material and hand of the doors assigned to
+      it. Count the openings per set on both sides.
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 08hw.rc.electrified-openings
+    between: [schedule.door_hardware, drawings.security, drawings.electrical]
+    key: Door mark
+    fields: [electrified lock or strike, exit device type, reader, request-to-exit, position switch, operator, power supply, fail-safe or fail-secure]
+    check: >
+      The electrified openings in the hardware sets, on the security device
+      plans and with power and conduit on the electrical drawings are the
+      same list, with the same devices at each door. The hardware submittal
+      usually arrives first and is the earliest chance to catch an opening
+      the other drawings missed.
+    severity: high
+    owner: design_team
+    gate: in_wall_rough_in
+
+  - id: 08hw.rc.fire-alarm-doors
+    between: [schedule.door_hardware, drawings.fire_alarm, drawings.life_safety]
+    key: Door mark
+    fields: [magnetic or closer holder, fail-safe lock, delayed egress, stair re-entry, operator shutdown, rolling fire door release]
+    check: >
+      Every door the hardware sets expect to release, unlock or stop on alarm
+      has a fire alarm connection (relay, holder circuit or detector) on the
+      fire alarm drawings, and every door connection on the fire alarm
+      drawings has the matching device in a hardware set.
+    severity: high
+    owner: design_team
+    gate: wall_close_in
+
+failure_modes:
+  - id: 08hw.fm.rough-in-missed
+    what_happens: Access-controlled and electrified openings identified after walls were closed, with no conduit or box to the frame
+    consequence: Walls opened at each door, or surface raceway on finished frames; frames field-modified for preps
+    caught_by: [08hw.rc.electrified-openings, if.08-electrified-openings]
+    source: field_experience
+
+  - id: 08hw.fm.split-unassigned
+    what_happens: Nobody assigned to pull cable from the frame to the lock, terminate at the power supply, or test each electrified opening
+    consequence: Doors on temporary locking at turnover; change orders between electrical, security and the hardware supplier
+    caught_by: [if.08-electrified-openings]
+    source: field_experience
+
+  - id: 08hw.fm.panic-on-fire-door
+    what_happens: Panic hardware with dogging, manual flush bolts or kick-down holders on rated doors
+    consequence: Openings fail the fire door inspection; devices replaced across the floor
+    caught_by: [08hw.rated-function]
+    source: field_experience
+
+  - id: 08hw.fm.locking-not-allowed
+    what_happens: Delayed egress, sensor-release or magnetic locks installed on egress doors where the occupancy or the arrangement does not permit them
+    consequence: Fails final inspection; locks replaced and access control redesigned at the end of the job
+    caught_by: [08hw.egress-hardware]
+    source: industry_practice
+
+  - id: 08hw.fm.keying-late
+    what_happens: Cylinders ordered before the keying conference, or keyed to a scheme the owner never approved
+    consequence: Cores recombinated or reordered; owner cannot secure the building at turnover
+    caught_by: [08hw.keying]
+    source: field_experience
+
+  - id: 08hw.fm.wrong-platform
+    what_happens: Locks, cores or readers approved on a platform outside the owner's standard
+    consequence: Owner refuses the hardware at turnover; replacement at the contractor's cost
+    caught_by: [08hw.owner-standards]
+    source: field_experience
+
+  - id: 08hw.fm.alarm-release-missing
+    what_happens: Fail-safe locks, hold-opens or delayed egress devices not tied to the fire alarm
+    consequence: Fails acceptance testing; relays and wiring added after ceilings close
+    caught_by: [08hw.rc.fire-alarm-doors, if.08-fire-alarm-doors]
+    source: field_experience
+
+  - id: 08hw.fm.stair-door-force
+    what_happens: Stair and vestibule door closers selected without the pressure difference the smoke-control system creates
+    consequence: Doors too heavy to open or that will not latch; closers and pressure settings reworked during acceptance testing
+    caught_by: [if.08-door-airflow]
+    source: field_experience
+
+  - id: 08hw.fm.operator-fights-lock
+    what_happens: Operator and electric lock not interlocked, so the operator drives against a locked door
+    consequence: Burned-out operators and damaged strikes; the interlock added in the field
+    caught_by: [08hw.operators, d08.sequence-of-operation]
+    source: field_experience
+
+standards:
+  - id: 08hw.std.locks
+    name: ANSI/BHMA A156.2 / ANSI/BHMA A156.13
+    title: Bored and Preassembled Locks and Latches; Mortise Locks and Latches
+    verify: Grade and function claimed for each lockset
+  - id: 08hw.std.a156-3
+    name: ANSI/BHMA A156.3
+    title: Exit Devices
+    verify: Grade and function of exit devices
+  - id: 08hw.std.ul-305
+    name: UL 305
+    title: Panic Hardware
+    verify: Panic hardware listing; fire exit hardware also carries a fire door listing
+  - id: 08hw.std.a156-4
+    name: ANSI/BHMA A156.4
+    title: Standard for Door Closers and Pivots
+    verify: Closer grade, sizing and adjustability for opening force
+  - id: 08hw.std.electrified
+    name: ANSI/BHMA A156.23 / A156.24 / A156.25 / A156.31
+    title: Electromagnetic Locks; Delayed Egress Locking Systems; Electrified Locking Devices; Electric Strikes and Frame Mounted Actuators
+    verify: Electrified device grades and functions
+  - id: 08hw.std.a156-15
+    name: ANSI/BHMA A156.15
+    title: Release Devices - Closer Holder, Electromagnetic and Electromechanical
+    verify: Hold-open and closer-holder release devices on rated doors
+  - id: 08hw.std.a156-19
+    name: ANSI/BHMA A156.19
+    title: Power Assist and Low Energy Power Operated Swinging Doors
+    verify: Low-energy swing operators
+  - id: 08hw.std.a156-28
+    name: ANSI/BHMA A156.28
+    title: Recommended Practices for Mechanical Keying Systems
+    verify: Keying schedule format and nomenclature
+  - id: 08hw.std.a156-18
+    name: ANSI/BHMA A156.18
+    title: Materials and Finishes
+    verify: Finish designations against the spec
+
+regulatory_hooks:
+  - id: 08hw.rh.panic-hardware
+    topic: egress-door-panic-hardware
+    question: >
+      Which doors require panic or fire exit hardware under the adopted code
+      (occupancy, occupant load, electrical and refrigeration machinery
+      rooms), and where may it be omitted?
+    applies_when: Doors in the means of egress
+    source_families: [building_code, fire_code]
+    severity: critical
+
+  - id: 08hw.rh.locking-arrangements
+    topic: electrically-locked-egress-doors
+    question: >
+      Which egress door locking arrangements does the adopted code permit for
+      this occupancy (key-operated main entrance locks with signage, bolts on
+      pairs, delayed egress, sensor release, controlled egress, elevator
+      lobby doors, stairway doors with re-entry), and with what signage,
+      release and fire alarm conditions?
+    applies_when: Any egress door with locking beyond a latch that releases from the egress side
+    source_families: [building_code, fire_code]
+    severity: critical
+
+  - id: 08hw.rh.accessible-operation
+    topic: accessible-door-operation
+    question: >
+      What operable-parts, mounting height, opening force, closing speed and
+      threshold requirements does the adopted accessibility standard set for
+      doors on accessible routes, and does the adopted building code require
+      power-operated doors at public entrances for this occupancy?
+    applies_when: Doors on accessible routes and public entrances
+    source_families: [accessibility, building_code]
+    severity: high
+
+  - id: 08hw.rh.fire-door-inspection
+    topic: fire-door-assembly-inspection
+    question: >
+      Does the adopted fire code require an acceptance inspection of swinging
+      fire door assemblies before occupancy and periodic inspection after,
+      who may perform it, and to which standard and edition?
+    applies_when: Rated swinging door assemblies
+    source_families: [fire_code]
+    severity: high
+
+extract_fields:
+  - id: 08hw.xf.set
+    label: Hardware set and the door marks assigned to it
+    type: list
+    per: element
+    reconcile_against: [schedule.door, drawings.plans]
+  - id: 08hw.xf.electrified
+    label: Electrified devices, voltage and fail-safe or fail-secure per opening
+    type: list
+    per: element
+    reconcile_against: [drawings.security, drawings.electrical]
+  - id: 08hw.xf.alarm-release
+    label: Devices that release or unlock on alarm
+    type: list
+    per: element
+    reconcile_against: [drawings.fire_alarm]

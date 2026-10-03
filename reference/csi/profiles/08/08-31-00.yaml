@@ -1,0 +1,126 @@
+schema_version: 1
+kind: section
+id: "08 31 00"
+title: Access Doors and Panels
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Access doors and panels in walls, ceilings and floors. The section is a
+  product spec, but the quantity, size and location of every door come from
+  the MEP trades' valves, dampers, terminal units, cleanouts and junction
+  boxes, usually after the walls and hard ceilings are framed. Three things
+  go wrong: no door where service is needed, a door too small or in the
+  wrong place for the task, and a non-rated panel in a rated wall, shaft or
+  rated ceiling membrane. Who furnishes the doors is often never assigned.
+
+review_mode: package
+
+suppress:
+  - id: d08.rh.safety-glazing
+    reason: Access doors and panels are not glazed
+  - id: d08.rh.windborne-debris
+    reason: Access doors are interior; exterior hatches and service panels are reviewed with their own sections
+  - id: d08.rh.exterior-opening-protection
+    reason: Access doors are interior; ratings in rated walls are covered by the opening-protective hook
+  - id: d08.rh.energy-openings
+    reason: Interior access doors carry no envelope energy requirement
+  - id: d08.sequence-of-operation
+    reason: Access doors are not electrified or motorized
+  - id: d08.fm.trades-disagree
+    reason: Access doors are not electrified or motorized
+
+submittals:
+  - id: 08ad.sub.product-data
+    type: Product Data
+    must_show:
+      - Each type with its frame for the substrate (board, plaster, masonry, tile, acoustical ceiling), latch or lock, and finish
+      - Fire rating and listing for wall or ceiling use where the door goes in a rated assembly
+  - id: 08ad.sub.schedule
+    type: Schedule
+    must_show:
+      - Location by room, wall or ceiling, keyed to the device it serves, with size, type and rating
+
+review_checks:
+  - id: 08ad.location-schedule
+    kind: completeness
+    check: >
+      Access door locations are compiled from the MEP drawings and approved
+      MEP submittals for every concealed device behind a hard ceiling, wall
+      or chase (fire and smoke dampers, valves, terminal units, cleanouts,
+      junction boxes, controls), and the list exists before hard ceilings
+      and chases are framed, not after they are boarded.
+    trace_to: [drawings.mechanical, drawings.plumbing, drawings.electrical, drawings.rcp]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 08ad.rated-locations
+    kind: conformance
+    check: >
+      Doors in rated walls, shafts and rated floor-ceiling or roof-ceiling
+      membranes are listed for that orientation and rating, self-closing and
+      self-latching where the listing requires, and the listed ceiling design
+      permits an access door of that size and type.
+    trace_to: [drawings.life_safety, schedule.partition_type, drawings.rcp]
+    severity: high
+    owner: subcontractor
+
+  - id: 08ad.size-for-service
+    kind: coordination
+    check: >
+      Each door is sized and placed for the service task behind it (resetting
+      a damper and replacing its link, operating a valve, pulling a filter or
+      coil, reaching a terminal unit actuator), not to a catalog default, and
+      clears the ceiling grid, lights and diffusers around it.
+    trace_to: [drawings.mechanical, drawings.rcp, drawings.plumbing]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: 08ad.fm.no-access
+    what_happens: Valves, dampers or terminal units above hard ceilings or inside chases with no access door
+    consequence: Ceilings cut open and patched; damper inspection and testing cannot be completed
+    caught_by: [08ad.location-schedule, if.08-access-doors-mep]
+    source: field_experience
+
+  - id: 08ad.fm.unrated-panel
+    what_happens: Standard access panel installed in a rated shaft wall or rated ceiling membrane
+    consequence: Fails the above-ceiling or final inspection; panel replaced and opening reframed
+    caught_by: [08ad.rated-locations]
+    source: field_experience
+
+  - id: 08ad.fm.too-small
+    what_happens: Door sized to a catalog default that cannot reach the actuator, link or filter it was meant to serve
+    consequence: Opening enlarged after finishes, or service done by cutting the ceiling
+    caught_by: [08ad.size-for-service]
+    source: industry_practice
+
+standards:
+  - id: 08ad.std.nfpa-252
+    name: NFPA 252 / UL 10B
+    title: Fire tests of door assemblies
+    verify: Listing basis of rated access doors in walls
+    note: Ceiling access doors are evaluated as part of the listed floor-ceiling or roof-ceiling design
+
+regulatory_hooks:
+  - id: 08ad.rh.damper-access
+    topic: fire-damper-access-requirements
+    question: >
+      What access opening does the adopted code require at fire, smoke and
+      combination dampers (size, location, identification), and does each
+      access door in the schedule provide it?
+    applies_when: Access doors serving fire, smoke or combination dampers
+    source_families: [building_code, mechanical_code]
+    severity: high
+
+extract_fields:
+  - id: 08ad.xf.schedule
+    label: Access door location, size, type and rating
+    type: list
+    per: package
+    reconcile_against: [drawings.mechanical, drawings.plumbing, drawings.electrical, drawings.rcp]

@@ -1,0 +1,13 @@
+schema_version: 1
+kind: section
+id: "10 22 43"
+title: Sliding Partitions
+same_as: "10 22 39"
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Same review as folding panel partitions: track or housing support and its
+# deflection, laboratory-tested acoustic rating, plenum barrier, ceiling and
+# floor path coordination, pass doors and motorized controls.

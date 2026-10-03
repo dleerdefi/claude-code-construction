@@ -1,0 +1,223 @@
+schema_version: 1
+kind: division
+id: "08"
+title: Openings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Doors, frames and hardware, specialty doors, glazed framing systems,
+  windows, skylights, glass and louvers. Openings are reviewed as assemblies
+  tagged on the drawings: a door opening is a frame, a leaf, a hardware set,
+  a rating and often electrified devices wired by two other trades; a glazed
+  opening is framing, glass, anchors and its connection to the air barrier.
+  A rated opening is rated only as a listed, labeled assembly, so late
+  changes made in the field can void it. The costly misses are information
+  that has to leave these submittals early: preps and anchors in the
+  frames, wiring in the walls, and supports and embeds in the structure.
+
+review_checks:
+  - id: d08.opening-trace
+    kind: completeness
+    check: >
+      Build the trace for every tagged opening before reviewing content: plan
+      or elevation tag, schedule row, and the submittal item that answers it
+      (door and frame by mark, window, storefront or curtain wall type,
+      skylight, louver, glass type). List tags with no submittal entry and
+      submittal entries with no tag; quantities come from the trace, never
+      from the submitter's own count.
+    trace_to: [drawings.plans, drawings.exterior_elevations, schedule.door, schedule.window]
+    severity: high
+    owner: subcontractor
+
+  - id: d08.labeled-assemblies
+    kind: conformance
+    check: >
+      Every rated opening (door, shutter, access door, fire window, rated
+      storefront or glazed wall) is submitted as a listed assembly: frame,
+      leaf, glazing, vision kit, louver, gasketing and hardware each fall
+      within the listing that carries the label, and components from
+      different manufacturers (a frame from one, a lite kit or louver from
+      another) are confirmed as covered by it. Oversize openings and
+      configurations outside the tested ones (transoms, sidelites, borrowed
+      lites, pairs) say how they will be labeled or certified.
+    trace_to: [spec.part2, schedule.door, drawings.life_safety]
+    severity: high
+    owner: subcontractor
+
+  - id: d08.field-modification
+    kind: constructability
+    check: >
+      Work on labeled doors, frames, shutters and rated glazing after
+      fabrication (added hardware or access control, enlarged preps,
+      re-trimming past the listed clearance, field-added lites or louvers,
+      replacement glass, welding knock-down frames) is limited to what the
+      listing and the fire door standard allow; anything else goes back to
+      the manufacturer for field labeling or replacement.
+      Hardware or security scope added after door and frame release is where
+      this starts, so flag it at the change, not at the fire door inspection.
+    trace_to: [spec.part3, register.asi_bulletin_log, register.rfi_log]
+    severity: high
+    owner: gc
+
+  - id: d08.sequence-of-operation
+    kind: coordination
+    check: >
+      Each electrified or motorized opening (electric locks and strikes, exit
+      devices, operators, hold-opens, coiling and sectional door operators,
+      automatic entrances, motorized vents) has a written sequence covering
+      normal and after-hours operation, credential and request-to-exit
+      behavior, fire alarm response and power loss, and the hardware,
+      security, fire alarm and electrical submittals all describe the same
+      sequence at that opening.
+    trace_to: [schedule.door_hardware, drawings.security, drawings.fire_alarm, drawings.electrical]
+    severity: high
+    owner: gc
+
+  - id: d08.design-pressure
+    kind: conformance
+    applies_if: {contractor_designed: [typical, sometimes]}
+    check: >
+      Each exterior unit's tested or calculated structural, air and water
+      performance is at or above the design pressure for its location, with
+      corner and edge zones taken from the structural or architectural
+      drawings rather than one building-wide value. A missing design
+      pressure, or zones that stop short of the elevations, is a design-team
+      question before the delegated design starts.
+    trace_to: [drawings.structural, drawings.exterior_elevations, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+reconciliations:
+  - id: d08.rc.rated-openings
+    reflex: true
+    between: [drawings.life_safety, schedule.door, schedule.partition_type]
+    key: Opening in a rated wall, shaft, corridor or smoke barrier
+    fields: [wall rating, required opening rating, door and frame label, smoke and draft control, glazing rating]
+    check: >
+      Every opening in a rated or smoke-resistant wall on the life safety
+      plans has an opening protective in the door schedule with the rating
+      that wall needs, and every rated door sits in a wall the life safety
+      plans rate. Ratings copied from an earlier life safety plan, and walls
+      upgraded after the schedule was written, show up here.
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+failure_modes:
+  - id: d08.fm.label-voided
+    what_happens: Access control or extra hardware added after rated doors and frames were fabricated, and the doors and frames were cut in the field to take it
+    consequence: Labels voided; doors replaced or field-relabeled before the fire door inspection
+    caught_by: [d08.field-modification]
+    source: field_experience
+
+  - id: d08.fm.rating-drift
+    what_happens: Door schedule ratings follow an earlier life safety plan; corridor, shaft or smoke barrier walls were added or upgraded later
+    consequence: Unrated doors and frames fabricated for rated openings, found at the fire door or final inspection
+    caught_by: [d08.rc.rated-openings]
+    source: field_experience
+
+  - id: d08.fm.mixed-listing
+    what_happens: Vision kit, louver or frame from another manufacturer installed in a rated door assembly the door's listing does not cover
+    consequence: Opening fails the fire door inspection; components replaced with listed ones
+    caught_by: [d08.labeled-assemblies]
+    source: industry_practice
+
+  - id: d08.fm.field-zone-pressure
+    applies_if: {contractor_designed: [typical, sometimes]}
+    what_happens: Units designed to the field-of-wall pressure installed in corner and edge zones
+    consequence: Under-designed units and anchors rejected at engineering review or damaged in the first design-level wind event
+    caught_by: [d08.design-pressure]
+    source: industry_practice
+
+  - id: d08.fm.trades-disagree
+    what_happens: Hardware, access control and fire alarm each submitted their own idea of how an opening behaves on alarm, after hours and on power loss
+    consequence: Doors that lock when they must release (or the reverse) found at acceptance testing; devices swapped and rewired
+    caught_by: [d08.sequence-of-operation]
+    source: field_experience
+
+standards:
+  - id: d08.std.nfpa-80
+    name: NFPA 80
+    title: Standard for Fire Doors and Other Opening Protectives
+    verify: Labels, clearances, permitted field modifications, installation, and acceptance testing of fire doors, shutters and fire windows
+    note: Confirm the edition the adopted code references
+  - id: d08.std.nfpa-105
+    name: NFPA 105
+    title: Standard for Smoke Door Assemblies and Other Opening Protectives
+    verify: Smoke door assemblies and their gasketing where smoke and draft control is required
+
+regulatory_hooks:
+  - id: d08.rh.opening-protectives
+    topic: opening-protective-ratings
+    question: >
+      What fire-protection rating, smoke and draft control, temperature-rise
+      limit and glazing limits does the adopted code require for opening
+      protectives (doors, shutters, access doors, fire windows and glazing)
+      in each rated wall, shaft, corridor and smoke barrier type on the life
+      safety plans, and which of them may be held open, released by what?
+    applies_when: Any opening in a fire-rated or smoke-resistant assembly
+    source_families: [building_code, fire_code]
+    severity: critical
+
+  - id: d08.rh.exterior-opening-protection
+    topic: exterior-wall-opening-protection
+    question: >
+      Where exterior walls are within the fire separation distance that
+      limits openings, what area of unprotected and protected openings does
+      the adopted code allow per story, and which exterior doors, windows,
+      storefront or louvers need a fire-protection rating?
+    applies_when: Exterior openings facing a property line, another building or an imaginary line between buildings on one lot
+    source_families: [building_code]
+    severity: high
+
+  - id: d08.rh.safety-glazing
+    topic: safety-glazing-hazardous-locations
+    question: >
+      Which glazed locations are hazardous locations under the adopted code
+      (in and next to doors, large lites near the floor, wet areas, stairs,
+      ramps and landings, guards), which safety glazing classification each
+      needs, and does fire-rated glazing in those locations also carry an
+      impact safety rating?
+    applies_when: Any opening with glass (doors, sidelites, storefront, curtain wall, windows, interior lites)
+    source_families: [building_code]
+    severity: high
+
+  - id: d08.rh.wind-design
+    topic: structural-design-criteria
+    applies_if: {contractor_designed: [typical, sometimes]}
+    question: >
+      What wind design criteria (basic wind speed, exposure category, risk
+      category) and components-and-cladding method does the adopted code
+      require for exterior doors, windows, glazed framing, skylights and
+      louvers, including the edge and corner zones, and what deflection
+      limits apply to the framing and glass?
+    applies_when: Exterior openings designed or selected by the contractor to a design pressure
+    source_families: [building_code]
+    severity: high
+
+  - id: d08.rh.windborne-debris
+    topic: windborne-debris-product-approval
+    question: >
+      Is the site in a wind-borne debris region that requires impact-resistant
+      openings or opening protection, and does the jurisdiction require a
+      state or local product approval for exterior doors, windows,
+      storefronts, curtain walls, skylights or louvers?
+    applies_when: Exterior openings
+    source_families: [building_code]
+    severity: high
+
+  - id: d08.rh.energy-openings
+    topic: energy-code-envelope
+    question: >
+      Under the adopted energy code and the compliance path the design uses,
+      what U-factor, SHGC and visible transmittance apply to fenestration,
+      what U-factor and air leakage apply to opaque and non-swinging doors,
+      are entrance vestibules or air curtains required, and must the
+      submitted values be certified whole-product ratings?
+    applies_when: Exterior doors, windows, storefronts, curtain walls, skylights and overhead doors
+    source_families: [energy]
+    severity: high

@@ -1,0 +1,96 @@
+schema_version: 1
+kind: section
+id: "10 11 00"
+title: Visual Display Units
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Markerboards, chalkboards, tackboards, sliding and vertical units, display
+  rails and fabric wall panels. The product is rarely the problem; the wall
+  is. Boards share teaching and conference walls with flat panels,
+  projectors, interactive boards and screens, so the board layout has to
+  agree with the audiovisual rough-in before close-in. Sliding and large
+  glass units need structure, and fabric display surfaces are combustible
+  material that fire codes limit on corridor and classroom walls.
+
+submittals:
+  - id: 10vd.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Elevation of each board wall with board sizes, trim, rails and trays, and the displays, screens and outlets on the same wall
+      - Mounting and backing for each unit, with weights for sliding, vertical-lift and glass units
+  - id: 10vd.sub.product-data
+    type: Product Data
+    must_show:
+      - Tackboard and fabric surfaces with their surface-burning classification
+
+review_checks:
+  - id: 10vd.av-wall-layout
+    kind: coordination
+    check: >
+      Board layouts on each teaching or conference wall agree with the
+      technology and electrical drawings: screen and display locations,
+      interactive board or flat-panel mounts, and the boxes, conduit, power
+      and data behind them. A board drawn over a display box, or a display
+      drawn over a board, is settled before close-in.
+    trace_to: [drawings.interior_elevations, drawings.technology, drawings.electrical]
+    severity: medium
+    owner: gc
+    gate: in_wall_rough_in
+
+  - id: 10vd.heavy-units
+    kind: constructability
+    check: >
+      Sliding, vertical-lift and large glass units show the structure they hang
+      from or bear on, their weight, and the support built into the wall;
+      floor-supported units show their floor anchorage.
+    trace_to: [drawings.details, spec.part3]
+    severity: medium
+    owner: subcontractor
+    gate: wall_close_in
+
+  - id: 10vd.combustible-displays
+    kind: conformance
+    check: >
+      Tackboards, fabric wall panels and display rails carry the
+      surface-burning classification their location requires, and the
+      combustible display area on corridor and classroom walls stays within
+      the fire code's limit for the occupancy.
+    trace_to: [spec.part2, drawings.interior_elevations, drawings.life_safety]
+    severity: medium
+    owner: design_team
+
+failure_modes:
+  - id: 10vd.fm.av-conflict
+    what_happens: A markerboard is installed across the wall where the display or interactive board was roughed in, or the AV boxes were set where the board goes
+    consequence: Boards cut or relocated, boxes abandoned, walls patched after paint
+    caught_by: [10vd.av-wall-layout, if.10-visual-display-av]
+    source: field_experience
+
+  - id: 10vd.fm.corridor-tackboards
+    what_happens: Tackboards run along corridors with no regard to the fire code limit on combustible wall displays
+    consequence: Fire marshal orders boards removed or restricts their use at final inspection
+    caught_by: [10vd.combustible-displays]
+    source: industry_practice
+
+standards:
+  - id: 10vd.std.astm-e84
+    name: ASTM E84
+    title: Standard Test Method for Surface Burning Characteristics of Building Materials
+    verify: Flame spread and smoke-developed indexes claimed for tackboard and fabric surfaces
+
+regulatory_hooks:
+  - id: 10vd.rh.combustible-displays
+    topic: combustible-wall-displays
+    question: >
+      What surface-burning classification do tackboards and fabric display
+      surfaces need in corridors, exits and rooms of this occupancy, and does
+      the fire code limit the share of wall area they may cover?
+    applies_when: Tackboards, fabric panels or display rails in corridors, exits and classrooms
+    source_families: [fire_code, building_code]
+    severity: medium

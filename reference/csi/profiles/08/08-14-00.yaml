@@ -1,0 +1,125 @@
+schema_version: 1
+kind: section
+id: "08 14 00"
+title: Wood Doors
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Architectural wood doors, flush and stile-and-rail (08 14 16 and the other
+  wood door sections inherit from here). They are factory-machined for the
+  hardware and usually factory-finished, so the approved hardware sets,
+  templates, wiring and finish selections must reach the manufacturer
+  before the order, and a rated wood door cannot be field-drilled for
+  hardware added later. Rated wood doors also depend on edge seals and core
+  blocking that someone has to furnish, and every wood door depends on the
+  building being enclosed and conditioned before it arrives.
+
+submittals:
+  - id: 08wd.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Door list by mark with size, construction (core, faces, edges), rating and positive-pressure edge category, lite and louver cutouts
+      - Factory machining for each hardware item, wire raceways for electrified hardware, and core blocking locations
+      - Veneer species, cut and match, with pair and transom matching where specified
+  - id: 08wd.sub.samples
+    type: Samples
+    must_show:
+      - Factory finish on the specified species and cut, as the control sample
+  - id: 08wd.sub.warranty
+    type: Warranty
+    must_show:
+      - Manufacturer's warranty with the site temperature, humidity and handling conditions it depends on
+
+review_checks:
+  - id: 08wd.core-blocking
+    kind: conformance
+    submittal_types: [Shop Drawings]
+    check: >
+      Core and blocking suit the hardware on each door: blocking where
+      closers, exit devices, overhead stops, surface bolts and protective
+      plates fasten to mineral or particleboard cores, and a factory raceway
+      from the hinge edge for every electrified lock, exit device or power
+      transfer, because a rated door cannot be drilled for wire in the field.
+    trace_to: [schedule.door_hardware, schedule.door, spec.part2]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 08wd.positive-pressure
+    kind: conformance
+    check: >
+      Rated wood doors are positive-pressure listed and state their edge
+      category: integral intumescent edge, or a separate edge seal that must
+      be furnished in the frame or the hardware set. Where the door relies on
+      a separate seal, the hardware set or frame submittal carries it.
+    trace_to: [spec.part2, schedule.door, schedule.door_hardware]
+    severity: high
+    owner: subcontractor
+
+  - id: 08wd.conditioning
+    kind: constructability
+    scope: package
+    check: >
+      Delivery is scheduled after the building is enclosed and the HVAC holds
+      the temperature and humidity range the warranty requires, and field
+      cuts are resealed as the manufacturer requires; a warranty conditioned
+      on site humidity is worthless if the doors sat through a wet season in
+      an open building.
+    trace_to: [schedule.master, spec.part3]
+    severity: medium
+    owner: gc
+
+failure_modes:
+  - id: 08wd.fm.edge-seal-orphan
+    what_happens: Rated doors needing a separate edge seal shipped with no seal in either the frame or the hardware submittal
+    consequence: Doors fail the fire door inspection; seal kits ordered and installed at the end of the job
+    caught_by: [08wd.positive-pressure]
+    source: field_experience
+
+  - id: 08wd.fm.no-raceway
+    what_happens: An electrified lock or exit device added after the doors were machined, with no factory raceway in the door
+    consequence: Rated door cannot be drilled for wire; door replaced, or the lock changed to a type that needs no wire through the door
+    caught_by: [08wd.core-blocking, 08df.rc.preps-vs-sets]
+    source: field_experience
+
+  - id: 08wd.fm.screws-pull
+    what_happens: Surface closers or exit devices fastened into cores without blocking
+    consequence: Screws pull out and doors sag; through-bolting rated doors only where the listing allows
+    caught_by: [08wd.core-blocking]
+    source: industry_practice
+
+  - id: 08wd.fm.delivered-wet
+    what_happens: Doors delivered into a building that is not yet enclosed or conditioned
+    consequence: Warped and delaminated doors, finish defects, and a warranty claim the manufacturer declines
+    caught_by: [08wd.conditioning]
+    source: field_experience
+
+standards:
+  - id: 08wd.std.wdma-is1a
+    name: ANSI/WDMA I.S.1A
+    title: Industry Standard for Interior Architectural Wood Flush Doors
+    verify: Grade, construction, tolerances and warp limits the spec relies on
+
+regulatory_hooks:
+  - id: 08wd.rh.formaldehyde
+    topic: composite-wood-formaldehyde
+    question: >
+      Are particleboard, MDF and hardwood plywood in the door cores and faces
+      certified to the formaldehyde emission standard that applies, and does
+      the spec or a green building program require no-added-formaldehyde
+      cores?
+    applies_when: Composite wood cores or faces
+    source_families: [environmental]
+    severity: low
+
+extract_fields:
+  - id: 08wd.xf.construction
+    label: Core type, rating and positive-pressure edge category
+    type: string
+    per: element
+    reconcile_against: [schedule.door, spec.part2]

@@ -1,0 +1,125 @@
+schema_version: 1
+kind: section
+id: "08 42 29"
+title: Automatic Entrances
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # packaged by the manufacturer; wind-load design for exterior units
+
+scope_summary: >
+  Power-operated sliding, folding and swinging entrance packages (08 42 29.13
+  through 08 42 29.33 inherit from here). Each combines framing, an
+  operator, sensors, locking and usually access control, and in a means of
+  egress it must still let people out when power fails or the panels are
+  pushed. The misses are the egress function, the power and control wiring
+  that has to reach the header before it is closed in, the modes the
+  security and fire alarm designs expect, and the inspection the door
+  standard calls for before the public uses it.
+
+review_mode: per_element
+element_types: [door_opening]
+
+submittals:
+  - id: 08ae.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Plan, elevation and header section with sensor coverage, the breakout or emergency function, and track, threshold and floor recess conditions
+      - Wiring diagrams for power, access control, fire alarm and any vestibule interlock, with the operating modes and where each is selected
+  - id: 08ae.sub.product-data
+    type: Product Data
+    must_show:
+      - Operator and sensors certified to the power-operated door standard for the type submitted (full-energy or low-energy)
+  - id: 08ae.sub.field-reports
+    type: Manufacturer's Field Reports
+    must_show:
+      - Inspection at completion by an inspector certified for automatic doors, with the standard's checklist
+
+review_checks:
+  - id: 08ae.egress-function
+    kind: conformance
+    check: >
+      Where the entrance is in a means of egress, sliding and folding panels
+      break out to swing in the direction of egress (or the door is otherwise
+      accepted for egress), the breakout force and the egress width with
+      panels broken out are shown, and no locking mode defeats it.
+    trace_to: [drawings.life_safety, spec.part2]
+    severity: critical
+    owner: subcontractor
+
+  - id: 08ae.energy-class
+    kind: conformance
+    check: >
+      Activation and safety sensor coverage, signage and speeds follow the
+      power-operated door standard for the type submitted; a low-energy
+      operator is not used where traffic or the spec calls for a full-energy
+      door with presence sensing.
+    trace_to: [spec.part2, drawings.plans]
+    severity: high
+    owner: subcontractor
+
+  - id: 08ae.completion-inspection
+    kind: completeness
+    scope: package
+    check: >
+      A certified automatic door inspection is done at completion and before
+      public use, and the owner is told of the daily safety check and the
+      periodic inspection the standard expects.
+    trace_to: [spec.part3]
+    severity: medium
+    owner: subcontractor
+    gate: substantial_completion
+
+failure_modes:
+  - id: 08ae.fm.no-breakout
+    what_happens: Sliding panels without breakout installed across a required egress path
+    consequence: Fails inspection; panels, operator or the egress plan changed
+    caught_by: [08ae.egress-function]
+    source: industry_practice
+
+  - id: 08ae.fm.modes-fight
+    what_happens: Access control locks the door while the operator drives it, or the fire alarm opens a vestibule door the smoke strategy needs closed
+    consequence: Operator and lock damage, and failed acceptance testing; devices rewired and modes reprogrammed
+    caught_by: [d08.sequence-of-operation, if.08-electrified-openings]
+    source: field_experience
+
+  - id: 08ae.fm.low-energy-misused
+    what_happens: Low-energy operator with no presence sensing used at a busy public entrance
+    consequence: Doors strike users; sensors and a full-energy package retrofitted
+    caught_by: [08ae.energy-class]
+    source: industry_practice
+
+standards:
+  - id: 08ae.std.bhma-a156-10
+    name: ANSI/BHMA A156.10
+    title: Standard for Power Operated Pedestrian Doors
+    verify: Sensor coverage, breakout, signage and speeds for full-energy doors
+  - id: 08ae.std.bhma-a156-19
+    name: ANSI/BHMA A156.19
+    title: Power Assist and Low Energy Power Operated Swinging Doors
+    verify: Low-energy swinging operators, forces and speeds
+  - id: 08ae.std.bhma-a156-38
+    name: ANSI/BHMA A156.38
+    title: Low Energy Power Operated Sliding and Folding Doors
+    verify: Low-energy sliding and folding units
+
+regulatory_hooks:
+  - id: 08ae.rh.power-door-egress
+    topic: power-operated-door-egress
+    question: >
+      Under the adopted building and fire codes, may power-operated sliding,
+      folding or revolving doors serve as egress doors here, with what
+      breakout or swing-out provisions, egress capacity credit and behavior
+      on power failure?
+    applies_when: Automatic entrances in a means of egress
+    source_families: [building_code, fire_code]
+    severity: critical
+
+extract_fields:
+  - id: 08ae.xf.type
+    label: Door type, operator class (full or low energy) and egress function
+    type: string
+    per: element
+    reconcile_against: [spec.part2, drawings.life_safety]

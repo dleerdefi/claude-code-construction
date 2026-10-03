@@ -1,0 +1,122 @@
+schema_version: 1
+kind: section
+id: "10 21 23"
+title: Cubicle Curtains and Track
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Cubicle curtain track, privacy curtains and IV track, mostly in patient
+  care, treatment and recovery rooms. The track is a ceiling element that
+  competes with sprinklers, lights, diffusers, headwall equipment and patient
+  lifts for the same ceiling, and it needs support above a gypsum ceiling.
+  Curtains must not block sprinkler discharge and must meet flame-propagation
+  requirements, and in behavioral health rooms the track has to be
+  ligature-resistant. Curtains are often owner-furnished; the track rarely is.
+
+submittals:
+  - id: 10cc.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Track layout on the reflected ceiling plan with curves, end stops, switches and curtain extents
+      - Mounting and support at each ceiling type (gypsum, grid, suspended)
+  - id: 10cc.sub.product-data
+    type: Product Data
+    must_show:
+      - Curtain fabric with its flame test, and the mesh top construction
+      - Ligature-resistant track and carriers where the owner requires them
+
+review_checks:
+  - id: 10cc.track-ceiling-layout
+    kind: coordination
+    check: >
+      Track runs are laid over the reflected ceiling plan and the sprinkler,
+      lighting, diffuser and patient lift layouts, with no head, fixture or
+      device in the track or curtain path and sprinklers positioned for the
+      curtained areas.
+    trace_to: [drawings.rcp, drawings.fire_protection, drawings.electrical, drawings.mechanical]
+    severity: high
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 10cc.track-support
+    kind: constructability
+    check: >
+      Surface-mounted track in gypsum ceilings has backing or support above
+      along the track line; grid-mounted and suspended track attaches to the
+      grid or to structure as the track manufacturer and the ceiling system
+      allow.
+    trace_to: [drawings.details, drawings.rcp]
+    severity: medium
+    owner: gc
+    gate: above_ceiling_close_in
+
+  - id: 10cc.curtain-mesh
+    kind: conformance
+    check: >
+      Curtains have the open mesh top and the clearance below the ceiling and
+      the sprinklers that the sprinkler standard requires, and the fabric
+      carries the flame-propagation classification the fire code requires.
+    trace_to: [spec.part2, drawings.fire_protection]
+    severity: high
+    owner: subcontractor
+
+  - id: 10cc.ligature-resistance
+    kind: conformance
+    check: >
+      In behavioral health and other ligature-risk rooms, track, carriers and
+      curtain attachments are the ligature-resistant type the owner's risk
+      assessment specifies.
+    trace_to: [spec.part2, drawings.plans]
+    severity: high
+    owner: subcontractor
+
+failure_modes:
+  - id: 10cc.fm.track-through-sprinklers
+    what_happens: Track laid out without the sprinkler and lighting plans; heads and fixtures end up in the curtain path
+    consequence: Sprinklers moved or added after ceilings close; track rerouted around fixtures
+    caught_by: [10cc.track-ceiling-layout, if.10-cubicle-track-sprinklers]
+    source: industry_practice
+
+  - id: 10cc.fm.solid-curtain-top
+    what_happens: Curtains delivered without the mesh top, or hung too close to the ceiling
+    consequence: Fire inspector rejects the curtains; replacement before occupancy
+    caught_by: [10cc.curtain-mesh]
+    source: industry_practice
+
+  - id: 10cc.fm.no-backing
+    what_happens: Track fastened to gypsum ceilings with no backing above
+    consequence: Track pulls down in use; ceilings opened to add support
+    caught_by: [10cc.track-support]
+    source: industry_practice
+
+standards:
+  - id: 10cc.std.nfpa-701
+    name: NFPA 701
+    title: Standard Methods of Fire Tests for Flame Propagation of Textiles and Films
+    verify: Flame test results for the exact curtain fabric submitted
+
+regulatory_hooks:
+  - id: 10cc.rh.curtain-sprinklers
+    topic: privacy-curtain-sprinkler-obstruction
+    question: >
+      What does the adopted sprinkler standard require of privacy curtains
+      (mesh top, openness, clearance below sprinkler deflectors) and of the
+      sprinkler layout around them?
+    applies_when: Cubicle curtains in sprinklered rooms
+    source_families: [fire_code]
+    severity: high
+
+  - id: 10cc.rh.curtain-flame
+    topic: decorative-materials-flame-propagation
+    question: >
+      Must privacy and cubicle curtains in patient and treatment rooms carry a
+      flame-propagation test result, and is a permanent label or a
+      certificate the accepted proof?
+    applies_when: Cubicle and privacy curtains
+    source_families: [fire_code]
+    severity: medium

@@ -1,0 +1,157 @@
+schema_version: 1
+kind: interfaces
+id: div-06
+title: Interfaces involving Division 06 wood, plastics and composites
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# An edge carries `failure` only when no failure_mode already names it in caught_by.
+# Casework backing, plumbing and electrical edges live in div-12.yaml (they match 06 41 00).
+# Roof nailers and equipment curbs to 06 10 53 live in div-07.yaml.
+
+edges:
+  # ── Blocking and backing ──────────────────────────────────────
+  - id: if.06-backing-metal-stud
+    a: ["06 10 53"]
+    a_trade: Rough carpentry (blocking and backing)
+    b: ["09 22 16", "09 21 16"]
+    b_trade: Metal stud framing and gypsum board assemblies
+    a_provides: The blocking master list by room and wall, with backing type, height, extent and fire-retardant treatment where required
+    b_provides: Stud spacing and gauge at backing locations, metal backing plates or straps where the partition type requires metal, and walls left open on one side until backing is in and checked
+    responsibility:
+      - item: Wood blocking and metal backing in metal-stud walls
+        typical: {furnish: "06 10 53 or 09 22 16", install: "06 10 53 or 09 22 16"}
+        confirm_in: [spec.part1, spec.part3, schedule.partition_type]
+    gate:
+      milestone: wall_close_in
+      note: Checked against the master list before second-side board
+    severity: critical
+
+  - id: if.06-accessory-backing
+    a: ["06 10 53", "06 11 00"]
+    a_trade: Rough carpentry and wood framing
+    b: ["10 28 00", "10 21 00", "10 11 00", "10 26 00", "10 44 00", "10 51 00"]
+    b_trade: Specialties (toilet accessories and grab bars, compartments, visual display boards, wall protection, extinguisher cabinets, lockers)
+    a_provides: Backing at each item's approved mounting height and extent, and framed openings for recessed cabinets and accessories
+    b_provides: Approved product data by room with mounting heights, mounting plate sizes, anchor types, required loads and recessed rough-opening sizes, before framing closes
+    gate: {milestone: wall_close_in}
+    severity: high
+    failure: Accessories approved after close-in at heights or plate sizes the backing does not cover; walls opened or items hung on anchors
+
+  - id: if.06-plumbing-fixture-support
+    a: ["06 10 53", "06 11 00"]
+    a_trade: Rough carpentry and wood framing
+    b: ["22 40 00"]
+    b_trade: Plumbing fixtures and carriers
+    a_provides: Backing for wall-hung fixtures not on carriers, and for grab bars and accessories placed around carriers and supply piping
+    b_provides: Which fixtures hang on floor-mounted carriers and which on wall backing, carrier and piping locations in the chase, and mounting heights
+    responsibility:
+      - item: Support of wall-hung lavatories, sinks and drinking fountains
+        typical: {furnish: "22 40 00 (carrier) or 06 10 53 (backing)", install: "22 40 00 or 06 10 53"}
+        confirm_in: [spec.part2, schedule.plumbing_fixture]
+    gate: {milestone: wall_close_in}
+    severity: high
+    failure: Grab bar backing blocked by a carrier or flush-valve piping, or a wall-hung fixture with neither carrier nor backing; relocated after the wall is closed
+
+  - id: if.06-av-backing
+    a: ["06 10 53", "06 11 00"]
+    a_trade: Rough carpentry and wood framing
+    b: ["27 41 00", "11 52 00"]
+    b_trade: Audio-video systems and equipment (displays, projectors, speakers, screens)
+    a_provides: Backing in walls and ceilings at each display, projector, speaker and screen mount
+    b_provides: Mount model, location, height, weight and backing extent for each device, including owner-furnished displays
+    gate: {milestone: wall_close_in}
+    severity: high
+    failure: Displays and projectors located after close-in on owner-selected mounts; walls opened, or devices hung on anchors the mount maker does not allow
+
+  - id: if.06-equipment-backboards
+    a: ["06 10 53"]
+    a_trade: Rough carpentry
+    b: ["27 11 00", "28 10 00", "28 46 00"]
+    b_trade: Communications equipment rooms, access control and fire alarm panels
+    a_provides: Plywood backboards of the treatment and finish the drawings require, at the sizes and locations given
+    b_provides: Backboard layout per room (wall, size, height), treatment and finish requirements, and when equipment mounting starts
+    responsibility:
+      - item: Plywood backboards in telecommunications and electrical rooms
+        typical: {furnish: "06 10 53 or 27 11 00", install: "06 10 53 or 27 11 00"}
+        confirm_in: [spec.part1, drawings.technology, drawings.electrical]
+    gate: {milestone: equipment_set}
+    severity: medium
+    failure: Backboards furnished by nobody, or untreated, or painted over the treatment stamp; equipment mounting waits or the inspector rejects the board
+
+  - id: if.06-woodwork-backing
+    a: ["06 40 00"]
+    a_trade: Architectural woodwork (paneling, trim, railings)
+    b: ["06 10 53", "09 22 16"]
+    b_trade: Rough carpentry and metal stud framing
+    a_provides: Concealed attachment for each item (panel clips and cleats, railing and handrail brackets, heavy trim and shelving), with location, height and load
+    b_provides: Backing installed at those locations and checked before close-in
+    gate: {milestone: wall_close_in}
+    severity: high
+
+  # ── Openings (Division 08) ────────────────────────────────────
+  - id: if.06-openings-in-framing
+    a: ["06 10 53", "06 11 00"]
+    a_trade: Rough carpentry and wood framing
+    b: ["08 11 00", "08 14 00", "08 40 00", "08 50 00"]
+    b_trade: Door frames, wood doors, storefront and windows
+    a_provides: Rough openings, headers and jamb studs framed to approved frame and window sizes, and treated wood bucks at openings in masonry and concrete set flush with the continuous insulation plane
+    b_provides: Rough opening sizes and shim space from approved shop drawings, frame anchor types for wood framing or bucks, and the frame's attachment at each jamb
+    gate:
+      milestone: opening_install
+      note: Frame rough openings to approved shop drawings, not to nominal sizes
+    severity: medium
+
+  - id: if.06-woodwork-doors
+    a: ["06 40 00", "06 41 00"]
+    a_trade: Architectural woodwork and casework
+    b: ["08 14 00"]
+    b_trade: Wood doors
+    a_provides: Veneer species, cut, match and finish samples for the paneling and casework the doors must match
+    b_provides: Door veneer from the specified flitch or sequence, and a factory finish matched to the woodwork samples
+    gate:
+      milestone: procurement_release
+      note: Approve woodwork and door veneer and finish samples together
+    severity: medium
+
+  # ── Finishes (Division 09) ────────────────────────────────────
+  - id: if.06-woodwork-finishing
+    a: ["06 40 00", "06 41 00"]
+    a_trade: Architectural woodwork and casework
+    b: ["09 93 00", "09 91 00"]
+    b_trade: Staining, transparent finishing and painting
+    a_provides: Which items are factory finished, the finish system and sheen, and which arrive unfinished or primed
+    b_provides: Field finishing of items delivered unfinished, matched to the approved samples, and touch-up responsibility
+    responsibility:
+      - item: Finishing of architectural woodwork
+        typical: {furnish: "06 40 00 (factory finish) or 09 93 00 (field finish)", install: "06 40 00 or 09 93 00"}
+        confirm_in: [spec.part2, spec.part3, schedule.finish]
+    gate: {milestone: procurement_release}
+    severity: medium
+
+  # ── Structural wood and building systems ──────────────────────
+  - id: if.06-truss-mep-loads
+    a: ["06 17 00"]
+    a_trade: Shop-fabricated wood trusses
+    b: ["23 74 00", "23 81 00", "23 31 00", "21 10 00"]
+    b_trade: HVAC equipment and ductwork, and sprinkler piping on or in the truss space
+    a_provides: Truss layout, depth and web openings, and the concentrated and hanging loads each design carries
+    b_provides: Equipment operating weights and locations, platforms and hangers, duct and sprinkler mains routed through or hung from the trusses, and attic access needs
+    gate:
+      milestone: procurement_release
+      note: Release truss designs after the equipment submittals they carry are approved
+    severity: high
+
+  - id: if.06-sheathing-wall-assembly
+    a: ["06 16 00"]
+    a_trade: Sheathing
+    b: ["07 20 00", "07 27 00"]
+    b_trade: Thermal protection and air barrier
+    a_provides: Sheathing type, facer and treatment as submitted, and its joint and fastener layout
+    b_provides: The tested exterior wall assembly or analysis that names the sheathing, and the barrier manufacturer's substrate requirements and acceptance
+    gate:
+      milestone: procurement_release
+      note: Review the sheathing with the wall assembly in 07 20 00, not on its own
+    severity: high

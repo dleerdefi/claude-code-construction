@@ -1,0 +1,122 @@
+schema_version: 1
+kind: section
+id: "06 41 00"
+title: Architectural Wood Casework
+same_as: "12 30 00"
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+# Casework specified in Division 06 compiles the 12 30 00 casework knowledge first.
+# This file adds only what is specific to architectural woodwork casework:
+# AWI certification, veneer faces, factory finish, cores, and building conditions.
+
+submittals:
+  - id: 06ac.sub.samples
+    type: Samples
+    must_show:
+      - Veneer species, cut and match on a door-and-drawer-front sample, in the approved finish
+  - id: 06ac.sub.certificates
+    type: Certificates
+    must_show:
+      - Fabricator accreditation and project registration under the AWI Quality Certification Program, where specified
+
+review_checks:
+  - id: 06ac.awi-certification
+    kind: completeness
+    scope: package
+    check: >
+      Where the spec requires AWI Quality Certification, the fabricator's
+      accreditation and the project registration come in before shop
+      drawings, and labels or certificates will cover each grade; in
+      mixed-grade projects each elevation states its grade.
+    trace_to: [spec.part1, spec.part2]
+    severity: medium
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 06ac.veneer-faces
+    kind: conformance
+    submittal_types: [Shop Drawings, Samples]
+    check: >
+      Wood-veneer casework shows species, cut and leaf match, how faces are
+      matched across doors and drawer fronts on each elevation (running,
+      balance or center match, and sequence matching across the elevation
+      where specified), grain direction, and the exposed interior and edge
+      treatment the grade requires.
+    trace_to: [spec.part2, drawings.interior_elevations]
+    severity: high
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 06ac.factory-finish
+    kind: conformance
+    scope: package
+    check: >
+      The factory finish system, sheen and stain match the spec and the
+      approved samples, cabinet interiors and concealed faces get the finish
+      or sealer the grade requires, and field touch-up stays with the
+      fabricator.
+    trace_to: [spec.part2, schedule.finish]
+    severity: medium
+    owner: subcontractor
+
+  - id: 06ac.cores
+    kind: conformance
+    check: >
+      Panel cores suit their location: moisture-resistant cores at sinks,
+      dishwashers and other wet areas, fire-rated cores where a flame spread
+      class is required, and no-added-formaldehyde or certified products where
+      the spec requires them.
+    trace_to: [spec.part2, drawings.interior_elevations, schedule.plumbing_fixture]
+    severity: medium
+    owner: subcontractor
+
+  - id: 06ac.site-conditions
+    kind: constructability
+    scope: package
+    check: >
+      Casework is delivered only after the room is enclosed and dry, the HVAC
+      is holding the humidity range the AWI standard sets for the project's
+      region, and walls are finished and primed behind it; units acclimate in
+      the room before they are scribed and installed.
+    trace_to: [spec.part1, spec.part3, schedule.master]
+    severity: high
+    owner: gc
+
+failure_modes:
+  - id: 06ac.fm.warped-doors
+    what_happens: Casework installed while the HVAC is off or the room is still wet
+    consequence: Doors warp, veneer and laminate delaminate and joints open; doors and panels replaced
+    caught_by: [06ac.site-conditions, if.01-temporary-conditions-woodwork]
+    source: industry_practice
+
+  - id: 06ac.fm.swollen-sink-base
+    what_happens: Standard particleboard cores used at sinks and dishwashers
+    consequence: Swollen tops and bases after the first leak or wet cleaning
+    caught_by: [06ac.cores]
+    source: industry_practice
+
+  - id: 06ac.fm.face-match
+    what_happens: Doors and drawer fronts cut from unmatched veneer
+    consequence: Visible grain breaks across each elevation; fronts refabricated
+    caught_by: [06ac.veneer-faces]
+    source: industry_practice
+
+standards:
+  - id: 06ac.std.awi-0400
+    name: ANSI/AWI 0400
+    title: Factory Finishing
+    verify: Finish system and sheen claims for factory-finished casework
+  - id: 06ac.std.hpva-hp-1
+    name: ANSI/HPVA HP-1
+    title: American National Standard for Hardwood and Decorative Plywood
+    verify: Veneer and panel grade claims for casework faces
+
+extract_fields:
+  - id: 06ac.xf.veneer
+    label: Veneer species, cut and face match
+    type: string
+    per: element
+    reconcile_against: [spec.part2, drawings.interior_elevations]
