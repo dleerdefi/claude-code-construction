@@ -1,0 +1,132 @@
+schema_version: 1
+kind: section
+id: "23 23 00"
+title: Refrigerant Piping
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # line sizing for split and VRF systems comes from the manufacturer's software on the installer's layout
+
+scope_summary: >
+  Field-installed refrigerant piping for split systems, VRF and remote
+  condensers. The equipment manufacturer designs the circuit (line sizes,
+  lengths, rises, branch fittings, added charge), so piping routed
+  differently from the selection invalidates it. Brazing under nitrogen,
+  pressure testing and evacuation decide whether the system lasts, and the
+  final charge in each circuit decides which refrigerant safety rules apply
+  to the rooms it serves.
+
+submittals:
+  - id: 23rp.sub.piping-design
+    type: Shop Drawings
+    must_show:
+      - The manufacturer's piping design for each system on the coordinated routing, with line sizes, actual and equivalent lengths, rises between units, and branch fittings or selectors
+      - Total refrigerant charge per system, factory plus field-added
+  - id: 23rp.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Pressure test and evacuation records per system, with the vacuum level and hold reached
+
+review_checks:
+  - id: 23rp.manufacturer-design
+    kind: conformance
+    check: >
+      Line sizes, total and equivalent lengths, rises between outdoor and
+      indoor units and between indoor units, and branch fittings follow the
+      manufacturer's design for the routing actually coordinated; the design
+      is re-run whenever routing changes in the field.
+    trace_to: [drawings.mechanical, drawings.riser_diagrams]
+    severity: high
+    owner: subcontractor
+    gate: overhead_rough_in
+
+  - id: 23rp.joining-testing
+    kind: constructability
+    check: >
+      Joints are brazed with a dry nitrogen purge or made with fittings the
+      manufacturer accepts, and each system is pressure-tested with nitrogen
+      and evacuated to the manufacturer's vacuum level with a hold test,
+      recorded before the piping is insulated or concealed.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+  - id: 23rp.charge-record
+    kind: completeness
+    check: >
+      The field charge for each system is calculated from the as-built
+      lengths, recorded on the unit and in the closeout documents, and the
+      total charge is checked against the refrigerant safety limit for the
+      smallest room the system serves.
+    trace_to: [spec.part3, drawings.plans]
+    severity: high
+    owner: subcontractor
+
+  - id: 23rp.routing-restrictions
+    kind: coordination
+    check: >
+      Refrigerant piping stays out of exit enclosures, elevator shafts and
+      other spaces the code restricts, is protected where exposed to damage,
+      and is identified; joints in concealed spaces meet the access rule.
+    trace_to: [drawings.mechanical, drawings.life_safety]
+    severity: medium
+    owner: subcontractor
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 23rp.fm.routing-exceeds-design
+    what_happens: Field routing runs longer or rises more than the manufacturer's selection allowed
+    consequence: Lost capacity, oil return problems and a manufacturer who refuses warranty
+    caught_by: [23rp.manufacturer-design, if.23-vrf-piping]
+    source: industry_practice
+
+  - id: 23rp.fm.no-purge
+    what_happens: Brazing without a nitrogen purge
+    consequence: Oxide scale plugs expansion valves and damages compressors after startup
+    caught_by: [23rp.joining-testing]
+    source: industry_practice
+
+  - id: 23rp.fm.charge-over-limit
+    what_happens: Field-added charge pushes a system past the refrigerant limit for the smallest room it serves
+    consequence: Leak detection, ventilation or a system split added after installation
+    caught_by: [23rp.charge-record]
+    source: industry_practice
+
+standards:
+  - id: 23rp.std.ashrae-15
+    name: ANSI/ASHRAE 15
+    title: Safety Standard for Refrigeration Systems
+    verify: Refrigerant quantity limits, piping location and detection requirements where the adopted code references it
+  - id: 23rp.std.ashrae-34
+    name: ANSI/ASHRAE 34
+    title: Designation and Safety Classification of Refrigerants
+    verify: Safety group (toxicity and flammability class) of the refrigerant proposed
+  - id: 23rp.std.asme-b31-5
+    name: ASME B31.5
+    title: Refrigeration Piping and Heat Transfer Components
+    verify: Materials, joining and testing where the spec cites it
+
+regulatory_hooks:
+  - id: 23rp.rh.leak-detection
+    topic: refrigerant-safety-requirements
+    question: >
+      For each system's refrigerant group and total charge, where does the
+      adopted mechanical code require refrigerant detectors, alarms, and
+      ventilation or shutoff responses (machinery rooms, occupied spaces with
+      A2L systems, charges above the room limit), and who furnishes them?
+    applies_when: Field-piped refrigerant systems
+    source_families: [mechanical_code]
+    severity: high
+
+  - id: 23rp.rh.piping-location
+    topic: refrigerant-piping-location
+    question: >
+      Where does the adopted mechanical code prohibit or restrict refrigerant
+      piping (exit enclosures, shafts, corridors, concealed spaces), and what
+      protection, identification and joint access does it require?
+    applies_when: Field-piped refrigerant systems
+    source_families: [mechanical_code]
+    severity: medium

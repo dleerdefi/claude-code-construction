@@ -1,0 +1,200 @@
+schema_version: 1
+kind: section
+id: "23 33 00"
+title: Air Duct Accessories
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+scope_summary: >
+  Fire, smoke, combination and ceiling radiation dampers, volume and
+  backdraft dampers, access doors, flexible connectors and silencers. The
+  life-safety dampers carry the risk: one at every rated penetration the
+  code requires and none where it does not, each installed exactly per its
+  own listing for that wall or floor type, reachable for inspection and
+  testing, and for smoke dampers powered, controlled by the fire alarm or
+  smoke control system, and position-monitored where required.
+
+submittals:
+  - id: 23da.sub.product-data
+    type: Product Data
+    must_show:
+      - A damper schedule keyed to each rated penetration, with type, fire and leakage ratings, static or dynamic rating, temperature rating, size and the listing's size limits
+      - Actuator voltage, power draw, fail position and end switches for each smoke and combination damper
+      - Ceiling radiation dampers with the listed floor-ceiling or roof-ceiling designs they may be used in
+  - id: 23da.sub.installation
+    type: Manufacturer's Instructions
+    must_show:
+      - The listed installation instructions for each damper and each wall, floor and shaft type it is installed in, including sleeve, retaining angles, clearance and breakaway connections
+
+review_checks:
+  - id: 23da.ratings-fit-system
+    kind: conformance
+    check: >
+      Each damper's ratings fit its system: dynamic-rated fire dampers
+      wherever fans can run during a fire, velocity and pressure ratings at
+      the system's design airflow, combination dampers rated as both fire and
+      smoke dampers, and an elevated-temperature rating for smoke dampers in
+      smoke control systems.
+    trace_to: [drawings.mechanical, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 23da.listed-installation
+    kind: conformance
+    check: >
+      Each damper is installed to its own listed instructions for the
+      assembly it is in (sleeve gauge and extension, retaining angles on both
+      sides, expansion clearance, breakaway duct connections, shaft and floor
+      mounting), not to a generic detail, and out-of-wall mounting is used
+      only where the listing permits it.
+    trace_to: [drawings.details, schedule.partition_type, spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+  - id: 23da.ceiling-radiation
+    kind: absence
+    check: >
+      Where ducts or outlets penetrate the ceiling membrane of a rated
+      floor-ceiling or roof-ceiling assembly, the drawings show the ceiling
+      radiation dampers that the listed assembly requires, and the outlets
+      and ducts used are the ones that listing allows.
+    trace_to: [drawings.life_safety, drawings.rcp, schedule.partition_type]
+    severity: high
+    owner: design_team
+    gate: above_ceiling_close_in
+
+  - id: 23da.smoke-damper-control
+    kind: coordination
+    check: >
+      Every smoke and combination damper has a power circuit for its
+      actuator, a controlling device (a duct detector near the damper, area
+      detection, or the smoke control system), and position indication where
+      the code or smoke control design requires it, all shown on the
+      electrical and fire alarm drawings.
+    trace_to: [drawings.electrical, drawings.fire_alarm, drawings.mechanical]
+    severity: critical
+    owner: design_team
+    gate: procurement_release
+
+  - id: 23da.acceptance-test
+    kind: completeness
+    check: >
+      Every fire and smoke damper is operated and documented at acceptance
+      (fusible link or actuator released, full closure confirmed, reset)
+      through a labeled access door large enough to do it, and the records go
+      to the owner for the periodic tests.
+    trace_to: [spec.part3, drawings.rcp]
+    severity: high
+    owner: subcontractor
+    gate: substantial_completion
+
+reconciliations:
+  - id: 23da.rc.dampers-vs-life-safety
+    reflex: true
+    between: [drawings.life_safety, drawings.mechanical, schedule.partition_type]
+    key: Each duct or transfer opening through a rated wall, floor, shaft, corridor or smoke barrier
+    fields: [assembly fire rating, smoke rating, damper type required, damper shown, access door]
+    check: >
+      Every duct or air transfer opening that crosses a fire-rated wall,
+      floor, shaft, corridor or smoke barrier on the life safety plans has the
+      damper the code requires, and every damper on the mechanical drawings
+      sits in an assembly that needs it. Recheck after life safety plan
+      revisions, which often move rated walls after the ductwork is drawn.
+    severity: critical
+    owner: design_team
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 23da.fm.missing-damper
+    what_happens: A rated wall or smoke barrier added or moved on the life safety plans after the ductwork was drawn, with no damper added
+    consequence: Damper installed later through finished walls and ceilings, or found at the fire inspection
+    caught_by: [23da.rc.dampers-vs-life-safety]
+    source: industry_practice
+
+  - id: 23da.fm.not-per-listing
+    what_happens: Damper installed without its sleeve, retaining angles or clearance, or with firestop packed into the clearance
+    consequence: Failed inspection; damper removed and reinstalled with walls and ceilings opened
+    caught_by: [23da.listed-installation, if.firestop-dampers]
+    source: industry_practice
+
+  - id: 23da.fm.untestable
+    what_happens: Damper installed where it cannot be reached, or behind an access door too small to reset it
+    consequence: Acceptance and periodic tests cannot be performed; ceilings and walls opened
+    caught_by: [23da.acceptance-test, d23.concealed-access]
+    source: industry_practice
+
+  - id: 23da.fm.static-damper
+    what_happens: Static-rated fire damper installed in a system whose fans keep running in a fire
+    consequence: Damper may not close against airflow; replaced at inspection
+    caught_by: [23da.ratings-fit-system]
+    source: industry_practice
+
+  - id: 23da.fm.dead-actuators
+    what_happens: Smoke damper actuators with no power circuit, or no fire alarm module to close them
+    consequence: Dampers do not operate at the acceptance test; circuits and modules added after ceilings close
+    caught_by: [23da.smoke-damper-control, if.23-fire-alarm-hvac]
+    source: industry_practice
+
+  - id: 23da.fm.radiation-damper-missed
+    what_happens: Outlets cut into a rated floor-ceiling assembly with no ceiling radiation damper
+    consequence: The assembly loses its rating; dampers and listed outlets retrofitted
+    caught_by: [23da.ceiling-radiation]
+    source: industry_practice
+
+standards:
+  - id: 23da.std.ul-555
+    name: UL 555
+    title: Fire Dampers
+    verify: Fire rating, static or dynamic closure rating, and size limits of each fire and combination damper
+  - id: 23da.std.ul-555s
+    name: UL 555S
+    title: Smoke Dampers
+    verify: Leakage class and elevated-temperature rating of each smoke and combination damper
+  - id: 23da.std.ul-555c
+    name: UL 555C
+    title: Ceiling Dampers
+    verify: Ceiling radiation damper listing for the rated floor-ceiling or roof-ceiling design used
+  - id: 23da.std.smacna-dampers
+    name: SMACNA Fire, Smoke and Radiation Damper Installation Guide for HVAC Systems
+    title: Damper installation guidance
+    verify: Used only where the damper's own listed instructions allow it
+  - id: 23da.std.nfpa-80-105
+    name: NFPA 80 / NFPA 105
+    title: Fire doors and other opening protectives / Smoke door assemblies and other opening protectives
+    verify: Acceptance and periodic inspection and testing of fire dampers (NFPA 80) and smoke dampers (NFPA 105)
+
+regulatory_hooks:
+  - id: 23da.rh.where-required
+    topic: fire-smoke-damper-locations
+    question: >
+      Where does the adopted building and mechanical code require fire,
+      smoke, combination and ceiling radiation dampers (rated walls,
+      shafts, corridors, smoke barriers, rated floor-ceiling assemblies), and
+      which exceptions does the design rely on?
+    applies_when: Ducts and air transfer openings through rated or smoke-resistant assemblies
+    source_families: [building_code, mechanical_code]
+    severity: critical
+
+  - id: 23da.rh.access-testing
+    topic: fire-damper-access-requirements
+    question: >
+      What access, identification, and acceptance and periodic testing do the
+      adopted codes and referenced standards require for fire and smoke
+      dampers, and who must perform and document the acceptance test?
+    applies_when: Any fire, smoke or combination damper
+    source_families: [building_code, fire_code]
+    severity: high
+
+  - id: 23da.rh.damper-detection
+    topic: duct-smoke-detector-requirements
+    question: >
+      How must smoke dampers be closed under the adopted building code: by a
+      duct detector within a set distance of the damper, by area detection,
+      or by the smoke control system, and when may one detector serve more
+      than one damper?
+    applies_when: Smoke and combination dampers
+    source_families: [building_code, fire_code]
+    severity: high

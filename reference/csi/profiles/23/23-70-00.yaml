@@ -1,0 +1,292 @@
+schema_version: 1
+kind: section
+id: "23 70 00"
+title: Central HVAC Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+review_mode: per_element
+element_types: [equipment_item]
+
+scope_summary: >
+  Indoor air handlers, packaged rooftop and outdoor units, dedicated
+  outdoor air and make-up air units, and air-to-air energy recovery
+  (23 72 00 through 23 76 00 inherit from here), reviewed by tag. Each unit
+  is checked for fan and coil performance with its real internal pressure
+  drops, outdoor air and economizer control with a relief path, energy
+  recovery that does not carry contaminated exhaust back, a condensate trap
+  the pad or curb can fit, and the duct smoke detectors the code requires.
+  Most misses are what the unit needs from others: power, curb, condensate
+  route, control points, detectors.
+
+submittals:
+  - id: 23ah.sub.product-data
+    type: Product Data
+    must_show:
+      - Per tag, fan selection with external static and each internal pressure drop listed (filters at the spec's loading, coils, energy recovery, dampers, attenuators)
+      - Coil performance at the scheduled entering conditions, with face velocity, rows and fin spacing
+      - Outdoor air, economizer and relief arrangement, airflow measurement, and filter ratings by bank
+      - Energy recovery effectiveness at the design conditions, exhaust air transfer, frost control and bypass
+      - Casing construction, section dimensions and weights for rigging, and curb or base details
+      - Condensate trap height for the drain pan's pressure, and factory refrigerant detection where the refrigerant requires it
+
+review_checks:
+  - id: 23ah.fan-static
+    kind: conformance
+    check: >
+      The fan is selected for the scheduled external static plus every
+      internal pressure drop the unit actually contains, with filters taken
+      at the loading the spec names, and coil face velocities stay below the
+      moisture carryover limit the spec sets.
+    trace_to: [schedule.mechanical_equipment, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 23ah.economizer-relief
+    kind: conformance
+    check: >
+      Units with economizers bring in their full economizer airflow and have
+      a relief path (relief fan, return fan or barometric relief) that keeps
+      the building pressure the design intends; outdoor air is measured where
+      the sequence controls to an airflow; the high-limit control matches the
+      energy code for the climate zone.
+    trace_to: [schedule.mechanical_equipment, drawings.controls, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 23ah.energy-recovery
+    kind: conformance
+    check: >
+      Energy recovery meets the scheduled effectiveness at design conditions,
+      its exhaust air transfer suits the class of air being exhausted
+      (contaminated exhaust kept off wheels that can carry it over), fan
+      placement and purge keep leakage toward the exhaust side, and frost
+      control and economizer bypass are included.
+    trace_to: [schedule.mechanical_equipment, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 23ah.condensate-trap
+    kind: constructability
+    check: >
+      The condensate trap height the drain pan's pressure needs fits under
+      the unit's pad, curb or base rail height, with heat trace on outdoor
+      traps in freezing climates.
+    trace_to: [drawings.details, schedule.mechanical_equipment]
+    severity: medium
+    owner: subcontractor
+    gate: procurement_release
+
+  - id: 23ah.filtration
+    kind: conformance
+    check: >
+      Filter ratings and banks match the spec at each position (pre-filter,
+      final filter, outdoor air), frames are gasketed so air cannot bypass the
+      media, and filters are reachable from the access side.
+    trace_to: [spec.part2, schedule.mechanical_equipment]
+    severity: medium
+    owner: subcontractor
+
+  - id: 23ah.rooftop-curb
+    kind: coordination
+    check: >
+      Rooftop units have a curb or rail of the type and height the spec and
+      roofing require (insulated, isolation, rated for the wind and seismic
+      restraint design), duct openings that match the roof framing, and, on
+      replacements, an adapter for any difference from the existing curb.
+    trace_to: [drawings.roof_plan, drawings.structural, drawings.details]
+    severity: high
+    owner: subcontractor
+    gate: roof_membrane
+
+  - id: 23ah.field-assembly
+    kind: constructability
+    check: >
+      Units shipped in sections or knocked down to fit the rigging route are
+      reassembled and sealed under the manufacturer's supervision, and any
+      casing leakage test the spec requires is done after reassembly, not
+      taken from the factory test.
+    trace_to: [spec.part3, drawings.enlarged_plans]
+    severity: medium
+    owner: subcontractor
+    gate: final_connection
+
+reconciliations:
+  - id: 23ah.rc.duct-detectors
+    reflex: true
+    between: [schedule.mechanical_equipment, drawings.fire_alarm, drawings.mechanical]
+    key: Air-handling unit tag
+    fields: [design supply airflow, supply or return detector required, detector shown on fire alarm drawings, duct location, shutdown action]
+    check: >
+      Every unit whose airflow or configuration triggers duct smoke
+      detection under the adopted code shows its detectors on the fire alarm
+      drawings at the locations the mechanical drawings provide, with the
+      shutdown it causes; units serving areas fully covered by area
+      detection are checked against the exception the design relies on.
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 23ah.rc.condensate
+    between: [schedule.mechanical_equipment, drawings.mechanical, drawings.plumbing, drawings.roof_plan]
+    key: Each unit with a cooling coil, humidifier or condensing heat exchanger
+    fields: [drain connection, route, receptor or roof discharge point, secondary pan or overflow switch, heat trace]
+    check: >
+      Each unit's condensate reaches a receptor shown on the plumbing
+      drawings, or a roof discharge point the plumbing code allows, and
+      indoor units over finished spaces or electrical rooms have a secondary
+      pan or an overflow switch that stops the unit.
+    severity: medium
+    owner: design_team
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 23ah.fm.detectors-missing
+    what_happens: Duct detectors left off the fire alarm drawings for a unit above the code threshold, or furnished but never installed in the duct
+    consequence: Fire alarm acceptance test failed; detectors, housings and access added above finished ceilings
+    caught_by: [23ah.rc.duct-detectors, if.23-duct-smoke-detectors]
+    source: industry_practice
+
+  - id: 23ah.fm.static-underestimated
+    what_happens: Fan selected on external static alone, or with clean-filter pressure drop
+    consequence: Airflow falls short as filters load; motor and drive changes after balancing
+    caught_by: [23ah.fan-static]
+    source: industry_practice
+
+  - id: 23ah.fm.no-relief
+    what_happens: Economizer added or enlarged without a relief path
+    consequence: Building over-pressurized in economizer mode; doors that will not close and whistling openings
+    caught_by: [23ah.economizer-relief]
+    source: industry_practice
+
+  - id: 23ah.fm.cross-contamination
+    what_happens: Energy recovery wheel handling contaminated or odorous exhaust, or fans arranged so leakage runs toward the supply side
+    consequence: Odors or contaminants returned to occupied spaces; recovery device bypassed or replaced
+    caught_by: [23ah.energy-recovery]
+    source: industry_practice
+
+  - id: 23ah.fm.trap-too-tall
+    what_happens: The trap the drain pan needs is taller than the pad or curb allows
+    consequence: Drain pans overflow into the unit or the roof; units raised or condensate pumps added
+    caught_by: [23ah.condensate-trap]
+    source: industry_practice
+
+  - id: 23ah.fm.filter-bypass
+    what_happens: Filters installed in ungasketed racks or the wrong size for the frame
+    consequence: Dirty coils and ducts, lost capacity, and an indoor air quality complaint
+    caught_by: [23ah.filtration]
+    source: industry_practice
+
+  - id: 23ah.fm.leaky-reassembly
+    what_happens: A unit knocked down for rigging is reassembled by the installer without the manufacturer
+    consequence: Casing leaks, wet insulation at the coil section and voided factory warranty
+    caught_by: [23ah.field-assembly]
+    source: industry_practice
+
+  - id: 23ah.fm.curb-mismatch
+    what_happens: Substituted or replacement unit's footprint and duct openings differ from the curb and roof framing
+    consequence: Curb adapters, reframed openings and roof patches under schedule pressure
+    caught_by: [23ah.rooftop-curb]
+    source: industry_practice
+
+  - id: 23ah.fm.condensate-no-receptor
+    what_happens: Air handler condensate dumped on the roof or run to a receptor the plumbing drawings never show
+    consequence: Ponding and algae at roof drains, or receptors added after floors are finished
+    caught_by: [23ah.rc.condensate]
+    source: industry_practice
+
+standards:
+  - id: 23ah.std.ahri-unitary
+    name: AHRI 340/360 / AHRI 1340
+    title: Performance Rating of Commercial and Industrial Unitary Air-conditioning and Heat Pump Equipment
+    verify: Rated efficiency of packaged units
+    note: AHRI 1340 introduces new full- and part-load metrics for federal ratings; confirm which standard and metric the adopted energy code edition uses
+  - id: 23ah.std.ahri-1350
+    name: AHRI 1350
+    title: Mechanical Performance Rating of Central Station Air-handling Unit Casings
+    verify: Casing leakage, deflection and thermal performance classes claimed
+  - id: 23ah.std.ahri-1060
+    name: AHRI 1060
+    title: Performance Rating of Air-to-Air Exchangers for Energy Recovery Ventilation Equipment
+    verify: Certified effectiveness and exhaust air transfer of the recovery device
+  - id: 23ah.std.ashrae-52-2
+    name: ANSI/ASHRAE 52.2
+    title: Method of Testing General Ventilation Air-Cleaning Devices for Removal Efficiency by Particle Size
+    verify: Filter efficiency ratings claimed
+  - id: 23ah.std.ashrae-62-1
+    name: ANSI/ASHRAE 62.1
+    title: Ventilation and Acceptable Indoor Air Quality
+    verify: Exhaust air classes when judging energy recovery cross-contamination, where the adopted code or spec references it
+
+regulatory_hooks:
+  - id: 23ah.rh.duct-detectors
+    topic: duct-smoke-detector-requirements
+    question: >
+      Which air-distribution systems require duct smoke detectors under the
+      adopted mechanical code (supply or return, by system airflow, return
+      systems serving more than one story), what exceptions apply where area
+      smoke detection covers the space, and what must the detectors shut down?
+    applies_when: Air handlers, rooftop units and other air-moving units
+    source_families: [mechanical_code, fire_code]
+    severity: high
+
+  - id: 23ah.rh.economizer
+    topic: hvac-economizer-requirements
+    question: >
+      Does the adopted energy code require an air or water economizer for
+      this unit's cooling capacity and climate zone, which high-limit
+      controls are allowed, and are fault detection and diagnostics required?
+    applies_when: Cooling units with outdoor air
+    source_families: [energy]
+    severity: high
+
+  - id: 23ah.rh.energy-recovery
+    topic: energy-recovery-requirements
+    question: >
+      Does the adopted energy code require exhaust air energy recovery for
+      this unit's outdoor air fraction, airflow, operating hours and climate
+      zone, and what effectiveness must it reach?
+    applies_when: Units with outdoor air
+    source_families: [energy]
+    severity: high
+
+  - id: 23ah.rh.filtration
+    topic: hvac-filtration-requirements
+    question: >
+      What minimum filtration does the adopted mechanical code or ventilation
+      standard require upstream of coils and on outdoor air, and does the
+      local outdoor air quality trigger more?
+    applies_when: Air handlers and packaged units
+    source_families: [mechanical_code, environmental]
+    severity: medium
+
+  - id: 23ah.rh.refrigerant
+    topic: refrigerant-safety-requirements
+    question: >
+      For packaged units with A2L or other flammable refrigerants, what do the
+      adopted mechanical code and the unit's listing require (factory
+      refrigerant detection and mitigation, minimum airflow on a leak,
+      sealing of duct and openings, minimum conditioned area served)?
+    applies_when: Packaged and split DX units with A2L refrigerants
+    source_families: [mechanical_code]
+    severity: high
+
+  - id: 23ah.rh.refrigerant-gwp
+    topic: refrigerant-gwp-restrictions
+    question: >
+      Which refrigerants may the packaged and split DX units on this project
+      use under federal and state high-GWP restrictions, given each unit's
+      manufacture and installation dates?
+    applies_when: Packaged and split DX units
+    source_families: [environmental]
+    severity: high
+
+extract_fields:
+  - id: 23ah.xf.refrigerant
+    label: Refrigerant and charge per circuit, and factory leak detection where fitted
+    type: string
+    per: element
+    reconcile_against: [schedule.mechanical_equipment]

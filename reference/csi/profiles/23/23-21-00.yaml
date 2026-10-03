@@ -1,0 +1,181 @@
+schema_version: 1
+kind: section
+id: "23 21 00"
+title: Hydronic Piping and Pumps
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: sometimes   # expansion compensation and anchor design is often delegated
+
+scope_summary: >
+  Chilled water, heating water, condenser water and glycol piping with
+  their specialties; pumps are reviewed by tag under 23 21 23. The piping
+  materials are rarely the problem. The misses are what happens between
+  installation and startup: testing before insulation, flushing with the
+  equipment bypassed, treatment started the day the system is filled, glycol
+  at the concentration the equipment was selected for, and the balancing,
+  isolation, venting and draining that make each coil serviceable.
+
+submittals:
+  - id: 23hy.sub.product-data
+    type: Product Data
+    must_show:
+      - Pipe, fittings, joining method and gaskets for each service with pressure, temperature and fluid ratings
+      - Air and dirt separators, expansion tanks, relief valves, balancing and flow-measuring valves, with sizes and settings from the schedule
+  - id: 23hy.sub.water-treatment
+    type: Product Data
+    must_show:
+      - Cleaning, flushing and treatment program per system (closed, open condenser, glycol), with chemicals, feeders, sampling and test frequency
+  - id: 23hy.sub.expansion-design
+    type: Delegated Design
+    must_show:
+      - Expansion loop, compensator, anchor and guide locations with anchor forces delivered to the structural engineer
+  - id: 23hy.sub.test-reports
+    type: Test Reports
+    must_show:
+      - Pressure test record per system section, with test medium, pressure, duration and witness
+      - Flushing and cleaning reports and initial water analysis before startup
+
+review_checks:
+  - id: 23hy.pressure-test
+    kind: completeness
+    scope: package
+    check: >
+      Each system section is pressure-tested at the spec's medium, pressure
+      and duration, witnessed and recorded, before it is insulated or
+      concealed, with equipment that cannot take the test pressure isolated.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+  - id: 23hy.flush-and-treat
+    kind: constructability
+    scope: package
+    check: >
+      Systems are flushed and chemically cleaned with coils, plate heat
+      exchangers, chillers and boilers bypassed or protected by temporary
+      strainers, then filled with treated water at once; the treatment
+      vendor's analysis is on record before startup.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: final_connection
+
+  - id: 23hy.glycol
+    kind: conformance
+    scope: package
+    check: >
+      Glycol type and concentration match the design basis that the coils,
+      chillers and pumps were selected for, the product is an inhibited
+      industrial glycol, and fill and makeup keep the concentration.
+    trace_to: [schedule.mechanical_equipment, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 23hy.coil-connections
+    kind: completeness
+    scope: package
+    check: >
+      Each coil, terminal unit and piece of equipment has isolation valves,
+      unions or flanges, a balancing or flow-measuring device (or a
+      pressure-independent control valve where designed, without a redundant
+      balancing valve), test ports, and vents at high points and drains at
+      low points, all reachable.
+    trace_to: [drawings.details, drawings.mechanical]
+    severity: medium
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+  - id: 23hy.specialties
+    kind: conformance
+    scope: package
+    check: >
+      Expansion tanks are sized for the system volume and set to the fill
+      pressure at their location in the building; air and dirt separators,
+      relief valves piped to a drain, and makeup with its backflow
+      preventer and meter are sized and located as scheduled.
+    trace_to: [schedule.mechanical_equipment, drawings.details, drawings.riser_diagrams]
+    severity: medium
+    owner: subcontractor
+
+  - id: 23hy.ratings
+    kind: conformance
+    scope: package
+    check: >
+      Pipe, fittings, valves and gaskets (grooved and press joints included)
+      are rated for each service's working pressure at the lowest floor,
+      temperature and fluid, and dissimilar metals are isolated where the
+      spec requires.
+    trace_to: [spec.part2, drawings.riser_diagrams]
+    severity: medium
+    owner: subcontractor
+
+  - id: 23hy.expansion-anchors
+    kind: coordination
+    scope: package
+    check: >
+      Heating and condenser water risers and long runs have the expansion
+      loops or compensators, anchors and guides the design or the delegated
+      engineer locates, and anchor forces are accepted by the structural
+      engineer before anchors are welded or bolted to the structure.
+    trace_to: [drawings.riser_diagrams, drawings.structural, spec.part1_submittals]
+    severity: high
+    owner: subcontractor
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 23hy.fm.debris
+    what_happens: Systems filled and run without flushing, or flushed through coils, heat exchangers and chillers
+    consequence: Plugged coils, strainers and plate heat exchangers; chiller tubes cleaned; capacity complaints from day one
+    caught_by: [23hy.flush-and-treat]
+    source: industry_practice
+
+  - id: 23hy.fm.untreated-fill
+    what_happens: System filled for testing and left with untreated water for weeks
+    consequence: Corrosion and microbiological fouling before the system is ever turned over
+    caught_by: [23hy.flush-and-treat]
+    source: industry_practice
+
+  - id: 23hy.fm.glycol-mismatch
+    what_happens: Glycol concentration differs from what the equipment was selected for, or automotive antifreeze used
+    consequence: Lost capacity, overloaded pumps, or freeze damage and fouling
+    caught_by: [23hy.glycol]
+    source: industry_practice
+
+  - id: 23hy.fm.test-after-insulation
+    what_happens: Piping insulated before its pressure test
+    consequence: Leaks found later through wet insulation and stained ceilings; insulation stripped to find them
+    caught_by: [23hy.pressure-test, if.23-test-before-insulation]
+    source: industry_practice
+
+  - id: 23hy.fm.anchor-pullout
+    what_happens: Riser anchors fixed to structure without the structural engineer seeing their forces, or loops and guides omitted
+    consequence: Anchors torn out or pipe and branch connections cracked by thermal movement
+    caught_by: [23hy.expansion-anchors]
+    source: industry_practice
+
+  - id: 23hy.fm.air-bound
+    what_happens: No vents at high points of field-routed piping, or tanks precharged for the wrong fill pressure
+    consequence: Air-bound coils, noise and repeated venting calls; relief valves lifting
+    caught_by: [23hy.coil-connections, 23hy.specialties]
+    source: industry_practice
+
+standards:
+  - id: 23hy.std.asme-b31-9
+    name: ASME B31.9
+    title: Building Services Piping
+    verify: Materials, joining and testing where the spec cites it
+
+regulatory_hooks:
+  - id: 23hy.rh.makeup-backflow
+    topic: cross-connection-backflow-protection
+    question: >
+      Which backflow assembly does the plumbing code require on makeup water
+      to chemically treated or glycol hydronic systems and to cooling towers,
+      and must it be tested and registered with the water purveyor?
+    applies_when: Hydronic systems and cooling towers with potable makeup water
+    source_families: [plumbing_code, utility_service_rules]
+    severity: medium

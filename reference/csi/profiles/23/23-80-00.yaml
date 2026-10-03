@@ -1,0 +1,208 @@
+schema_version: 1
+kind: section
+id: "23 80 00"
+title: Decentralized HVAC Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+review_mode: per_element
+element_types: [equipment_item]
+
+scope_summary: >
+  Split systems, VRF, packaged terminal and water-source units, fan coils,
+  unit heaters, cabinet heaters, chilled beams, radiant units and
+  humidifiers (23 81 00 through 23 84 00 inherit from here), reviewed by tag.
+  These systems put refrigerant, condensate and power into many small rooms,
+  so the reviewer checks the indoor and outdoor units as a rated
+  combination, heat pump capacity at the winter design temperature, the
+  refrigerant limit for the smallest room on each circuit, power to every
+  indoor unit and branch box, and rooms that need cooling around the clock.
+
+submittals:
+  - id: 23dz.sub.product-data
+    type: Product Data
+    must_show:
+      - Per system, the indoor and outdoor model combination and its certified rating, with connected capacity against the outdoor unit
+      - Heating capacity at the winter design temperature after defrost derate, and cooling at the summer design temperature and any low-ambient requirement
+      - Refrigerant type, total system charge, and the smallest room on each circuit with its volume
+      - Power source of each indoor unit, branch selector box and condensate pump, and the controls network and gateway
+
+review_checks:
+  - id: 23dz.rated-combination
+    kind: conformance
+    check: >
+      Each system's indoor and outdoor units are a certified combination, the
+      connected indoor capacity is within the outdoor unit's allowed range,
+      and heat recovery versus heat pump operation matches what the zones
+      need at the same time.
+    trace_to: [schedule.mechanical_equipment, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 23dz.heat-pump-capacity
+    kind: conformance
+    check: >
+      Heat pumps deliver the scheduled heating at the winter design
+      temperature after defrost, with the backup heat and lockout the design
+      calls for; units serving rooms that need cooling in winter (telecom,
+      electrical, interior rooms) are rated for low-ambient cooling.
+    trace_to: [schedule.mechanical_equipment, drawings.mechanical]
+    severity: high
+    owner: subcontractor
+
+  - id: 23dz.indoor-unit-power
+    kind: coordination
+    check: >
+      Every indoor unit, branch selector box and condensate pump has a power
+      source on the electrical drawings, and indoor units share circuits or
+      disconnects only as the manufacturer allows, since de-energizing one
+      indoor unit can fault the whole system.
+    trace_to: [drawings.electrical, schedule.electrical_panel]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 23dz.continuous-cooling
+    kind: absence
+    scope: package
+    check: >
+      Telecom, server, electrical and elevator machine rooms that need
+      cooling have dedicated units that run independent of the building
+      system's schedule, sized for their equipment and drive heat, with
+      condensate routed away from the equipment they protect.
+    trace_to: [drawings.mechanical, drawings.technology, drawings.electrical]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 23dz.chilled-beams
+    kind: conformance
+    check: >
+      Chilled beams and radiant cooling panels get supply water above the
+      space dew point, with condensation sensors or controls and a dedicated
+      outdoor air system that dries the space, as the design intends.
+    trace_to: [schedule.mechanical_equipment, drawings.mechanical, spec.part3]
+    severity: high
+    owner: subcontractor
+
+reconciliations:
+  - id: 23dz.rc.condensate
+    between: [schedule.mechanical_equipment, drawings.mechanical, drawings.plumbing, drawings.electrical]
+    key: Each indoor unit, fan coil or humidifier
+    fields: [gravity or pumped, condensate pump and its power, overflow switch wired to stop the unit, route, receptor]
+    check: >
+      Ductless, cassette and concealed indoor units drain by gravity or by a
+      condensate pump that has a power source and an overflow switch that
+      stops the unit, and every drain reaches a receptor on the plumbing
+      drawings.
+    severity: medium
+    owner: design_team
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 23dz.fm.unrated-combination
+    what_happens: Indoor and outdoor units mixed into a combination with no certified rating
+    consequence: Energy compliance and incentive claims fail; capacity and efficiency unverified
+    caught_by: [23dz.rated-combination]
+    source: industry_practice
+
+  - id: 23dz.fm.cold-weather-shortfall
+    what_happens: Heat pump sized on its rated heating capacity, not on its capacity at the winter design temperature
+    consequence: Rooms cannot hold temperature on cold days; backup heat added after occupancy
+    caught_by: [23dz.heat-pump-capacity]
+    source: industry_practice
+
+  - id: 23dz.fm.unpowered-indoor-units
+    what_happens: Indoor units and branch boxes assumed to be powered from the outdoor unit, with no circuits on the electrical drawings
+    consequence: Circuits added by change order after ceilings are closing
+    caught_by: [23dz.indoor-unit-power]
+    source: industry_practice
+
+  - id: 23dz.fm.it-room-overheat
+    what_happens: A telecom or electrical room served only by the building system, which shuts down at night and on weekends
+    consequence: Equipment failures and an emergency split system added after occupancy
+    caught_by: [23dz.continuous-cooling, if.23-telecom-room-cooling]
+    source: industry_practice
+
+  - id: 23dz.fm.beam-condensation
+    what_happens: Chilled beams run with supply water below the dew point when doors are open or outdoor air is not dried
+    consequence: Dripping beams and damaged ceilings and finishes
+    caught_by: [23dz.chilled-beams]
+    source: industry_practice
+
+  - id: 23dz.fm.piping-not-redesigned
+    what_happens: VRF piping installed on a routing the manufacturer's design never saw
+    consequence: Capacity loss and a warranty dispute at startup
+    caught_by: [if.23-vrf-piping]
+    source: industry_practice
+
+  - id: 23dz.fm.condensate-pump
+    what_happens: Condensate pumps installed with no circuit, or with the overflow switch not wired to stop the unit
+    consequence: Water damage to ceilings and equipment below the first time a pump fails
+    caught_by: [23dz.rc.condensate]
+    source: industry_practice
+
+standards:
+  - id: 23dz.std.ahri-1230
+    name: AHRI 1230
+    title: Performance Rating of Variable Refrigerant Flow (VRF) Multi-Split Air-Conditioning and Heat Pump Equipment
+    verify: Certified rating of the VRF system combination submitted
+  - id: 23dz.std.ul-60335-2-40
+    name: UL 60335-2-40
+    title: Household and Similar Electrical Appliances — Safety — Part 2-40, Particular Requirements for Electrical Heat Pumps, Air-Conditioners and Dehumidifiers
+    verify: Listing conditions for A2L refrigerant units (refrigerant detection, minimum room area, mitigation)
+
+regulatory_hooks:
+  - id: 23dz.rh.refrigerant-limit
+    topic: refrigerant-safety-requirements
+    question: >
+      Does any system's total refrigerant charge, for its refrigerant group,
+      exceed the adopted mechanical code's limit for the smallest occupied
+      room it serves, and if so which mitigation does the design use
+      (detection with ventilation or shutoff valves, room openings, splitting
+      the system)?
+    applies_when: Split, VRF and other systems with refrigerant piped into occupied rooms
+    source_families: [mechanical_code]
+    severity: critical
+
+  - id: 23dz.rh.duct-detectors
+    topic: duct-smoke-detector-requirements
+    question: >
+      Do any ducted fan coils, split or VRF indoor units, alone or sharing a
+      return, reach the adopted code's airflow threshold for duct smoke
+      detectors?
+    applies_when: Ducted decentralized units
+    source_families: [mechanical_code, fire_code]
+    severity: medium
+
+  - id: 23dz.rh.economizer
+    topic: hvac-economizer-requirements
+    question: >
+      Does the adopted energy code require economizers for these
+      decentralized cooling systems, or does the design rely on an exception
+      (efficiency trade-off, dedicated outdoor air system, small unit
+      capacity)?
+    applies_when: Decentralized cooling systems
+    source_families: [energy]
+    severity: medium
+
+  - id: 23dz.rh.refrigerant-gwp
+    topic: refrigerant-gwp-restrictions
+    question: >
+      Do the federal and state high-GWP refrigerant rules allow the
+      refrigerant in these VRF and split systems, considering that
+      field-assembled systems are generally judged by installation date and
+      factory-charged products by manufacture date?
+    applies_when: VRF, split and other field-piped refrigerant systems
+    source_families: [environmental]
+    severity: high
+
+extract_fields:
+  - id: 23dz.xf.refrigerant
+    label: Total refrigerant charge per system and the smallest room it serves
+    type: string
+    per: element
+    reconcile_against: [drawings.plans, schedule.mechanical_equipment]

@@ -1,0 +1,122 @@
+schema_version: 1
+kind: section
+id: "23 36 00"
+title: Air Terminal Units
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+review_mode: per_element
+element_types: [equipment_item]
+
+scope_summary: >
+  Constant- and variable-air-volume terminal units, fan-powered or not,
+  with hot water or electric reheat, reviewed by tag. Box size decides
+  whether the minimum airflow can be measured at all; the units nearest the
+  air handler see the highest inlet pressure and make the most noise; the
+  controls side has to face the access; and the controllers usually come
+  from the controls contractor for factory mounting, which is a scope and
+  schedule handoff of its own.
+
+submittals:
+  - id: 23tu.sub.product-data
+    type: Product Data
+    must_show:
+      - Per tag, maximum and minimum airflows with the sensor's measurable range, inlet size and pressure drop
+      - Reheat coil capacity at the heating airflow and entering conditions, or electric heater rating, steps and minimum airflow
+      - Discharge and radiated sound at the maximum inlet static pressure the system delivers
+      - Handing, casing liner type, access panel locations and factory-mounted controls
+
+review_checks:
+  - id: 23tu.airflow-range
+    kind: conformance
+    check: >
+      Each unit's inlet size lets its airflow sensor measure the scheduled
+      minimum airflow, the minimum meets the ventilation and heating airflow
+      the schedule shows, the reheat coil makes its capacity at the heating
+      airflow, and an electric heater's own minimum airflow is below the
+      heating airflow setpoint.
+    trace_to: [schedule.mechanical_equipment]
+    severity: high
+    owner: subcontractor
+
+  - id: 23tu.sound-at-inlet-pressure
+    kind: conformance
+    check: >
+      Sound data is given at the highest inlet static pressure the unit will
+      see (the units nearest the air handler), not at the minimum, and with
+      the room and ceiling attenuation the spec states.
+    trace_to: [schedule.mechanical_equipment, report.acoustical, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 23tu.handing-access
+    kind: constructability
+    check: >
+      Handing puts the controls, reheat valve and access panels on the side
+      that faces the access door or lay-in ceiling, and the inlet has the
+      straight duct the airflow sensor needs, with no flexible duct at the
+      inlet.
+    trace_to: [drawings.mechanical, drawings.rcp, drawings.details]
+    severity: medium
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+failure_modes:
+  - id: 23tu.fm.unmeasurable-minimum
+    what_happens: Unit oversized so its minimum airflow is below what the sensor can measure
+    consequence: Hunting dampers and ventilation below the minimum; units resized or setpoints raised against the design
+    caught_by: [23tu.airflow-range]
+    source: industry_practice
+
+  - id: 23tu.fm.wrong-handing
+    what_happens: Controls and valve installed on the side against a wall, duct or hard ceiling
+    consequence: Units that cannot be serviced or calibrated; access doors added or units rotated
+    caught_by: [23tu.handing-access]
+    source: industry_practice
+
+  - id: 23tu.fm.noisy-first-units
+    what_happens: Units near the air handler selected with sound data at low inlet pressure
+    consequence: Noise complaints in the rooms closest to the shaft; attenuators or pressure-reducing measures added
+    caught_by: [23tu.sound-at-inlet-pressure]
+    source: industry_practice
+
+  - id: 23tu.fm.controllers-late
+    what_happens: Controllers and actuators not delivered to the unit manufacturer in time for factory mounting
+    consequence: Units ship bare; controls field-mounted above ceilings at extra cost and schedule
+    caught_by: [if.23-terminal-unit-controls]
+    source: industry_practice
+
+suppress:
+  - {id: d23.rc.intake-separation, reason: Terminal units have no outdoor air intake or exhaust outlet}
+  - {id: d23.fm.re-entrainment, reason: Terminal units have no outdoor air intake or exhaust outlet}
+  - {id: d23.rh.intake-separation, reason: Terminal units have no outdoor air intake or exhaust outlet}
+
+standards:
+  - id: 23tu.std.ahri-880
+    name: AHRI 880
+    title: Performance Rating of Air Terminals
+    verify: Airflow, pressure drop and sound ratings are certified for the model submitted
+  - id: 23tu.std.ahri-885
+    name: AHRI 885
+    title: Procedure for Estimating Occupied Space Sound Levels in the Application of Air Terminals and Air Outlets
+    verify: The attenuation assumptions behind the sound levels claimed match the spec's
+
+regulatory_hooks:
+  - id: 23tu.rh.reheat-limits
+    topic: simultaneous-heating-cooling-limits
+    question: >
+      What limits does the adopted energy code place on reheat and on zone
+      minimum airflows in variable-air-volume systems, and do the scheduled
+      minimums and heating airflows comply?
+    applies_when: Variable-air-volume terminal units with reheat
+    source_families: [energy]
+    severity: medium
+
+extract_fields:
+  - id: 23tu.xf.airflows
+    label: Maximum, minimum and heating airflow
+    type: string
+    per: element
+    reconcile_against: [schedule.mechanical_equipment]

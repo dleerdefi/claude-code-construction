@@ -1,0 +1,204 @@
+schema_version: 1
+kind: section
+id: "23 50 00"
+title: Central Heating Equipment
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+review_mode: per_element
+element_types: [equipment_item]
+
+scope_summary: >
+  Boilers, furnaces, fuel-fired heaters, heat exchangers and their vents
+  (23 51 00 through 23 57 00 inherit from here), reviewed by tag. Fuel-fired
+  appliances are listed with their venting, so vent material, category,
+  length and termination come from the manufacturer, not from a generic
+  detail. The other misses are gas pressure at the appliance at full fire,
+  combustion air for everything in the room, the minimum flow and water
+  chemistry a high-efficiency heat exchanger tolerates, and the
+  jurisdiction's boiler inspection before the boiler may run.
+
+submittals:
+  - id: 23bl.sub.product-data
+    type: Product Data
+    must_show:
+      - Input and output at the scheduled conditions, turndown, efficiency at the design return water temperature, and emissions rating where the spec or air district sets one
+      - Required gas inlet pressure range and flow at full fire
+      - Minimum and maximum water flow, allowed piping arrangement, and water chemistry and glycol limits for the heat exchanger
+      - Flame safeguard and safety controls, and the pressure vessel code stamp
+  - id: 23bl.sub.vent-design
+    type: Shop Drawings
+    must_show:
+      - Vent and combustion air layout per appliance with material, category, diameter, equivalent length and termination locations, checked against the manufacturer's tables
+  - id: 23bl.sub.startup
+    type: Manufacturer's Field Reports
+    must_show:
+      - Factory-authorized startup with combustion analysis for each appliance
+
+review_checks:
+  - id: 23bl.venting
+    kind: conformance
+    check: >
+      Vent material, category, size and equivalent length for each appliance
+      follow its listing and the manufacturer's tables for the vent as
+      routed; appliances share a vent or manifold only where the
+      manufacturer allows it; terminations keep the required clearances to
+      openings, intakes, grade and snow line.
+    trace_to: [drawings.mechanical, drawings.details, drawings.roof_plan]
+    severity: critical
+    owner: subcontractor
+
+  - id: 23bl.combustion-air
+    kind: absence
+    scope: package
+    check: >
+      Combustion air for every fuel-burning appliance in each room is shown,
+      either direct-vented or by openings or ducts sized for the room's total
+      input, and mechanical combustion air is interlocked with the burners.
+    trace_to: [drawings.mechanical, drawings.enlarged_plans]
+    severity: high
+    owner: design_team
+
+  - id: 23bl.gas-pressure
+    kind: coordination
+    check: >
+      Each appliance's required inlet pressure and flow at full fire are
+      available from the gas service and piping design, with regulators where
+      the building uses elevated pressure and their vents piped as required,
+      confirmed against the utility's delivery pressure.
+    trace_to: [schedule.mechanical_equipment, drawings.plumbing, report.utility_requirements]
+    severity: high
+    owner: design_team
+    gate: procurement_release
+
+  - id: 23bl.flow-and-chemistry
+    kind: conformance
+    check: >
+      The piping arrangement (primary-secondary or variable primary) and
+      system flows respect the boiler's minimum flow and return temperature
+      limits, and the water treatment and glycol are within the heat
+      exchanger manufacturer's limits for its material.
+    trace_to: [drawings.riser_diagrams, drawings.details, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 23bl.inspection-startup
+    kind: completeness
+    check: >
+      The jurisdiction's boiler inspection and operating certificate, where
+      required, and the manufacturer's startup with combustion analysis are
+      scheduled before the boiler carries load, including any temporary use
+      during construction.
+    trace_to: [spec.part3, schedule.master]
+    severity: high
+    owner: gc
+    gate: final_connection
+
+reconciliations:
+  - id: 23bl.rc.discharges
+    between: [schedule.mechanical_equipment, drawings.mechanical, drawings.plumbing]
+    key: Each fuel-fired appliance and heat exchanger
+    fields: [condensate neutralizer, relief valve discharge, blowdown or drain, receptor, discharge temperature]
+    check: >
+      Condensate from condensing appliances and their vents passes through a
+      neutralizer sized for the connected input before it reaches a
+      receptor, and relief valve and blowdown discharges are piped to a
+      receptor on the plumbing drawings that can take their temperature.
+    severity: medium
+    owner: design_team
+    gate: overhead_rough_in
+
+failure_modes:
+  - id: 23bl.fm.wrong-vent
+    what_happens: Condensing appliance vented with an unlisted material, too long a run, or a common vent the manufacturer does not allow
+    consequence: Flue gas leakage or lockouts; vent replaced, sometimes through finished shafts
+    caught_by: [23bl.venting]
+    source: industry_practice
+
+  - id: 23bl.fm.low-gas-pressure
+    what_happens: Appliance's minimum inlet pressure not available at full fire
+    consequence: Nuisance lockouts in cold weather; regulators or gas piping upsized after startup
+    caught_by: [23bl.gas-pressure, if.23-gas-service]
+    source: industry_practice
+
+  - id: 23bl.fm.heat-exchanger-chemistry
+    what_happens: Water treatment or glycol outside the limits of the boiler's heat exchanger material
+    consequence: Heat exchanger corrosion and a warranty claim the manufacturer denies
+    caught_by: [23bl.flow-and-chemistry]
+    source: industry_practice
+
+  - id: 23bl.fm.uninspected
+    what_happens: Boiler fired for temporary heat or turnover before the jurisdiction's inspection
+    consequence: Operation stopped until inspected; turnover delayed
+    caught_by: [23bl.inspection-startup]
+    source: industry_practice
+
+  - id: 23bl.fm.starved-room
+    what_happens: Combustion air sized for the original appliances, not the substituted or added ones
+    consequence: Poor combustion and spillage; louvers or ducts added to a finished room
+    caught_by: [23bl.combustion-air]
+    source: industry_practice
+
+  - id: 23bl.fm.acid-condensate
+    what_happens: Condensing appliances drained without a neutralizer, or relief valves piped to nothing
+    consequence: Corroded drain lines and floor sinks, or scalding discharge onto the equipment room floor
+    caught_by: [23bl.rc.discharges]
+    source: industry_practice
+
+standards:
+  - id: 23bl.std.asme-section-iv
+    name: ASME Boiler and Pressure Vessel Code, Section IV
+    title: Rules for Construction of Heating Boilers
+    verify: Code stamp and data report for each boiler
+  - id: 23bl.std.asme-csd-1
+    name: ASME CSD-1
+    title: Controls and Safety Devices for Automatically Fired Boilers
+    verify: Safety controls on the boiler and in the room where the jurisdiction or spec requires it
+  - id: 23bl.std.ul-1738
+    name: UL 1738
+    title: Venting Systems for Gas-Burning Appliances, Categories II, III and IV
+    verify: Listing of special gas vent systems used for condensing appliances
+
+regulatory_hooks:
+  - id: 23bl.rh.boiler-inspection
+    topic: boiler-inspection-certification
+    question: >
+      Does the jurisdiction require boiler registration, inspection and an
+      operating certificate for these boilers (by input, pressure or
+      temperature), which safety-control standard does it enforce, and must
+      the inspection precede temporary use?
+    applies_when: Boilers and other fired pressure vessels
+    source_families: [boiler_pressure_vessel]
+    severity: high
+
+  - id: 23bl.rh.vent-termination
+    topic: appliance-vent-termination
+    question: >
+      What clearances does the adopted mechanical or fuel gas code require
+      between appliance vent and combustion air terminations and doors,
+      windows, intakes, grade, walkways and property lines?
+    applies_when: Fuel-fired appliances
+    source_families: [fuel_gas_code, mechanical_code]
+    severity: high
+
+  - id: 23bl.rh.combustion-air
+    topic: combustion-air-requirements
+    question: >
+      How does the adopted mechanical or fuel gas code size combustion air
+      for a room with these appliances, and when does it require direct vent
+      or mechanical combustion air with interlocks?
+    applies_when: Rooms with fuel-fired appliances that draw room air
+    source_families: [fuel_gas_code, mechanical_code]
+    severity: high
+
+  - id: 23bl.rh.emissions
+    topic: combustion-equipment-emissions-limits
+    question: >
+      Do local or regional air quality rules limit emissions from these
+      boilers or heaters, or require a permit to install or operate them?
+    applies_when: Fuel-fired heating equipment
+    source_families: [environmental]
+    severity: medium

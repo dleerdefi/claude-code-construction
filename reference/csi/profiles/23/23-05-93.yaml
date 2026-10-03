@@ -1,0 +1,151 @@
+schema_version: 1
+kind: section
+id: "23 05 93"
+title: Testing, Adjusting, and Balancing for HVAC
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  The balancing agency measures and sets air and water flows to the design
+  and reports what it found. Its value depends on independence, on reviewing
+  the drawings for balancing devices before the ductwork and piping are hung,
+  and on testing a finished building with working controls. The report is
+  reviewed against the design flows and outdoor air minimums, not against
+  itself, and its final settings have to end up in the controls.
+
+submittals:
+  - id: 23tb.sub.qualifications
+    type: Qualification Statements
+    must_show:
+      - Agency certification by the body the spec names, the certified supervisor for this project, and the agency's relationship to the installing contractor
+      - Instrument list with current calibration
+  - id: 23tb.sub.preconstruction-review
+    type: Test Reports
+    must_show:
+      - Review of the drawings and duct and piping shop drawings listing missing or inaccessible balancing dampers, balancing valves, flow stations and test ports
+  - id: 23tb.sub.final-report
+    type: Test Reports
+    must_show:
+      - Design and measured values for every outlet, terminal unit, coil, fan and pump, with the tolerance the spec allows
+      - Outdoor air measured at minimum system airflow, and building or space pressure relationships the design requires
+      - Final drive, impeller and setpoint changes, and every deficiency with its resolution
+
+review_checks:
+  - id: 23tb.agency-independence
+    kind: completeness
+    check: >
+      The agency holds the certification the spec names and is independent of
+      the installing contractor where the spec requires it (some
+      certifying bodies require independence, others certify firms that also
+      install). Confirm whether the agency is contracted under the
+      mechanical subcontractor, the GC or the owner, as the spec intends.
+    trace_to: [spec.part1]
+    severity: medium
+    owner: gc
+    gate: procurement_release
+
+  - id: 23tb.device-review
+    kind: absence
+    check: >
+      Before ductwork and piping are hung, the drawings and shop drawings are
+      checked for the devices balancing needs: a volume damper at each branch
+      and outlet takeoff, a balancing valve or flow measurement at each coil
+      and terminal, flow stations where the sequences need them, test
+      ports, and access to all of them (remote-operated dampers above hard
+      ceilings).
+    trace_to: [drawings.mechanical, drawings.details, drawings.rcp]
+    severity: high
+    owner: subcontractor
+    gate: overhead_rough_in
+
+  - id: 23tb.prerequisites
+    kind: constructability
+    check: >
+      The schedule puts final balancing after ceilings, doors, windows and
+      the envelope are complete, filters are clean, and controls are
+      checked out (terminal units calibrated, outdoor air dampers
+      controllable), and before commissioning functional tests and occupancy.
+    trace_to: [schedule.master, spec.part3]
+    severity: high
+    owner: gc
+    gate: substantial_completion
+
+  - id: 23tb.report-vs-design
+    kind: conformance
+    check: >
+      The report's design column matches the current drawings, every outlet,
+      terminal, coil, fan and pump is listed, measured values are within the
+      spec's tolerance or listed as deficiencies, outdoor air is verified at
+      minimum system airflow and not only at design airflow, and kitchen,
+      laboratory and toilet exhaust with their make-up air hold the pressure
+      relationships the design shows.
+    trace_to: [schedule.mechanical_equipment, drawings.mechanical, spec.part3]
+    severity: high
+    owner: subcontractor
+
+  - id: 23tb.verification
+    kind: completeness
+    check: >
+      The spec's verification of the report (spot re-measurement witnessed by
+      the engineer or commissioning provider, and what happens if the sample
+      fails) is scheduled, with the agency's time to repeat it.
+    trace_to: [spec.part3, report.commissioning]
+    severity: medium
+    owner: gc
+    gate: substantial_completion
+
+failure_modes:
+  - id: 23tb.fm.balanced-unfinished
+    what_happens: Balancing done before ceilings, doors or controls were complete, to meet an occupancy date
+    consequence: Rebalancing after the fact, and a report that does not describe the building as turned over
+    caught_by: [23tb.prerequisites]
+    source: industry_practice
+
+  - id: 23tb.fm.missing-devices
+    what_happens: Balancing dampers or valves missing, or installed above hard ceilings with no access
+    consequence: Outlets that cannot be balanced; access doors cut or dampers added through finished ceilings
+    caught_by: [23tb.device-review]
+    source: industry_practice
+
+  - id: 23tb.fm.paper-report
+    what_happens: Report shows measured values copied from or suspiciously close to design, from an agency working for the installer
+    consequence: Real airflow problems surface in occupancy complaints; re-test at the agency's cost if the spot-check catches it
+    caught_by: [23tb.agency-independence, 23tb.verification]
+    source: industry_practice
+
+  - id: 23tb.fm.oa-at-turndown
+    what_happens: Outdoor air verified only at full design airflow on a variable-air-volume system
+    consequence: Ventilation below the required minimum whenever the system turns down; found by commissioning or never
+    caught_by: [23tb.report-vs-design]
+    source: industry_practice
+
+  - id: 23tb.fm.settings-lost
+    what_happens: Balancing setpoints never entered into the controls, or overwritten by the controls contractor's defaults
+    consequence: The system drifts from the balanced condition as soon as the agency leaves
+    caught_by: [if.23-tab-controls]
+    source: industry_practice
+
+standards:
+  - id: 23tb.std.ashrae-111
+    name: ANSI/ASHRAE 111
+    title: Measurement, Testing, Adjusting, and Balancing of Building HVAC Systems
+    verify: Measurement methods and instrument requirements where the spec cites it
+  - id: 23tb.std.procedural
+    name: AABC National Standards for Total System Balance / NEBB Procedural Standard for Testing, Adjusting and Balancing of Environmental Systems / TABB-endorsed SMACNA procedures
+    title: Certifying-body procedural standards
+    verify: The report format and procedures follow the standard of the body the spec requires
+
+regulatory_hooks:
+  - id: 23tb.rh.balancing-required
+    topic: hvac-system-balancing-requirements
+    question: >
+      Do the adopted energy and mechanical codes require air and hydronic
+      system balancing with a written report, and verification of outdoor
+      air delivery, for this building and these system sizes?
+    applies_when: Every project with ducted or hydronic HVAC systems
+    source_families: [energy, mechanical_code]
+    severity: medium

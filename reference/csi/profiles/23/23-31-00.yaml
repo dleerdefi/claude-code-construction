@@ -1,0 +1,247 @@
+schema_version: 1
+kind: section
+id: "23 31 00"
+title: HVAC Ducts and Casings
+status: draft
+maintainers: [dleerdefi]
+reviewed_by: []
+last_reviewed: null
+
+contractor_designed: never
+
+scope_summary: >
+  Metal and nonmetal ductwork, casings, liner and flexible duct, including
+  special-service ducts (kitchen grease, dishwasher, laboratory and other
+  corrosive exhaust). The review checks construction and sealing against
+  each system's pressure class, reads drawn sizes as clear inside
+  dimensions, puts leakage testing before insulation and ceilings, and for
+  grease ducts walks the enclosure, clearances, cleanouts and slope the
+  inspector will check one by one.
+
+submittals:
+  - id: 23dt.sub.shop-drawings
+    type: Shop Drawings
+    must_show:
+      - Fabrication drawings by area, taken from the signed coordination layout, with bottom-of-duct elevations
+      - Pressure class and sealing class for each system and segment, with joint and reinforcement types
+      - Connection sizes and locations from the approved equipment submittals
+      - Access doors, dampers, test ports and duct detector locations
+  - id: 23dt.sub.product-data
+    type: Product Data
+    must_show:
+      - Sealants, liner, flexible duct and connectors with their listings
+      - Grease duct material, or the listed factory-built grease duct and enclosure system with its listing conditions
+  - id: 23dt.sub.leakage-tests
+    type: Test Reports
+    must_show:
+      - Leakage test results by system section, at the test pressure and against the allowable leakage the spec sets
+
+review_checks:
+  - id: 23dt.coordinated-release
+    kind: constructability
+    check: >
+      Ductwork is released for fabrication only in areas whose coordinated
+      MEP layout every trade has signed off, with ceiling heights, structure,
+      sprinkler mains, cable tray and lights resolved. Ducts resized or
+      rerouted to fit go back to the engineer, because they change pressure
+      drop and balancing.
+    trace_to: [spec.division_01, spec.part1, drawings.rcp, drawings.building_sections]
+    severity: high
+    owner: gc
+    gate: procurement_release
+
+  - id: 23dt.pressure-class
+    kind: conformance
+    check: >
+      Construction, reinforcement, joints and sealing match the pressure and
+      sealing class of each segment: the higher class upstream of terminal
+      units, negative-pressure construction on returns and exhausts, and the
+      leakage class the spec sets.
+    trace_to: [drawings.mechanical, spec.part2]
+    severity: high
+    owner: subcontractor
+
+  - id: 23dt.leakage-test
+    kind: completeness
+    check: >
+      Leakage testing covers the systems and portions the spec and energy
+      code require, happens before insulation and ceilings, and failed
+      sections are resealed and retested, with reports by section.
+    trace_to: [spec.part3]
+    severity: high
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+  - id: 23dt.inside-dimensions
+    kind: conformance
+    check: >
+      Where the drawings give clear inside duct sizes (the usual convention;
+      confirm the general notes), lined duct grows by the liner on every
+      side, and the coordinated layout must carry the larger size. Liner
+      appears only where the spec allows it, not where healthcare,
+      laboratory or downstream-of-humidifier rules prohibit it.
+    trace_to: [drawings.mechanical, spec.part2]
+    severity: medium
+    owner: subcontractor
+
+  - id: 23dt.flex-duct
+    kind: conformance
+    check: >
+      Flexible duct is listed, limited to the lengths and locations the spec
+      and code allow, kept out of rated assemblies, and installed fully
+      extended and supported without kinks at the outlet.
+    trace_to: [spec.part2, spec.part3]
+    severity: medium
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+  - id: 23dt.grease-duct
+    kind: conformance
+    check: >
+      Grease ducts: material and thickness, continuous liquid-tight welds,
+      slope back to the hood or a grease reservoir, cleanouts where the code
+      requires them, clearance to combustibles, and an enclosure that is a
+      rated shaft or a listed field-applied or factory-built system, all the
+      way to the exhaust fan.
+    trace_to: [drawings.mechanical, drawings.foodservice, drawings.life_safety, spec.part2]
+    severity: critical
+    owner: subcontractor
+    gate: above_ceiling_close_in
+
+  - id: 23dt.exhaust-segregation
+    kind: conformance
+    check: >
+      Exhaust streams the code or spec keeps apart (kitchen grease,
+      dishwasher, laboratory, hazardous or corrosive, clothes dryer, vehicle)
+      run in their own ducts to their own fans, and none is tied into general
+      exhaust or into another stream to save a fan or a shaft.
+    trace_to: [drawings.mechanical, spec.part2]
+    severity: high
+    owner: design_team
+
+  - id: 23dt.corrosive-exhaust
+    kind: conformance
+    check: >
+      Laboratory, dishwasher and other wet or corrosive exhaust ducts use
+      the material, coating and joint sealing the spec assigns to that
+      stream, slope to a drain where condensate forms, and are built for the
+      negative pressure of the fan that serves them.
+    trace_to: [spec.part2, drawings.mechanical]
+    severity: high
+    owner: subcontractor
+
+  - id: 23dt.duct-protection
+    kind: constructability
+    check: >
+      Stored and installed ductwork stays capped until it is connected, no
+      air system moves air during dusty work without the return filtration
+      Division 01 requires, and sections that were contaminated are cleaned
+      and documented before ceilings close over them.
+    trace_to: [spec.division_01, spec.part3]
+    severity: medium
+    owner: gc
+    gate: energization
+
+failure_modes:
+  - id: 23dt.fm.construction-dust
+    what_happens: Air handlers run for temporary heat or drying during drywall work, pulling dust through open returns and uncapped duct
+    consequence: Contaminated ductwork and coils cleaned before turnover, and a warranty and indoor air quality dispute
+    caught_by: [23dt.duct-protection]
+    source: industry_practice
+
+  - id: 23dt.fm.uncoordinated-fabrication
+    what_happens: Ductwork fabricated from the design drawings before the coordinated layout is signed off
+    consequence: Field conflicts with sprinklers, structure and lights; ducts downsized or rerouted on site and airflow short at balancing
+    caught_by: [23dt.coordinated-release]
+    source: industry_practice
+
+  - id: 23dt.fm.tested-late
+    what_happens: Ducts insulated or ceilings closed before leakage testing
+    consequence: Failed sections found under insulation; insulation removed, or testing waived and the energy inspection failed
+    caught_by: [23dt.leakage-test, if.23-test-before-insulation]
+    source: industry_practice
+
+  - id: 23dt.fm.liner-in-airway
+    what_happens: Liner installed inside the drawn size, or the larger lined size left out of the coordinated layout
+    consequence: Short airflow, higher fan static and noise, or ducts that no longer fit their space
+    caught_by: [23dt.inside-dimensions]
+    source: industry_practice
+
+  - id: 23dt.fm.flex-runs
+    what_happens: Long, kinked or compressed flexible duct to outlets
+    consequence: Starved outlets that balancing cannot correct
+    caught_by: [23dt.flex-duct]
+    source: industry_practice
+
+  - id: 23dt.fm.grease-duct-rejected
+    what_happens: Missing cleanouts, reverse slope, or an enclosure or clearance that does not follow its listing
+    consequence: Hood and duct inspection failed; kitchen opening delayed while the enclosure is reopened
+    caught_by: [23dt.grease-duct]
+    source: industry_practice
+
+  - id: 23dt.fm.combined-exhaust
+    what_happens: A special exhaust stream tied into general exhaust, or two special streams combined
+    consequence: Grease or corrosive deposits in ducts not built for them, a fire path, and a failed inspection
+    caught_by: [23dt.exhaust-segregation]
+    source: industry_practice
+
+  - id: 23dt.fm.low-class-mains
+    what_happens: Mains upstream of terminal units built to low-pressure construction
+    consequence: Joints separate or leak at full airflow; mains rebuilt above finished ceilings
+    caught_by: [23dt.pressure-class]
+    source: industry_practice
+
+standards:
+  - id: 23dt.std.smacna-construction
+    name: SMACNA HVAC Duct Construction Standards — Metal and Flexible
+    title: Construction, reinforcement and sealing by pressure class
+    verify: Gauge, reinforcement, joint and seal class for each pressure class submitted
+  - id: 23dt.std.smacna-leakage
+    name: SMACNA HVAC Air Duct Leakage Test Manual
+    title: Duct leakage test procedures
+    verify: Test method and allowable leakage calculation in the test reports
+  - id: 23dt.std.ul-181
+    name: UL 181
+    title: Factory-Made Air Ducts and Air Connectors
+    verify: Listing class of flexible duct and connectors
+  - id: 23dt.std.nfpa-96
+    name: NFPA 96
+    title: Standard for Ventilation Control and Fire Protection of Commercial Cooking Operations
+    verify: Grease duct construction, clearance, cleanouts and termination where adopted or cited
+  - id: 23dt.std.ul-1978
+    name: UL 1978
+    title: Grease Ducts
+    verify: Listing and installation conditions of factory-built grease duct
+  - id: 23dt.std.grease-enclosure
+    name: UL 2221 / ASTM E2336
+    title: Fire resistive grease duct enclosure assemblies and systems
+    verify: Listing of field-applied or factory-built grease duct enclosures used in place of a rated shaft
+
+regulatory_hooks:
+  - id: 23dt.rh.duct-leakage
+    topic: duct-sealing-leakage-testing
+    question: >
+      What duct sealing and leakage testing does the adopted energy code
+      require (by duct pressure, location and system type), what share of the
+      ductwork must be tested, and what is the pass criterion?
+    applies_when: Every ductwork submittal
+    source_families: [energy]
+    severity: medium
+
+  - id: 23dt.rh.grease-duct
+    topic: grease-duct-requirements
+    question: >
+      What do the adopted mechanical code and NFPA 96, where referenced,
+      require for grease duct material, joints, slope, cleanouts, enclosure,
+      clearance to combustibles and termination, and what does the AHJ accept
+      for listed factory-built ducts and enclosures?
+    applies_when: Type I kitchen hood exhaust
+    source_families: [mechanical_code, fire_code]
+    severity: critical
+
+extract_fields:
+  - id: 23dt.xf.classes
+    label: Pressure and sealing class by system and segment
+    type: list
+    per: package
+    reconcile_against: [drawings.mechanical, spec.part2]
