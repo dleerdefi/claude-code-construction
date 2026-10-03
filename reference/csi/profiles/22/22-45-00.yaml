@@ -105,6 +105,18 @@ failure_modes:
     caught_by: [22ef.outdoor]
     source: industry_practice
 
+suppress:
+  - {id: 22fx.water-efficiency, reason: Emergency fixtures must deliver a minimum flow for the whole flushing period; fixture flow and flush maximums do not apply}
+  - {id: 22fx.rh.efficiency, reason: Fixture flow and flush maximums do not apply to emergency fixtures}
+  - {id: 22fx.temperature-limits, reason: "Emergency fixtures get tepid water from an emergency tempering valve, checked under 22ef.tempered-capacity"}
+  - {id: 22fx.fm.unlimited-temperature, reason: Concerns public lavatories; emergency fixture tempering is checked under 22ef.tempered-capacity}
+  - {id: 22fx.std.asse-1070, reason: Point-of-use limiting devices serve lavatories and sinks; emergency fixtures use the ASSE 1071 valve in 22ef.std.asse-1071}
+  - {id: 22fx.std.asse-1016, reason: Individual shower and tub valves do not serve emergency showers}
+  - {id: 22fx.rc.accessories, reason: Toilet room and stall layout; no emergency fixture is keyed to it}
+  - {id: 22fx.fm.flush-valve-grab-bar, reason: Toilet room condition}
+  - {id: 22fx.sensor-power, reason: Emergency fixtures are manually activated and stay open; there are no sensor faucets or flush valves}
+  - {id: 22fx.fm.sensor-no-power, reason: Emergency fixtures are manually activated; there are no sensor faucets}
+
 standards:
   - id: 22ef.std.isea-z358-1
     name: ANSI/ISEA Z358.1

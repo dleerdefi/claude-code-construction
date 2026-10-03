@@ -67,8 +67,8 @@ review_checks:
     check: >
       Fixtures and drains below the street sewer, or below the next upstream
       manhole rim, discharge through an ejector or are protected by a
-      backwater valve as the code requires, and each ejector shows duplex
-      pumps, a high-level alarm and the power source the design requires.
+      backwater valve as the code requires, and each ejector shows the pump
+      redundancy, high-level alarm and power source the design requires.
     trace_to: [drawings.civil, drawings.plumbing, drawings.electrical]
     severity: high
     owner: design_team

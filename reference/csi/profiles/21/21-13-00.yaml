@@ -81,7 +81,8 @@ review_checks:
     check: >
       Sprinkler type and temperature suit each area: quick response where the
       standard requires it; concealed or recessed heads where finished
-      ceilings call for them, with factory-finished cover plates; higher
+      ceilings call for them, with factory-finished cover plates listed with
+      that sprinkler model and its temperature rating; higher
       temperature ratings near heat sources (skylights, unit heaters, attics,
       cooking areas); corrosion-resistant heads in pools and chemical areas;
       and storage sprinklers used within their clearance and obstruction
@@ -108,7 +109,8 @@ review_checks:
     check: >
       For dry pipe and preaction systems, system volume and water delivery
       time meet the standard by calculation or test; piping pitches to
-      accessible low-point drains; the air or nitrogen supply and its power
+      accessible low-point drains; the valve and its water supply sit in a
+      space kept above freezing; the air or nitrogen supply and its power
       are shown; corrosion control matches the spec. For preaction systems,
       the release type (single or double interlock) matches the owner's
       intent and the fire alarm design.
@@ -136,6 +138,18 @@ review_checks:
       assume protection nobody provides.
     trace_to: [drawings.foodservice, drawings.fire_protection, spec.part1]
     severity: high
+    owner: gc
+
+  - id: 21sp.finish-protection
+    kind: constructability
+    check: >
+      Sprinklers installed before painting, spray-applied finishes or
+      fireproofing in the area are covered with the manufacturer's protective
+      caps or bags, which come off before acceptance, and any sprinkler or
+      cover plate that is painted, oversprayed or damaged is replaced, not
+      cleaned or touched up.
+    trace_to: [spec.part3, schedule.master]
+    severity: medium
     owner: gc
 
 reconciliations:
@@ -190,9 +204,9 @@ failure_modes:
     source: industry_practice
 
   - id: 21sp.fm.cover-plates
-    what_happens: Concealed sprinkler cover plates painted in the field, or of a lower temperature rating than the head
+    what_happens: Sprinklers or concealed cover plates painted or oversprayed during finishes, or cover plates mixed between sprinkler models and temperature ratings they are not listed with
     consequence: Heads and plates replaced at final inspection
-    caught_by: [21sp.head-selection]
+    caught_by: [21sp.finish-protection, 21sp.head-selection]
     source: industry_practice
 
   - id: 21sp.fm.cpvc-attack
@@ -210,6 +224,12 @@ failure_modes:
   - id: 21sp.fm.trapped-water
     what_happens: Dry or preaction piping with trapped sections and no low-point drains
     consequence: Internal corrosion and pinhole leaks, or trapped water that freezes
+    caught_by: [21sp.dry-preaction]
+    source: industry_practice
+
+  - id: 21sp.fm.valve-room-unheated
+    what_happens: A dry pipe or preaction valve set in the unheated garage, dock or canopy area its piping protects
+    consequence: The valve trim and its water supply freeze; the system is impaired until the valve is enclosed and heated
     caught_by: [21sp.dry-preaction]
     source: industry_practice
 

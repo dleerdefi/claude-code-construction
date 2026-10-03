@@ -247,3 +247,24 @@ edges:
     b_provides: Pressure, evacuation and leakage test release by section before insulation starts there
     gate: {milestone: above_ceiling_close_in}
     severity: high
+
+  - id: if.23-generator-fuel
+    a: ["23 13 00", "23 11 13", "33 56 00"]
+    a_trade: Facility and site fuel storage and fuel-oil piping
+    b: ["26 32 00"]
+    b_trade: Engine generators
+    a_provides: Remote or day tank capacity, location, fill and vent points, fuel piping route and material, leak detection and overfill alarms with where they annunciate
+    b_provides: Sub-base tank capacity and listing, or the remote tank and day tank the generator needs, fuel consumption at the rated load, supply and return connection sizes and locations
+    responsibility:
+      - item: Fuel tank (sub-base, day tank or remote tank)
+        typical: {furnish: "26 32 00, 23 13 00 or 33 56 00", install: "26 32 00, 23 13 00 or 33 56 00"}
+        confirm_in: [spec.part1, drawings.electrical, drawings.civil]
+      - item: Fuel piping between the tank and the generator
+        typical: {furnish: "23 11 13 or 26 32 00", install: "23 11 13 or 26 32 00"}
+        confirm_in: [spec.part1, drawings.mechanical]
+      - item: Initial fuel fill and fuel for the acceptance test
+        typical: {furnish: "26 32 00 or owner"}
+        confirm_in: [spec.part1, spec.part3]
+    gate: {milestone: procurement_release}
+    severity: high
+    failure: The tank is assumed to come with the generator while the site and mechanical scopes assume the same, or nobody carries the fuel piping and fill and vent points; the generator arrives with nothing to run on

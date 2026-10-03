@@ -193,9 +193,9 @@ regulatory_hooks:
     topic: refrigerant-gwp-restrictions
     question: >
       Do the federal and state high-GWP refrigerant rules allow the
-      refrigerant in these VRF and split systems, considering that
-      field-assembled systems are generally judged by installation date and
-      factory-charged products by manufacture date?
+      refrigerant in these VRF and split systems, and do those rules judge
+      each system by its installation date or by the manufacture date of its
+      components?
     applies_when: VRF, split and other field-piped refrigerant systems
     source_families: [environmental]
     severity: high

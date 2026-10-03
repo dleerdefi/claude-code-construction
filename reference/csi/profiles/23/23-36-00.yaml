@@ -61,7 +61,7 @@ review_checks:
     trace_to: [drawings.mechanical, drawings.rcp, drawings.details]
     severity: medium
     owner: subcontractor
-    gate: above_ceiling_close_in
+    gate: procurement_release
 
 failure_modes:
   - id: 23tu.fm.unmeasurable-minimum

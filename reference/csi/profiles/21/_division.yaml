@@ -38,10 +38,9 @@ review_checks:
   - id: d21.test-before-concealment
     kind: completeness
     check: >
-      Hydrostatic tests, air tests of dry and preaction piping, and flushing
-      are done and witnessed area by area before ceilings, shafts and soffits
-      conceal the piping, with a signed material and test certificate for
-      each area.
+      Hydrostatic tests, and air tests of dry and preaction piping, are done
+      and witnessed area by area before ceilings, shafts and soffits conceal
+      the piping, with a signed material and test certificate for each area.
     trace_to: [spec.part3, register.special_inspections]
     severity: high
     owner: gc
@@ -61,7 +60,6 @@ review_checks:
 
 reconciliations:
   - id: d21.rc.supervised-devices
-    reflex: true
     between: [drawings.fire_protection, drawings.fire_alarm]
     key: Supervised device or signal (valve, flow switch, pressure switch, pump or release signal)
     fields: [device type, location or zone, signal type (alarm, supervisory, trouble), monitoring module]

@@ -79,13 +79,15 @@ failure_modes:
 
 standards:
   - id: d22.std.nsf-61
-    name: NSF/ANSI 61
+    name: NSF/ANSI/CAN 61
     title: Drinking Water System Components – Health Effects
     verify: Certification of products in contact with potable water
+    note: Older specs cite it as NSF/ANSI 61; same standard
   - id: d22.std.nsf-372
-    name: NSF/ANSI 372
+    name: NSF/ANSI/CAN 372
     title: Drinking Water System Components – Lead Content
     verify: Lead-content certification of potable water products
+    note: Older specs cite it as NSF/ANSI 372; same standard
   - id: d22.std.astm-e84
     name: ASTM E84
     title: Standard Test Method for Surface Burning Characteristics of Building Materials

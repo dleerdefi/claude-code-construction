@@ -125,8 +125,8 @@ standards:
     title: Performance Rating of Water-chilling and Heat Pump Water-heating Packages Using the Vapor Compression Cycle
     verify: Full- and part-load ratings are certified, and the rating basis matches the energy code's metric
   - id: 23cc.std.cti-201
-    name: CTI STD-201
-    title: Standard for Thermal Performance Certification of Evaporative Heat Rejection Equipment
+    name: CTI STD-201 RS
+    title: Performance Rating of Evaporative Heat Rejection Equipment
     verify: Tower thermal performance is certified for the model and conditions submitted
   - id: 23cc.std.ashrae-15
     name: ANSI/ASHRAE 15

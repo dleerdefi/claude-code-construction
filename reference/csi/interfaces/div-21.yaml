@@ -27,7 +27,7 @@ edges:
     gate:
       milestone: trench_backfill
       note: The underground is flushed at full flow and tested before it is connected to the riser
-      inspect_before: [Underground flush and hydrostatic test witnessed as the AHJ requires]
+      inspect_before: [Thrust restraint inspected and hydrostatic test witnessed as the AHJ requires]
     severity: high
 
   - id: if.21-water-entry
@@ -146,7 +146,7 @@ edges:
     b_provides: Detection layout and zoning for release, the releasing panel or its interface, and the alarm and shutdown outputs
     responsibility:
       - item: Releasing control panel and its detection
-        typical: {furnish: "21 13 00, 21 22 00 or 28 46 00", install: "21 22 00 or 28 46 00"}
+        typical: {furnish: "21 13 00, 21 22 00 or 28 46 00", install: "21 13 00, 21 22 00 or 28 46 00"}
         confirm_in: [spec.part1, drawings.fire_alarm, drawings.fire_protection]
     gate:
       milestone: procurement_release

@@ -260,7 +260,7 @@ standards:
     applies_if: {review_mode: per_element}
     name: AHRI Directory of Certified Product Performance
     title: Certified performance ratings for HVAC equipment
-    verify: The certified rating covers the exact model, and for split and multi-split systems the exact indoor and outdoor combination submitted
+    verify: Where AHRI certifies the equipment type, the certified rating covers the exact model, and for split and multi-split systems the exact indoor and outdoor combination submitted
 
 regulatory_hooks:
   - id: d23.rh.equipment-efficiency

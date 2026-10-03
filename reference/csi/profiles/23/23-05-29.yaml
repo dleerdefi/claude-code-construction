@@ -104,7 +104,7 @@ failure_modes:
   - id: 23hs.fm.tendon-strike
     what_happens: Anchor holes drilled into a post-tensioned slab without locating the tendons
     consequence: Cut tendon, structural repair and a work stop on that floor
-    caught_by: [23hs.post-installed-anchors]
+    caught_by: [23hs.post-installed-anchors, if.03-hanger-inserts]
     source: industry_practice
 
   - id: 23hs.fm.hung-from-others
