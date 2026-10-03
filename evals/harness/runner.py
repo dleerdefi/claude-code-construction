@@ -27,6 +27,7 @@ from guard import GUARDED_TOOLS, Policy, decide
 
 SCAFFOLD_TIMEOUT = 120
 SCAFFOLD_SKIP_EXIT = 3  # a scaffold exits 3 when the case's inputs are not available on this machine
+MAX_MESSAGE_BYTES = 64 * 1024 * 1024  # a full-sheet raster read as an image exceeds the SDK's 1 MB default
 RESULT_TEXT_LIMIT = 4000
 TOOL_RESULT_LIMIT = 2000
 
@@ -90,6 +91,10 @@ def make_workspace(case: Case, run_index: int) -> Path:
     return ws
 
 
+class ScaffoldSkipped(Exception):
+    """The scaffold reported that this case cannot run here (exit 3), e.g. missing downloads."""
+
+
 def run_scaffold(case: Case, workspace: Path) -> str:
     """Run the case's setup.sh in the workspace. Returns captured output; raises on failure."""
     if not case.scaffold:
@@ -98,6 +103,8 @@ def run_scaffold(case: Case, workspace: Path) -> str:
     proc = subprocess.run([find_bash(), case.scaffold.as_posix()], cwd=workspace, env=env,
                           capture_output=True, text=True, timeout=SCAFFOLD_TIMEOUT)
     out = (proc.stdout + proc.stderr).strip()
+    if proc.returncode == SCAFFOLD_SKIP_EXIT:
+        raise ScaffoldSkipped(out or "scaffold asked to skip this case")
     if proc.returncode != 0:
         raise RuntimeError(f"scaffold failed (exit {proc.returncode}):\n{out}")
     return out
@@ -143,6 +150,7 @@ async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunRes
         if case.append_system_prompt else {"type": "preset", "preset": "claude_code"},
         max_turns=case.max_turns,
         max_budget_usd=opts.budget_usd,
+        max_buffer_size=MAX_MESSAGE_BYTES,
         model=opts.model,
         add_dirs=[str(d) for d in case.add_dirs],
         env={"CONSTRUCTION_SKILLS_NO_BOOTSTRAP": "1"},

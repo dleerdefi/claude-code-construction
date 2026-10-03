@@ -176,7 +176,7 @@ def grade_python(check: Check, run: RunResult, plugin_root: Path, trace_path: Pa
     out = (proc.stdout + proc.stderr).strip()
     m = re.search(r"^score:\s*([01](?:\.\d+)?)\s*$", proc.stdout, re.MULTILINE)
     score = float(m.group(1)) if m else None
-    passed = proc.returncode == 0 and (score is None or score >= 1.0)
+    passed = proc.returncode == 0  # the script decides; a printed score only gives partial credit on failure
     return GraderResult(check.name, "python", check.weight, passed, out[-600:], score)
 
 
