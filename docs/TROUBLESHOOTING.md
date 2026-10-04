@@ -8,13 +8,6 @@ Install Python 3.10+ from [python.org](https://www.python.org/downloads/). On Wi
 ### Windows: "bash\r: No such file or directory" or "set: pipefail: invalid option name"
 The scripts were checked out with Windows line endings. Current versions prevent this; if you see it, your clone predates the fix: delete it and clone again (or run `git rm -r --cached . && git reset --hard` inside it).
 
-### "pip permission error" or "Access denied"
-Use the `--user` flag:
-```bash
-python -m pip install --user -r requirements.txt
-```
-Or run the setup script which creates an isolated venv automatically.
-
 ### "Skill not found" / Skills don't appear in autocomplete
 The skills ship as the `construction` plugin, so their commands are namespaced: type `/construction:` to list them.
 
@@ -41,13 +34,14 @@ cp requirements.txt ~/.construction-skills/venv/.requirements-installed
 This is expected for construction drawings (26-60MB). Skills automatically rasterize large PDFs to PNG using PyMuPDF — no action needed. The rasterized PNG is typically 2-8MB and works with vision.
 
 ### "No .construction/ directory"
-That's fine: skills work without [AgentCM](https://github.com/dleerdefi/AgentCM), which creates `.construction/` (marked by `.construction/project.yaml`). Skills create `.construction/skills/` for their own working data on first use; your deliverables are always saved in the project folder. Run `/construction:project-setup` to inventory your project files.
+That's fine: skills work without AgentCM, an optional separate tool whose projects are marked by `.construction/project.yaml`. Skills create `.construction/skills/` for their own working data on first use; your deliverables are always saved in the project folder. Run `/construction:project-setup` to inventory your project files.
 
 ### Schedule extraction returns few or no rows
-The skill tries pdfplumber first, then falls back to text extraction, then vision. If all fail:
-- Check the PDF has a text layer (not a scanned image)
+The skill uses two methods: pdfplumber table extraction first, then vision (it rasterizes the sheet and reads the schedule from the image) when pdfplumber finds no table or the result looks garbled. If both give poor results:
+- Check the PDF has a text layer (not a scanned image); without one, pdfplumber finds nothing and the result depends on vision alone
 - Try on a different sheet — some schedule layouts are harder to parse than others
-- The rasterized PNG will be saved in the output for manual review
+- Ask for a specific sheet and schedule (for example "the door schedule on A-3.2") so the skill targets the right table
+- Check the row and column counts the skill reports against the schedule on the sheet
 
 ### "pdfplumber not installed" or import errors
 Skills run Python through `bin/construction-python`, which creates the venv at `~/.construction-skills/venv/` on first use and re-installs `requirements.txt` whenever it changes. To force a re-install, delete `~/.construction-skills/venv/.requirements-installed` and run `./setup` (or any skill) again. To do it by hand (on Windows use `Scripts/python` instead of `bin/python`):
@@ -56,15 +50,16 @@ Skills run Python through `bin/construction-python`, which creates the venv at `
 ```
 Offline or locked-down machine? Set `CONSTRUCTION_SKILLS_NO_BOOTSTRAP=1` to stop the automatic install and use the Python already on your PATH.
 
-### Submittal log has too many items
-The v3 extractor parses only under SUBMITTALS headings in Part 1 of each spec section. If you're still seeing noise:
-- Run `/construction:spec-splitter` first to split the project manual — the extractor works better on individual section PDFs
-- Division 01 items are separated to a "General Requirements" tab in the Excel output
+### Submittal log has too many items, or items look wrong
+The skill reads every spec section's extracted text and pulls submittal requirements from Part 1 (SUBMITTALS articles and others such as quality assurance and closeout), and from Parts 2 and 3 where a product or execution article requires one. It runs spec-splitter itself if spec text is missing, so you don't need to run it first. To judge the results:
+- Check the **Confidence** column, and read the **Flag Reason** column on flagged items: these are the ones to check against the spec
+- Open the **Extraction QA** sheet: it lists each spec section's extraction method, quality rating, items extracted and flagged items
+- Sections rated DEGRADED or POOR in `.construction/skills/spec_text/manifest.json` have poor text extraction, and their items get a minimum confidence of MEDIUM. Check those sections against the source PDF
 
-### Code compliance checker gives incorrect jurisdiction
-The skill reads the project location from the title block. If it misidentifies the location:
-- Run `/construction:project-setup` first so the project context file has the correct city/state
-- The skill will use `.construction/project_context.yaml` if it exists
+### Code research assumes the wrong jurisdiction
+The skill is `/construction:code-researcher`. It writes its project context, including the city, state and authority having jurisdiction (AHJ), to `.construction/skills/code-researcher/project_context.yaml`. `/construction:project-setup` does not write a project context file; it appends project context to your `CLAUDE.md`. If the jurisdiction is wrong:
+- Give the city, state and AHJ in your prompt
+- Or correct the values in `project_context.yaml` and run the skill again
 
 ## File Organization
 
@@ -82,10 +77,10 @@ my-project/
 The exact folder names don't matter — `/construction:project-setup` will find and classify files anywhere in your project directory.
 
 ### "Do I need AgentCM?"
-No. All skills work standalone with Claude Code's built-in vision and PDF tools. AgentCM is an optional structured data layer that makes skills faster and more accurate by pre-indexing drawings and specs.
+No. All skills work standalone: they rasterize PDF pages with the plugin's own scripts and read them as images, and never read PDFs directly. AgentCM is an optional structured data layer that makes skills faster and more accurate by pre-indexing drawings and specs.
 
 ## Getting Help
 
 - File issues at the [GitHub repository](https://github.com/dleerdefi/claude-code-construction/issues)
-- Check `evals/` for test cases and expected outputs
+- See [evals/plugin/README.md](../evals/plugin/README.md) for the eval cases, and `evals/plugin/_fixtures/sanibel/ground_truth/` for expected outputs on the Sanibel test set
 - See [Running Evals](RUNNING_EVALS.md) to verify skills work on your documents
