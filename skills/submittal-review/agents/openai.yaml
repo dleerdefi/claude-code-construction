@@ -1,0 +1,6 @@
+interface:
+  display_name: "construction-submittal-review"
+  short_description: "Expert PE review of a submittal against specs, drawings, code questions and trade coordination, with a completeness gate."
+  default_prompt: "Use submittal-review for this task."
+policy:
+  allow_implicit_invocation: false

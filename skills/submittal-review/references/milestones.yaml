@@ -1,0 +1,27 @@
+# Gates for coordination routing: the last moment an item is still cheap to fix.
+# Routing rows name one of these ids as `gate`. `covers` says what becomes fixed or hidden.
+# Order is approximate within one area of the building.
+
+milestones:
+  buyout:                 {title: Subcontract award, covers: "Scope splits and furnish/install/connect responsibilities become contract terms"}
+  permit_approval:        {title: Permit or AHJ approval, covers: "Deferred submittals and agency approvals (health department, fire marshal, state agency) must be in hand before the work they govern"}
+  submittal_approval:     {title: Design-team approval, covers: "Interfacing submittals must be reviewed together before either is approved"}
+  fabrication_release:    {title: Order or fabrication release, covers: "Model, options, dimensions, voltages and quantities become fixed; changes after this are change orders and lead-time resets"}
+  demolition_start:       {title: Demolition in an area, covers: "Existing services and construction are removed; anything not surveyed, isolated or abated is disturbed with them"}
+  excavation:             {title: Excavation, covers: "Support of excavation, dewatering and protection of existing utilities and adjacent structures"}
+  foundation_pour:        {title: Footing and foundation placement, covers: "Anchor bolts, embeds, sleeves, pits and depressions in foundations"}
+  underslab_rough_in:     {title: Underslab rough-in, covers: "Underslab waste, storm, conduit and floor drain locations"}
+  slab_pour:              {title: Slab placement, covers: "In-slab and underslab work, vapor retarder, sleeves, embeds, recesses, depressions, underfloor heat"}
+  structure_erection:     {title: Steel or precast erection, covers: "Anchor bolt and embed positions, and supports framed into the structure"}
+  overhead_rough_in:      {title: Overhead MEP rough-in, covers: "Access to structure and to the tops of rated walls narrows behind ductwork, piping and tray"}
+  roof_membrane:          {title: Roof membrane, covers: "Curbs, penetrations, drains and roof-mounted supports"}
+  envelope_close_in:      {title: Cladding over the air and water barrier, covers: "Flashings, air barrier transitions and cladding attachments"}
+  in_wall_rough_in:       {title: In-wall rough-in, covers: "Box, stub-out, rough-in and backing locations become fixed"}
+  wall_close_in:          {title: Second-side wall board, covers: "In-wall piping, conduit, boxes, blocking, backing and in-wall supports"}
+  above_ceiling_close_in: {title: Ceiling closure, covers: "Above-ceiling work, dampers, firestopping and access"}
+  interior_finish_start:  {title: Moisture-sensitive interior work, covers: "Wood doors, casework and finishes need an enclosed, conditioned building"}
+  energization:           {title: Permanent power, covers: "Distribution equipment becomes live"}
+  floor_finish_install:   {title: Floor finishes, covers: "Slab moisture, flatness and transitions"}
+  equipment_set:          {title: Equipment set, covers: "Equipment locations become fixed relative to rough-ins"}
+  final_connection:       {title: Final connections and start-up, covers: "Utility characteristics at each connection must match the nameplate"}
+  substantial_completion: {title: Substantial completion, covers: "Inspections, acceptance tests, warranties start"}

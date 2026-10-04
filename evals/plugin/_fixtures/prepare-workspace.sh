@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Shared scaffold for the plugin eval cases (run by each case's setup.sh).
 #
-# 1. Copies the synthetic sample project into the empty eval workspace.
+# 1. Copies a synthetic project into the empty eval workspace: sample-project by
+#    default, or the fixture folder named by the first argument (e.g. submittal-project).
 # 2. Under `claude plugin eval`, gives the run the toolkit's Python environment.
 #    Each eval run gets a fresh, sandboxed HOME with no network, so
 #    bin/construction-python could not build its venv there. Build it once in
@@ -13,7 +14,8 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN="$(cd "$HERE/../../.." && pwd)"
 CACHE_HOME="$PLUGIN/.eval-home"  # outside the eval dir: cases may not contain symlinks
 
-cp -R "$HERE/sample-project/." .
+FIXTURE="${1:-sample-project}"
+cp -R "$HERE/$FIXTURE/." .
 
 [ "${CONSTRUCTION_EVAL_HARNESS:-0}" = "1" ] && exit 0
 

@@ -397,7 +397,7 @@ When responding about construction documents:
 
 ## PE Review
 
-**For document review, coordination analysis, or any query requiring PE judgment**, load the `pe-review` skill.
+**For document review, coordination analysis, or any query requiring PE judgment**, load the `pe-review` skill. **For a full review of a submittal package**, use `/construction:submittal-review`: it traces requirements from the contract documents, reviews every element, routes coordination to the trades and proves the review is complete before reporting.
 
 The PE behavioral rules (document precedence, mandatory verification, point-of-no-return thinking, output format, project learning) are in the pe-review skill's `references/pe_review_rules.md` — read it at the start of any PE-level session.
 
