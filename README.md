@@ -75,7 +75,6 @@ To check that everything works on your machine, follow [Validating your install]
 | `/construction:submittal-review` | Review a submittal against specs, drawings, code questions and trade coordination, with trade routing, a completeness gate and a draft GC review |
 | `/construction:pe-review` | Review drawings, specs, submittals or RFIs with Project Engineer judgment |
 | `/construction:tag-audit-and-takeoff` | Count tagged elements across sheets and audit tag completeness |
-| `/construction:viewport-highlighter` | Find and highlight the views on drawing sheets (requires AgentCM) |
 | `/construction:construction-guide` | Operating guide Claude loads before working with your documents (data-access rules, conventions, document precedence) |
 
 Type `/construction:` in Claude Code to list every skill. Claude also runs them on its own when your request matches.

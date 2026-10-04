@@ -56,8 +56,6 @@ The three skills that need bids or contracts run on generated fixtures in `_fixt
 | `bid-evaluator` | From the tabulated JSON: the silent omission marked SILENT, the math error flagged not corrected, the buried exclusion scored, budget pricing not awardable, the clean low bid recommended, five workbook tabs |
 | `subcontract-writer` | From the awarded bid and the template: parties and sum from the bid, `sole negligence` fixed and flagged, stale example parties dropped, no placeholders left, spec sections and bid exclusions carried in |
 
-`viewport-highlighter` has no case: it needs a running AgentCM project.
-
 Through the harness on Sonnet, one run of every case costs about $40 (smoke $5, real $21, synthetic $13); single cases range from under $1 (spec-splitter) to about $6 (subcontract-writer). Note that `claude plugin eval` has no skip convention: without the downloads, the `real` cases fail there rather than skip.
 
 ## Known issues
@@ -85,7 +83,6 @@ State of the suite as of 2026-10-02. Each case has passed once through the harne
 
 **Not covered**
 
-- `viewport-highlighter` has no case: it needs a running AgentCM project (only its refusal message and `markup_viewports.py` could be tested standalone).
 - There are no direct script tests yet for the exporters, splitters, `issue_manager.py` or the markup scripts (the "Layer 1" tests in `evals/EVAL_SUITE_PLAN.md`); the agent cases exercise them indirectly.
 - `code-researcher` runs offline in its case, so Pass 2 and 3 (code verification online) are not evaluated.
 

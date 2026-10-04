@@ -254,7 +254,6 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 | `code-researcher` | Deep research on building codes, standards, and jurisdiction requirements | Markdown + YAML report |
 | `subcontract-writer` | Generate scope-specific subcontract from firm's template | Word document (.docx) |
 | `rfi-drafter` | Draft formal RFIs from identified issues; manage ambient issue detection registry | Word document (.docx) or PDF |
-| `viewport-highlighter` | Auto-identify and highlight viewports on drawing sheets using vision — titles, detail numbers, scales, types | Viewports via API + marked-up PNGs |
 | `tag-audit-and-takeoff` | Count-based QTO and tag completeness auditing — identifies tagged elements using vision + OCR | QTO JSON + marked-up PNGs |
 
 ### Cross-Skill Infrastructure

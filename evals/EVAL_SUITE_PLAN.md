@@ -1,6 +1,6 @@
 # Eval Suite Plan: All Skills
 
-Status: built, 2026-10-02. Every skill except viewport-highlighter has a case in `evals/plugin/` (see its README for what each checks), the harness in `evals/harness/` runs them on Windows, macOS and Linux, and the fixtures and ground truth described below exist. This document keeps the design reasoning: what each skill needs to be evaluated, where the ground truth and synthetic documents come from, and what is still open.
+Status: built, 2026-10-02. Every skill has a case in `evals/plugin/` (viewport-highlighter, which needed a running AgentCM project, was deprecated on 2026-10-04) (see its README for what each checks), the harness in `evals/harness/` runs them on Windows, macOS and Linux, and the fixtures and ground truth described below exist. This document keeps the design reasoning: what each skill needs to be evaluated, where the ground truth and synthetic documents come from, and what is still open.
 
 It replaces the "Planned coverage" table in [`evals/plugin/README.md`](plugin/README.md) and the earlier runner-based eval framework, which has been removed.
 
@@ -70,7 +70,7 @@ What this means for the suite:
 | rfi-drafter | **Partial** | Needs a seeded issue, and the prompt must supply RFI number, from-party and dates. Template mode needs a synthetic template. Registry operations are deterministic (Layer 1). |
 | code-researcher | **Partial** | Offline it can only do Pass 1 and mark the rest `uncertain`. Grade the project inventory, the framing rule (no COMPLIANT / NON-COMPLIANT) and `uncertain` handling. It stops at checkpoint 1c. |
 | construction-guide | Partial | A behavior skill. Grade from traces (no direct PDF read, rasterize first, `[Sheet X]` citations, confidence labels) plus 3-5 known-answer questions. |
-| viewport-highlighter | **No** | Needs AgentCM. Testable: the refusal message and `markup_viewports.py` with a hand-made items file. A mocked API is deferred. |
+| viewport-highlighter | Deprecated | Needed a running AgentCM project; removed from the plugin on 2026-10-04. |
 | bid-tabulator | No | Needs synthetic bid PDFs. |
 | bid-evaluator | No | Needs tabulator JSON from synthetic bids, plus a real spec section for the scope baseline. |
 | subcontract-writer | No | Needs an awarded bid, a firm template and spec sections (a missing awarded bid stops it at Phase 1). |
@@ -168,6 +168,6 @@ The harness (`evals/harness/`) reads the plugin-eval case format, so these apply
 4. Synthetic bids, templates and the addendum generated.
 5. One case per skill, each run once through the harness on Windows before commit.
 
-Not done: Layer 1 script tests (the exporters, splitters, `issue_manager.py` and markup scripts have no direct tests yet); fixes 3 to 5 above; a viewport-highlighter case (needs AgentCM or a mocked API).
+Not done: Layer 1 script tests (the exporters, splitters, `issue_manager.py` and markup scripts have no direct tests yet); fixes 3 to 5 above.
 
 The current list of known issues with the suite is kept in [`evals/plugin/README.md`](plugin/README.md#known-issues).

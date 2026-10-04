@@ -1,6 +1,0 @@
-interface:
-  display_name: "construction-viewport-highlighter"
-  short_description: "Auto-identify and highlight viewports on drawing sheets using vision — titles, detail numbers, scales, and view types."
-  default_prompt: "Use viewport-highlighter for this task."
-policy:
-  allow_implicit_invocation: true

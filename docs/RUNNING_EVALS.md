@@ -47,4 +47,4 @@ Alternatives:
 - `claude plugin eval` runs the same cases with Claude Code's own sandbox and report on macOS, Linux and WSL2: see the [plugin eval suite README](../evals/plugin/README.md).
 - **Manual checks** on any platform: see [Validating Your Install](VALIDATING.md).
 
-Every skill except `viewport-highlighter` (which needs a running AgentCM project) has at least one case. The design notes behind the suite are in [`evals/EVAL_SUITE_PLAN.md`](../evals/EVAL_SUITE_PLAN.md).
+Every skill has at least one case. The design notes behind the suite are in [`evals/EVAL_SUITE_PLAN.md`](../evals/EVAL_SUITE_PLAN.md).

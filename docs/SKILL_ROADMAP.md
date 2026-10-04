@@ -8,13 +8,13 @@ The question: which additional skills would be most valuable to a construction P
 
 ## 1. Where the plugin stands
 
-There are 14 production skills. 13 have a passing eval case in `evals/plugin/` (one run each through the harness on Windows, 2026-10-02); viewport-highlighter has none because it needs a running AgentCM project. See `evals/plugin/README.md` for what each case checks and the suite's known issues.
+There are 14 production skills (viewport-highlighter was deprecated on 2026-10-04 and submittal-review added), and every one has a passing eval case in `evals/plugin/` (one run each through the harness, 2026-10-02 and 2026-10-03). See `evals/plugin/README.md` for what each case checks and the suite's known issues.
 
 | Phase | Skills today | Missing |
 |---|---|---|
 | Setup / builders | project-setup, sheet-splitter, spec-splitter | per-sheet drawing text index (no equivalent of `spec_text/`) |
 | Precon / buyout | bid-tabulator, bid-evaluator, subcontract-writer, submittal-log-generator | trade scope packages (exist only inside bid-evaluator), procurement log |
-| Document reading / review | schedule-extractor, tag-audit-and-takeoff, viewport-highlighter (AgentCM only), code-researcher, pe-review, rfi-drafter, construction-guide | cross-reference resolution / set audit |
+| Document reading / review | schedule-extractor, tag-audit-and-takeoff, code-researcher, pe-review, rfi-drafter, construction-guide | cross-reference resolution / set audit |
 | **Construction administration** | rfi-drafter only (drafting, no tracking) | revisions/addenda/bulletins, submittal review, change events, Div 01 obligations, meetings, pay apps, RFI log tracking |
 | **Closeout** | none | warranties, O&M, attic stock, training, tests & inspections, record documents |
 
