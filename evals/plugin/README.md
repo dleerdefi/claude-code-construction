@@ -91,7 +91,6 @@ State of the suite as of 2026-10-02. Each case has passed once through the harne
 | 5. Tools | `Agent` is granted (subagents). |
 | 6. Limits | `max_turns: 200`; timeouts 3000 s and 3600 s. |
 | 7. Bound documents | The fixtures ship a prepared state (split sheets, extracted spec text in a `dot-construction/` folder that `setup.sh` renames), so the review runs without the splitting chain. |
-| 8. Fixture disclaimer | The generated submittal PDFs carry no "eval fixture" notice. |
 
 **Not covered**
 

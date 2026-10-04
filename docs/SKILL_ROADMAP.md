@@ -1,6 +1,6 @@
 # Construction skills: gap analysis and candidate new skills
 
-**Status:** findings only; decisions pending · **Date:** 2026-10-02 · **Repo:** `claude-code-construction` (plugin v0.3.0, branch `chore/sanibel-test-set`)
+**Status:** findings, with the first-skill decision made (section 8) · **Written:** 2026-10-02, facts refreshed 2026-10-04 · **Repo:** `claude-code-construction` (plugin v0.4.0, branch `integrate/skills-foundation`)
 
 The question: which additional skills would be most valuable to a construction PE or PM, given that Claude Code works on construction documents rather than a code repository?
 
@@ -8,30 +8,27 @@ The question: which additional skills would be most valuable to a construction P
 
 ## 1. Where the plugin stands
 
-There are 14 production skills (viewport-highlighter was deprecated on 2026-10-04 and submittal-review added), and every one has a passing eval case in `evals/plugin/` (one run each through the harness, 2026-10-02 and 2026-10-03). See `evals/plugin/README.md` for what each case checks and the suite's known issues.
+There are 14 production skills (viewport-highlighter was deprecated on 2026-10-04 and submittal-review added), and every one has a passing eval case in `evals/plugin/` (one run each through the harness on Windows, 2026-10-02 to 2026-10-04; the 366-page foodservice case has only been measured under `claude plugin eval`). See `evals/plugin/README.md` for what each case checks and the suite's known issues.
 
 | Phase | Skills today | Missing |
 |---|---|---|
 | Setup / builders | project-setup, sheet-splitter, spec-splitter | per-sheet drawing text index (no equivalent of `spec_text/`) |
 | Precon / buyout | bid-tabulator, bid-evaluator, subcontract-writer, submittal-log-generator | trade scope packages (exist only inside bid-evaluator), procurement log |
-| Document reading / review | schedule-extractor, tag-audit-and-takeoff, code-researcher, pe-review, rfi-drafter, construction-guide | cross-reference resolution / set audit |
-| **Construction administration** | rfi-drafter only (drafting, no tracking) | revisions/addenda/bulletins, submittal review, change events, Div 01 obligations, meetings, pay apps, RFI log tracking |
+| Document reading / review | schedule-extractor, tag-audit-and-takeoff, code-researcher, pe-review, rfi-drafter, submittal-review, construction-guide | cross-reference resolution / set audit |
+| **Construction administration** | rfi-drafter (drafting, no tracking), submittal-review | revisions/addenda/bulletins, change events, Div 01 obligations, meetings, pay apps, RFI log tracking |
 | **Closeout** | none | warranties, O&M, attic stock, training, tests & inspections, record documents |
 
 **Main finding:** the plugin is strong on setup and precon but has almost nothing for what happens after the documents are issued. That is where PEs and PMs spend most of their time. The Sanibel test set ships blank RFI-log, procurement-log, punch-list, daily-report and rough-in-inspection templates, and no skill uses any of them.
 
 ### Existing plumbing problems (these affect the value of any new skill)
-- **The issue registry has no producers.** Only rfi-drafter calls `scripts/issue_manager.py`. pe-review, tag-audit, code-researcher and submittal-log are documented as producers (`skills/rfi-drafter/references/issue-schema.md:110-116`, `skills/construction-guide/SKILL.md:258`), but none of them writes issues.
+- **The issue registry has almost no producers.** Only rfi-drafter and submittal-review call `scripts/issue_manager.py`. pe-review, tag-audit, code-researcher and submittal-log are documented as producers (`skills/rfi-drafter/references/issue-schema.md:110-116`, `skills/construction-guide/SKILL.md:258`), but none of them writes issues.
 - **Findings sit in three separate stores that nothing connects:** the issue registry (JSON), pe-review's markdown memory (`rfi_candidates.md` etc.) and AgentCM's `agent_findings/`, which nothing reads. `query_findings.py` is unused.
 - **Two capabilities were lost and never replaced:**
   - **spec-parser**, removed in `5ab70df`: product requirements, manufacturers and QA criteria per spec section.
   - **sheet-index-builder's revision tracking**, also removed in `5ab70df`: scale and revision fields per sheet.
-- **Shared scripts with no current user:** `pdf/extract_annotations.py` (Bluebeam markups), `pdf/extract_text_region.py`, `vision/analyze_title_block.py`, `graph/query_findings.py`, `bulk/consolidate_extraction.py`.
-- **`reference/pe_expertise/`** holds 22 trade-scope files plus `pe_behavior.md`. It is gitignored but tracked, and nothing references it. It is a ready knowledge base for scope or buyout skills.
-- **Stale docs and open bugs** (out of scope here; tracked in `evals/EVAL_SUITE_PLAN.md`):
-  - the SOP still lists project-setup as "planned";
-  - the QUICKSTART table is out of date;
-  - several skills still name the deleted spec-parser / sheet-index-builder / drawing-reader;
+- **Shared scripts with no current user:** `pdf/extract_annotations.py` (Bluebeam markups), `vision/analyze_title_block.py`, `graph/query_findings.py`, `bulk/consolidate_extraction.py` (`pdf/extract_text_region.py` is now used by submittal-review).
+- **`reference/pe_expertise/`** (trade-scope notes and `pe_behavior.md`) is gitignored and, since 2026-10-04, untracked; nothing in the shipped skills reads it. It remains a candidate knowledge base for scope or buyout skills if it is ever brought back.
+- **Open bugs** (tracked in `evals/plugin/README.md`, Known issues):
   - subcontract-writer appends to the template instead of filling its placeholders;
   - bid-tab is missing its totals and highlighting;
   - subcontract-writer (531 lines) and submittal-log (504) are over the 500-line limit.
@@ -40,11 +37,11 @@ There are 14 production skills (viewport-highlighter was deprecated on 2026-10-0
 
 ## 2. Evidence
 
-- **Your forum study** (`dleer-portfolio/content/blog/aec-feature-gap-analysis/index.mdx`; data in `bluebeam-scraper/data/feature_matrix.csv`, `llm_synthesis/cross_platform.json`). It classified 9,361 threads across Bluebeam, Autodesk and Procore.
+- **The author's forum study** (unpublished; 9,361 threads across construction-software forums). It classified 9,361 threads across Bluebeam, Autodesk and Procore.
   - #1 gap is **Document Management** (versioning, organization), score 749.
   - **Markup** is #2 (709.7) and **UX** #3 (702.7).
   - On Bluebeam, users value **Overlay & Comparison** (838) and **Batch & Automation** (700) most.
-  - Users ask for *automation*, not chat. Your thesis: "treat your documents like a codebase."
+  - Users ask for *automation*, not chat. The thesis: "treat your documents like a codebase."
   - Relevant individual requests:
     - export text-search results to Excel;
     - batch link fails to recognize callouts;
@@ -62,10 +59,10 @@ There are 14 production skills (viewport-highlighter was deprecated on 2026-10-0
   - **Overlay:** Bluebeam Max Smart Overlay, launched May 2026.
   - **Meeting minutes and RFIs:** Procore AI agents.
   - **Cross-reference checking that verifies references resolve:** no product found, so likely whitespace.
-- **Your earlier idea backlog** (`Downloads/CM_SKILL_ARCHITECTURE_SOP.md:533-556`):
+- **An earlier idea backlog** (a prior draft of the SOP):
   - **Chains:** RFI → schedule impact → RFI-ASI reconciliation → resubmittal; bid leveling → scope matrix → CO pricing → lead times; closeout chain (punchlist → O&M verification → closeout tracking).
   - **Planned references:** `submittal_routing_rules.md`, `division_scope_matrix.md`, `conflict_escalation_protocol.md`, `critical_path_definitions.md`, `closeout_checklist_schema.md`.
-- **`_dev` skills in `Downloads/construction-skills (1)/.claude/skills/_dev/`:** bulk-sheet-extraction, construction-browse, coordination-report, qa-qc-auditor, quantity-takeoff, scale-measurement, plus an old rfi-drafter. The qa-qc-auditor is a 113-line checklist prompt with no scripts, and it overlaps pe-review.
+- **Unshipped `_dev` skills from an earlier checkout:** bulk-sheet-extraction, construction-browse, coordination-report, qa-qc-auditor, quantity-takeoff, scale-measurement, plus an old rfi-drafter. The qa-qc-auditor is a 113-line checklist prompt with no scripts, and it overlaps pe-review.
 
 ---
 
@@ -87,7 +84,7 @@ Each candidate below maps to a repo analogy. A candidate without one is a weaker
 | `git diff` / changelog | Overlay compare, revision log | ❌ (revision fields lost) |
 | `main` branch | Conformed set | ❌ |
 | Issues | RFIs, issue registry | ⚠️ the registry has no producers |
-| PR review against requirements/tests | Submittal review against the spec section | ❌ (spec-parser lost) |
+| PR review against requirements/tests | Submittal review against the spec section | ✅ submittal-review |
 | CONTRIBUTING / CI rules | Div 01 procedures, contract notice terms | ❌ |
 | Release checklist | Closeout: warranties, O&M, attic stock, training | ❌ |
 | CODEOWNERS | Trade scope packages | ⚠️ inside bid-evaluator only |
@@ -102,7 +99,7 @@ These criteria decide what can ship under the repo's rules: an eval must pass be
 **What the Sanibel test set can support** (checked 2026-10-02):
 - **Drawings:** A, C, E and M sets. All 90 A-sheets have a vector text layer, with about 165 distinct sheet-reference tokens.
 - **Specs:** complete. Division 01 includes 01 26 00 Contract Modification, 01 29 00 Payment, 01 31 00 PM & Coordination, 01 32 00 Progress Documentation, 01 33 00 Submittals, 01 40 00 Quality, 01 77 00 Closeout, 01 78 23 O&M, 01 78 39 Record Documents and 01 79 00 Training.
-- **Not in the set:** prime contract or general conditions (Division 00 has only 00 04 00, 00 05 00 and 00 31 32), addenda, submittals or product data, a CPM schedule, pay apps, minutes. Of these, only a synthetic Addendum 01 exists, at `evals/plugin/_fixtures/addendum/`.
+- **Not in the set:** prime contract or general conditions (Division 00 has only 00 04 00, 00 05 00 and 00 31 32), addenda, submittals or product data, a CPM schedule, pay apps, minutes. Of these, only synthetic fixtures exist: Addendum 01 (`evals/plugin/_fixtures/addendum/`) and the two generated submittal projects (`_fixtures/submittal-project/`, `_fixtures/foodservice-project/`).
 
 | # | Candidate | PE/PM value | Testable on Sanibel | Reuses | Market | Fabrication/legal risk |
 |---|---|---|---|---|---|---|
@@ -110,7 +107,7 @@ These criteria decide what can ship under the repo's rules: an eval must pass be
 | 2 | **document-set-audit** | Med-High | **Now** | `sheet_index.yaml`, `spec_index.yaml`, `issue_manager.py` | Whitespace | Low (deterministic) |
 | 3 | **closeout-qc-register** | Med-High | **Now** | submittal-log batch/state/confidence pattern, `spec_text/` | Pype | Low (cite section and paragraph) |
 | 4 | **project-requirements-digest** | Med-High (PM) | **Now** (full Div 01) | `spec_text/` | Thin | Medium (surface, never interpret) |
-| 5 | **submittal-reviewer** | **Highest time sink** | Synthetic (public product data with planted deviations) | `spec_text/`, schedule-extractor output, `annotate_pdf.py` | Crowded | Medium (GC pre-review, never the A/E's approval) |
+| 5 | **submittal-reviewer** (built as `submittal-review`) | **Highest time sink** | Synthetic (public product data with planted deviations) | `spec_text/`, schedule-extractor output, `annotate_pdf.py` | Crowded | Medium (GC pre-review, never the A/E's approval) |
 | 6 | **change-event-manager** | High (PM) | Synthetic (needs a contract and #1's output) | #1 and #4 outputs, registry | Procore change events | High (code-researcher's "surface, never conclude" rule) |
 | 7 | **scope-package-writer** | Medium (buyout) | Now | `reference/pe_expertise/scope-NN` | Thin | Low-Med |
 
@@ -166,7 +163,7 @@ They are separate because the 500-line rule rules out one combined skill and the
 
   Every row cites section and paragraph. Later it can take a prime contract as an optional input.
 
-### 5. submittal-reviewer
+### 5. submittal-reviewer (built on 2026-10-03 as `skills/submittal-review`; the sketch below predates it)
 This restores spec-parser: per-section product requirements, manufacturers, standards and performance criteria, cached as JSON.
 - **Steps:** read the submittal by rasterizing it and using vision on the cut sheets to detect the selected options. Build a compliance matrix (Complies / Deviation / Not demonstrated / N/A) that cites the spec paragraph and the submittal page. Cross-check against extracted schedules, e.g. hardware against the A500 door schedule.
 - **Outputs:** a review-comments docx, markups via `annotate_pdf.py`, and a status update in the submittal log. Framed as a GC pre-review before the submittal goes to the architect.
@@ -188,8 +185,8 @@ This restores spec-parser: per-section product requirements, manufacturers, stan
 ## 8. Decisions to make
 - [x] Which skill(s) to build first: revision-compare, specified in `docs/specs/revision-history.md` as two skills. document-set-audit is next.
 - [ ] Whether to fix the prerequisites (registry producers, register helper) before or alongside the first new skill.
-- [ ] Whether `reference/pe_expertise/` should ship (un-ignore it) to support scope-package-writer and submittal-reviewer.
-- [ ] Whether to write this roadmap into the repo (`docs/SKILL_ROADMAP.md`) and fix the SOP's stale "planned" list.
+- [x] Whether `reference/pe_expertise/` should ship: no, it was removed from the repo on 2026-10-04.
+- [x] Whether to write this roadmap into the repo and fix the SOP's stale "planned" list: both done.
 - [ ] How to eval `_dev` skills. The harness loads only `skills/` from the repo that holds `run.py`. Options: copy the skill into `skills/` in a scratch git worktree and run the harness there, or add a harness option for extra skill directories.
 
 ## 9. Eval bar for every new skill (`docs/CM_SKILLS_SOP.md`)
@@ -205,7 +202,7 @@ This restores spec-parser: per-section product requirements, manufacturers, stan
 
 ## Sources
 - **Repo inventory:** `skills/*/SKILL.md`, `scripts/`, `reference/`, `docs/CM_SKILLS_SOP.md`, `evals/EVAL_SUITE_PLAN.md`, `evals/plugin/README.md`, git history (`ce8376a`, `5ab70df`).
-- **Your research:** `dleer-portfolio/content/blog/aec-feature-gap-analysis/index.mdx`, `bluebeam-scraper/data/`, `Downloads/CM_SKILL_ARCHITECTURE_SOP.md`, `Downloads/construction-skills (1)/.claude/skills/_dev/`.
+- **The author's research:** the forum study and the earlier SOP draft and `_dev` skills cited in section 2 (not in this repo).
 - **Web:**
   - Autodesk/FMI Construction Disconnected: https://www.autodesk.com/blogs/construction/construction-disconnected-fmi-report/
   - TrunkSubmittal: https://trunktools.com/trunksubmittal/

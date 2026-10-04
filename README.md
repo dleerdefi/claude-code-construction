@@ -83,13 +83,7 @@ Type `/construction:` in Claude Code to list every skill. Claude also runs them 
 
 Tested in Claude Code with **Claude Opus 5.5** and **Claude Sonnet 5.5** on Windows and macOS.
 
-| Skill | Status |
-|---|---|
-| project-setup | ✅ Validated |
-| spec-splitter | ✅ Validated |
-| sheet-splitter | ✅ Validated |
-| submittal-log-generator | 🔄 Testing in progress |
-| All other skills | 🔄 Testing in progress |
+Every skill has an eval case that passed on Windows with Sonnet through the eval harness (one run each, 2026-10-02 to 2026-10-04); see the [eval suite README](evals/plugin/README.md) for what each case checks and the suite's known issues.
 
 Found a problem? [Open an issue](https://github.com/dleerdefi/claude-code-construction/issues) with your OS, model, and the skill's output.
 
@@ -109,7 +103,7 @@ Deliverables — Excel workbooks, Word documents, split sheet and spec PDFs, rep
 
 Python dependencies are installed into an isolated venv at `~/.construction-skills/venv/`, by `./setup` or automatically on first use, and re-synced whenever `requirements.txt` changes. No manual activation needed — all scripts run through `bin/construction-python`.
 
-Packages: `pdfplumber`, `pymupdf`, `openpyxl`, `Pillow`, `PyYAML`, `python-docx`, `fpdf2`
+Packages: `pdfplumber`, `pymupdf`, `openpyxl`, `Pillow`, `PyYAML`, `python-docx`, `fpdf2`, and `claude-agent-sdk` (used only by the eval harness)
 
 ## License
 

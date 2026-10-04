@@ -14,30 +14,26 @@ set -euo pipefail
 #                            (run from your project directory)
 #   ./setup --dev            Link ~/.claude/skills/construction to this checkout
 #                            for live editing (macOS/Linux)
-#   ./setup --with-browser   Also build the browser daemon (requires Bun)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILLS_SOURCE="$SCRIPT_DIR/skills"
 
 # --- Parse flags ---
 INSTALL_MODE="none"
-WITH_BROWSER=false
 
 for arg in "$@"; do
   case $arg in
     --global)  INSTALL_MODE="global" ;;
     --project) INSTALL_MODE="project" ;;
     --dev)     INSTALL_MODE="dev" ;;
-    --with-browser) WITH_BROWSER=true ;;
     --help|-h)
-      echo "Usage: ./setup [--global|--project|--dev] [--with-browser]"
+      echo "Usage: ./setup [--global|--project|--dev]"
       echo ""
       echo "  (no flag)        Python environment only; a checkout in a Claude Code"
       echo "                   skills directory loads as the construction plugin as-is"
       echo "  --global         Copy this checkout to ~/.claude/skills/construction"
       echo "  --project        Copy this checkout to ./.claude/skills/construction"
       echo "  --dev            Link ~/.claude/skills/construction here (macOS/Linux)"
-      echo "  --with-browser   Build headless browser daemon (requires Bun)"
       echo ""
       exit 0
       ;;
@@ -192,32 +188,8 @@ if [ -d "$HOME/.kiro" ]; then
   echo "      Kiro skills registered at $KIRO_TARGET"
 fi
 
-# --- Step 5: Browser daemon (optional), verify config ---
-if [ "$WITH_BROWSER" = true ]; then
-  echo "[5/5] Building browser daemon..."
-  if command -v bun &>/dev/null; then
-    cd "$SCRIPT_DIR/browse"
-    bun install
-    bun run build
-    cd "$SCRIPT_DIR"
-    echo "      Browser binary built at: browse/dist/browse"
-
-    # Windows workaround: verify Chromium works with Bun
-    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$OSTYPE" == "cygwin" ]]; then
-      echo "      Windows detected — verifying Playwright Chromium..."
-      if command -v npx &>/dev/null; then
-        npx playwright install chromium 2>/dev/null || true
-      fi
-    fi
-  else
-    echo "      WARNING: Bun not found. Browser daemon requires Bun runtime."
-    echo "      Install Bun: curl -fsSL https://bun.sh/install | bash"
-    echo "      Then re-run: ./setup --with-browser"
-  fi
-else
-  echo "[5/5] Browser daemon: skipped (use --with-browser to enable)"
-fi
-
+# --- Step 5: Verify config ---
+echo "[5/5] Verifying configuration..."
 if "$SCRIPT_DIR/bin/construction-config" list >/dev/null 2>&1; then
   echo "      Config system: OK ($HOME/.construction-skills/)"
 else

@@ -52,14 +52,14 @@ The sample project is the Sanibel Fire and Rescue Station 172 plans and specific
 
 ## 5. Automated eval (Windows, macOS and Linux)
 
-Steps 1–4 can be run for you, graded, on a small built-in sample project:
+The smoke tier runs five skills on small built-in sample projects (project-setup, sheet-splitter, spec-splitter, submittal-log-generator and submittal-review) and grades the output:
 
 ```bash
 cd "$PLUGIN"
-bin/construction-python evals/harness/run.py --tag smoke --runs 1
+bin/construction-python evals/harness/run.py --tag smoke --runs 1 --judge-model sonnet
 ```
 
-Every case should score 1.00. On Windows this needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`); see [the harness README](../evals/harness/README.md). On macOS and Linux you can run the same cases with Claude Code's own sandbox instead: `claude plugin eval . --tag smoke --scaffold --allow-tools Bash Write Edit --runs 1 --ablation none` (see [the eval suite README](../evals/plugin/README.md)).
+Every case should score 1.00; re-run a red case with `--runs 3` before treating it as broken. On Windows this needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`); see [the harness README](../evals/harness/README.md). On macOS and Linux you can run the same cases with Claude Code's own sandbox instead: `claude plugin eval . --tag smoke --scaffold --allow-tools Bash Write Edit --runs 1 --ablation none` (see [the eval suite README](../evals/plugin/README.md)).
 
 ## Report results
 

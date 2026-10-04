@@ -22,11 +22,13 @@ bin/construction-python evals/harness/run.py --tag smoke --runs 1
 | `--threshold X` | 1.0 | A case passes at or above this score |
 | `--sandbox auto` | off | Turn the OS sandbox on where one exists (macOS, Linux) |
 | `--keep` | | Keep every workspace (failed runs are always kept) |
+| `--eval-dir DIR` | `evals/plugin` | Folder of case folders |
+| `--output-dir DIR` | `evals/results/<timestamp>` | Where results are written |
 | `--dry-run` | | List the selected cases and graders, run nothing |
 
 Results go to `evals/results/<timestamp>/`: `summary.md`, `summary.json`, and per run `trace.jsonl`, `guard_log.json`, `graders.json`, `run.json`. Exit code 0 when every case meets the threshold, 1 otherwise, 2 on a harness error.
 
-Each run is a real agent session and costs real money: the smoke tier is about $1-2 per case on Sonnet.
+Each run is a real agent session and costs real money: between $0.15 and $6 per case on Sonnet (the eval suite README lists measured costs).
 
 ## Requirements
 

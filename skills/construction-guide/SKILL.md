@@ -254,6 +254,7 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 | `code-researcher` | Deep research on building codes, standards, and jurisdiction requirements | Markdown + YAML report |
 | `subcontract-writer` | Generate scope-specific subcontract from firm's template | Word document (.docx) |
 | `rfi-drafter` | Draft formal RFIs from identified issues; manage ambient issue detection registry | Word document (.docx) or PDF |
+| `submittal-review` | Review a submittal package against specs, drawings, code questions and trade coordination, with a completeness gate and a draft GC review | Review records + Excel workbook |
 | `tag-audit-and-takeoff` | Count-based QTO and tag completeness auditing — identifies tagged elements using vision + OCR | QTO JSON + marked-up PNGs |
 
 ### Cross-Skill Infrastructure
@@ -417,4 +418,4 @@ The PE behavioral rules (document precedence, mandatory verification, point-of-n
 - **Always confirm scale** before reporting any measurement
 - **Title blocks** contain project name, number, location, architect, date, revision — read these to establish project context
 - **Never fabricate** dimensions, spec requirements, or code citations — if uncertain, flag for human review
-- **AgentCM does NOT process specifications** — spec-related skills (spec-splitter, submittal-log-generator) always use pdfplumber/vision regardless of AgentCM presence
+- **Spec text comes from spec-splitter** (`.construction/skills/spec_text/`) unless AgentCM has written `.construction/INDEX.md` with its own `specs/` text, in which case that text comes first (see "AgentCM's Text Files Come First") presence

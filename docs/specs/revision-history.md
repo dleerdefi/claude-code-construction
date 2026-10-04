@@ -76,7 +76,7 @@ Status: design chosen by the user on 2026-10-02 (compare-only variant; D8–D12 
   - Extract that region's text from the PDF on every sheet with the same layout.
   - Fall back to vision only for scanned or unreadable sheets.
   - For change documents, extract text first and use vision only if a page is scanned.
-  - Reuse `scripts/vision/analyze_title_block.py` and `scripts/pdf/extract_text_region.py`, which currently have no users (roadmap line 29).
+  - Reuse `scripts/vision/analyze_title_block.py` and `scripts/pdf/extract_text_region.py`, which currently have used only by submittal-review (roadmap line 29).
 - RH-5. **Change-document register:** one row per document. Fields:
   - `doc_id`, `doc_type` (Addendum | Bulletin | ASI | PR | CCD | CO), `number`, `date_issued`, `date_received`, `issued_by`, `title_description`
   - `sheets_claimed[]`, `spec_sections_claimed[]`, `cited_rfis[]`, `cited_pco_co[]`
