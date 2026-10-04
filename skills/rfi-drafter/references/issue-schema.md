@@ -109,7 +109,7 @@ RFI drafted + exported
 
 Skills should write issues when they encounter:
 - Schedule/drawing count mismatches (tag-audit-and-takeoff)
-- Spec section references that don't exist (spec-parser)
+- Spec section references that don't exist (spec-splitter, submittal-review)
 - Cross-discipline spatial conflicts (pe-review)
 - Missing required details or sections (pe-review)
 - Code compliance concerns (pe-review, code-researcher)

@@ -66,9 +66,9 @@ Skills do not bootstrap themselves. Before any skill can navigate a project's do
 
 For construction projects, `/init` will produce a generic `CLAUDE.md` that captures the folder structure but lacks construction-specific context (document classification, discipline conventions, register locations).
 
-#### Step 2: `/project-setup` (Construction Skill — Planned)
+#### Step 2: `/project-setup` (Construction Skill)
 
-After `/init` creates the base `CLAUDE.md`, a construction-specific `/project-setup` skill enriches it with domain context:
+After `/init` creates the base `CLAUDE.md`, the `/project-setup` skill enriches it with domain context:
 
 1. **Traverse the directory tree** — Walk the full folder structure and classify construction document types: drawing sets (by discipline prefix: A-, S-, M-, E-, P-, C-, L-), the specification book (Division folders or a single Project Manual PDF), schedule files, and active registers (RFI log, Submittal log, Change Order log).
 2. **Detect operational mode** — Check for `.construction/project.yaml`, which AgentCM writes. If present, the project is AgentCM-backed. If absent, it operates in Flat File Mode.
@@ -77,8 +77,6 @@ After `/init` creates the base `CLAUDE.md`, a construction-specific `/project-se
    - The canonical path to each document category
    - The drawing discipline prefix conventions in use on this project
    - Any non-standard folder structures or naming conventions
-
-> **Note:** `/project-setup` is a planned skill. Currently, each skill discovers document paths independently through directory search (look for `Specifications/`, `drawings/`, `plans/`, etc.). This works but creates redundant discovery across skills. `/project-setup` would centralize this into a one-time operation.
 
 **The `CLAUDE.md` is the universal context anchor.** Every skill reads it at activation to know where documents live and which navigation strategy to use. Skills must never hardcode paths — they must always resolve paths through `CLAUDE.md`.
 

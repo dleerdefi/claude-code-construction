@@ -258,7 +258,7 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 
 ### Cross-Skill Infrastructure
 
-**Issue Registry** — Any skill can log potential issues to `.construction/skills/issues/` via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, spec-parser, etc.) and are reviewed/escalated by the user through `rfi-drafter`. No skill writes an RFI directly — only issue records.
+**Issue Registry** — Any skill can log potential issues to `.construction/skills/issues/` via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, submittal-review, etc.) and are reviewed/escalated by the user through `rfi-drafter`. No skill writes an RFI directly — only issue records.
 
 ### Behavioral Skills (setup / orientation)
 

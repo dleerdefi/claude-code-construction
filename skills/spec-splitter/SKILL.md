@@ -13,7 +13,7 @@ argument-hint: "<project_manual.pdf> [--output-dir <path>]"
 Two functions for specification processing:
 
 1. **Split**: Break a bound project manual PDF into individual spec section PDFs — navigable files the project team can use directly
-2. **Extract**: Pull searchable text from each section PDF into persistent `.txt` files — enables downstream skills (submittal-log-generator, spec-parser) to work from text without re-extracting from PDFs
+2. **Extract**: Pull searchable text from each section PDF into persistent `.txt` files — enables downstream skills (submittal-log-generator, submittal-review, bid-evaluator) to work from text without re-extracting from PDFs
 
 ## Pipeline Position
 Run after `/project-setup` identifies bound spec manuals. Produces split PDFs, `spec_index.yaml`, and extracted text consumed by `/submittal-log-generator` and `/code-researcher`.
@@ -114,7 +114,7 @@ The script:
 
 ### Step 8: Text Repair — GUIDED
 
-After extraction, check `manifest.json` for sections rated DEGRADED or POOR. Spec-splitter owns text quality — downstream skills (submittal-log-generator, spec-parser) expect clean, repaired text.
+After extraction, check `manifest.json` for sections rated DEGRADED or POOR. Spec-splitter owns text quality — downstream skills (submittal-log-generator, submittal-review, bid-evaluator) expect clean, repaired text.
 
 **For DEGRADED sections** — attempt repair:
 

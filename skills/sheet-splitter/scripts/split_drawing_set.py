@@ -149,7 +149,7 @@ def write_index(sheets, output_dir, source_pdf):
     index = {
         "sources": sources,
         "total_pages": len(merged_pages),
-        "note": "Sheet numbers and titles need identification via /sheet-index-builder",
+        "note": "Sheet numbers and titles are identified from the title blocks by the sheet-splitter skill (vision)",
         "pages": merged_pages,
     }
 
@@ -194,7 +194,7 @@ def main():
 
     print(f"\n{'='*50}")
     print(f"COMPLETE: {len(sheets)} pages split")
-    print(f"Next: Run /sheet-index-builder to identify sheet numbers via vision")
+    print(f"Next: identify each sheet number and title from its title block and rename the files")
     print(f"{'='*50}")
 
 
