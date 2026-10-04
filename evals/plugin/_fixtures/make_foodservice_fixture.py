@@ -82,8 +82,13 @@ SPEC_TEXT = [
 ]
 
 
+FIXTURE_NOTICE = "EVAL FIXTURE - fictional document generated for a synthetic evaluation; not a real project, firm or submittal"
+
+
 def write_pdf(doc, path):
     path.parent.mkdir(parents=True, exist_ok=True)
+    for page in doc:  # every page says what it is, in the bottom margin
+        page.insert_text((12, page.rect.height - 8), FIXTURE_NOTICE, fontsize=6)
     doc.save(str(path), garbage=4, deflate=True)
 
 

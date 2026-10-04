@@ -81,7 +81,7 @@ State of the suite as of 2026-10-02. Each case has passed once through the harne
 - `bid-tabulator`'s workbook lacks the lowest/highest highlighting and the "Base Bid" row its SKILL.md promises, and allowances are never rendered; the case grades the per-bid JSON instead.
 - Secondary: `sheet-splitter` does not say how `sheet_index.yaml` follows a rename and a re-run re-adds `page_NNN` entries; `spec-splitter` claims to skip existing sections but overwrites; `submittal-log-generator` merges batch files with `jq`, which may be missing on Windows; `schedule-extractor`'s pdfplumber method has no allow-listed script; `code-researcher`'s worked example still describes a Baltimore, Maryland project.
 
-**submittal-review cases: variances from the conventions above** (merged from `feat/submittal-review` on 2026-10-04; both cases pass, `submittal-review` at $4.07 and 42 turns through the harness on Windows, `submittal-review-foodservice` not yet run through the harness)
+**submittal-review cases: variances from the conventions above** (merged from `feat/submittal-review` on 2026-10-04). Measured 2026-10-03 under `claude plugin eval` with a Sonnet judge (two runs per arm, macOS/Linux): `submittal-review` scored 1.00 with the plugin and 0.78 without it (about $0.71 and 18 turns per run with the plugin); `submittal-review-foodservice` scored 1.00 with the plugin and 0.72 without it (about $1.31 and 44 turns per run with the plugin). Through the harness on Windows with Sonnet, `submittal-review` scored 1.00 at $4.07 and 42 turns on 2026-10-04. `submittal-review-foodservice` has not been run through the harness.
 
 | Convention | What the two cases do instead |
 |---|---|
@@ -92,7 +92,6 @@ State of the suite as of 2026-10-02. Each case has passed once through the harne
 | 6. Limits | `max_turns: 200`; timeouts 3000 s and 3600 s. |
 | 7. Bound documents | The fixtures ship a prepared state (split sheets, extracted spec text in a `dot-construction/` folder that `setup.sh` renames), so the review runs without the splitting chain. |
 | 8. Fixture disclaimer | The generated submittal PDFs carry no "eval fixture" notice. |
-| 9. No committed output | `docs/evals/submittal-review-2026-10-03.json` is a committed eval result. |
 
 **Not covered**
 
