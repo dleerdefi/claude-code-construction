@@ -6,13 +6,14 @@ column, queries the current DB state via psql, and outputs a JSON changeset
 suitable for POST to /api/projects/:id/schedules/reconcile.
 
 Usage:
-    python xlsx_to_changeset.py --excel edited.xlsx --query-command "PGPASSWORD=reader psql ..." [--output changeset.json]
+    python xlsx_to_changeset.py --excel edited.xlsx --query-wrapper .construction/query.sh [--output changeset.json]
 
 If --output is omitted, prints JSON to stdout.
 """
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -99,8 +100,22 @@ def read_data(wb, meta):
     return headers, excel_rows, new_rows
 
 
-def query_db_state(query_command, schedule_id):
-    """Query current schedule state from the database via psql."""
+COPY_ESCAPES = {"\\": "\\", "t": "\t", "n": "\n", "r": "\r", "b": "\b", "f": "\f", "v": "\v"}
+
+
+def copy_field(value):
+    """One field of COPY ... TO STDOUT text output: \\N is NULL, backslash escapes undone."""
+    if value == "\\N":
+        return None
+    return re.sub(r"\\([\\tnrbfv])", lambda m: COPY_ESCAPES[m.group(1)], value)
+
+
+def query_db_state(query_wrapper, schedule_id):
+    """Query current schedule state from the database through AgentCM's query wrapper.
+
+    The wrapper (.construction/query.sh) runs one SQL statement as the read-only reader role,
+    with the password AgentCM wrote; COPY ... TO STDOUT gives tab-separated rows without psql flags.
+    """
     # Get schedule columns
     sql_columns = (
         f"SELECT columns FROM schedules WHERE id = '{schedule_id}'"
@@ -121,7 +136,7 @@ def query_db_state(query_command, schedule_id):
     # Execute rows query
     try:
         result = subprocess.run(
-            query_command.split() + ["-t", "-A", "-F", "\t", "-c", sql_rows],
+            ["sh", query_wrapper, f"COPY ({sql_rows}) TO STDOUT"],
             capture_output=True, text=True, timeout=30,
         )
         if result.returncode != 0:
@@ -133,7 +148,8 @@ def query_db_state(query_command, schedule_id):
                 continue
             parts = line.split("\t")
             if len(parts) >= 3:
-                entity_id, col_key, cell_val = parts[0], parts[1], parts[2] if parts[2] else None
+                entity_id, col_key = copy_field(parts[0]), copy_field(parts[1])
+                cell_val = copy_field(parts[2]) or None
                 if entity_id not in db_rows:
                     db_rows[entity_id] = {}
                 db_rows[entity_id][col_key] = cell_val
@@ -229,7 +245,8 @@ def compute_changeset(meta, excel_headers, excel_rows, new_rows, db_rows, db_col
 def main():
     parser = argparse.ArgumentParser(description="Parse anchored Excel and compute reconciliation changeset")
     parser.add_argument("--excel", required=True, help="Path to the edited Excel file")
-    parser.add_argument("--query-command", required=True, help="psql query command from database.yaml")
+    parser.add_argument("--query-wrapper", default=".construction/query.sh",
+                        help="AgentCM's query wrapper (default: .construction/query.sh)")
     parser.add_argument("--output", "-o", help="Output JSON file (default: stdout)")
     args = parser.parse_args()
 
@@ -245,7 +262,7 @@ def main():
     excel_headers, excel_rows, new_rows = read_data(wb, meta)
 
     # Query DB state
-    db_rows, db_columns = query_db_state(args.query_command, meta["schedule_id"])
+    db_rows, db_columns = query_db_state(args.query_wrapper, meta["schedule_id"])
 
     # Compute changeset
     changeset = compute_changeset(meta, excel_headers, excel_rows, new_rows, db_rows, db_columns)

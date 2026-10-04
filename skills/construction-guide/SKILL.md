@@ -62,7 +62,7 @@ All coordinates are **normalized 0-1**. Centroids are `[cx, cy]` tuples. Multipl
 ### Database & API Discovery (when AgentCM is present)
 1. Read `.construction/database.yaml` for connection info (host, port, database, user, project_id, api_url)
 2. Read `.construction/db_schema.yaml` for available tables, views, and write endpoints
-3. Reads: `{query_command} -c "SQL QUERY"` (where `query_command` is from database.yaml)
+3. Reads: `sh .construction/query.sh "SQL QUERY"` (or `powershell -File .construction/query.ps1 "SQL QUERY"`), one query per call. One database serves every project and every view starts with `project_id`: filter on this project's `project_id` from database.yaml
 4. Writes: `curl -X POST "{api_url}/projects/{project_id}/{endpoint}"`
 
 **Extraction file usage** (per-sheet files in `extractions/{sheet_number}/`):
@@ -79,7 +79,7 @@ All coordinates are **normalized 0-1**. Centroids are `[cx, cy]` tuples. Multipl
 Read `.construction/database.yaml` for connection info (host, port, database, user, project_id, api_url).
 Read `.construction/db_schema.yaml` for available tables, views, and write endpoints.
 
-**Reads:** Use psql with the agentcm_reader role. Prefer views over raw table queries:
+**Reads:** Run each query through `.construction/query.sh` (or `query.ps1`), which connects as the read-only agentcm_reader role. Filter every view on `project_id`. Prefer views over raw table queries:
   - `v_room_profile` — all data for a room across sheets and schedules
   - `v_sheet_contents` — all elements on a given sheet
   - `v_schedule_pivot` — schedule data in readable tabular form
@@ -135,9 +135,9 @@ You can also rasterize individual sheets on demand using the `rasterize_page.py`
 **Follow this sequence — do not skip steps:**
 
 1. **Sheet lookup** — find the sheet in `sheet_index.yaml` → get `title`, `discipline`, `scale`, `pageIndex`, `filePath`
-2. **Graph query** — read `query_command` from `.construction/database.yaml`, then query:
+2. **Graph query** — take `project_id` from `.construction/database.yaml`, then query:
    ```bash
-   {query_command} -c "SELECT * FROM v_sheet_contents WHERE sheet_number = '{sheet}'"
+   sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '{sheet}'"
    ```
    For detailed data, also query:
    - `v_room_profile` — rooms with schedule data
@@ -219,9 +219,9 @@ If AgentCM is present, read these 4 files for instant orientation:
 1. `.construction/CLAUDE.md` — full project navigation guide
 2. `.construction/project.yaml` — project name, number, location
 3. `.construction/index/sheet_index.yaml` — all sheets with metadata
-4. Query database (read `query_command` from `.construction/database.yaml`):
+4. Query database (take `project_id` from `.construction/database.yaml`):
    ```bash
-   {query_command} -c "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{id}') AS rooms"
+   sh .construction/query.sh "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{project_id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{project_id}') AS rooms"
    ```
    Fallback: `.construction/graph/graph_summary.yaml` if database unavailable
 

@@ -98,10 +98,10 @@ Collect minimum required project parameters. Check in this order:
 **AgentCM project files (if `.construction/project.yaml` exists):**
 - `.construction/project.yaml` — location, occupancy, construction type
 - `.construction/index/sheet_index.yaml` — drawing set composition
-- Database (read `query_command` from `.construction/database.yaml`):
-  - `{query_command} -c "SELECT * FROM v_room_profile WHERE room_number = '...'"` — rooms with schedule data
-  - `{query_command} -c "SELECT * FROM v_sheet_contents WHERE sheet_number = '...'"` — elements on sheets
-  - Orientation: `{query_command} -c "SELECT COUNT(*) FROM sheets WHERE project_id = '...'; SELECT COUNT(*) FROM rooms WHERE project_id = '...'"`
+- Database (one read-only query per call through AgentCM's wrapper; `project_id` is in `.construction/database.yaml`):
+  - `sh .construction/query.sh "SELECT * FROM v_room_profile WHERE project_id = '{project_id}' AND room_number = '...'"` — rooms with schedule data
+  - `sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '...'"` — elements on sheets
+  - Orientation: `sh .construction/query.sh "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{project_id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{project_id}') AS rooms"`
 
 **Project documents (read directly):**
 - Architectural title block — project name, location, jurisdiction
