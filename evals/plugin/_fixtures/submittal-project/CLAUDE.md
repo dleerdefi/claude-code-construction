@@ -1,4 +1,4 @@
-# HOLABIRD ACADEMY RENOVATION
+# SAMPLE SCHOOL RENOVATION
 
 Sample project used by the submittal-review eval.
 

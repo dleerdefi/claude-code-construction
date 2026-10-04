@@ -1,8 +1,8 @@
 project:
-  name: HOLABIRD ACADEMY RENOVATION
+  name: SAMPLE SCHOOL RENOVATION
   location:
-    city: Baltimore
-    state: MD
+    city: Example City
+    state: FL
 building:
   occupancy_type: E
   building_use: K-12 school renovation

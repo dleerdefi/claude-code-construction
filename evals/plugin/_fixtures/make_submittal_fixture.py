@@ -27,7 +27,7 @@ import yaml
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "submittal-project"
-PROJECT = "HOLABIRD ACADEMY RENOVATION"
+PROJECT = "SAMPLE SCHOOL RENOVATION"
 SPEC = "12 35 53"
 SPEC_TITLE = "LABORATORY CASEWORK"
 SUBMITTAL = "12 35 53-001 R0 Laboratory Casework Shop Drawings.pdf"
@@ -275,7 +275,7 @@ def submittal():
 
 def context():
     ctx = {
-        "project": {"name": PROJECT, "location": {"city": "Baltimore", "state": "MD"}},
+        "project": {"name": PROJECT, "location": {"city": "Example City", "state": "FL"}},
         "building": {"occupancy_type": "E", "building_use": "K-12 school renovation",
                      "facility_types": ["education.k12"]},
     }
