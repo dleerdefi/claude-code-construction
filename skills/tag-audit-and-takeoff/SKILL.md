@@ -30,7 +30,7 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
 
 **AgentCM mode** (`.construction/project.yaml` exists):
 - Read `.construction/CLAUDE.md` for project context
-- Read `.construction/database.yaml` for `query_command` and `project_id`
+- Read `.construction/database.yaml` for `project_id` and `api_url`; run each query with `sh .construction/query.sh "SQL"`
 - Sheet images at `.construction/rasters/{sheet_number}.png`
 
 **Verify raster images exist:** Check `.construction/rasters/` for PNG files.
@@ -93,7 +93,7 @@ Do not skip this step. If the API is unreachable, stop and tell the user.
 Before scanning sheets, query what's already tagged per sheet:
 
 ```bash
-curl -s "http://localhost:3001/api/projects/{project_id}/sheets/{sheet_id}/claimed-elements"
+curl -s "{api_url}/projects/{project_id}/sheets/{sheet_id}/claimed-elements"
 ```
 
 Response:
@@ -162,7 +162,7 @@ using the **most distinctive word** in the tag text. "WALK-IN FREEZER"
 → search "FREEZER". "WOMEN'S RESTROOM" → search "WOMEN".
 
 ```bash
-{query_command} -c "SELECT id, text, x_min, y_min, x_max, y_max FROM extracted_items WHERE sheet_id = '{sheet_id}' AND text ILIKE '%FREEZER%'"
+sh .construction/query.sh "SELECT id, text, x_min, y_min, x_max, y_max FROM extracted_items WHERE sheet_id = '{sheet_id}' AND is_deleted = false AND text ILIKE '%FREEZER%'"
 ```
 
 Multiple hits expected — each is a potential tag location. Zero hits
@@ -174,7 +174,7 @@ For each anchor, pull nearby extracted items. Padding values by tag type
 in `references/spatial-params.md`. Target: 8-25 candidates per tag.
 
 ```bash
-{query_command} -c "SELECT id, text, x_min, y_min, x_max, y_max FROM extracted_items WHERE sheet_id = '{sheet_id}' AND x_min BETWEEN {anchor_x - pad} AND {anchor_x + pad} AND y_min BETWEEN {anchor_y - pad} AND {anchor_y + pad}"
+sh .construction/query.sh "SELECT id, text, x_min, y_min, x_max, y_max FROM extracted_items WHERE sheet_id = '{sheet_id}' AND is_deleted = false AND x_min BETWEEN {anchor_x - pad} AND {anchor_x + pad} AND y_min BETWEEN {anchor_y - pad} AND {anchor_y + pad}"
 ```
 
 Adaptive: double padding if < 3 items returned, reduce 30% if > 40.
@@ -276,7 +276,7 @@ your ingest calls per sheet.
 
 **AgentCM mode:** POST detection results to the API:
 ```bash
-curl -X POST "http://localhost:3001/api/projects/{project_id}/tag-detections/ingest" \
+curl -X POST "{api_url}/projects/{project_id}/tag-detections/ingest" \
   -H "Content-Type: application/json" \
   -d '{"sheet_id": "{sheet_id}", "detections": [...]}'
 ```

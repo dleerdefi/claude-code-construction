@@ -34,7 +34,7 @@ If `.construction/` is absent, **stop immediately** and tell the user:
 
 If `.construction/project.yaml` exists:
 - Read `.construction/CLAUDE.md` for project context
-- Read `.construction/database.yaml` for `query_command`, `project_id`, `api_url`
+- Read `.construction/database.yaml` for `project_id` and `api_url`; run each query with `sh .construction/query.sh "SQL"`; a sheet's `{sheet_id}` is its `id` in `.construction/index/sheet_index.yaml`
 - Read `.construction/index/sheet_index.yaml` for sheet inventory
 - Sheet images at `.construction/rasters/{sheet_number}.png`
 - OCR data queryable via `extracted_items` table in PostgreSQL
@@ -133,9 +133,9 @@ For each vision-identified view, verify and refine metadata using OCR data.
 Search for the view title text in `extracted_items`:
 
 ```bash
-{query_command} -c "SELECT id, text, x_min, y_min, x_max, y_max
+sh .construction/query.sh "SELECT id, text, x_min, y_min, x_max, y_max
   FROM extracted_items
-  WHERE sheet_id = '{sheet_id}'
+  WHERE sheet_id = '{sheet_id}' AND is_deleted = false
     AND text ILIKE '%{distinctive_title_word}%'
   ORDER BY y_max DESC"
 ```
@@ -148,9 +148,9 @@ Use the title's y-coordinate to refine the view's bottom boundary.
 Search for scale text near the title:
 
 ```bash
-{query_command} -c "SELECT id, text, x_min, y_min, x_max, y_max
+sh .construction/query.sh "SELECT id, text, x_min, y_min, x_max, y_max
   FROM extracted_items
-  WHERE sheet_id = '{sheet_id}'
+  WHERE sheet_id = '{sheet_id}' AND is_deleted = false
     AND text ILIKE '%SCALE%'
     AND y_min BETWEEN {title_y - 0.02} AND {title_y + 0.02}
     AND x_min BETWEEN {title_x - 0.15} AND {title_x + 0.15}"
@@ -167,9 +167,9 @@ Common scale text patterns:
 Search for detail number in title bar area or detail bubbles:
 
 ```bash
-{query_command} -c "SELECT id, text, x_min, y_min, x_max, y_max
+sh .construction/query.sh "SELECT id, text, x_min, y_min, x_max, y_max
   FROM extracted_items
-  WHERE sheet_id = '{sheet_id}'
+  WHERE sheet_id = '{sheet_id}' AND is_deleted = false
     AND y_min BETWEEN {title_y - 0.02} AND {title_y + 0.02}
     AND x_min BETWEEN {title_x - 0.10} AND {title_x + 0.10}
     AND text ~ '^[0-9A-Z]'"
@@ -184,9 +184,9 @@ Refine vision-estimated boundaries using OCR element positions.
 Query all extracted items within and near the estimated viewport area:
 
 ```bash
-{query_command} -c "SELECT x_min, y_min, x_max, y_max
+sh .construction/query.sh "SELECT x_min, y_min, x_max, y_max
   FROM extracted_items
-  WHERE sheet_id = '{sheet_id}'
+  WHERE sheet_id = '{sheet_id}' AND is_deleted = false
     AND (x_min + x_max) / 2 BETWEEN {est_x - 0.02} AND {est_x + est_w + 0.02}
     AND (y_min + y_max) / 2 BETWEEN {est_y - 0.02} AND {est_y + est_h + 0.02}"
 ```

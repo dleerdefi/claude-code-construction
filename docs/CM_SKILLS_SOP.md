@@ -146,8 +146,8 @@ The project has been processed through AgentCM. Its `.construction/` directory (
 
 **How skills navigate in AgentCM Mode:**
 - Read `.construction/CLAUDE.md` for navigation context
-- Query database for project orientation (read `query_command` from `.construction/database.yaml`):
-  `{query_command} -c "SELECT COUNT(*) FROM sheets WHERE project_id = '...'; SELECT COUNT(*) FROM rooms WHERE project_id = '...'"`
+- Query database for project orientation through AgentCM's wrapper (`project_id` is in `.construction/database.yaml`):
+  `sh .construction/query.sh "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '...') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '...') AS rooms"`
   Fallback: read `.construction/graph/graph_summary.yaml` if database unavailable
 - Read specific JSON/YAML files from `.construction/` for structured lookups (spec text, sheet indexes, findings)
 - The `.construction/` data layer is the index; the underlying PDFs remain the source of truth for content
