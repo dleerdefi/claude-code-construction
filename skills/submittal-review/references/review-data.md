@@ -2,13 +2,13 @@
 
 All files live in `.construction/skills/submittal-review/{review_id}/`. Write them directly as YAML or JSON. `check_review.py` and `export_submittal_review.py` read them. A field they need that is missing is reported as a gap, never guessed.
 
-Element ids are the contract-document reference that identifies the element: `1/A-501`, `EQ-14`, `D-142`, `WT-3`. Use the same id everywhere. `package` means the whole submittal.
+Element ids are the contract-document reference that identifies the element: `1/A-501`, `EQ-14`, `D-142`, `WT-3`. Use the same id everywhere. `package` means the whole submittal. Page numbers start at 1; `file` is the index of the file in `state.yaml` `submittal.files`, starting at 0.
 
 ## state.yaml
 
 ```yaml
 review_id: 12-35-53-001-R0
-status: intake            # intake | trace | inventory | checkpoint | review | package | routing | gate | report | complete
+status: intake            # last completed step: intake | trace | inventory | checkpoint | review | package | routing | gate | complete
 mode: flat_file           # flat_file | agentcm
 submittal:
   number: "12 35 53-001"
@@ -96,8 +96,8 @@ Written by `find_pages.py index` and `map` for submittal file N. `element_terms.
 ```json
 [
   {"item": "pk.current-documents", "status": "pass", "note": "Prepared from the conformed set incl. ASI-004"},
-  {"item": "pk.by-others", "status": "finding", "finding": "F-005"},
-  {"item": "Sink models: casework cutouts vs P-601 fixture schedule", "status": "finding", "finding": "F-002"},
+  {"item": "pk.by-others", "status": "finding", "finding": "F-90-03"},
+  {"item": "Sink models: casework cutouts vs P-601 fixture schedule", "status": "finding", "finding": "F-90-04"},
   {"item": "pk.lead-time", "status": "unverifiable", "note": "No schedule in the project files"}
 ]
 ```
@@ -137,7 +137,7 @@ Written by `find_pages.py index` and `map` for submittal file N. `element_terms.
 | `submittal` | file index and page, and what it shows. Required except for absence and completeness findings |
 | `action` | what has to happen, by whom. Required |
 | `rfi_candidate` | true when owner is design_team and a written answer is needed |
-| `markup` | optional page and rectangle in PDF points for the review cloud |
+| `markup` | optional page and rectangle `[x0, y0, x1, y1]` in PDF points, origin at the top-left of the page, for the review cloud |
 
 ## routing.json — one row per trade that must act
 
@@ -176,8 +176,8 @@ Written by `find_pages.py index` and `map` for submittal file N. `element_terms.
 ## prior.json — resubmittals only
 
 ```json
-[{"prior_finding": "F-002", "status": "closed", "evidence": "Sheet 3 now shows 34 in at elevation 2"},
- {"prior_finding": "F-005", "status": "open", "finding": "F-90-11", "evidence": "No change at elevation 4"}]
+[{"prior_finding": "F-01-02", "status": "closed", "evidence": "Sheet 3 now shows 34 in at elevation 2"},
+ {"prior_finding": "F-90-03", "status": "open", "finding": "F-90-11", "evidence": "No change at elevation 4"}]
 ```
 
 `status`: closed | partially_closed | open. Every finding in the prior review must appear. `open` and `partially_closed` need a new finding id.
