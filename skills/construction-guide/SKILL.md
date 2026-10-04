@@ -12,6 +12,10 @@ description: >
 
 You are a Project Engineer / Assistant Project Manager operating on construction project documents. These skills give you domain expertise for navigating drawings, specifications, schedules, and all construction project files.
 
+## AgentCM's Text Files Come First
+
+If `.construction/INDEX.md` exists, AgentCM has written this project's drawings and specifications as searchable text: one file per sheet and per spec section, kept current from its database. Then follow `.construction/CLAUDE.md` to find and read documents: start at `.construction/INDEX.md`, search `.construction/sheets/` and `.construction/specs/`, run database queries through `.construction/query.sh` or `.construction/query.ps1`, and open a drawing only to check what the text points to. That route takes precedence over the data-access rules, the `.construction/` tree and the reading sequence below, which describe an earlier AgentCM layout. The drawing conventions, cross-reference conventions and document precedence in this guide still apply.
+
 ## Interaction Model: Graph-Guided Vision
 
 **Core principle:** AgentCM = navigation brain + context layer. Vision = eyes.
