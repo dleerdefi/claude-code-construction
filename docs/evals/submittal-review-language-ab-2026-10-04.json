@@ -1,0 +1,268 @@
+{
+ "date": "2026-10-04",
+ "purpose": "A/B of submittal-review's original SKILL.md wording vs the audit rewrite (docs/AUDIT_SKILL_LANGUAGE.md section 3.4)",
+ "runner": "evals/harness/run.py from integrate/skills-foundation (claude plugin eval refused to run on Windows: no sandbox backend)",
+ "command": "bin/construction-python evals/harness/run.py --case \"submittal-review*\" --runs 2 --model sonnet --judge-model sonnet --judge-votes 3 --budget-usd 6",
+ "agent_model": "claude-sonnet-5-5",
+ "note": "No no-plugin arm: the skill text cannot change it; see docs/evals/submittal-review-2026-10-03.json. From the second original run on, both arms ran concurrently on one account, so wall time is only roughly comparable.",
+ "arms": {
+  "original": {
+   "commit": "b6015dc",
+   "cases": {
+    "submittal-review-foodservice": [
+     {
+      "score": 1.0,
+      "turns": 61,
+      "costUsd": 3.64,
+      "durationSeconds": 715,
+      "graders": {
+       "condensing-unit-voltage": true,
+       "disposition": true,
+       "extra-item": true,
+       "hand-sinks-missing": true,
+       "health-department-open": true,
+       "hood-length": true,
+       "no-agentcm": true,
+       "review-records": true,
+       "workbook": true
+      },
+      "behaviors": {
+       "guide": 1,
+       "inline_py": 7,
+       "script_src_reads": 0,
+       "help_calls": 4,
+       "page_err": 1,
+       "gate_runs": 1,
+       "gate_fail": 0,
+       "workers": 0,
+       "status_writes": 3,
+       "issue_adds": 2,
+       "read_pdf": 0
+      }
+     },
+     {
+      "score": 1.0,
+      "turns": 59,
+      "costUsd": 4.98,
+      "durationSeconds": 726,
+      "graders": {
+       "condensing-unit-voltage": true,
+       "disposition": true,
+       "extra-item": true,
+       "hand-sinks-missing": true,
+       "health-department-open": true,
+       "hood-length": true,
+       "no-agentcm": true,
+       "review-records": true,
+       "workbook": true
+      },
+      "behaviors": {
+       "guide": 1,
+       "inline_py": 8,
+       "script_src_reads": 0,
+       "help_calls": 3,
+       "page_err": 0,
+       "gate_runs": 2,
+       "gate_fail": 1,
+       "workers": 0,
+       "status_writes": 2,
+       "issue_adds": 1,
+       "read_pdf": 0
+      }
+     }
+    ],
+    "submittal-review": [
+     {
+      "score": 1.0,
+      "turns": 42,
+      "costUsd": 3.2,
+      "durationSeconds": 645,
+      "graders": {
+       "accessible-station": true,
+       "compliance-open": true,
+       "disposition": true,
+       "in-wall-brackets": true,
+       "missing-elevation": true,
+       "no-agentcm": true,
+       "review-records": true,
+       "sink-cutout": true,
+       "workbook": true
+      },
+      "behaviors": {
+       "guide": 1,
+       "inline_py": 3,
+       "script_src_reads": 4,
+       "help_calls": 1,
+       "page_err": 1,
+       "gate_runs": 2,
+       "gate_fail": 0,
+       "workers": 0,
+       "status_writes": 2,
+       "issue_adds": 1,
+       "read_pdf": 0
+      }
+     },
+     {
+      "score": 1.0,
+      "turns": 34,
+      "costUsd": 3.78,
+      "durationSeconds": 486,
+      "graders": {
+       "accessible-station": true,
+       "compliance-open": true,
+       "disposition": true,
+       "in-wall-brackets": true,
+       "missing-elevation": true,
+       "no-agentcm": true,
+       "review-records": true,
+       "sink-cutout": true,
+       "workbook": true
+      },
+      "behaviors": {
+       "guide": 1,
+       "inline_py": 2,
+       "script_src_reads": 0,
+       "help_calls": 1,
+       "page_err": 0,
+       "gate_runs": 2,
+       "gate_fail": 0,
+       "workers": 0,
+       "status_writes": 2,
+       "issue_adds": 2,
+       "read_pdf": 0
+      }
+     }
+    ]
+   }
+  },
+  "rewrite": {
+   "commit": "5e7f6f9",
+   "cases": {
+    "submittal-review-foodservice": [
+     {
+      "score": 1.0,
+      "turns": 62,
+      "costUsd": 4.98,
+      "durationSeconds": 766,
+      "graders": {
+       "condensing-unit-voltage": true,
+       "disposition": true,
+       "extra-item": true,
+       "hand-sinks-missing": true,
+       "health-department-open": true,
+       "hood-length": true,
+       "no-agentcm": true,
+       "review-records": true,
+       "workbook": true
+      },
+      "behaviors": {
+       "guide": 0,
+       "inline_py": 2,
+       "script_src_reads": 0,
+       "help_calls": 3,
+       "page_err": 0,
+       "gate_runs": 1,
+       "gate_fail": 0,
+       "workers": 0,
+       "status_writes": 3,
+       "issue_adds": 2,
+       "read_pdf": 0
+      }
+     },
+     {
+      "score": 1.0,
+      "turns": 67,
+      "costUsd": 3.73,
+      "durationSeconds": 707,
+      "graders": {
+       "condensing-unit-voltage": true,
+       "disposition": true,
+       "extra-item": true,
+       "hand-sinks-missing": true,
+       "health-department-open": true,
+       "hood-length": true,
+       "no-agentcm": true,
+       "review-records": true,
+       "workbook": true
+      },
+      "behaviors": {
+       "guide": 0,
+       "inline_py": 0,
+       "script_src_reads": 0,
+       "help_calls": 0,
+       "page_err": 0,
+       "gate_runs": 2,
+       "gate_fail": 1,
+       "workers": 0,
+       "status_writes": 5,
+       "issue_adds": 1,
+       "read_pdf": 0
+      }
+     }
+    ],
+    "submittal-review": [
+     {
+      "score": 1.0,
+      "turns": 38,
+      "costUsd": 3.86,
+      "durationSeconds": 644,
+      "graders": {
+       "accessible-station": true,
+       "compliance-open": true,
+       "disposition": true,
+       "in-wall-brackets": true,
+       "missing-elevation": true,
+       "no-agentcm": true,
+       "review-records": true,
+       "sink-cutout": true,
+       "workbook": true
+      },
+      "behaviors": {
+       "guide": 0,
+       "inline_py": 0,
+       "script_src_reads": 0,
+       "help_calls": 0,
+       "page_err": 0,
+       "gate_runs": 2,
+       "gate_fail": 1,
+       "workers": 0,
+       "status_writes": 3,
+       "issue_adds": 2,
+       "read_pdf": 0
+      }
+     },
+     {
+      "score": 1.0,
+      "turns": 34,
+      "costUsd": 3.44,
+      "durationSeconds": 562,
+      "graders": {
+       "accessible-station": true,
+       "compliance-open": true,
+       "disposition": true,
+       "in-wall-brackets": true,
+       "missing-elevation": true,
+       "no-agentcm": true,
+       "review-records": true,
+       "sink-cutout": true,
+       "workbook": true
+      },
+      "behaviors": {
+       "guide": 0,
+       "inline_py": 0,
+       "script_src_reads": 0,
+       "help_calls": 0,
+       "page_err": 0,
+       "gate_runs": 1,
+       "gate_fail": 0,
+       "workers": 0,
+       "status_writes": 3,
+       "issue_adds": 2,
+       "read_pdf": 0
+      }
+     }
+    ]
+   }
+  }
+ }
+}
