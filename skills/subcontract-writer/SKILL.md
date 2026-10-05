@@ -369,7 +369,7 @@ Raw structured data for downstream use and eval scoring:
 }
 ```
 
-Keep numeric values as raw numbers in scope_data.json (eval scorer uses these).
+Keep numeric values as raw numbers in scope_data.json (eval scorer uses these). The generator checks the money before writing anything: every line's quantity × rate must equal its amount and the lines must sum to `contract_value`, or it exits 2 and lists the mismatches. You do not need to verify the arithmetic yourself; write the files with the Write tool (no helper script, no shell heredoc) and run the generator.
 
 ### template_data.json
 

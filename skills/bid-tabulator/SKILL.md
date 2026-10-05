@@ -94,7 +94,14 @@ schedule_duration: ""   # Proposed duration if stated
 payment_terms: ""       # Net 30, etc.
 bond_included: false    # Whether bid/performance bond is included
 insurance_confirmed: false
+addenda_acknowledged: []  # Addenda the bid acknowledges, as written ("Addendum 1"); [] if none
+flags: []               # Extraction flags for the engineer: math discrepancies, unclear values, missing acknowledgements
 ```
+
+The exporter reports every line whose qty × unit price is not its extended
+price and every bid whose lines do not sum to its stated base bid, on the
+console and on the workbook's Flags tab. Record the numbers as submitted and
+let the exporter flag them; do not correct or re-derive them.
 
 **Line item extraction rules:**
 - Every line item MUST be an object with the fields above — never a bare string.

@@ -16,6 +16,40 @@ from shared import safe_output_path
 from subcontract_formatters import render_block, write_signature_block, write_header, write_footer
 
 
+def _num(v):
+    """float for a number or numeric string; None for blank or non-numeric text."""
+    if isinstance(v, bool) or v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    try:
+        return float(str(v).replace("$", "").replace(",", "").strip())
+    except ValueError:
+        return None
+
+
+def check_money(scope):
+    """Every line's quantity x rate must equal its amount, and the lines must sum to
+    the contract value. A subcontract with money that does not add up is not written."""
+    problems = []
+    items = scope.get("line_items") or []
+    total = 0.0
+    for n, li in enumerate(items, 1):
+        qty, rate, amount = _num(li.get("quantity")), _num(li.get("rate")), _num(li.get("amount"))
+        if amount is None:
+            problems.append(f"line {n} ({li.get('spec', '')}): no numeric amount")
+            continue
+        total += amount
+        if qty is not None and rate is not None and abs(qty * rate - amount) > 0.01:
+            problems.append(f"line {n} ({li.get('spec', '')}): {qty:g} x {rate:,.2f} = {qty * rate:,.2f}, "
+                            f"amount states {amount:,.2f}")
+    value = _num(scope.get("contract_value"))
+    if items and value is not None and abs(total - value) > 0.01:
+        problems.append(f"line items sum to {total:,.2f}; contract_value is {value:,.2f} "
+                        f"(difference {value - total:+,.2f})")
+    return problems
+
+
 def generate_subcontract(template_data_path, scope_data_path, output="Subcontract.docx"):
     try:
         from docx import Document
@@ -28,6 +62,14 @@ def generate_subcontract(template_data_path, scope_data_path, output="Subcontrac
         template = json.load(f)
     with open(scope_data_path) as f:
         scope = json.load(f)
+
+    problems = check_money(scope)
+    if problems:
+        print("ERROR: the scope data's money does not reconcile; no document written.")
+        for msg in problems:
+            print(f"  - {msg}")
+        print("Fix scope_data.json (or carry the discrepancy as a [GC TO CONFIRM] note) and run again.")
+        sys.exit(2)
 
     # Use existing .docx template if provided
     docx_template = template.get("docx_template_path")
