@@ -39,7 +39,7 @@ Each run is a real agent session and costs real money: between $0.15 and $6 per 
 ## How a run works
 
 1. A fresh workspace under the system temp dir; the case's `setup.sh` runs in it with `CONSTRUCTION_EVAL_HARNESS=1`.
-2. A headless session with the plugin loaded from this repo, the case's `allowed_tools` pre-approved, `WebFetch`, `WebSearch` and `PowerShell` disallowed (so Windows runs behave like macOS and Linux), `max_turns` and `timeout_seconds` from the case, and the spend cap.
+2. A headless session with only this plugin loaded (none of your own settings, plugins, hooks or MCP servers), the case's `allowed_tools` pre-approved, `WebFetch`, `WebSearch` and `PowerShell` disallowed (so Windows runs behave like macOS and Linux), `max_turns` and `timeout_seconds` from the case, and the spend cap.
 3. The prompt is the case's `prompt.md` body, usually `/construction:<skill>`.
 4. Every Bash, Write and Edit call passes through the guard (below).
 5. Graders run over the workspace and the trace.

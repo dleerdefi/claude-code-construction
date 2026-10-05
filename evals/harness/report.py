@@ -9,13 +9,20 @@ from graders import GraderResult, score
 from runner import RunResult
 
 
-def write_run(out_dir: Path, run: RunResult, graders: list[GraderResult]) -> Path:
+def write_trace(out_dir: Path, run: RunResult) -> Path:
+    """The trace and guard log, written before grading so the judge can read the trace file."""
     d = out_dir / run.case / f"run-{run.run_index}"
     d.mkdir(parents=True, exist_ok=True)
     with (d / "trace.jsonl").open("w", encoding="utf-8") as f:
         for e in run.trace:
             f.write(json.dumps(e, default=str) + "\n")
     (d / "guard_log.json").write_text(json.dumps(run.guard_log, indent=1, default=str), encoding="utf-8")
+    return d
+
+
+def write_run(out_dir: Path, run: RunResult, graders: list[GraderResult]) -> Path:
+    """The graded result; written once, after grading, so nothing reads a placeholder score."""
+    d = write_trace(out_dir, run)
     (d / "graders.json").write_text(json.dumps([asdict(g) for g in graders], indent=1), encoding="utf-8")
     (d / "run.json").write_text(json.dumps({
         "case": run.case, "run_index": run.run_index, "workspace": str(run.workspace), "score": score(graders),

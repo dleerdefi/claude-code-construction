@@ -145,6 +145,8 @@ async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunRes
         allowed_tools=allowed,
         disallowed_tools=disallowed,
         permission_mode="acceptEdits",
+        setting_sources=[],  # none of the user's settings, plugins or hooks: only this plugin
+        strict_mcp_config=True,  # and none of the user's MCP servers
         hooks={"PreToolUse": [HookMatcher(matcher="|".join(GUARDED_TOOLS), hooks=[guard_hook])]},
         system_prompt={"type": "preset", "preset": "claude_code", "append": case.append_system_prompt}
         if case.append_system_prompt else {"type": "preset", "preset": "claude_code"},
@@ -159,7 +161,7 @@ async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunRes
     )
     async for msg in query(prompt=case.prompt, options=options):
         if isinstance(msg, SystemMessage):
-            keep = {k: msg.data.get(k) for k in ("model", "permissionMode", "tools", "plugins", "plugin_errors") if k in msg.data}
+            keep = {k: msg.data.get(k) for k in ("model", "permissionMode", "tools", "plugins", "plugin_errors", "mcp_servers") if k in msg.data}
             result.trace.append({"type": "system", "subtype": msg.subtype, "data": keep})
         elif isinstance(msg, (AssistantMessage, UserMessage)):
             content = msg.content if isinstance(msg.content, list) else []
