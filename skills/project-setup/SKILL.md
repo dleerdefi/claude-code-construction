@@ -126,7 +126,7 @@ Only append — never overwrite existing CLAUDE.md content.
 
 - **Does not split PDFs** — recommends `/spec-splitter` and `/sheet-splitter` instead
 - **Does not use vision** — all classification is filename/folder pattern matching
-- **Does not create .construction/ directory** — that's AgentCM's job
+- **Does not create AgentCM's `.construction/project.yaml` or its data tree** — that's AgentCM's job (the plugin's own `.construction/skills/` is created by the skills that write there)
 - **Does not replace /init** — `/init` creates the base CLAUDE.md, this skill enriches it
 
 ---

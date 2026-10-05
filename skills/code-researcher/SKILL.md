@@ -292,16 +292,20 @@ reporting to the user at checkpoint 3c.
 
 ### 3c — USER CHECKPOINT: Interim Findings
 
-After completing a cluster of related topics, report to the user:
+After completing a cluster of related topics, report to the user. The example
+below shows the shape only: the `[code] §[section]` and `[regulation]` slots
+are placeholders, not citations. Fill them with the section numbers and
+requirement text you verified in Phase 3b, and never copy a value from this
+example into a finding.
 
 ```
 Completed research on [topic 1], [topic 2], and [topic 3].
 
 PRELIMINARY GAPS IDENTIFIED SO FAR
-  ⚠  HIGH   Slip resistance — no COF requirement found in spec; IBC §1210.3
-             and ADA require slip-resistant floors in kitchens and ADA paths
+  ⚠  HIGH   Slip resistance — no COF requirement found in spec;
+             [code] §[section] requires slip-resistant floors in [occupancy]
   ⚠  HIGH   Health department overlay — kitchen complex may be subject to
-             Maryland Dept. of Health food service regs; not mentioned in scope
+             [state] food service regulations [regulation]; not mentioned in scope
   ○  MEDIUM  VOC content — 09 67 23 does not cite VOC limits; Division 01
              may address this globally (will check)
 
@@ -311,8 +315,8 @@ NO GAP (already addressed in spec)
   ✓  Bond strength — ACI 503R at 400 psi (§2.1-D-10)
 
 UNCERTAIN (couldn't confirm code language)
-  ?  Baltimore City amendments to IBC §1210 — could not confirm if local
-     amendments modify the slip resistance requirement
+  ?  [Local jurisdiction] amendments to [code] §[section] — could not confirm
+     if local amendments modify the slip resistance requirement
 
 Continuing with [next batch]: [topic 4], [topic 5].
 Do you want me to dig deeper on any of these before continuing, or shall I proceed?
@@ -356,18 +360,20 @@ Each gap gets a severity and confidence rating:
 
 ### 4c — USER CHECKPOINT: Review Gaps Before Report
 
-Before generating the report, present the gap summary:
+Before generating the report, present the gap summary. As in 3c, the bracketed
+code and regulation slots are placeholders; fill them from your verified
+findings, never from this example:
 
 ```
 GAP ANALYSIS COMPLETE
 
 HIGH-CONFIDENCE GAPS (take action)
   GAP-001 ⚠ HIGH    Slip resistance — no COF requirement in 09 67 23
-                     IBC §1210.3 requires 0.60 COF in commercial kitchens
+                     [code] §[section] requires [threshold] in [occupancy]
                      Recommended action: add COF requirement and test method
 
   GAP-002 ⚠ HIGH    Health department — kitchen complex not addressed
-                     Maryland COMAR 10.15.03 may apply; needs AHJ confirmation
+                     [state] [regulation] may apply; needs AHJ confirmation
                      Recommended action: confirm with Owner whether food
                      service permit required
 
@@ -376,7 +382,7 @@ MEDIUM-CONFIDENCE GAPS (confirm and close)
                       Likely covered globally; confirm and add cross-reference
 
 UNCERTAIN (need more information)
-  ?  Baltimore City amendments to slip resistance — couldn't confirm locally
+  ?  [Local jurisdiction] amendments to slip resistance — couldn't confirm locally
 
 ALREADY ADDRESSED (no action needed)
   ✓  Moisture vapor emission testing — well covered, both test methods
@@ -455,3 +461,4 @@ Never overwrite an existing gap report. Version output files (`_v2`, `_v3`) if a
 
 - `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log a code gap the design team must answer to the Issue Registry (command and severity mapping in construction-guide)

@@ -64,6 +64,18 @@ class ShellCommands(unittest.TestCase):
         ws_gitbash = "/" + WS[0].lower() + WS[2:].replace("\\", "/") if os.name == "nt" else WS
         self.assertTrue(decide("Bash", {"command": f'ls "{ws_gitbash}/01 - Drawings"'}, POLICY).allow)
 
+    def test_glob_slash_is_not_the_root(self):
+        self.assertTrue(decide("Bash", {"command": "ls; ls */ | head -80"}, POLICY).allow)
+        self.assertTrue(decide("Bash", {"command": "ls sheets/*/ && cat sheet_index.yaml"}, POLICY).allow)
+        self.assertFalse(decide("Bash", {"command": "ls /"}, POLICY).allow)
+
+    def test_heredoc_body_is_not_scanned_for_paths(self):
+        cmd = ("cat > .construction/skills/x/project_context.yaml <<'E'\n"
+               "occupancy: B / R-2 / S-2\nnote: /construction:code-researcher egress\nE\n")
+        self.assertTrue(decide("Bash", {"command": cmd}, POLICY).allow)
+        self.assertEqual(shell_paths(cmd), [])
+        self.assertFalse(decide("Bash", {"command": "cat > ~/notes.txt <<'E'\nx\nE\n"}, POLICY).allow)
+
     def test_shell_paths_extraction(self):
         paths = shell_paths(f'cd "{WS}/a b" && cat /etc/hosts > out.txt')
         self.assertIn(f"{WS}/a b", paths)

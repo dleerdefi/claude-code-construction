@@ -74,7 +74,7 @@ NIC/NFC/By Others ≠ "nobody is responsible." Identify the responsible party. I
 After sessions involving document review, record findings to `.construction/skills/pe-review/`:
 - `coordination_issues.md` — cross-scope conflicts found
 - `document_gaps.md` — missing sheets, details, or spec sections
-- `rfi_candidates.md` — issues that should become RFIs
+- Issues that should become RFIs go to the Issue Registry with `issue_manager.py add` (construction-guide), not to a file here; `rfi-drafter` reads only the registry
 
 Before new queries on a previously-analyzed project, check `.construction/skills/pe-review/` (and, in AgentCM projects, `.construction/agent_findings/`) for prior findings. Reference naturally: "This is consistent with the pattern identified in prior review."
 

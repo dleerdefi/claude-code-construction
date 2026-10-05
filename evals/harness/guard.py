@@ -42,7 +42,8 @@ SYSTEM_PREFIXES = ("/dev", "/tmp", "/usr", "/bin", "/etc", "/proc", "/mingw64", 
 _WIN_ABS = r"[A-Za-z]:[\\/][^\s\"'|&;<>()]*"
 _POSIX_ABS = r"/[^\s\"'|&;<>()]*"
 _HOME_REL = r"(?:~|\$HOME|%USERPROFILE%)(?:[\\/][^\s\"'|&;<>()]*)?"
-_PATH_TOKEN = re.compile(rf"(?<![\w.-])({_WIN_ABS}|{_POSIX_ABS}|{_HOME_REL})")
+# A glob such as `ls */` or `sheets/*/` is not a path from the root.
+_PATH_TOKEN = re.compile(rf"(?<![\w.*?-])({_WIN_ABS}|{_POSIX_ABS}|{_HOME_REL})")
 # Inside quotes a path may contain spaces.
 _QUOTED_PATH = re.compile(rf"^\s*([A-Za-z]:[\\/][^\"'|&;<>()]*|/[^\"'|&;<>()]*|(?:~|\$HOME|%USERPROFILE%)(?:[\\/][^\"'|&;<>()]*)?)\s*$")
 _QUOTED = re.compile(r"\"([^\"]*)\"|'([^']*)'")
@@ -100,8 +101,15 @@ def _path_allowed(path: str, policy: Policy) -> bool:
     return False
 
 
+_HEREDOC = re.compile(r"<<-?\s*(['\"]?)(\w+)\1[^\n]*\n.*?\n[ \t]*\2[ \t]*(?=\n|$)", re.DOTALL)
+
+
 def shell_paths(command: str) -> list[str]:
-    """Absolute and home-relative paths named in a shell command (quoted or bare)."""
+    """Absolute and home-relative paths named in a shell command (quoted or bare).
+
+    Heredoc bodies are data (YAML, JSON, prose), not paths the shell opens, so they are skipped.
+    """
+    command = _HEREDOC.sub(" ", command)
     found: list[str] = []
     for q in _QUOTED.finditer(command):
         text = q.group(1) if q.group(1) is not None else q.group(2)

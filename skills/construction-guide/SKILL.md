@@ -20,7 +20,7 @@ If `.construction/INDEX.md` exists, AgentCM has written this project's drawings 
 
 **Core principle:** AgentCM = navigation brain + context layer. Vision = eyes.
 
-Skills always use vision for actual reading of drawings. When AgentCM structured data is available (`.construction/` directory), it tells skills WHAT to read, WHERE, and WHY — then vision does the actual reading with full context. Without AgentCM, skills use unguided vision and discover everything from scratch.
+Skills always use vision for actual reading of drawings. When AgentCM structured data is available (`.construction/project.yaml` exists), it tells skills WHAT to read, WHERE, and WHY — then vision does the actual reading with full context. Without AgentCM, skills use unguided vision and discover everything from scratch.
 
 ### Mandatory Data Access Rules
 
@@ -34,7 +34,7 @@ Skills always use vision for actual reading of drawings. When AgentCM structured
 Check for `.construction/project.yaml` in the project root — AgentCM writes it. A `.construction/` folder alone is not enough: this plugin keeps its own working data in `.construction/skills/` in every project.
 If present, read `.construction/CLAUDE.md` for project-specific navigation.
 
-The `.construction/` directory provides:
+With AgentCM present, `.construction/` provides:
 ```
 .construction/
 ├── project.yaml                          # Project config (name, number, location, calibration)
@@ -104,7 +104,7 @@ project scope before answering questions.
 
 #### 2. Vision + PDF Tools (unguided fallback)
 Use Claude Code vision on rasterized PDF pages plus `pdfplumber` / `pymupdf` for text and annotation extraction.
-Run `/sheet-splitter` first to split bound drawing sets into individual sheet PDFs.
+Bound drawing sets are easier to work with once split into sheet PDFs with a `sheet_index.yaml`. `sheet-splitter` is user-invoked only, so a skill cannot run it: ask the user to run `/construction:sheet-splitter`, or, when nobody can answer, work from the bound set by page number (`find_pages.py` locates a sheet by its number or title).
 
 ---
 
@@ -138,7 +138,7 @@ You can also rasterize individual sheets on demand using the `rasterize_page.py`
 
 **Follow this sequence — do not skip steps:**
 
-1. **Sheet lookup** — find the sheet in `sheet_index.yaml` → get `title`, `discipline`, `scale`, `pageIndex`, `filePath`
+1. **Sheet lookup** — find the sheet in `sheet_index.yaml` → get `title`, `discipline`, `scale`, the file path and, for a bound set, the page field. sheet-splitter's `page_index` counts from 0; if the index is AgentCM's (`pageIndex`), confirm its base in `.construction/CLAUDE.md` before converting
 2. **Graph query** — take `project_id` from `.construction/database.yaml`, then query:
    ```bash
    sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '{sheet}'"
@@ -149,8 +149,9 @@ You can also rasterize individual sheets on demand using the `rasterize_page.py`
    - `v_schedule_pivot` — schedule data if sheet contains schedules
 3. **Rasterize** — convert the PDF page to PNG (do NOT attempt to read the PDF directly):
    ```bash
-   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{filePath}" {pageIndex} --dpi 200 --output sheet.png
+   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{filePath}" {page} --dpi 200 --output sheet.png
    ```
+   `{page}` is 1-based. A split sheet PDF has one page, so pass `1`. For a page inside a bound set indexed by sheet-splitter, pass `page_index + 1`.
 4. **Targeted crop** (optional) — if reviewing a specific area, crop using graph coordinates:
    ```bash
    "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" sheet.png --box {x1},{y1},{x2},{y2} --normalized --output detail.png
@@ -176,7 +177,7 @@ You can also rasterize individual sheets on demand using the `rasterize_page.py`
 
 **Following a detail callout**: With graph → query `calloutEdges[]`, if resolved navigate to destination view centroid. Without → read the detail bubble (number/sheet), find the target.
 
-**Reading a schedule on a sheet**: Use `schedule-extractor` skill for structured extraction.
+**Reading a schedule on a sheet**: For a structured workbook the user runs `/construction:schedule-extractor` (user-invoked only). Inside a skill, crop the schedule region and read it with vision, or extract the table with `pdfplumber` when the sheet has a text layer.
 
 **Checking a note**: With graph → query `noteBlocks[]` for bounding region, crop directly. Without → locate the note number, find the corresponding key note area.
 
@@ -241,31 +242,50 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 
 ## Skills
 
-### Critical Skills (invocable — produce deliverables)
+### Deliverable Skills
 
-| Skill | When to use | Output |
-|---|---|---|
-| `submittal-log-generator` | Extract submittal requirements from specs (DRAFT — engineer review required) | Excel register |
-| `schedule-extractor` | Extract structured schedule data from drawings or specs | Excel workbook |
-| `spec-splitter` | Split bound project manual into individual spec section PDFs | Section PDFs + index |
-| `sheet-splitter` | Split bound drawing set into individual sheet PDFs | Sheet PDFs + sheet_index.yaml |
-| `bid-tabulator` | Tabulate multiple subcontractor bids into comparison spreadsheet. **Input: bid PDFs.** | Excel workbook |
-| `bid-evaluator` | Evaluate tabulated bids against construction documents — scope gaps, risk scoring, recommendation. **Input: bid-tabulator output + specs/drawings.** | Excel workbook + memo |
-| `code-researcher` | Deep research on building codes, standards, and jurisdiction requirements | Markdown + YAML report |
-| `subcontract-writer` | Generate scope-specific subcontract from firm's template | Word document (.docx) |
-| `rfi-drafter` | Draft formal RFIs from identified issues; manage ambient issue detection registry | Word document (.docx) or PDF |
-| `submittal-review` | Review a submittal package against specs, drawings, code questions and trade coordination, with a completeness gate and a draft GC review | Review records + Excel workbook |
-| `tag-audit-and-takeoff` | Count-based QTO and tag completeness auditing — identifies tagged elements using vision + OCR | QTO JSON + marked-up PNGs |
+"User" in the last column means the skill sets `disable-model-invocation` and only the user can start it, with `/construction:<name>`. A skill cannot invoke one of those with the Skill tool. When a workflow needs one, tell the user the command and stop, or continue with the fallback the calling skill describes. "User or skill" means a skill may invoke it with the Skill tool.
+
+| Skill | When to use | Output | Invoked by |
+|---|---|---|---|
+| `submittal-log-generator` | Extract submittal requirements from specs (DRAFT — engineer review required) | Excel register | User |
+| `schedule-extractor` | Extract structured schedule data from drawings or specs | Excel workbook | User |
+| `spec-splitter` | Split bound project manual into individual spec section PDFs | Section PDFs + index | User or skill |
+| `sheet-splitter` | Split bound drawing set into individual sheet PDFs | Sheet PDFs + sheet_index.yaml | User |
+| `bid-tabulator` | Tabulate multiple subcontractor bids into comparison spreadsheet. **Input: bid PDFs.** | Excel workbook | User |
+| `bid-evaluator` | Evaluate tabulated bids against construction documents — scope gaps, risk scoring, recommendation. **Input: bid-tabulator output + specs/drawings.** | Excel workbook + memo | User |
+| `code-researcher` | Deep research on building codes, standards, and jurisdiction requirements | Markdown + YAML report | User or skill |
+| `subcontract-writer` | Generate scope-specific subcontract from firm's template | Word document (.docx) | User |
+| `rfi-drafter` | Draft formal RFIs from identified issues; review and escalate the issue registry | Word document (.docx) or PDF | User |
+| `submittal-review` | Review a submittal package against specs, drawings, code questions and trade coordination, with a completeness gate and a draft GC review | Review records + Excel workbook | User |
+| `tag-audit-and-takeoff` | Count-based QTO and tag completeness auditing — identifies tagged elements using vision + OCR | QTO JSON + marked-up PNGs | User |
 
 ### Cross-Skill Infrastructure
 
-**Issue Registry** — Any skill can log potential issues to `.construction/skills/issues/` via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, submittal-review, etc.) and are reviewed/escalated by the user through `rfi-drafter`. No skill writes an RFI directly — only issue records.
+**Issue Registry** — Any skill can log a potential issue (a conflict between documents, an absence, a question only the design team can answer) to `.construction/skills/issues/` with `issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, submittal-review, code-researcher, submittal-log-generator, spec-splitter) and the user reviews and escalates them with `/construction:rfi-drafter`. No skill writes an RFI directly — only issue records. Log and continue; never interrupt the current workflow to draft an RFI.
+
+Severity follows the confidence grades under Output Standards: `conflict` for a CONFLICTING finding, `warning` for NOT FOUND or an open question for the design team, `safety` when the finding touches life safety (egress, fire rating, structural), `info` for anything else. `--source-skill`, `--severity` and `--description` are required.
+
+```bash
+# Log an issue
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" add \
+  --source-skill "{this skill}" --severity {info|warning|conflict|safety} --confidence {high|medium|low} \
+  --description "Door D-142 references HW set 7, not found in 08 71 00" \
+  --sheets "A3.1" --spec-sections "08 71 00" --elements "D-142" \
+  --context "{where it surfaced, e.g. submittal-review 12-35-53-001-R0 finding 3}" \
+  --rfi-subject "{subject line if it becomes an RFI}"
+
+# List open issues (--severity or --source-skill to filter; --all to include resolved)
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" list --table
+```
+
+A skill that logs issues lists `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` in its script allowlist. `${CLAUDE_PLUGIN_ROOT}/reference/common-issue-types.md` has the pattern vocabulary of what to watch for.
 
 ### Behavioral Skills (setup / orientation)
 
-| Skill | When to use | Output |
-|---|---|---|
-| `project-setup` | Set up a construction project after `/init` — inventories files, classifies documents, appends construction context to project CLAUDE.md | Amended CLAUDE.md |
+| Skill | When to use | Output | Invoked by |
+|---|---|---|---|
+| `project-setup` | Set up a construction project after `/init` — inventories files, classifies documents, appends construction context to project CLAUDE.md | Amended CLAUDE.md | User |
 
 ## PDF & Vision Tools
 
@@ -391,7 +411,7 @@ When responding about construction documents:
 - **Source traceability:** Every claim must cite its specific source — `[Sheet A2.01, Room 204]` or `[Spec Section 07 92 00, Para 3.3.A]` or `[Detail 5/A8.03]`. "Per the drawings" or "per the specs" is never acceptable.
 - **Confidence classification:** Grade every response element as: **CONFIRMED** (consistent across all docs), **PROBABLE** (found in primary source, not all cross-refs checked), **CONFLICTING** (documents disagree — present both with precedence analysis), or **NOT FOUND** (expected information absent — state what was expected and where).
 - **Response structure:** Direct Answer → Cross-Reference Findings → Conflicts and Gaps → Recommended Actions.
-- **RFI drafting:** When conflicts/gaps are found, draft with the `rfi-drafter` skill (format in its `references/rfi-format.md`).
+- **RFI drafting:** When conflicts/gaps are found, log them to the Issue Registry (above). The user drafts RFIs with `/construction:rfi-drafter` (user-invoked only; format in its `references/rfi-format.md`).
 
 ---
 

@@ -12,20 +12,16 @@ investigation before any draft is written.
 ### 1. Primary Source Review
 - Read the specific area on the source sheet at the identified location
 
-**With AgentCM** (`.construction/project.yaml` exists):
-```bash
-# ${CLAUDE_PLUGIN_ROOT} is not set in the shell here: use the plugin path that
-# rfi-drafter's SKILL.md commands show.
-# project_id is in .construction/database.yaml; one query per call:
-sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '{sheet}'"
-# Rasterize + crop to the conflict zone for vision reading:
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf}" {page} --dpi 200 --output page.png
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --box x1,y1,x2,y2 --normalized --output conflict_area.png
-```
-
-**Without AgentCM**:
-- Rasterize the source sheet at 200 DPI, crop to conflict area, read with vision
+- Rasterize the sheet and crop to the conflict zone with the two commands in
+  SKILL.md Step 2 (they carry the plugin path; this file does not), then read
+  the crop with vision
 - Read title block for revision date and project info
+
+**With AgentCM** (`.construction/project.yaml` exists), also query the sheet's
+contents. `project_id` is in `.construction/database.yaml`; one query per call:
+```bash
+sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '{sheet}'"
+```
 
 ### 2. Related Views
 - Check all details, sections, and elevations that reference or are
@@ -83,10 +79,10 @@ sh .construction/query.sh "SELECT sheet_number, sheet_title FROM sheets WHERE pr
 - If a prior RFI is related but doesn't fully resolve, reference
   it in the new RFI
 
-**With AgentCM**: Query `file_manifest.yaml` for `type: rfi` files. Also check the issue registry:
-```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" list --table
-```
+Also check the issue registry with the `issue_manager.py list --table` command
+in SKILL.md (Reviewing the Issue Queue).
+
+**With AgentCM**: Query `file_manifest.yaml` for `type: rfi` files.
 
 **Without AgentCM**: Search the project directory for RFI logs (Excel/PDF). Ask the user if an RFI log exists.
 

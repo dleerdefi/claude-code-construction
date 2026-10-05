@@ -1,6 +1,12 @@
 # Code Gap Analysis Report
 
-**Scope Researched:** Section 09 67 23 — Resinous Flooring (Kitchen Complex)
+<!-- Template. The gap entries below show the format with an illustrative
+     resinous-flooring scope; every bracketed value, and every code, section,
+     threshold or regulation, is a placeholder. Populate from gap_analysis.yaml
+     and jurisdiction.yaml. Never carry a citation from this template into
+     the report. -->
+
+**Scope Researched:** [Section number — title (area)]
 **Engineer's Question:** Are there code requirements for this scope that are missing?
 **Project:** [Name] | [City, State] | [Date]
 **Occupancy:** [Group] | **Construction Type:** [Type] | **Sprinklered:** [Yes/No]
@@ -21,30 +27,31 @@
 
 ### GAP-001 · HIGH · Confirmed
 **Topic:** Slip Resistance
-**Code Requirement:** IBC 2021 §1210.3 — Floor surfaces in commercial kitchens
-shall have a static coefficient of friction ≥ 0.60.
+**Code Requirement:** [code and edition] §[section] — [requirement text, with
+any threshold exactly as the verified source states it].
 **Project Status:** Not addressed. Section 09 67 23 specifies physical properties
 (compressive strength, bond strength, Shore D hardness) but contains no COF or
 slip resistance requirement and no test method reference.
-**Recommended Action:** Add minimum COF = 0.60 (wet) to 09 67 23 §2.1 System
-Characteristics. Specify test method (coordinate with manufacturer — no industry
-standard exists for urethane mortar systems; manufacturer test data typically
-used). Confirm AHJ accepts manufacturer-provided test data.
+**Recommended Action:** Add the minimum slip resistance value from the verified
+requirement to 09 67 23 §2.1 System Characteristics. Specify the test method
+(coordinate with the manufacturer where no industry standard exists for the
+specified system and manufacturer test data is the only source). Confirm the AHJ
+accepts manufacturer-provided test data.
 **Engineer Decision Required:** No (factual addition to spec)
 **PE/Architect Decision Required:** No (factual addition to spec)
 
 ### GAP-002 · HIGH · Needs Review
 **Topic:** Health Department Overlay — Kitchen Complex
-**Code Requirement:** Maryland COMAR 10.15.03 (Food Service Facility Regulations)
-— floors in food preparation areas shall be smooth, easily cleanable, and
-nonabsorbent. Specific requirements may require AHJ pre-approval of floor system.
-**Project Status:** Not addressed. Rooms 1411–1419 (kitchen complex) are within
+**Code Requirement:** [state health department regulation, as verified] —
+[requirement text as verified]. Specific requirements may require AHJ
+pre-approval of the floor system.
+**Project Status:** Not addressed. Rooms [range] (kitchen complex) are within
 the resinous flooring scope. No reference to health department requirements found
 in 09 67 23 or in the project manual.
 **Recommended Action:** Confirm with Owner whether a food service permit is
-required for the kitchen complex. If yes, coordinate with Maryland Department of
-Health AHJ before spec is finalized. Obtain written approval of the Stonhard
-Stonclad UT system from the health department, or identify an alternative system
+required for the kitchen complex. If yes, coordinate with the [state] health
+department AHJ before the spec is finalized. Obtain written approval of the
+specified system from the health department, or identify an alternative system
 that has prior approval.
 **Engineer Decision Required:** Yes — confirm permit requirement with Owner
 **PE/Architect Decision Required:** Yes — AHJ coordination and possible system substitution
@@ -55,14 +62,15 @@ that has prior approval.
 
 ### GAP-003 · MEDIUM · Confirmed
 **Topic:** VOC Content Cross-Reference
-**Code Requirement:** IBC 2021 §1210.2 and project Spec 01 61 16 establish
-VOC content limits for floor coatings applied within the building envelope.
+**Code Requirement:** [VOC regulation adopted for the project] and project Spec
+01 61 16 establish VOC content limits for floor coatings applied within the
+building envelope.
 **Project Status:** Partial. Division 01 Section 01 61 16 addresses VOC limits
 globally, but Section 09 67 23 does not reference 01 61 16 and does not
-independently state VOC limits for the Stonclad UT system components.
+independently state VOC limits for the specified system components.
 **Recommended Action:** Add cross-reference to Section 01 61 16 in 09 67 23
-§1.1 or §2.1. Obtain VOC content documentation from Stonhard for all system
-components and confirm compliance with limits in 01 61 16.
+§1.1 or §2.1. Obtain VOC content documentation from the manufacturer for all
+system components and confirm compliance with limits in 01 61 16.
 **Engineer Decision Required:** No (administrative cross-reference)
 
 ---
@@ -71,7 +79,7 @@ components and confirm compliance with limits in 01 61 16.
 
 | Item | Question | Who Confirms |
 |------|----------|-------------|
-| Baltimore City amendments to slip resistance | Does Baltimore City have local amendments that modify IBC §1210.3? | Building department AHJ |
+| [Local jurisdiction] amendments to slip resistance | Does [local jurisdiction] have local amendments that modify [code] §[section]? | Building department AHJ |
 
 ---
 

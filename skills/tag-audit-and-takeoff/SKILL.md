@@ -351,3 +351,4 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 - `scripts/markup_tags.py` — sheet markup with tag highlights
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/annotate_pdf.py` — native PDF annotations
 - `scripts/qto_to_xlsx.py` — QTO Excel export (4-sheet workbook)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log schedule/drawing count mismatches to the Issue Registry (command and severity mapping in construction-guide)
