@@ -25,10 +25,14 @@ bin/construction-python evals/harness/run.py --tag smoke --runs 1
 | `--eval-dir DIR` | `evals/plugin` | Folder of case folders |
 | `--output-dir DIR` | `evals/results/<timestamp>` | Where results are written |
 | `--dry-run` | | List the selected cases and graders, run nothing |
+| `--regrade DIR` | | Re-grade the runs saved in results folder `DIR` with the current graders, run nothing (see below) |
+| `--rejudge` | | With `--regrade`: ask the judge again for `llm` graders instead of keeping their stored verdicts |
 
 Results go to `evals/results/<timestamp>/`: `summary.md`, `summary.json`, and per run `trace.jsonl`, `guard_log.json`, `graders.json`, `run.json`. Exit code 0 when every case meets the threshold, 1 otherwise, 2 on a harness error.
 
 Each run is a real agent session and costs real money: between $0.15 and $6 per case on Sonnet (the eval suite README lists measured costs).
+
+**Re-grading without re-running.** A run folder holds everything a grader reads except the workspace, so a changed or new grader can be checked against saved runs for free: `bin/construction-python evals/harness/run.py --regrade evals/results/<stamp> [--case GLOB]` writes a new `evals/results/<stamp>-regrade/` folder. Trace graders (`tool_used`, `tool_order`, `regex` on the trace) are always re-evaluated. Graders that read the workspace (`file_exists`, `regex`/`llm` on a file, python checks) are re-evaluated when the workspace still exists (failed runs keep theirs, `--keep` keeps all) and otherwise keep their stored verdict, marked "kept from the original grading". `llm` graders keep theirs unless `--rejudge`; a new `llm` grader with no stored verdict is judged. Write a new grader, regrade the last results folder, and only then spend on a run. (The `reads-specs` grader for bid-evaluator was first written against the wrong text and failed three runs that had read the sections; a regrade would have shown that before the $1 round.)
 
 ## Requirements
 

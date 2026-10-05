@@ -64,7 +64,7 @@ State of the suite as of 2026-10-02. Each case has passed once through the harne
 
 **Reliability**
 
-- Every case was verified by a single run. Five cases depend on vision or on a one-vote LLM judge (`construction-guide`, `schedule-extractor`, `tag-audit-and-takeoff`, `pe-review`, `bid-tabulator`), and the default threshold is 1.00, so one grader flap shows as a failed case. Re-run a red case with `--runs 3` (and `--judge-votes 3` for llm graders) before treating it as a regression.
+- Every case was verified by a single run. Five cases depend on vision or on a one-vote LLM judge (`construction-guide`, `schedule-extractor`, `tag-audit-and-takeoff`, `pe-review`, `bid-tabulator`), and the default threshold is 1.00, so one grader flap shows as a failed case. Re-run a red case with `--runs 3` (and `--judge-votes 3` for llm graders) before treating it as a regression. A new or changed grader is checked with `--regrade <results folder>` against saved runs before anything is spent on a run.
 - `subcontract-writer` is the slowest and least stable case: about 18 minutes and $6 when it passes; it once stopped on an API content-filter error after 6 turns (not reproduced) and once ran past a $5 cap while re-verifying its own output. It carries a $10 budget in its `harness.yaml`.
 - A full run of all 18 cases costs about $45 on Sonnet and takes well over an hour. Costs are per case in the tables above.
 
