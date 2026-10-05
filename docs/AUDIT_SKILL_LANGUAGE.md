@@ -4,6 +4,8 @@ An audit of how the SKILL.md files on `feat/submittal-review` (PR #14, commit `b
 
 **Measured** means a test was run and its output is cited. **Judged** means an opinion from reading. Every claim below is labelled one or the other.
 
+§7 extends this audit with the checks in `docs/audits/SKILL_AUDIT_ADDENDUM.md`, run against `main` at `99594fb` after PR #14 merged: per-skill addendum columns, description rewrites with a re-test, and the library-level section.
+
 ## 1. Verdict
 
 The procedure in `submittal-review` is sound and its own SKILL.md is the clearest file in the plugin, but every run loads `construction-guide` (6.6K tokens, about 64% of it inapplicable in a flat-file project), which contradicts it on document precedence, grading vocabulary, custom Python and what to do with a conflict. The defects most likely to make Claude do the wrong thing are mechanical and mostly silent: a 0-based `page_index` passed to a 1-based rasterizer renders the wrong sheet, skills tell Claude to invoke skills it cannot invoke, reference files carry path variables that are empty in Bash, and `code-researcher` resumes the previous scope and, through its own examples, teaches an IBC requirement that is not in the code, marked "confirmed". Descriptions are not the problem (2 defensible misses in 120 prompts on both Sonnet and Opus), and the A/B rewrite of `submittal-review` tied the original (1.00 on all eight runs, cost and turns within noise, rewrite means 2–3% higher), so by this audit's own rule it is not an improvement, although it did stop the inline Python, page-numbering errors and script reading the original showed.
@@ -442,3 +444,206 @@ The rest of the plugin: a second reviewer estimated about 6,000 tokens of no-beh
 4. **Cut pe-review's checklists to what Claude doesn't already know.** The CSI-layer audit found 94% of comparable content was restatement; red-flags, absence, coordination and scope-gap files are ~3,350 tokens. Gate: a pe-review case with a no-plugin arm passes without them; restore only the items a case fails without.
 5. **Rewrite the heavy emphasis** in tag-audit-and-takeoff (12 strong markers: "**HARD GATE — you MUST complete this step**", "**CRITICAL — Vision is MANDATORY for this step.**"), submittal-log-generator (11: "RIGID" in six headings, "**THE CRITICAL RULE**") and bid-tabulator (4). Calm versions: "Complete this step before Step 2: …"; "Read each sheet's image to find tags; the text layer misses …". Gate: their cases show the steps still happen.
 6. **Build the harder submittal-review fixture** the decisions doc lists first. Both current fixtures saturate at 1.0 with and without the rewrite, so they can compare cost but not review quality.
+
+## 7. Addendum: October 2026 best-practice checks
+
+This section adds the checks in `docs/audits/SKILL_AUDIT_ADDENDUM.md` (an untracked file in the main checkout) to the audit above. It reports findings only; no skill was edited. Sections 1–6 stand as written, against `feat/submittal-review` at `b6015dc`.
+
+**Baseline.** PR #14 has since merged, so these checks ran against `main` at `99594fb` (plugin `0.4.0`, 14 shipped skills; viewport-highlighter has moved out of `skills/`). §7.1 records which earlier findings `main` has already changed. Claude Code `2.1.288`. **[verify]** marks a finding that rests on behavior the official docs don't confirm.
+
+**Where this section departs from the addendum, and why.**
+- **Line cap.** The addendum says to keep "the 200-line SKILL.md cap" as an existing SOP decision. This repo's SOP says "under 500 lines" (CM_SKILLS_SOP.md:195-197, :581) and has no 200-line rule. Sizes are reported against both; reconcile the SOP if 200 is the intended rule.
+- **Missing skills.** The addendum names `submittal-extractor` and `detection-tuner`, which don't exist. Overlaps were checked against the nearest real skills (submittal-log-generator; tag-audit-and-takeoff has no counterpart).
+- **Overlaps between user-only skills.** The addendum calls any undisambiguated overlap P0. The docs confirm that skills with `disable-model-invocation: true` "are not in this list. They stay completely out of context until you invoke them with `/name`", so Claude never chooses between two user-only skills. Such overlaps are graded P2 (menu clarity). P0 is kept for pairs where Claude does the choosing.
+- **Severity scale.** P0 means the skill doesn't trigger, triggers when it shouldn't, or creates a safety or governance risk; P1 a measurable quality or context-cost problem; P2 hygiene.
+
+### 7.1 Earlier findings, re-checked on `main`
+
+| # (§4) | Status on `main` |
+|---|---|
+| 1 Page index | Partly fixed: viewport-highlighter is gone; construction-guide still says `pageIndex` (3 places) |
+| 2 Wrong code citations in examples | Open: `1210.3` in code-researcher's SKILL.md, schemas.yaml and gap_report_template.md (7 places); "Table 1005.1" in rfi-format.md, now under a new note that the example is "invented to show the format", which doesn't fix the citation; subcontract-writer:178 |
+| 3 code-researcher resumption | Open |
+| 4 schedule-extractor crop units | Open |
+| 5 Precedence | Open (submittal-review still points to pe_review_rules.md) |
+| 6 `status` | Open |
+| 7 Routing to user-only or missing skills | Partly fixed: `spec-parser` and `/sheet-index-builder` are gone; submittal-review→sheet-splitter, construction-guide→schedule-extractor and bid-evaluator→bid-tabulator remain |
+| 8 Custom Python | Open (construction-guide's pdfplumber snippet) |
+| 9 Vocabularies, issue mapping | Open (PROBABLE still in construction-guide) |
+| 10 Variables in a reference | Partly fixed: 4 of 7 uses remain in research-checklist.md |
+| 11–15 | Open, except #13: viewport-highlighter's folder test is gone; bid-tabulator:30 and construction-guide:23 remain |
+| Next ten #4 | Fixed (`--source-sheet`, `--output-file`) |
+| New on `main` | tag-audit-and-takeoff:45-46 runs `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py <pdf> <page>` without `construction-python` and without quotes, against the repo's rules; its allowlist now includes the script |
+
+### 7.2 Per-skill table (addendum columns)
+
+Trigger quality: 3 = trigger condition, PE terms and disambiguation; 2 = what and when, but no "Not for…" or missing PE terms; 1 = a summary with weak triggers; 0 = generic. Eval coverage is cap / trigger / baseline; "n/a" for trigger evals means the skill is user-only, so Claude never chooses it. Lines are against the addendum's 200 and the SOP's 500.
+
+| Skill | Desc chars | Trigger quality | Overlap conflicts | Invocation / safety flags | Lines / est. tokens | Gotchas | Determinism opportunities | Mode split OK | Eval coverage | Collapse candidate | Top fix (severity) |
+|---|---:|:-:|---|---|---|:-:|---|:-:|---|:-:|---|
+| bid-evaluator | 206 | 2 | bid-tabulator (menu; "compare bids", "buyout analysis" vs "bid evaluation") | User-only ✓; internal output; routes to user-only bid-tabulator (:23) | 211 / 1,912 (>200) | Partial ("Error Handling") | Normalization and valuation rules written twice (SKILL :96-104, buyout-domain.md :70-76) → keep one, in the export script | Y (7 AgentCM lines) | cap Y (harness check) / n/a / N | N | P0: :23 and :157 hand off to user-only skills; tell the user to run them |
+| bid-tabulator | 196 | 2 (no "bid leveling") | bid-evaluator (menu) | User-only ✓ | 213 / 2,511 (>200) | Y ("Tips") | Text-layer test with two thresholds (:54 ">50 chars", :109 "<100") → script; per-scope folder | Y (3) | cap Y / n/a / N | N | P1: per-scope `bids/{scope}/`; a second buyout pulls in the first's bidders |
+| code-researcher | 220 | 2 | pe-review, construction-guide (both model-invocable; no "Not for") | Model-invocable; three mandatory stops, no unattended path; web research only reads in | 458 / 4,864 (>200) | Y (references/discipline_notes.md) | Read PDFs with the existing scripts; reuse `spec_text/` | Y (8) | cap Y (harness + regex) / **N** / N | N | P0: wrong IBC citation in its examples, marked `confirmed` |
+| construction-guide | 364 | 2 | Every skill by design; co-loaded 0 of 63 times (§3.3) | Model-invocable background skill → `user-invocable: false`; names user-only skills as invocable; rules after line 303 lost on compaction (§7.3 C) | 422 / 6,953 (>200; >5k tokens) | N (precedence, "or equal", Division 01, addenda are scattered rules, not gotchas) | pdfplumber snippet (:287-293) → `extract_text_region.py` | **N** (40 AgentCM lines plus blocks; ~64% inapplicable in flat-file) | cap Y (llm + regex) / **N** / N | N (it is the CLAUDE.md a plugin can't ship) | P1: split AgentCM into a reference, put rules first, ~1,500 tokens; fix the page-index text |
+| pe-review | 236 | 2 | rfi-drafter ("RFI research"), code-researcher, construction-guide, submittal-review (user-only) | Model-invocable; writes three .md files as a side effect (pe_review_rules.md:74-77) | 26 / 566 (+~4,100 in references) | Partial (red-flags and scope-gaps are checklists, mostly restated knowledge) | — | Y (0) | cap Y (llm + regex) / **N** / N | **Y** (eval-gated) | P1: rules apply "to every response"; RFI candidates bypass the registry |
+| project-setup | 234 | 2 | construction-guide (project orientation; menu vs model) | User-only ✓ | 137 / 1,477 | N | — | Y (detecting the mode is its job) | cap Y (smoke) / n/a / N | N | P1: the AgentCM branch skips spec classification (:44) |
+| rfi-drafter | 204 | 2 | pe-review, construction-guide (what to do with a conflict) | **Model-invocable drafter of an outbound document**; output contract present (:16, :22-24); no send tools; `${}` variables in research-checklist.md | 271 / 2,756 (>200) | Partial (quality-checks.md "Common Failure Patterns") | Template field mapping and SHA-256 → `rfi_export.py --inspect-template`; RFI numbering from the log | **N** (research-checklist.md alternates modes in every check) | cap Y / **N** / N | N | **P0: `disable-model-invocation: true`; move the issue-queue command to construction-guide** |
+| schedule-extractor | 214 | 2 (no "door hardware") | tag-audit-and-takeoff (menu) | User-only ✓; Step 6 POSTs to AgentCM with no AgentCM check (:177-186) | 354 / 3,828 (>200) | N | `extract_tables()` with no script → `extract_text_region.py` tables; crop units | **N** (DB sources, ingest, ~100-line reconciliation section, all AgentCM-only) | cap Y (cell-level harness check) / n/a / N | N | P1: crop percentages read as pixels (silent) |
+| sheet-splitter | 226 | 2 | spec-splitter (clear) | User-only ✓, but other skills route to it; "If already split, report the count and skip" (:44) without a revision check | 156 / 1,744 | N | Index update after renaming → script | Y (10) | cap Y (smoke + harness) / n/a / N | N | P1: multi-set overwrite (:58) |
+| spec-splitter | 241 | 3 | sheet-splitter, submittal-log-generator (prerequisite); 0 errors measured | Model-invocable with a file-writing side effect, deliberately (others invoke it); `context: fork` candidate [verify] | 195 / 2,283 | Partial (edge-case list, :95) | Text-repair algorithm in prose (:121-126) → script; "skip Step 7" when a manifest exists (:48) without checking its POOR/DEGRADED ratings | Y (6) | cap Y (smoke + harness) / **N** / N | N | P1: `context: fork` when invoked as a prerequisite (measured 7.2M tokens in 7 days) |
+| subcontract-writer | 215 | 2 | bid-evaluator (sequential; menu) | User-only ✓; outbound document; "Present for Review" and per-group confirmation ✓; no send tools | 532 / 6,694 (>500; >5k tokens) | Y ("Common Failure Modes") | .docx verification → script | Y (4) | cap Y / n/a / N | N | P0: wrong statute article (:178) in a contract template |
+| submittal-log-generator | 223 | 2 | submittal-review (menu), spec-splitter | User-only ✓; one `` !`cat …state.yaml` `` injection (justified; §7.3 B) | 505 / 6,375 (>500; >5k tokens) | Y ("Error Handling"; "Boilerplate vs. Real Submittals") | Batch merge with `jq` → script; POOR/DEGRADED confidence cap → script | Y (4) | cap Y (smoke + harness) / Y (graders check it invokes spec-splitter) / N | N | P1: items kept "in memory" (:397) while resume reads a file; 01 33 00 both flagged and excluded |
+| submittal-review | 285 | 2 | submittal-log-generator (menu); pe-review routes to it | User-only ✓; contract ✓ ("never approve, stamp or send"); fan-out skipped in 4 of 4 runs | 237 / 3,979 (>200) | Y (references/review-lens.md: "what reviews most often skip") | `find_pages.py` has no image-only or page-text listing (the original's foodservice runs wrote 7–8 inline programs for this); `check_review.py --summary` for the final message | Y (5) | cap Y / n/a / **Y** (no-plugin arm, 2026-10-03) | N | P0: routes to user-only sheet-splitter (:82); then P1 `status` and the issue mapping |
+| tag-audit-and-takeoff | 214 | 2 | schedule-extractor (menu) | User-only ✓; POSTs gated by confirmation ✓; new unquoted rasterize command on `main` (:45-46) | 354 / 3,812 (>200) | N | Pixel-to-point conversion for `annotate_pdf.py` → script | **N** (Steps 1.5, 3 and 4 are AgentCM-only, inline) | cap Y (harness) / n/a / N | N | P1: the flat-file path contradicts itself (:47 vs :157) |
+
+Totals: 10 of 14 skills exceed 200 lines; 2 exceed the SOP's 500 (subcontract-writer, submittal-log-generator); 3 exceed 5,000 tokens.
+
+### 7.3 Findings by check
+
+**A. Description and triggering**
+- **A1 Trigger condition.** No description uses "a comprehensive tool for…" phrasing. All lead with what the skill does and end with trigger phrases; none starts with when to use it. Scored 2 except spec-splitter (3). Measured quality is high anyway: 2 defensible misses in 120 on both models (§3.3).
+- **A2 Length.** 196–364 characters; the longest is construction-guide (364). All are under the 1,024-character spec limit and the 1,536-character Claude Code truncation, so nothing is cut. Total across all 14: 3,278 characters; across the five model-invocable skills, which are the only ones in context, 1,265.
+- **A3 PE terms.** Missing: "bid leveling" and "scope sheet" (bid-tabulator, bid-evaluator), "door hardware" (schedule-extractor), "spec section NN NN NN" (code-researcher has it only in `argument-hint`). These seven skills are user-only except code-researcher, so for them it is menu wording (P2); for code-researcher, P1.
+- **A4 "Not for…" clauses.** None of the 14 descriptions has one. Pairs that need one are in the overlap matrix (§7.5). Rewrites with before/after counts are in §7.4, re-tested.
+- **A5 Listing budget.** See §7.5.
+
+**B. Invocation and safety fields**
+- **B6 Outbound governance.** See the compliance list in §7.5. One P0: rfi-drafter is model-invocable.
+- **B7 `allowed-tools`.** No skill declares any; there are no blanket or wildcard grants. If unattended runs need pre-approval, grant exact scripts, never `construction-python` alone, which would also approve `construction-python -c <anything>`. Example: `allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/check_review.py" *)`. The docs confirm both variables are substituted in `allowed-tools` Bash rules; how quoted paths match against rules is **[verify]**. Measured: under a pattern-restricted Bash grant, a command containing a variable is refused outright ("A variable in this command can't be checked before it runs"), so rules and commands must use substituted literal paths. P2.
+- **B8 `` !`command` `` injection.** One, at submittal-log-generator:31: `` !`cat .construction/skills/submittal-log-generator/submittal_extraction_state.yaml 2>/dev/null || echo "No prior extraction — starting fresh"` ``. Justified: it shows resume state before Claude starts. Two cautions: it puts project-file content into the prompt before the model can decline it, and it relies on a POSIX shell and the project root as the working directory **[verify on Windows]**. Keep it; P2.
+- **B9 `paths`.** Not recommended. The docs say `paths` "loads skill automatically only when working with matching files", so on spec-splitter it would stop "split the project manual" from triggering until a matching file is in play. The discrimination test found no false triggers to prevent.
+- **B10 `context: fork`.** Candidates: spec-splitter (others invoke it as a prerequisite; 7.2M tokens attributed in 7 days) and sheet-splitter (vision on every title block; 6.2M tokens). Both run without asking questions, which matters because a forked skill "cannot call `AskUserQuestion`". Not for code-researcher, subcontract-writer, tag-audit-and-takeoff or bid-tabulator, which stop for the user. P1, eval-gated: forking changes what the caller sees **[verify]**.
+- **B11 `user-invocable: false`.** construction-guide only. P2.
+
+**C. Body and progressive disclosure**
+- **C12 Size.** See §7.2 totals.
+- **Compaction (docs-confirmed).** After compaction Claude Code "re-injects the skills you invoked, capped at 5,000 tokens per skill". Three skills are longer than that, and in each the cut falls on governance or rules (~20,000 characters):
+  - **construction-guide**, cut at line ~303. Lost: Document Authority & Precedence (:321), Output Standards (:387), PE Review (:398), Key Conventions (:414), including "Never fabricate … code citations". Kept: the AgentCM tree and database material at the top.
+  - **subcontract-writer**, cut at line ~373. Lost: Phase 5 verification (:425), **Present for Review** (:461), Common Failure Modes (:496).
+  - **submittal-log-generator**, cut at line ~402. Lost: Resumption (:414), Quality Validation and Review (:420), Present Findings (:429).
+
+  In a long session these skills keep their least important text and lose their checks. Move rules and review gates to the top, or below 5,000 tokens. P1.
+- **C13 Restated knowledge.** Covered in §5 and #14: construction-guide (drawing types, reference symbols, NIC definitions), pe-review's checklists, code-researcher's "Use your full domain knowledge". The addendum's SkillsBench figure (−1.3pp for generic content) points the same way as this project's own CSI-layer audit (94% restatement, no gain).
+- **C14 Gotchas.** Dedicated sections in 4 skills, references in 3, partial in 4, none in 3 (§7.2). Build any new Gotchas section from measured failures, not generic domain lore; generic lore is what the CSI audit removed. From this audit's traces: passing page 0 to the rasterizer (2 of 4 original runs); inline Python where a script exists (4 of 4 original runs); an invented issue-severity mapping (every run); sheet-splitter can't be invoked by Claude; fan-out skipped at 19 elements. The addendum's domain list (addenda superseding sections, "or equal", Division 01, OCR misreads of section numbers) is partly covered by construction-guide's rules. Nothing covers OCR misreads of section numbers. P1 where the skill has none.
+- **C15 Railroading vs goals.** submittal-review's exact commands are where its fragility is: the A/B shows full commands removed every `--help` lookup and script read in the lab-casework runs (§3.4). Elsewhere: tag-audit-and-takeoff has six confirmation gates and 12 strong-emphasis markers; code-researcher has three mandatory stops for a question that may need one. P1 for code-researcher (it blocks unattended use), P2 otherwise.
+- **C16 Determinism.** See the column in §7.2. The strongest evidence is the original's foodservice runs, which wrote 7 and 8 inline programs to parse `pages_0.json` and `page_map_0.json` because `find_pages.py` has no "list image-only pages" or "print page N's text" subcommand. Error handling: `rasterize_page.py` answers page 0 with "ERROR: Page 0 out of range (1-3)"; a hint ("pages count from 1; sheet_index page_index counts from 0") would let the agent recover without guessing. P1.
+- **C17 Two-mode loading.** Mode detection is one or two lines everywhere. Both modes are inlined in construction-guide, schedule-extractor and tag-audit-and-takeoff, and in rfi-drafter's research-checklist.md: N in §7.2, P1. The other skills carry three to ten AgentCM lines; splitting those out would cost a file read to save less than it costs.
+- **C18 References.** One level deep everywhere. Over 100 lines with no table of contents (11 files): review-data.md (184), schemas.yaml (341), gap_report_template.md (109), research-checklist.md (135), rfi-format.md (148), issue-schema.md (123), issue-record.schema.json (115), buyout-domain.md (126), qto-output-format.md (152), quantity-model.md (111), detection-record.schema.json (113). Only construction-guide has a "which file to read when" table; pe-review's numbered steps do the same job. P2.
+- **C19 State location.** No skill writes inside its own directory; all state goes to `.construction/skills/` or project folders. ✓
+- **C20 Verification displacement.** No review skill tells Claude to skip its own checks. Mild cases: spec-splitter:48 and sheet-splitter:44 skip work when outputs exist, without checking text quality or the drawing revision (P2). This audit's own rewrite says "you don't need to open the scripts" (submittal-review); that skips learning the interface, not checking results, and the completeness gate still runs. Not recommended: the remaining-skills reviewer's idea of replacing subcontract-writer's checks of the generated .docx with checks of its JSON inputs would be verification displacement.
+
+**D. Validity and portability**
+- **D21 YAML.** `---` on line 1, exact field names, no unknown keys; `claude plugin validate --strict` passes on `main` (measured).
+- **D22 Name.** All 14 pass. The deprecated dev copy at `.claude/skills/_deprecated_viewport-highlighter/` has `name: viewport-highlighter` in a folder of a different name, and `/skill-doctor` shows it loaded and model-invocable in contributor sessions. P2: delete it or move it out of `.claude/skills/`.
+- **D23 Target surface.** No skill can run on claude.ai or the API: each needs the plugin's scripts and Bash. Most also use Claude Code-only fields (`argument-hint`, `disable-model-invocation`, the `!` injection), which an upload would reject (the accepted field list is reported by Claude Code's docs, summarized, **[verify]**). Recommendation: state "Claude Code plugin (and Codex via `agents/openai.yaml`) only" in the SOP. No field changes. P2.
+- **D24 Reserved names.** No skill is named `verify` or `simplify`. The auto-run claim is undocumented **[verify]**.
+
+**E. Evaluation readiness**
+- **E25 Coverage.** Every skill has a capability case on `main`. No skill has a committed trigger eval: every case prompt starts with `/construction:<skill>`, which bypasses description matching. The 120-prompt test in §3.3 and §7.4 is the only trigger evidence and is not in the repo. A no-plugin baseline is committed only for submittal-review (evals/plugin/README.md:84). P1 for the five model-invocable skills.
+- **E26 Porting to `claude plugin eval`.** The legacy Holabird YAML rubrics were removed (`b73c2ab`). Ten cases now keep their accuracy checks in `harness.yaml` Python scripts, which `claude plugin eval` ignores ("There are no custom-code graders"). Run under `claude plugin eval`, those ten (bid-evaluator, bid-tabulator, code-researcher, rfi-drafter, schedule-extractor, sheet-splitter-real, spec-splitter-real, subcontract-writer, submittal-log-real, tag-audit-and-takeoff) are graded only on files existing and tools used. schedule-extractor's three graders all pass on an empty workbook. These checks have to stay in the harness unless they are rewritten as `regex` graders over the transcript or `llm` graders over an exported text file.
+  - Plugin eval sessions load neither the project CLAUDE.md, user settings nor other plugins (docs-confirmed). The harness does load them: its traces list the user's product-management plugin and Google Drive MCP tools. Harness results can therefore be affected by the user's own setup.
+- **E27 Collapse test.** pe-review is the one candidate: a 26-line body plus ~4,100 tokens of mostly restated checklists. Its core behavior (check absences and trade interfaces; report what's missing with sources) fits in two lines of construction-guide. Gate: the `pe-review` case on `main` with a no-plugin arm. No other skill qualifies; each has scripts or a procedure longer than two lines.
+
+### 7.4 Description rewrites (before → after, character counts)
+
+The four rewrites for the skills Claude chooses among were re-tested with the same 120 prompts, the same order and the same distractor skills, changing only these descriptions (measured):
+
+| | Sonnet errors | Opus errors | construction-guide loaded alongside another construction skill | construction-guide on its 10 general-knowledge near-misses |
+|---|---:|---:|---|---:|
+| Current descriptions | 2 / 120 | 2 / 120 | 0 of 63 (Sonnet), 0 of 63 (Opus) | 0 / 0 |
+| Rewritten | 1 / 120 | 0 / 120 | 61 of 62 (Sonnet), 62 of 62 (Opus) | 0 / 0 |
+
+The rewrite fixes the guide's co-loading without making it fire on general questions. Ship the construction-guide description only together with the slim guide (§6 "only after an eval" #2): co-loading today's 6,953-token guide on every document request would add that cost to most sessions. rfi-drafter's rewrite was tested while still model-invocable; after the P0 fix it leaves the listing and serves only the `/` menu.
+
+**Model-invocable skills (Claude chooses)**
+
+| Skill | Before | Chars | After | Chars |
+|---|---|---:|---|---:|
+| pe-review | Construction document review with PE judgment — RFI research, submittal analysis, coordination checking, scope gap detection. Use when reviewing drawings, specs, submittals, or RFIs. Triggers: 'review', 'coordination', 'what's missing'. | 236 | Checks construction drawings and specs for what's missing, cross-trade coordination conflicts and scope gaps, with PE judgment. Use for 'what's missing', 'check coordination', 'scope gap', or researching an RFI before answering it. Not for drafting RFIs (rfi-drafter), code research (code-researcher) or reviewing a submittal package (the user runs /construction:submittal-review). | 381 |
+| code-researcher | Scope-specific code gap analysis — extracts referenced codes from project docs, researches what should apply, surfaces the delta. Triggers: 'code research', 'what codes apply', 'code check', 'ADA requirements', 'egress'. | 220 | Researches which building codes, accessibility standards and authority requirements (health department, fire marshal, state agency) apply to a scope or spec section, and which the project documents miss. Use for 'what codes apply', 'code check', 'ADA requirements', 'egress', 'health department'. Not for reading what the drawings or specs say (construction-guide). | 365 |
+| construction-guide | Operating guide for construction project documents — load before reading drawings, specs, schedules, RFIs, submittals or bids. Data-access rules (never read PDFs directly; rasterize first), AgentCM graph-guided vision, drawing and cross-reference conventions, document precedence. Triggers: 'construction project', 'drawings', 'specs', 'sheet', 'RFI', 'submittal'. | 364 | Load before opening any drawing, spec, schedule, submittal, RFI or bid in a construction project, alongside any other construction skill: how to read the PDFs (rasterize; not the Read tool), document precedence, citation format, where skills write. Not needed for general construction questions that open no project file. | 321 |
+| rfi-drafter | Draft RFIs and manage the ambient issue registry. Reviews issues surfaced by other skills, escalates to formal RFIs. Triggers: 'draft RFI', 'write RFI', 'drawing conflict', 'review issues', 'issue queue'. | 204 | Drafts an RFI for the user to review, from a logged issue or a conflict the user describes, in the firm's template or a generic format; never sends it. Also lists and triages the issue queue other skills log. Use for 'draft an RFI', 'write an RFI', 'issue queue'. Not for finding conflicts (pe-review). | 302 |
+| spec-splitter | No change: measured 0 errors on both models, and it already names its trigger phrases and its place in the chain. | 241 | — | — |
+
+The four model-invocable rewrites add 345 characters to the listing (1,265 → 1,610; rfi-drafter's 302 leave it once it is user-only, for 1,308).
+
+**User-only skills (the `/` menu only; P2, not re-tested because Claude never sees them)**
+
+| Skill | Before | Chars | After | Chars |
+|---|---|---:|---|---:|
+| bid-tabulator | Extract data from subcontractor bid PDFs and produce a comparison spreadsheet. Feeds into /bid-evaluator. Triggers: 'tabulate bids', 'bid comparison', 'compare bids', 'buyout analysis', 'bid tab'. | 196 | First step of bid leveling: reads subcontractor bid PDFs, scanned or not, into a side-by-side bid tab in Excel with alternates and unit prices. Use for 'bid tab', 'level the bids', 'tabulate bids'. Not for scoring scope gaps or recommending award (bid-evaluator). | 263 |
+| bid-evaluator | Evaluate tabulated subcontractor bids against specs and drawings — scope gap analysis, exclusion risk scoring, award recommendation. Triggers: 'evaluate bids', 'bid evaluation', 'lowest responsible bidder'. | 206 | Second step of bid leveling: checks tabulated bids against the specs and drawings for scope gaps and risky exclusions, and recommends an award for the user to confirm. Use for 'evaluate bids', 'scope sheet', 'lowest responsible bidder'. Needs a bid tab first (bid-tabulator). | 275 |
+| submittal-log-generator | Extract all submittal requirements from specification sections and generate a comprehensive submittal register in Excel. Triggers: 'submittal log', 'extract submittals', 'submittal register'. Requires /spec-splitter output. | 223 | Builds the project's submittal register in Excel from every spec section's submittal requirements, flagging boilerplate for review. Use for 'submittal log', 'submittal register', 'extract submittals from the specs'. Not for reviewing a submittal package (submittal-review). | 273 |
+| submittal-review | Expert PE review of a submittal (shop drawings, product data, samples, equipment brochures) against specs, drawings, code questions and trade coordination. Produces findings with both sources, trade routing and a completeness gate. Triggers: 'review submittal', 'review shop drawings'. | 285 | Reviews one submittal package (shop drawings, product data, samples, equipment brochures) against the specs and drawings and drafts the GC review for the PE: findings citing both sources, trade routing, open code questions. Never approves or sends. Not for building the submittal log (submittal-log-generator). | 310 |
+
+### 7.5 Library level
+
+**Listing budget (measured with `/skill-doctor`, run as `claude -p "/skill-doctor"` on this machine).**
+- The full skill listing is about 5,030 tokens per turn across 32 listed skills. The construction plugin's share is about 480 tokens; ~100 of those are a stale `construction:viewport-highlighter` from the installed copy (see Distribution). On `main`, the five model-invocable descriptions total 1,265 characters, about 380 tokens with names.
+- Claude Code's docs confirm the 1,536-character per-skill truncation and that user-only skills are excluded. They don't document a listing cap of 1% of the context window or that the least-used skills are dropped first **[verify]**. If that rule holds, 5,030 tokens exceeds 1% of a 200K window (2,000) but fits within 1% of a 1M window (10,000).
+- Most of the listing is not this plugin's: 13 synced claude.ai skills (~3,160 tokens) and 9 product-management skills (~900) have never been invoked here.
+- 7-day attribution on this machine (development and eval sessions, not field use): construction-guide 21 uses / 37.2M tokens, spec-splitter 8 / 7.2M, sheet-splitter 6 / 6.2M, tag-audit-and-takeoff 1 / 2.5M, project-setup 4 / 0.8M; the rest under 0.4M.
+
+**Overlap matrix.** Rows marked ★ are pairs where Claude does the choosing (P0 by the addendum's rule when there is no "Not for…" clause). The measured column counts cross-fires among the 120 prompts on the current descriptions (Sonnet / Opus).
+
+| Pair | Shared triggers | Disambiguated? | Measured cross-fire | Severity |
+|---|---|---|---|---|
+| ★ pe-review ↔ rfi-drafter | "RFI research" vs "draft RFI", "drawing conflict", "review issues" | No | 1 / 1 (pe-review near-miss "Go through the issues…" → rfi-drafter, correctly) | P0 by rule; fixed by the §7.4 rewrites |
+| ★ pe-review ↔ code-researcher | "review", "code check" | No | 0 / 0 wrong | P0 by rule; fixed by §7.4 |
+| ★ pe-review ↔ construction-guide | "drawings, specs, submittals, RFIs" | No; they are meant to co-load | 0 co-loads / 0 | P0 by rule (should co-load); fixed by §7.4 |
+| ★ code-researcher ↔ construction-guide | "egress", reading drawings | No | 0 / 0 wrong | P0 by rule; fixed by §7.4 |
+| ★ rfi-drafter ↔ construction-guide | "RFI" | No | 0 / 0 | P0 by rule; fixed by §7.4 |
+| ★ spec-splitter ↔ construction-guide | "specs" | No | 0 / 0 | Low; co-loading is wanted |
+| ★→user pe-review → submittal-review | "submittal analysis" vs "review submittal" | Only in pe-review's body (:21) | "Review the casework shop drawings…" → pe-review (both models) | P1: say it in the description (§7.4) |
+| ★→user construction-guide → project-setup | "construction project" vs "set up project" | No | not tested | P2 |
+| bid-tabulator ↔ bid-evaluator | "compare bids", "buyout analysis" vs "bid evaluation" | No | n/a (both user-only) | P2 (menu); §7.4 |
+| submittal-log-generator ↔ submittal-review | "submittal" | No | n/a | P2 (menu); §7.4 |
+| bid-evaluator ↔ subcontract-writer | sequential ("award" → "requires awarded bid") | Implicit | n/a | P2 |
+| schedule-extractor ↔ tag-audit-and-takeoff | "schedule" vs "count fixtures" | Implicit | n/a | P2 |
+| sheet-splitter ↔ spec-splitter | "split" | Yes (drawings vs specs) | "Split the drawing set…" → never spec-splitter | none |
+| spec-splitter ↔ submittal-log-generator (addendum: "submittal-extractor") | "extract spec text" vs "extract submittals" | Yes ("Prerequisite for /submittal-log-generator") | not tested | P2 |
+| tag-audit-and-takeoff ↔ "detection-tuner" | — | — | skill doesn't exist | — |
+
+**Outbound-document governance.**
+
+| Skill | Produces | Leaves the team? | User-only? | Output contract | Send/upload tools | Compliant |
+|---|---|---|:-:|---|---|:-:|
+| rfi-drafter | RFI .docx (or PDF) to the A/E | Yes | **No** | Yes: :16 "No RFI is ever created without explicit user instruction"; :22-24 does not "send RFIs without user review" | None | **No (P0)** |
+| subcontract-writer | Subcontract .docx to the sub | Yes | Yes | Partial: "Present for Review" (:461), confirmation per article group (:249); no explicit "never sent" line | None | Yes (add one line, P2) |
+| submittal-review | GC review workbook and markup PDF to the sub and A/E | Yes | Yes | Yes: "never approve, stamp or send" | None | Yes |
+| submittal-log-generator | Submittal register, often shared with the A/E | Sometimes | Yes | Yes: :458 "Does not replace PE review" | None | Yes |
+| bid-evaluator | Award memo (internal; may reach the owner) | Sometimes | Yes | Partial: "user confirms" before subcontract-writer | None | Yes |
+| code-researcher | Gap report .md (internal; may be forwarded) | Sometimes | No | Yes: :45-46 the licensed design professional decides compliance | WebSearch/WebFetch read in, send nothing | Yes |
+| pe-review, schedule-extractor, tag-audit-and-takeoff, sheet-splitter, spec-splitter, project-setup, construction-guide | Chat answers, internal workbooks, split files; POSTs to AgentCM's own database | No | — | — | None | n/a |
+
+No skill emails, uploads, or declares `allowed-tools`. The one P0 is rfi-drafter being model-invocable.
+
+The fix has a side effect to plan for. Making rfi-drafter user-only also removes "show me the issue queue" from auto-triggering. Move the `issue_manager.py list` and `add` commands into construction-guide's Issue Registry paragraph (#15), so Claude can list and log issues without loading the drafter.
+
+**Usage logging.** `/skill-doctor` covers 7 days on one machine. For longer history, ship a PreToolUse hook that appends each Skill call to a log the user owns. Proposed, not applied (a plugin hook in `hooks/hooks.json`; the payload field names are **[verify]**):
+```json
+{"hooks": {"PreToolUse": [{"matcher": "Skill",
+  "hooks": [{"type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/bin/construction-python\" \"${CLAUDE_PLUGIN_ROOT}/scripts/log_skill_use.py\""}]}]}}
+```
+`log_skill_use.py` would read the hook's JSON from stdin and append `timestamp, session, skill, cwd` to `~/.construction-skills/skill-usage.csv`, logging nothing else. Under-triggering skills then show up as rows that never appear.
+
+**Distribution and versioning (measured).** `version` is `0.4.0` in both `.claude-plugin/plugin.json` and `VERSION`, set in `9ca3b29`. PR #14 merged afterwards, adding submittal-review and changing other skills, with no bump; `marketplace.json` carries no version. The docs say that if `version` isn't changed, "`claude plugin update` prints `<name> is already at the latest version` … and users keep the old copy." The installed plugin on this machine confirms it: `/skill-doctor` lists `construction:viewport-highlighter`, which `main` removed, and no `submittal-review`. P0 by effect: no fix in this audit reaches installed users until the version changes. Bump to `0.5.0` in both files, and add a CI check that fails when `skills/`, `scripts/` or `reference/` change without a bump.
+
+**Top 10 fixes, ranked by expected impact (P0s first).**
+
+| # | Fix | Severity | Why this rank |
+|---|---|:-:|---|
+| 1 | Bump the version (`0.4.0` → `0.5.0`, both files), plus a CI check for skill changes without a bump | P0 | Nothing else reaches installed users without it (measured stale install) |
+| 2 | Replace the wrong code and statute citations in examples: code-researcher (SKILL.md, schemas.yaml, gap_report_template.md), rfi-format.md, subcontract-writer:178 | P0 | Fabricated citations in a PE tool; examples are copied |
+| 3 | Make rfi-drafter `disable-model-invocation: true`; move the issue-queue `list`/`add` commands into construction-guide | P0 | The one outbound-governance gap; the move keeps issue logging working |
+| 4 | Stop routing to user-only skills (submittal-review:82; construction-guide:107, :179, :244 on `main`; bid-evaluator:23, :157) | P0 | The Skill tool refuses these calls (measured); unattended runs stop |
+| 5 | Add "Not for…" clauses to pe-review, code-researcher and construction-guide, using the §7.4 text | P0 (by rule) | Errors 2 → 1 (Sonnet) and 2 → 0 (Opus); guide co-loading 0/63 → 61–62/62, with no general-question firing. Ship the guide's line with item 9 |
+| 6 | Fix the page-numbering text (construction-guide:141, :152 on `main`) | P1 | Silent wrong sheet (measured) |
+| 7 | Commit trigger evals for the five model-invocable skills (the 120 prompts as cases with `tool_used: Skill` graders and no slash command) | P1 | No committed eval checks triggering today; this protects items 3 and 5 |
+| 8 | Merge submittal-review's mechanical fixes (status after each step, issue-severity mapping, full commands, sheet-splitter wording) | P1 | Each fixes a measured error; the A/B shows no penalty |
+| 9 | Split construction-guide: ~1,500-token core with rules first, AgentCM in a reference, `user-invocable: false` | P1 | 6,953 tokens today, ~64% unused in flat-file, and its rules are what compaction drops |
+| 10 | Put review gates and rules within the first 5,000 tokens of subcontract-writer and submittal-log-generator (or shrink them below 5,000) | P1 | "Present for Review" and quality checks are lost after compaction (docs-confirmed) |
+
+Next in line, all P1: code-researcher per-scope folders and an unattended path (#3, #12); schedule-extractor crop units (#4); one precedence block, grade list and severity mapping (#5, #9); a `find_pages.py` page-text/image-only subcommand and a rasterizer hint for page 0 (C16); a `context: fork` trial for spec-splitter and sheet-splitter (B10).
+
+Evidence for §7.4's re-test (prompts, answer key, both models' answers, before and after) is in `docs/evals/skill-trigger-test-2026-10-04.json`.

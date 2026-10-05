@@ -1,0 +1,2190 @@
+{
+ "date": "2026-10-04",
+ "purpose": "Description-discrimination test for the model-invocable construction skills (docs/AUDIT_SKILL_LANGUAGE.md sections 3.3 and 7.4). A fresh subagent chose skills for each prompt from names and descriptions only.",
+ "method": "120 prompts: for each of 6 model-invocable skills (feat/submittal-review set, incl. viewport-highlighter), 10 should-trigger and 10 near-miss. Listing also held the anthropic-skills pdf/xlsx/docx and code-review skills as distractors. Same prompts, order and distractors in both arms; only the descriptions of pe-review, code-researcher, construction-guide and rfi-drafter differ.",
+ "prompts": {
+  "1": "Go over the open issues with me and help me decide which ones to escalate.",
+  "2": "Find the detail that shows the parapet flashing.",
+  "3": "Explain how to read an architectural scale.",
+  "4": "Pull section 08 71 00 out of the project manual as its own PDF.",
+  "5": "Check egress from the second-floor classrooms against code.",
+  "6": "Split the drawing set into individual sheets.",
+  "7": "Write an RFI asking the architect to confirm the counter height in Lab 104.",
+  "8": "Draft a submittal transmittal for the door hardware.",
+  "9": "Make a markup showing where the new wall goes on the floor plan.",
+  "10": "What code requirements am I missing for the resinous flooring in Section 09 67 23?",
+  "11": "Run a code check on the kitchen exhaust hood scope — anything the specs don't cover?",
+  "12": "Highlight all the viewports on the A-500 series sheets.",
+  "13": "Extract the spec text for section 09 21 16.",
+  "14": "The spec book is a single 1,200-page PDF; make individual section files.",
+  "15": "Review the toilet room drawings and tell me what's missing.",
+  "16": "Run the unit tests and fix the failing code check in CI.",
+  "17": "Do a scope gap check between the casework and plumbing specs — who provides the sink faucets?",
+  "18": "Check the door schedule on A-601 for missing hardware sets.",
+  "19": "What's in this project? Give me an overview of the drawings and specs.",
+  "20": "Outline every detail region on A-521 in AgentCM.",
+  "21": "Create a punch list in Excel from these notes.",
+  "22": "Clean up our GitHub issue queue — close the stale issues.",
+  "23": "What does keynote 12 on A-201 say?",
+  "24": "Create viewport overlays for the floor plans.",
+  "25": "Is there anything that has to be in the walls before drywall that the drawings don't address for Lab 104?",
+  "26": "Before I respond to the drywall sub's RFI 14, research what the drawings and specs actually say.",
+  "27": "Break up the project manual PDF.",
+  "28": "OCR this scanned letter from the owner.",
+  "29": "Highlight the changes between revision 2 and revision 3 of A-201.",
+  "30": "Turn this list of punch items into a Word document.",
+  "31": "Highlight the viewports on A-201.",
+  "32": "What codes apply to the new elevator on this project, and does our spec cover them?",
+  "33": "Review the pay application spreadsheet for math errors.",
+  "34": "What's missing from the door details for the rated stair doors?",
+  "35": "Mark up the submittal with our review comments.",
+  "36": "Go through the issues in the issue queue and tell me which should become RFIs.",
+  "37": "Draft an RFI asking the architect to confirm the corridor width at grid B.",
+  "38": "The plan and the detail show different widths for door 105A — I need an RFI for that drawing conflict.",
+  "39": "What's a typical lead time for hollow metal frames?",
+  "40": "Export RFI 26 to Word using our firm's template.",
+  "41": "Count the light fixtures on E-201.",
+  "42": "Merge these three PDFs into one file.",
+  "43": "Draft an email to the owner about the schedule delay.",
+  "44": "I just got Volume 2 of the specifications as one PDF — split it by section.",
+  "45": "Find the wall type for the second-floor corridor walls and tell me its fire rating.",
+  "46": "Write a polite email to a subcontractor reminding them their submittal is late.",
+  "47": "Create a blank submittal log template in Excel with the standard columns.",
+  "48": "Which IBC edition applies in Baltimore?",
+  "49": "What does CSI MasterFormat Division 08 cover?",
+  "50": "Highlight the important clauses in this PDF contract.",
+  "51": "Mark up the drawing to show where each view is.",
+  "52": "Show me the issue queue.",
+  "53": "Look over the roof plan and details for anything that will cause problems in the field.",
+  "54": "Compare the spec sections in Addendum 2 with the original to see what changed.",
+  "55": "Get searchable text for the Division 09 sections.",
+  "56": "Review the egress plan for code issues.",
+  "57": "Change the viewport scale in our Revit model.",
+  "58": "Extract the tables from this PDF invoice.",
+  "59": "Draft an RFI about the beam conflicting with the duct at grid C-4.",
+  "60": "Split this 200-page PDF of bids into one file per bidder.",
+  "61": "What finish does the room finish schedule call for in Room 108?",
+  "62": "What's the ceiling height in room 204 per the reflected ceiling plan?",
+  "63": "Review the curtain wall spec section and flag gaps against the drawings.",
+  "64": "Rename the sheet PDFs to match their title blocks.",
+  "65": "What issues have the other skills logged so far?",
+  "66": "Compare hardware set 4 in the spec with what the door schedule shows for door 112.",
+  "67": "Split specs.",
+  "68": "Find all the views on sheet A-501 and mark their boundaries.",
+  "69": "Highlight the rooms whose finish changed in the finish schedule.",
+  "70": "Check the kitchen equipment plan against the plumbing and electrical plans.",
+  "71": "Look at detail 5/A-521 and tell me how the counter is supported.",
+  "72": "Review the casework shop drawings for conflicts with the plumbing schedule.",
+  "73": "Which spec section covers the operable partitions, and who is the basis-of-design manufacturer?",
+  "74": "Extract the text of each spec section so I can search it.",
+  "75": "What are common reasons RFIs get returned unanswered?",
+  "76": "Extract spec text for the whole project manual.",
+  "77": "Split this Excel workbook into one file per sheet.",
+  "78": "Prepare an RFI for the missing hardware set 7.",
+  "79": "Highlight the viewports on sheet A-301.",
+  "80": "Identify each detail on A-521 with its title and scale.",
+  "81": "Help me write a cover letter for a project engineer job.",
+  "82": "Summarize the OAC meeting minutes from last week.",
+  "83": "The architect answered RFI 12 — does the answer change our drywall scope?",
+  "84": "Are there health department requirements for the cafeteria serving line that our documents don't address?",
+  "85": "Write a new spec section for a product we're adding to the job.",
+  "86": "What scale is the floor plan on A-101?",
+  "87": "Find all the door tags on the second-floor plan.",
+  "88": "Split the drawing set into individual sheets.",
+  "89": "Check the drawings for conflicts between plumbing and structural.",
+  "90": "Split the bid package into scopes for each trade.",
+  "91": "Highlight viewports.",
+  "92": "Merge the addenda into the project manual PDF.",
+  "93": "Split the project manual into individual spec sections.",
+  "94": "Read the general notes on S-001 and tell me the concrete strength for footings.",
+  "95": "Write a Python function that checks whether a ramp slope exceeds 1:12.",
+  "96": "What's the difference between an RFI and a change order?",
+  "97": "Find views on A-401.",
+  "98": "Review this pull request.",
+  "99": "Summarize the RFI log spreadsheet — how many RFIs are overdue?",
+  "100": "Detect the viewports and titles on the S-series sheets and push them to AgentCM.",
+  "101": "Explain the difference between an RFI and an ASI.",
+  "102": "Code research: firestopping for the MEP penetrations in the rated shafts.",
+  "103": "Review my resume.",
+  "104": "Extract the door schedule from A-601 into Excel.",
+  "105": "What does 'NIC' mean on a drawing?",
+  "106": "Do the toilet room drawings meet ADA requirements? Research what applies in Baltimore.",
+  "107": "How many sheets are in the MEP set and which disciplines are there?",
+  "108": "Turn issue ISS-2026-0003 into an RFI.",
+  "109": "Which edition of the IBC has Howard County adopted, and does our spec reference the right one?",
+  "110": "Write a change order request for the added soil excavation.",
+  "111": "Review sheets S-201 and A-201 for coordination conflicts at the slab edge.",
+  "112": "Split the project manual into sections.",
+  "113": "Log this as an issue for later: the floor drain isn't shown in the janitor closet.",
+  "114": "List every view on sheet A-301 with its scale and view type.",
+  "115": "Gap analysis on Division 21 — what fire suppression code requirements aren't in our specs?",
+  "116": "Research the fire-rating requirements for the corridor walls in this building and compare them to the partition types.",
+  "117": "Separate the spec sections out of the bound specs.",
+  "118": "Draft an RFI about the missing head-of-wall detail.",
+  "119": "What's the clear width of the corridor at grid B on A-201?",
+  "120": "Check coordination between the mechanical and electrical schedules for the rooftop units."
+ },
+ "key": {
+  "1": {
+   "skill": "rfi-drafter",
+   "kind": "pos"
+  },
+  "2": {
+   "skill": "viewport-highlighter",
+   "kind": "neg"
+  },
+  "3": {
+   "skill": "construction-guide",
+   "kind": "neg"
+  },
+  "4": {
+   "skill": "spec-splitter",
+   "kind": "pos"
+  },
+  "5": {
+   "skill": "code-researcher",
+   "kind": "pos"
+  },
+  "6": {
+   "skill": "pe-review",
+   "kind": "neg"
+  },
+  "7": {
+   "skill": "rfi-drafter",
+   "kind": "pos"
+  },
+  "8": {
+   "skill": "rfi-drafter",
+   "kind": "neg"
+  },
+  "9": {
+   "skill": "viewport-highlighter",
+   "kind": "neg"
+  },
+  "10": {
+   "skill": "code-researcher",
+   "kind": "pos"
+  },
+  "11": {
+   "skill": "code-researcher",
+   "kind": "pos"
+  },
+  "12": {
+   "skill": "pe-review",
+   "kind": "neg"
+  },
+  "13": {
+   "skill": "pe-review",
+   "kind": "neg"
+  },
+  "14": {
+   "skill": "spec-splitter",
+   "kind": "pos"
+  },
+  "15": {
+   "skill": "pe-review",
+   "kind": "pos"
+  },
+  "16": {
+   "skill": "code-researcher",
+   "kind": "neg"
+  },
+  "17": {
+   "skill": "pe-review",
+   "kind": "pos"
+  },
+  "18": {
+   "skill": "code-researcher",
+   "kind": "neg"
+  },
+  "19": {
+   "skill": "construction-guide",
+   "kind": "pos"
+  },
+  "20": {
+   "skill": "viewport-highlighter",
+   "kind": "pos"
+  },
+  "21": {
+   "skill": "rfi-drafter",
+   "kind": "neg"
+  },
+  "22": {
+   "skill": "rfi-drafter",
+   "kind": "neg"
+  },
+  "23": {
+   "skill": "construction-guide",
+   "kind": "pos"
+  },
+  "24": {
+   "skill": "viewport-highlighter",
+   "kind": "pos"
+  },
+  "25": {
+   "skill": "pe-review",
+   "kind": "pos"
+  },
+  "26": {
+   "skill": "pe-review",
+   "kind": "pos"
+  },
+  "27": {
+   "skill": "spec-splitter",
+   "kind": "pos"
+  },
+  "28": {
+   "skill": "spec-splitter",
+   "kind": "neg"
+  },
+  "29": {
+   "skill": "viewport-highlighter",
+   "kind": "neg"
+  },
+  "30": {
+   "skill": "construction-guide",
+   "kind": "neg"
+  },
+  "31": {
+   "skill": "viewport-highlighter",
+   "kind": "pos"
+  },
+  "32": {
+   "skill": "code-researcher",
+   "kind": "pos"
+  },
+  "33": {
+   "skill": "pe-review",
+   "kind": "neg"
+  },
+  "34": {
+   "skill": "pe-review",
+   "kind": "pos"
+  },
+  "35": {
+   "skill": "viewport-highlighter",
+   "kind": "neg"
+  },
+  "36": {
+   "skill": "pe-review",
+   "kind": "neg"
+  },
+  "37": {
+   "skill": "code-researcher",
+   "kind": "neg"
+  },
+  "38": {
+   "skill": "rfi-drafter",
+   "kind": "pos"
+  },
+  "39": {
+   "skill": "construction-guide",
+   "kind": "neg"
+  },
+  "40": {
+   "skill": "rfi-drafter",
+   "kind": "pos"
+  },
+  "41": {
+   "skill": "viewport-highlighter",
+   "kind": "neg"
+  },
+  "42": {
+   "skill": "construction-guide",
+   "kind": "neg"
+  },
+  "43": {
+   "skill": "rfi-drafter",
+   "kind": "neg"
+  },
+  "44": {
+   "skill": "spec-splitter",
+   "kind": "pos"
+  },
+  "45": {
+   "skill": "construction-guide",
+   "kind": "pos"
+  },
+  "46": {
+   "skill": "construction-guide",
+   "kind": "neg"
+  },
+  "47": {
+   "skill": "construction-guide",
+   "kind": "neg"
+  },
+  "48": {
+   "skill": "pe-review",
+   "kind": "neg"
+  },
+  "49": {
+   "skill": "construction-guide",
+   "kind": "neg"
+  },
+  "50": {
+   "skill": "viewport-highlighter",
+   "kind": "neg"
+  },
+  "51": {
+   "skill": "viewport-highlighter",
+   "kind": "pos"
+  },
+  "52": {
+   "skill": "rfi-drafter",
+   "kind": "pos"
+  },
+  "53": {
+   "skill": "pe-review",
+   "kind": "pos"
+  },
+  "54": {
+   "skill": "spec-splitter",
+   "kind": "neg"
+  },
+  "55": {
+   "skill": "spec-splitter",
+   "kind": "pos"
+  },
+  "56": {
+   "skill": "rfi-drafter",
+   "kind": "neg"
+  },
+  "57": {
+   "skill": "viewport-highlighter",
+   "kind": "neg"
+  },
+  "58": {
+   "skill": "spec-splitter",
+   "kind": "neg"
+  },
+  "59": {
+   "skill": "rfi-drafter",
+   "kind": "pos"
+  },
+  "60": {
+   "skill": "spec-splitter",
+   "kind": "neg"
+  },
+  "61": {
+   "skill": "construction-guide",
+   "kind": "pos"
+  },
+  "62": {
+   "skill": "construction-guide",
+   "kind": "pos"
+  },
+  "63": {
+   "skill": "pe-review",
+   "kind": "pos"
+  },
+  "64": {
+   "skill": "spec-splitter",
+   "kind": "neg"
+  },
+  "65": {
+   "skill": "rfi-drafter",
+   "kind": "pos"
+  },
+  "66": {
+   "skill": "construction-guide",
+   "kind": "pos"
+  },
+  "67": {
+   "skill": "spec-splitter",
+   "kind": "pos"
+  },
+  "68": {
+   "skill": "viewport-highlighter",
+   "kind": "pos"
+  },
+  "69": {
+   "skill": "viewport-highlighter",
+   "kind": "neg"
+  },
+  "70": {
+   "skill": "pe-review",
+   "kind": "pos"
+  },
+  "71": {
+   "skill": "construction-guide",
+   "kind": "pos"
+  },
+  "72": {
+   "skill": "code-researcher",
+   "kind": "neg"
+  },
+  "73": {
+   "skill": "construction-guide",
+   "kind": "pos"
+  },
+  "74": {
+   "skill": "spec-splitter",
+   "kind": "pos"
+  },
+  "75": {
+   "skill": "construction-guide",
+   "kind": "neg"
+  },
+  "76": {
+   "skill": "spec-splitter",
+   "kind": "pos"
+  },
+  "77": {
+   "skill": "spec-splitter",
+   "kind": "neg"
+  },
+  "78": {
+   "skill": "rfi-drafter",
+   "kind": "pos"
+  },
+  "79": {
+   "skill": "code-researcher",
+   "kind": "neg"
+  },
+  "80": {
+   "skill": "viewport-highlighter",
+   "kind": "pos"
+  },
+  "81": {
+   "skill": "construction-guide",
+   "kind": "neg"
+  },
+  "82": {
+   "skill": "code-researcher",
+   "kind": "neg"
+  },
+  "83": {
+   "skill": "rfi-drafter",
+   "kind": "neg"
+  },
+  "84": {
+   "skill": "code-researcher",
+   "kind": "pos"
+  },
+  "85": {
+   "skill": "spec-splitter",
+   "kind": "neg"
+  },
+  "86": {
+   "skill": "viewport-highlighter",
+   "kind": "neg"
+  },
+  "87": {
+   "skill": "viewport-highlighter",
+   "kind": "neg"
+  },
+  "88": {
+   "skill": "spec-splitter",
+   "kind": "neg"
+  },
+  "89": {
+   "skill": "rfi-drafter",
+   "kind": "neg"
+  },
+  "90": {
+   "skill": "spec-splitter",
+   "kind": "neg"
+  },
+  "91": {
+   "skill": "viewport-highlighter",
+   "kind": "pos"
+  },
+  "92": {
+   "skill": "spec-splitter",
+   "kind": "neg"
+  },
+  "93": {
+   "skill": "spec-splitter",
+   "kind": "pos"
+  },
+  "94": {
+   "skill": "construction-guide",
+   "kind": "pos"
+  },
+  "95": {
+   "skill": "code-researcher",
+   "kind": "neg"
+  },
+  "96": {
+   "skill": "rfi-drafter",
+   "kind": "neg"
+  },
+  "97": {
+   "skill": "viewport-highlighter",
+   "kind": "pos"
+  },
+  "98": {
+   "skill": "pe-review",
+   "kind": "neg"
+  },
+  "99": {
+   "skill": "rfi-drafter",
+   "kind": "neg"
+  },
+  "100": {
+   "skill": "viewport-highlighter",
+   "kind": "pos"
+  },
+  "101": {
+   "skill": "construction-guide",
+   "kind": "neg"
+  },
+  "102": {
+   "skill": "code-researcher",
+   "kind": "pos"
+  },
+  "103": {
+   "skill": "pe-review",
+   "kind": "neg"
+  },
+  "104": {
+   "skill": "pe-review",
+   "kind": "neg"
+  },
+  "105": {
+   "skill": "code-researcher",
+   "kind": "neg"
+  },
+  "106": {
+   "skill": "code-researcher",
+   "kind": "pos"
+  },
+  "107": {
+   "skill": "construction-guide",
+   "kind": "pos"
+  },
+  "108": {
+   "skill": "rfi-drafter",
+   "kind": "pos"
+  },
+  "109": {
+   "skill": "code-researcher",
+   "kind": "pos"
+  },
+  "110": {
+   "skill": "rfi-drafter",
+   "kind": "neg"
+  },
+  "111": {
+   "skill": "pe-review",
+   "kind": "pos"
+  },
+  "112": {
+   "skill": "code-researcher",
+   "kind": "neg"
+  },
+  "113": {
+   "skill": "rfi-drafter",
+   "kind": "pos"
+  },
+  "114": {
+   "skill": "viewport-highlighter",
+   "kind": "pos"
+  },
+  "115": {
+   "skill": "code-researcher",
+   "kind": "pos"
+  },
+  "116": {
+   "skill": "code-researcher",
+   "kind": "pos"
+  },
+  "117": {
+   "skill": "spec-splitter",
+   "kind": "pos"
+  },
+  "118": {
+   "skill": "pe-review",
+   "kind": "neg"
+  },
+  "119": {
+   "skill": "code-researcher",
+   "kind": "neg"
+  },
+  "120": {
+   "skill": "pe-review",
+   "kind": "pos"
+  }
+ },
+ "listing_current": [
+  "- construction:code-researcher: Scope-specific code gap analysis — extracts referenced codes from project docs, researches what should apply, surfaces the delta. Triggers: 'code research', 'what codes apply', 'code check', 'ADA requirements', 'egress'.",
+  "- construction:construction-guide: Operating guide for construction project documents — load before reading drawings, specs, schedules, RFIs, submittals or bids. Data-access rules (never read PDFs directly; rasterize first), AgentCM graph-guided vision, drawing and cross-reference conventions, document precedence. Triggers: 'construction project', 'drawings', 'specs', 'sheet', 'RFI', 'submittal'.",
+  "- construction:pe-review: Construction document review with PE judgment — RFI research, submittal analysis, coordination checking, scope gap detection. Use when reviewing drawings, specs, submittals, or RFIs. Triggers: 'review', 'coordination', 'what's missing'.",
+  "- construction:rfi-drafter: Draft RFIs and manage the ambient issue registry. Reviews issues surfaced by other skills, escalates to formal RFIs. Triggers: 'draft RFI', 'write RFI', 'drawing conflict', 'review issues', 'issue queue'.",
+  "- construction:spec-splitter: Split a bound project manual PDF into individual spec section PDFs and extract searchable text. Triggers: 'split specs', 'break up the project manual', 'separate spec sections', 'extract spec text'. Prerequisite for /submittal-log-generator.",
+  "- construction:viewport-highlighter: Identify and highlight viewports on construction drawing sheets using vision. Detects view boundaries, titles, scales, and view types. Creates viewport overlays via AgentCM API. Requires AgentCM (.construction/project.yaml). Triggers: 'highlight viewports', 'find views'.",
+  "- anthropic-skills:pdf: Use this skill whenever the user wants to do anything with PDF files. This includes reading or extracting text/tables from PDFs, combining or merging multiple PDFs into one, splitting PDFs apart, rotating pages, adding watermarks, creating new PDFs, filling PDF forms, encrypting/decrypting PDFs, extracting images, and OCR on scanned PDFs to make them searchable. If the user mentions a .pdf file or asks to produce one, use this skill.",
+  "- anthropic-skills:xlsx: Use this skill any time a spreadsheet file is the primary input or output. This means any task where the user wants to: open, read, edit, or fix an existing .xlsx, .xlsm, .xltx, .csv, or .tsv file; create a new spreadsheet from scratch or from other data sources; or convert between tabular file formats.",
+  "- anthropic-skills:docx: Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx) or Word templates (.dotx). If the user asks for a deliverable as a Word or .docx file, use this skill.",
+  "- code-review: Review the current diff, or a PR number/branch/path target, for correctness bugs at the given effort level."
+ ],
+ "listing_rewritten": [
+  "- construction:code-researcher: Researches which building codes, accessibility standards and authority requirements (health department, fire marshal, state agency) apply to a scope or spec section, and which the project documents miss. Use for 'what codes apply', 'code check', 'ADA requirements', 'egress', 'health department'. Not for reading what the drawings or specs say (construction-guide).",
+  "- construction:construction-guide: Load before opening any drawing, spec, schedule, submittal, RFI or bid in a construction project, alongside any other construction skill: how to read the PDFs (rasterize; not the Read tool), document precedence, citation format, where skills write. Not needed for general construction questions that open no project file.",
+  "- construction:pe-review: Checks construction drawings and specs for what's missing, cross-trade coordination conflicts and scope gaps, with PE judgment. Use for 'what's missing', 'check coordination', 'scope gap', or researching an RFI before answering it. Not for drafting RFIs (rfi-drafter), code research (code-researcher) or reviewing a submittal package (the user runs /construction:submittal-review).",
+  "- construction:rfi-drafter: Drafts an RFI for the user to review, from a logged issue or a conflict the user describes, in the firm's template or a generic format; never sends it. Also lists and triages the issue queue other skills log. Use for 'draft an RFI', 'write an RFI', 'issue queue'. Not for finding conflicts (pe-review).",
+  "- construction:spec-splitter: Split a bound project manual PDF into individual spec section PDFs and extract searchable text. Triggers: 'split specs', 'break up the project manual', 'separate spec sections', 'extract spec text'. Prerequisite for /submittal-log-generator.",
+  "- construction:viewport-highlighter: Identify and highlight viewports on construction drawing sheets using vision. Detects view boundaries, titles, scales, and view types. Creates viewport overlays via AgentCM API. Requires AgentCM (.construction/project.yaml). Triggers: 'highlight viewports', 'find views'.",
+  "- anthropic-skills:pdf: Use this skill whenever the user wants to do anything with PDF files. This includes reading or extracting text/tables from PDFs, combining or merging multiple PDFs into one, splitting PDFs apart, rotating pages, adding watermarks, creating new PDFs, filling PDF forms, encrypting/decrypting PDFs, extracting images, and OCR on scanned PDFs to make them searchable. If the user mentions a .pdf file or asks to produce one, use this skill.",
+  "- anthropic-skills:xlsx: Use this skill any time a spreadsheet file is the primary input or output. This means any task where the user wants to: open, read, edit, or fix an existing .xlsx, .xlsm, .xltx, .csv, or .tsv file; create a new spreadsheet from scratch or from other data sources; or convert between tabular file formats.",
+  "- anthropic-skills:docx: Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx) or Word templates (.dotx). If the user asks for a deliverable as a Word or .docx file, use this skill.",
+  "- code-review: Review the current diff, or a PR number/branch/path target, for correctness bugs at the given effort level."
+ ],
+ "answers": {
+  "current_sonnet": {
+   "1": [
+    "construction:rfi-drafter"
+   ],
+   "2": [
+    "construction:construction-guide"
+   ],
+   "3": [],
+   "4": [
+    "construction:spec-splitter"
+   ],
+   "5": [
+    "construction:code-researcher"
+   ],
+   "6": [
+    "anthropic-skills:pdf"
+   ],
+   "7": [
+    "construction:rfi-drafter"
+   ],
+   "8": [],
+   "9": [
+    "construction:construction-guide"
+   ],
+   "10": [
+    "construction:code-researcher"
+   ],
+   "11": [
+    "construction:code-researcher"
+   ],
+   "12": [
+    "construction:viewport-highlighter"
+   ],
+   "13": [
+    "construction:spec-splitter"
+   ],
+   "14": [
+    "construction:spec-splitter"
+   ],
+   "15": [
+    "construction:pe-review"
+   ],
+   "16": [],
+   "17": [
+    "construction:pe-review"
+   ],
+   "18": [
+    "construction:pe-review"
+   ],
+   "19": [
+    "construction:construction-guide"
+   ],
+   "20": [
+    "construction:viewport-highlighter"
+   ],
+   "21": [
+    "anthropic-skills:xlsx"
+   ],
+   "22": [],
+   "23": [
+    "construction:construction-guide"
+   ],
+   "24": [
+    "construction:viewport-highlighter"
+   ],
+   "25": [
+    "construction:pe-review"
+   ],
+   "26": [
+    "construction:pe-review"
+   ],
+   "27": [
+    "construction:spec-splitter"
+   ],
+   "28": [
+    "anthropic-skills:pdf"
+   ],
+   "29": [
+    "construction:construction-guide"
+   ],
+   "30": [
+    "anthropic-skills:docx"
+   ],
+   "31": [
+    "construction:viewport-highlighter"
+   ],
+   "32": [
+    "construction:code-researcher"
+   ],
+   "33": [
+    "anthropic-skills:xlsx"
+   ],
+   "34": [
+    "construction:pe-review"
+   ],
+   "35": [
+    "anthropic-skills:pdf"
+   ],
+   "36": [
+    "construction:rfi-drafter"
+   ],
+   "37": [
+    "construction:rfi-drafter"
+   ],
+   "38": [
+    "construction:rfi-drafter"
+   ],
+   "39": [],
+   "40": [
+    "anthropic-skills:docx"
+   ],
+   "41": [
+    "construction:construction-guide"
+   ],
+   "42": [
+    "anthropic-skills:pdf"
+   ],
+   "43": [],
+   "44": [
+    "construction:spec-splitter"
+   ],
+   "45": [
+    "construction:construction-guide"
+   ],
+   "46": [],
+   "47": [
+    "anthropic-skills:xlsx"
+   ],
+   "48": [],
+   "49": [],
+   "50": [
+    "anthropic-skills:pdf"
+   ],
+   "51": [
+    "construction:viewport-highlighter"
+   ],
+   "52": [
+    "construction:rfi-drafter"
+   ],
+   "53": [
+    "construction:pe-review"
+   ],
+   "54": [
+    "construction:pe-review"
+   ],
+   "55": [
+    "construction:spec-splitter"
+   ],
+   "56": [
+    "construction:code-researcher"
+   ],
+   "57": [],
+   "58": [
+    "anthropic-skills:pdf"
+   ],
+   "59": [
+    "construction:rfi-drafter"
+   ],
+   "60": [
+    "anthropic-skills:pdf"
+   ],
+   "61": [
+    "construction:construction-guide"
+   ],
+   "62": [
+    "construction:construction-guide"
+   ],
+   "63": [
+    "construction:pe-review"
+   ],
+   "64": [
+    "construction:construction-guide"
+   ],
+   "65": [
+    "construction:rfi-drafter"
+   ],
+   "66": [
+    "construction:pe-review"
+   ],
+   "67": [
+    "construction:spec-splitter"
+   ],
+   "68": [
+    "construction:viewport-highlighter"
+   ],
+   "69": [
+    "construction:construction-guide"
+   ],
+   "70": [
+    "construction:pe-review"
+   ],
+   "71": [
+    "construction:construction-guide"
+   ],
+   "72": [
+    "construction:pe-review"
+   ],
+   "73": [
+    "construction:construction-guide"
+   ],
+   "74": [
+    "construction:spec-splitter"
+   ],
+   "75": [],
+   "76": [
+    "construction:spec-splitter"
+   ],
+   "77": [
+    "anthropic-skills:xlsx"
+   ],
+   "78": [
+    "construction:rfi-drafter"
+   ],
+   "79": [
+    "construction:viewport-highlighter"
+   ],
+   "80": [
+    "construction:viewport-highlighter"
+   ],
+   "81": [],
+   "82": [],
+   "83": [
+    "construction:pe-review"
+   ],
+   "84": [
+    "construction:code-researcher"
+   ],
+   "85": [],
+   "86": [
+    "construction:construction-guide"
+   ],
+   "87": [
+    "construction:construction-guide"
+   ],
+   "88": [
+    "anthropic-skills:pdf"
+   ],
+   "89": [
+    "construction:pe-review"
+   ],
+   "90": [],
+   "91": [
+    "construction:viewport-highlighter"
+   ],
+   "92": [
+    "anthropic-skills:pdf"
+   ],
+   "93": [
+    "construction:spec-splitter"
+   ],
+   "94": [
+    "construction:construction-guide"
+   ],
+   "95": [],
+   "96": [],
+   "97": [
+    "construction:viewport-highlighter"
+   ],
+   "98": [
+    "code-review"
+   ],
+   "99": [
+    "anthropic-skills:xlsx"
+   ],
+   "100": [
+    "construction:viewport-highlighter"
+   ],
+   "101": [],
+   "102": [
+    "construction:code-researcher"
+   ],
+   "103": [],
+   "104": [
+    "construction:construction-guide",
+    "anthropic-skills:xlsx"
+   ],
+   "105": [],
+   "106": [
+    "construction:code-researcher"
+   ],
+   "107": [
+    "construction:construction-guide"
+   ],
+   "108": [
+    "construction:rfi-drafter"
+   ],
+   "109": [
+    "construction:code-researcher"
+   ],
+   "110": [],
+   "111": [
+    "construction:pe-review"
+   ],
+   "112": [
+    "construction:spec-splitter"
+   ],
+   "113": [
+    "construction:rfi-drafter"
+   ],
+   "114": [
+    "construction:viewport-highlighter"
+   ],
+   "115": [
+    "construction:code-researcher"
+   ],
+   "116": [
+    "construction:code-researcher"
+   ],
+   "117": [
+    "construction:spec-splitter"
+   ],
+   "118": [
+    "construction:rfi-drafter"
+   ],
+   "119": [
+    "construction:construction-guide"
+   ],
+   "120": [
+    "construction:pe-review"
+   ]
+  },
+  "current_opus": {
+   "1": [
+    "construction:rfi-drafter"
+   ],
+   "2": [
+    "construction:construction-guide"
+   ],
+   "3": [],
+   "4": [
+    "construction:spec-splitter"
+   ],
+   "5": [
+    "construction:code-researcher"
+   ],
+   "6": [
+    "anthropic-skills:pdf"
+   ],
+   "7": [
+    "construction:rfi-drafter"
+   ],
+   "8": [
+    "construction:construction-guide"
+   ],
+   "9": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "10": [
+    "construction:code-researcher"
+   ],
+   "11": [
+    "construction:code-researcher"
+   ],
+   "12": [
+    "construction:viewport-highlighter"
+   ],
+   "13": [
+    "construction:spec-splitter"
+   ],
+   "14": [
+    "construction:spec-splitter"
+   ],
+   "15": [
+    "construction:pe-review"
+   ],
+   "16": [],
+   "17": [
+    "construction:pe-review"
+   ],
+   "18": [
+    "construction:pe-review"
+   ],
+   "19": [
+    "construction:construction-guide"
+   ],
+   "20": [
+    "construction:viewport-highlighter"
+   ],
+   "21": [
+    "anthropic-skills:xlsx"
+   ],
+   "22": [],
+   "23": [
+    "construction:construction-guide"
+   ],
+   "24": [
+    "construction:viewport-highlighter"
+   ],
+   "25": [
+    "construction:pe-review"
+   ],
+   "26": [
+    "construction:pe-review"
+   ],
+   "27": [
+    "construction:spec-splitter"
+   ],
+   "28": [
+    "anthropic-skills:pdf"
+   ],
+   "29": [
+    "construction:construction-guide"
+   ],
+   "30": [
+    "anthropic-skills:docx"
+   ],
+   "31": [
+    "construction:viewport-highlighter"
+   ],
+   "32": [
+    "construction:code-researcher"
+   ],
+   "33": [
+    "anthropic-skills:xlsx"
+   ],
+   "34": [
+    "construction:pe-review"
+   ],
+   "35": [
+    "construction:pe-review",
+    "anthropic-skills:pdf"
+   ],
+   "36": [
+    "construction:rfi-drafter"
+   ],
+   "37": [
+    "construction:rfi-drafter"
+   ],
+   "38": [
+    "construction:rfi-drafter"
+   ],
+   "39": [],
+   "40": [
+    "anthropic-skills:docx"
+   ],
+   "41": [
+    "construction:construction-guide"
+   ],
+   "42": [
+    "anthropic-skills:pdf"
+   ],
+   "43": [],
+   "44": [
+    "construction:spec-splitter"
+   ],
+   "45": [
+    "construction:construction-guide"
+   ],
+   "46": [],
+   "47": [
+    "anthropic-skills:xlsx"
+   ],
+   "48": [],
+   "49": [],
+   "50": [
+    "anthropic-skills:pdf"
+   ],
+   "51": [
+    "construction:viewport-highlighter"
+   ],
+   "52": [
+    "construction:rfi-drafter"
+   ],
+   "53": [
+    "construction:pe-review"
+   ],
+   "54": [
+    "construction:construction-guide"
+   ],
+   "55": [
+    "construction:spec-splitter"
+   ],
+   "56": [
+    "construction:code-researcher"
+   ],
+   "57": [],
+   "58": [
+    "anthropic-skills:pdf"
+   ],
+   "59": [
+    "construction:rfi-drafter"
+   ],
+   "60": [
+    "anthropic-skills:pdf"
+   ],
+   "61": [
+    "construction:construction-guide"
+   ],
+   "62": [
+    "construction:construction-guide"
+   ],
+   "63": [
+    "construction:pe-review"
+   ],
+   "64": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "65": [
+    "construction:rfi-drafter"
+   ],
+   "66": [
+    "construction:pe-review"
+   ],
+   "67": [
+    "construction:spec-splitter"
+   ],
+   "68": [
+    "construction:viewport-highlighter"
+   ],
+   "69": [
+    "construction:construction-guide"
+   ],
+   "70": [
+    "construction:pe-review"
+   ],
+   "71": [
+    "construction:construction-guide"
+   ],
+   "72": [
+    "construction:pe-review"
+   ],
+   "73": [
+    "construction:construction-guide"
+   ],
+   "74": [
+    "construction:spec-splitter"
+   ],
+   "75": [],
+   "76": [
+    "construction:spec-splitter"
+   ],
+   "77": [
+    "anthropic-skills:xlsx"
+   ],
+   "78": [
+    "construction:rfi-drafter"
+   ],
+   "79": [
+    "construction:viewport-highlighter"
+   ],
+   "80": [
+    "construction:viewport-highlighter"
+   ],
+   "81": [],
+   "82": [
+    "construction:construction-guide"
+   ],
+   "83": [
+    "construction:pe-review"
+   ],
+   "84": [
+    "construction:code-researcher"
+   ],
+   "85": [
+    "construction:construction-guide"
+   ],
+   "86": [
+    "construction:construction-guide"
+   ],
+   "87": [
+    "construction:construction-guide"
+   ],
+   "88": [
+    "anthropic-skills:pdf"
+   ],
+   "89": [
+    "construction:pe-review"
+   ],
+   "90": [
+    "construction:construction-guide"
+   ],
+   "91": [
+    "construction:viewport-highlighter"
+   ],
+   "92": [
+    "anthropic-skills:pdf"
+   ],
+   "93": [
+    "construction:spec-splitter"
+   ],
+   "94": [
+    "construction:construction-guide"
+   ],
+   "95": [],
+   "96": [],
+   "97": [
+    "construction:viewport-highlighter"
+   ],
+   "98": [
+    "code-review"
+   ],
+   "99": [
+    "anthropic-skills:xlsx"
+   ],
+   "100": [
+    "construction:viewport-highlighter"
+   ],
+   "101": [],
+   "102": [
+    "construction:code-researcher"
+   ],
+   "103": [],
+   "104": [
+    "construction:construction-guide",
+    "anthropic-skills:xlsx"
+   ],
+   "105": [],
+   "106": [
+    "construction:code-researcher"
+   ],
+   "107": [
+    "construction:construction-guide"
+   ],
+   "108": [
+    "construction:rfi-drafter"
+   ],
+   "109": [
+    "construction:code-researcher"
+   ],
+   "110": [
+    "construction:construction-guide"
+   ],
+   "111": [
+    "construction:pe-review"
+   ],
+   "112": [
+    "construction:spec-splitter"
+   ],
+   "113": [
+    "construction:rfi-drafter"
+   ],
+   "114": [
+    "construction:viewport-highlighter"
+   ],
+   "115": [
+    "construction:code-researcher"
+   ],
+   "116": [
+    "construction:code-researcher"
+   ],
+   "117": [
+    "construction:spec-splitter"
+   ],
+   "118": [
+    "construction:rfi-drafter"
+   ],
+   "119": [
+    "construction:construction-guide"
+   ],
+   "120": [
+    "construction:pe-review"
+   ]
+  },
+  "rewritten_sonnet": {
+   "1": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "2": [
+    "construction:construction-guide"
+   ],
+   "3": [],
+   "4": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "5": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "6": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "7": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "8": [],
+   "9": [
+    "construction:construction-guide"
+   ],
+   "10": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "11": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "12": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "13": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "14": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "15": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "16": [],
+   "17": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "18": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "19": [
+    "construction:construction-guide"
+   ],
+   "20": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "21": [
+    "anthropic-skills:xlsx"
+   ],
+   "22": [],
+   "23": [
+    "construction:construction-guide"
+   ],
+   "24": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "25": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "26": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "27": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "28": [
+    "anthropic-skills:pdf"
+   ],
+   "29": [
+    "construction:construction-guide"
+   ],
+   "30": [
+    "anthropic-skills:docx"
+   ],
+   "31": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "32": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "33": [
+    "anthropic-skills:xlsx"
+   ],
+   "34": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "35": [
+    "construction:construction-guide"
+   ],
+   "36": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "37": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "38": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "39": [],
+   "40": [
+    "construction:construction-guide",
+    "anthropic-skills:docx"
+   ],
+   "41": [
+    "construction:construction-guide"
+   ],
+   "42": [
+    "anthropic-skills:pdf"
+   ],
+   "43": [],
+   "44": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "45": [
+    "construction:construction-guide"
+   ],
+   "46": [],
+   "47": [
+    "anthropic-skills:xlsx"
+   ],
+   "48": [
+    "construction:code-researcher"
+   ],
+   "49": [],
+   "50": [
+    "anthropic-skills:pdf"
+   ],
+   "51": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "52": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "53": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "54": [
+    "construction:construction-guide"
+   ],
+   "55": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "56": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "57": [],
+   "58": [
+    "anthropic-skills:pdf"
+   ],
+   "59": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "60": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "61": [
+    "construction:construction-guide"
+   ],
+   "62": [
+    "construction:construction-guide"
+   ],
+   "63": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "64": [
+    "construction:construction-guide"
+   ],
+   "65": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "66": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "67": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "68": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "69": [
+    "construction:construction-guide"
+   ],
+   "70": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "71": [
+    "construction:construction-guide"
+   ],
+   "72": [
+    "construction:construction-guide"
+   ],
+   "73": [
+    "construction:construction-guide"
+   ],
+   "74": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "75": [],
+   "76": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "77": [
+    "anthropic-skills:xlsx"
+   ],
+   "78": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "79": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "80": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "81": [],
+   "82": [],
+   "83": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "84": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "85": [],
+   "86": [
+    "construction:construction-guide"
+   ],
+   "87": [
+    "construction:construction-guide"
+   ],
+   "88": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "89": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "90": [
+    "construction:construction-guide"
+   ],
+   "91": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "92": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "93": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "94": [
+    "construction:construction-guide"
+   ],
+   "95": [],
+   "96": [],
+   "97": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "98": [
+    "code-review"
+   ],
+   "99": [
+    "anthropic-skills:xlsx"
+   ],
+   "100": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "101": [],
+   "102": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "103": [],
+   "104": [
+    "construction:construction-guide",
+    "anthropic-skills:xlsx"
+   ],
+   "105": [],
+   "106": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "107": [
+    "construction:construction-guide"
+   ],
+   "108": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "109": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "110": [],
+   "111": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "112": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "113": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "114": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "115": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "116": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "117": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "118": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "119": [
+    "construction:construction-guide"
+   ],
+   "120": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ]
+  },
+  "rewritten_opus": {
+   "1": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "2": [
+    "construction:construction-guide"
+   ],
+   "3": [],
+   "4": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "5": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "6": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "7": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "8": [
+    "construction:construction-guide"
+   ],
+   "9": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "10": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "11": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "12": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "13": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "14": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "15": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "16": [],
+   "17": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "18": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "19": [
+    "construction:construction-guide"
+   ],
+   "20": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "21": [
+    "anthropic-skills:xlsx"
+   ],
+   "22": [],
+   "23": [
+    "construction:construction-guide"
+   ],
+   "24": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "25": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "26": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "27": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "28": [
+    "anthropic-skills:pdf"
+   ],
+   "29": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "30": [
+    "anthropic-skills:docx"
+   ],
+   "31": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "32": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "33": [
+    "anthropic-skills:xlsx"
+   ],
+   "34": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "35": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "36": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "37": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "38": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "39": [],
+   "40": [
+    "construction:construction-guide",
+    "construction:rfi-drafter",
+    "anthropic-skills:docx"
+   ],
+   "41": [
+    "construction:construction-guide"
+   ],
+   "42": [
+    "anthropic-skills:pdf"
+   ],
+   "43": [],
+   "44": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "45": [
+    "construction:construction-guide"
+   ],
+   "46": [],
+   "47": [
+    "anthropic-skills:xlsx"
+   ],
+   "48": [],
+   "49": [],
+   "50": [
+    "anthropic-skills:pdf"
+   ],
+   "51": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "52": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "53": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "54": [
+    "construction:construction-guide"
+   ],
+   "55": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "56": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "57": [],
+   "58": [
+    "anthropic-skills:pdf"
+   ],
+   "59": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "60": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "61": [
+    "construction:construction-guide"
+   ],
+   "62": [
+    "construction:construction-guide"
+   ],
+   "63": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "64": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "65": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "66": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "67": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "68": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "69": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "70": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "71": [
+    "construction:construction-guide"
+   ],
+   "72": [
+    "construction:construction-guide"
+   ],
+   "73": [
+    "construction:construction-guide"
+   ],
+   "74": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "75": [],
+   "76": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "77": [
+    "anthropic-skills:xlsx"
+   ],
+   "78": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "79": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "80": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "81": [],
+   "82": [],
+   "83": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "84": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "85": [
+    "construction:construction-guide"
+   ],
+   "86": [
+    "construction:construction-guide"
+   ],
+   "87": [
+    "construction:construction-guide"
+   ],
+   "88": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "89": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "90": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "91": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "92": [
+    "construction:construction-guide",
+    "anthropic-skills:pdf"
+   ],
+   "93": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "94": [
+    "construction:construction-guide"
+   ],
+   "95": [],
+   "96": [],
+   "97": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "98": [
+    "code-review"
+   ],
+   "99": [
+    "construction:construction-guide",
+    "anthropic-skills:xlsx"
+   ],
+   "100": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "101": [],
+   "102": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "103": [],
+   "104": [
+    "construction:construction-guide",
+    "anthropic-skills:xlsx"
+   ],
+   "105": [],
+   "106": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "107": [
+    "construction:construction-guide"
+   ],
+   "108": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "109": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "110": [
+    "construction:construction-guide"
+   ],
+   "111": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ],
+   "112": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "113": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "114": [
+    "construction:construction-guide",
+    "construction:viewport-highlighter"
+   ],
+   "115": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "116": [
+    "construction:construction-guide",
+    "construction:code-researcher"
+   ],
+   "117": [
+    "construction:construction-guide",
+    "construction:spec-splitter"
+   ],
+   "118": [
+    "construction:construction-guide",
+    "construction:rfi-drafter"
+   ],
+   "119": [
+    "construction:construction-guide"
+   ],
+   "120": [
+    "construction:construction-guide",
+    "construction:pe-review"
+   ]
+  }
+ },
+ "scores": {
+  "current_sonnet": {
+   "code-researcher": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "construction-guide": {
+    "misses": 1,
+    "false_triggers": 0
+   },
+   "pe-review": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "rfi-drafter": {
+    "misses": 1,
+    "false_triggers": 0
+   },
+   "spec-splitter": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "viewport-highlighter": {
+    "misses": 0,
+    "false_triggers": 0
+   }
+  },
+  "current_opus": {
+   "code-researcher": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "construction-guide": {
+    "misses": 1,
+    "false_triggers": 0
+   },
+   "pe-review": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "rfi-drafter": {
+    "misses": 1,
+    "false_triggers": 0
+   },
+   "spec-splitter": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "viewport-highlighter": {
+    "misses": 0,
+    "false_triggers": 0
+   }
+  },
+  "rewritten_sonnet": {
+   "code-researcher": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "construction-guide": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "pe-review": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "rfi-drafter": {
+    "misses": 1,
+    "false_triggers": 0
+   },
+   "spec-splitter": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "viewport-highlighter": {
+    "misses": 0,
+    "false_triggers": 0
+   }
+  },
+  "rewritten_opus": {
+   "code-researcher": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "construction-guide": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "pe-review": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "rfi-drafter": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "spec-splitter": {
+    "misses": 0,
+    "false_triggers": 0
+   },
+   "viewport-highlighter": {
+    "misses": 0,
+    "false_triggers": 0
+   }
+  }
+ }
+}
