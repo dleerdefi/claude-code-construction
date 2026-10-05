@@ -67,7 +67,7 @@ If no index or graph is available:
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 150 --output full_sheet.png
 ```
 
-Use vision on the full sheet image: "Identify any tabular schedules on this drawing sheet. Report the approximate bounding box coordinates (top-left x,y and bottom-right x,y) as percentages of the image dimensions, the schedule type, and the column headers visible."
+Use vision on the full sheet image: "Identify any tabular schedules on this drawing sheet. Report the approximate bounding box (top-left x,y and bottom-right x,y) as fractions of the image width and height between 0 and 1, the schedule type, and the column headers visible."
 
 ### Step 2: Isolate the Schedule Region
 
@@ -75,19 +75,23 @@ Use vision on the full sheet image: "Identify any tabular schedules on this draw
 
 **For embedded schedules** (schedule is one element on a larger sheet):
 
-Crop the identified region with padding:
+Crop the identified region with padding. The box is the 0–1 fractions from
+Step 1, so `--normalized` is required; without it the script reads the values
+as pixels and returns an empty crop:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" full_sheet.png \
-  --box {x1},{y1},{x2},{y2} \
+  --box {x1},{y1},{x2},{y2} --normalized \
   --padding 20 \
   --output schedule_crop.png
 ```
 
-Re-rasterize at higher DPI (300) for the cropped region to improve text clarity:
+Re-rasterize at higher DPI (300) for the cropped region to improve text clarity.
+`rasterize_page.py --crop` takes percentages, so multiply each fraction by 100
+(`0.62,0.08,0.98,0.45` becomes `62,8,98,45`):
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} \
   --dpi 300 \
-  --crop {x1},{y1},{x2},{y2} \
+  --crop {x1_pct},{y1_pct},{x2_pct},{y2_pct} \
   --output schedule_hires.png
 ```
 
