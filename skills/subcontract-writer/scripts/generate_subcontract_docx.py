@@ -37,7 +37,11 @@ def check_money(scope):
     for n, li in enumerate(items, 1):
         qty, rate, amount = _num(li.get("quantity")), _num(li.get("rate")), _num(li.get("amount"))
         if amount is None:
-            problems.append(f"line {n} ({li.get('spec', '')}): no numeric amount")
+            # "Included", "No charge", an allowance stated in words: not an error by itself,
+            # but it carries nothing into the sum, so the remaining lines must still reach
+            # the contract value.
+            print(f"NOTE: line {n} ({li.get('spec', '')}): amount {li.get('amount')!r} is not a number; "
+                  "excluded from the sum")
             continue
         total += amount
         if qty is not None and rate is not None and abs(qty * rate - amount) > 0.01:

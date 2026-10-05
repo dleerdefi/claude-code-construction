@@ -369,7 +369,7 @@ Raw structured data for downstream use and eval scoring:
 }
 ```
 
-Keep numeric values as raw numbers in scope_data.json (eval scorer uses these). The generator checks the money before writing anything: every line's quantity × rate must equal its amount and the lines must sum to `contract_value`, or it exits 2 and lists the mismatches. You do not need to verify the arithmetic yourself; write the files with the Write tool (no helper script, no shell heredoc) and run the generator.
+Keep numeric values as raw numbers in scope_data.json (eval scorer uses these). The generator checks the money before writing anything: every line's quantity × rate must equal its amount and the lines must sum to `contract_value`, or it exits 2 and lists the mismatches. You do not need to verify the arithmetic yourself; write the files with the Write tool (no helper script, no shell heredoc) and run the generator. A line whose amount is words ("Included", "No charge") is noted and left out of the sum; if the remaining lines then do not reach `contract_value`, the bid's money is unresolved and the contract cannot be written until the sub confirms it. `[GC TO CONFIRM]` is for prose fields such as the LD rate, never for a line amount or the contract sum.
 
 ### template_data.json
 

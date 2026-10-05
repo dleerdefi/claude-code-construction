@@ -185,7 +185,7 @@ After generating the Excel:
 - **[Y] qualifications/exclusions** across all bidders (see Exclusions tab)
 - **[Z] bids** had unclear values that are flagged with [unclear] notes
 
-The Excel file is at [path]. All line items are extracted as-submitted — you'll want to review the Scope Gaps tab and contact subs to clarify any discrepancies before finalizing your comparison."
+The Excel file is at [path]. All line items are extracted as-submitted — you'll want to review the Flags tab (math discrepancies, unclear values) and the Scope Gaps tab, and contact subs to clarify any discrepancies before finalizing your comparison."
 
 ### Step 6: Write Graph Entry
 
