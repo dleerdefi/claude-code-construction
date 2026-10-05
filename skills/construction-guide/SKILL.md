@@ -20,7 +20,7 @@ If `.construction/INDEX.md` exists, AgentCM has written this project's drawings 
 
 **Core principle:** AgentCM = navigation brain + context layer. Vision = eyes.
 
-Skills always use vision for actual reading of drawings. When AgentCM structured data is available (`.construction/` directory), it tells skills WHAT to read, WHERE, and WHY — then vision does the actual reading with full context. Without AgentCM, skills use unguided vision and discover everything from scratch.
+Skills always use vision for actual reading of drawings. When AgentCM structured data is available (`.construction/project.yaml` exists), it tells skills WHAT to read, WHERE, and WHY — then vision does the actual reading with full context. Without AgentCM, skills use unguided vision and discover everything from scratch.
 
 ### Mandatory Data Access Rules
 
@@ -34,7 +34,7 @@ Skills always use vision for actual reading of drawings. When AgentCM structured
 Check for `.construction/project.yaml` in the project root — AgentCM writes it. A `.construction/` folder alone is not enough: this plugin keeps its own working data in `.construction/skills/` in every project.
 If present, read `.construction/CLAUDE.md` for project-specific navigation.
 
-The `.construction/` directory provides:
+With AgentCM present, `.construction/` provides:
 ```
 .construction/
 ├── project.yaml                          # Project config (name, number, location, calibration)

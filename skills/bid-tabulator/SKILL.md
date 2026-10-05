@@ -27,7 +27,7 @@ Ask the user for:
 2. **Scope description** — what trade/division is being bought out (e.g., "Division 09 - Finishes", "Structural Steel")
 3. **Any specific data points** the user wants extracted beyond the defaults
 
-If project context is available (`.construction/` directory), read `project.yaml` for project name/number to include in the workbook header.
+If `.construction/project.yaml` exists (AgentCM writes it; a `.construction/` folder alone only holds this plugin's own working data), read it for the project name/number to include in the workbook header. Otherwise take them from the bid documents or ask.
 
 ## Pipeline Position
 ```
