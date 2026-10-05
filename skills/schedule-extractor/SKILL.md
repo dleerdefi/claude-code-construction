@@ -101,7 +101,11 @@ Use a **try → validate → fallback** approach:
 
 #### Method A — pdfplumber table extraction (try first)
 
-Use pdfplumber's `extract_tables()` method on the target page. If multiple tables are found, select the largest one (most rows with the most columns — schedules are wide). The first row of the selected table contains headers; subsequent rows are data. If no tables are found or results look garbled, fall back to vision (Method B).
+Extract the page's tables with the shared script (its JSON holds `text` and `tables`; add `--bbox x1,y1,x2,y2` in PDF points to limit it to the schedule region):
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py" "{pdf_path}" {page} --output tables.json
+```
+If multiple tables are found, select the largest one (most rows with the most columns — schedules are wide). The first row of the selected table contains headers; subsequent rows are data. If no tables are found or results look garbled, fall back to vision (Method B). Do not write pdfplumber code of your own.
 
 #### Evaluate Method A — Quality Gate
 
@@ -350,6 +354,7 @@ Never overwrite an existing schedule extraction. The export script uses `safe_ou
 ## Allowed Scripts
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py` — Method A table extraction (pdfplumber)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision extraction
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — crop schedule region from full sheet image
 - `scripts/schedule_to_xlsx.py` — Excel export with reconciliation anchors

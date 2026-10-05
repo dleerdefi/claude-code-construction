@@ -49,14 +49,18 @@ Bid Tabulation Progress:
 
 ### Step 2: Read First Bid to Discover Structure
 
-Open the first bid PDF to understand what data is available:
-
-Try pdfplumber first. If text extraction returns meaningful content (>50 chars per page), use text mode. Otherwise fall back to vision.
-
-**Vision fallback** for scanned bids:
+Open the first bid PDF to understand what data is available. Dump its text layer
+first; the script marks each page TEXT or VISION (fewer than 50 characters):
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "BID.pdf"
+```
+Read TEXT pages from the dump. Rasterize each VISION page (scanned bids show
+VISION on every page) and read it with vision:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "BID.pdf" 1 --dpi 200 --output bid_page.png
 ```
+Do not write your own extraction code (no `python -c`, no helper script); the
+two scripts above are the whole reading toolkit for this skill.
 
 From the first bid, identify what data fields are present. Common bid data:
 
@@ -105,14 +109,14 @@ insurance_confirmed: false
 
 Process each bid PDF individually. For each bid:
 
-1. **Extract text** via pdfplumber (preferred) or vision (fallback)
-2. **Quality gate**: If pdfplumber returns less than 100 characters per page, switch to vision for that bid
+1. **Extract text** with `pdf_text.py` (Step 2 command); read TEXT pages from the dump
+2. **Quality gate**: rasterize every page the dump marks VISION and read it with vision
 3. **Extract all identified fields** from the bid document
 4. **Preserve original language** — do NOT paraphrase, normalize, or reformat line item descriptions. Extract them exactly as written in the bid.
 5. **Flag ambiguities** — if a value is unclear or could be interpreted multiple ways, include it with a note in brackets: `[unclear: possibly $45,000 or $45/SF]`
-6. **Save per-bid JSON** to `.construction/skills/bid-tabulator/bids/{company_name_slug}.json`
+6. **Save per-bid JSON** to `.construction/skills/bid-tabulator/bids/{company_name_slug}.json` with the Write tool, one file per bid (not through a script, and not with a shell heredoc: `cat > file <<'EOF'` fails here when the content holds an apostrophe)
 
-**State persistence** — write progress after each bid:
+**State persistence** — write `extraction_state.yaml` after each bid, every run, so an interrupted run resumes:
 ```yaml
 # .construction/skills/bid-tabulator/extraction_state.yaml
 scope: "Division 09 - Finishes"
@@ -207,6 +211,7 @@ Never overwrite an existing bid comparison. If a file exists at the target locat
 ## Allowed Scripts
 
 - `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py`
 - `${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`

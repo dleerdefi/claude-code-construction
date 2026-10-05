@@ -76,7 +76,11 @@ Run a separate extraction pass for each slot. Write extracted data to `scope_dat
 
 ### Slot B Extraction (Bid Document) — Run First
 
-Read the bid PDF using vision. Extract every field below. Mark any field not found as `MISSING` — do not infer or estimate.
+Dump the bid's text first; read TEXT pages from the dump and rasterize VISION pages for vision reading:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "{bid.pdf}"
+```
+Extract every field below. Mark any field not found as `MISSING` — do not infer or estimate.
 
 **Commercial data:**
 - Subcontractor company name (exact legal name from letterhead)
@@ -98,7 +102,10 @@ Read the bid PDF using vision. Extract every field below. Mark any field not fou
 
 ### Slot A Extraction (Template)
 
-**If .docx template:** Use python-docx to read headings, paragraphs, and identify article structure.
+**If .docx template:** dump it (paragraphs with their styles, then tables) and read the article structure and fill-field placeholders from the dump:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/docx_text.py" "{template.docx}"
+```
 
 **If PDF template:** Use vision to read the template. Rasterize pages if needed:
 ```bash
@@ -517,6 +524,8 @@ Never overwrite an existing subcontract. The formatter uses `safe_output_path()`
 ## Allowed Scripts
 
 - `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py` — bid and spec section text
+- `${CLAUDE_PLUGIN_ROOT}/scripts/docx_text.py` — the .docx template
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py`
 - `${CLAUDE_SKILL_DIR}/scripts/generate_subcontract_docx.py`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
