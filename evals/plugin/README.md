@@ -99,7 +99,7 @@ State of the suite as of 2026-10-02. Each case has passed once through the harne
 
 - There are no direct script tests yet for the exporters, splitters, `issue_manager.py` or the markup scripts (the "Layer 1" tests in `evals/EVAL_SUITE_PLAN.md`); the agent cases exercise them indirectly.
 - `code-researcher` runs offline in its case, so Pass 2 and 3 (code verification online) are not evaluated.
-- Most cases grade the deliverable, not the steps. A run that skips an unconditional step and still produces the right file passes (bid-evaluator skipped its spec review and bid-tabulator its resumption log on 2026-10-04, both at 1.00). The three bid cases now carry process graders for the steps those runs skipped (`reads-specs`, `extraction-state`, `no-helper-scripts`, `no-inline-python`, `text-dump-script`, `template-dump-script`); the other cases do not yet. When judging a skill's workflow, read the run's final message and trace as well as its score.
+- Most cases grade the deliverable, not the steps. A run that skips an unconditional step and still produces the right file passes (bid-evaluator skipped its spec review and bid-tabulator its resumption log on 2026-10-04, both at 1.00). The three bid cases now carry process graders for the steps those runs skipped (`reads-specs`, `extraction-state`, `no-helper-scripts`, `no-inline-python`, `text-dump-script`, `template-dump-script`); the other cases do not yet, and the bid cases still leave some steps ungraded (subcontract-writer reported skipping its Phase 5 placeholder and per-article checks on 2026-10-05 and passed, because the Python check covers the outcome). When judging a skill's workflow, read the run's final message and trace as well as its score.
 
 ## Writing a case
 
