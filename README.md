@@ -1,6 +1,6 @@
 # Construction Skills for Claude Code
 
-Open-source skills that give Claude Code the working knowledge of a Project Engineer. Split drawings, parse specs, tabulate bids, generate subcontracts, and more — directly from your terminal or IDE.
+Open-source skills that give Claude Code the working knowledge of a Project Engineer. Split drawings, parse specs, extract schedules, tabulate and evaluate bids, review submittals, draft RFIs, generate subcontracts, and more — directly from your terminal or IDE.
 
 The skills ship as a Claude Code plugin named `construction` and work on Windows, macOS and Linux.
 
@@ -85,6 +85,15 @@ Tested in Claude Code with **Claude Opus 5.5** and **Claude Sonnet 5.5** on Wind
 
 Every skill has an eval case that passed on Windows with Sonnet through the eval harness (one run each, 2026-10-02 to 2026-10-04); see the [eval suite README](evals/plugin/README.md) for what each case checks and the suite's known issues.
 
+### Test documents
+
+The evals run on the plans and specifications of Sanibel Fire and Rescue Station 172 (Sanibel, Florida; 100% Construction Documents, January 2024), which are publicly available. To run the real-document cases yourself, download the two folders and place the PDFs under `evals/test_docs/SANIBEL FIRE AND RESCUE STATION 172/`:
+
+- Plans (four drawing sets): https://drive.google.com/drive/folders/1daHRgQ7AZW71MWdTbeO5TPXpVR47Ux9t
+- Specifications (two project manual volumes): https://drive.google.com/drive/folders/1rAUukoAtcYixLcrwOtbMtAKQ0Jx3RKHj
+
+[Running Evals](docs/RUNNING_EVALS.md) has the file list, where each goes, and the commands. Without the downloads the real-document cases are skipped, not failed.
+
 Found a problem? [Open an issue](https://github.com/dleerdefi/claude-code-construction/issues) with your OS, model, and the skill's output.
 
 ## Output
@@ -98,6 +107,7 @@ Deliverables — Excel workbooks, Word documents, split sheet and spec PDFs, rep
 - [Troubleshooting](docs/TROUBLESHOOTING.md) — common issues and fixes
 - [CM Skills SOP](docs/CM_SKILLS_SOP.md) — skill architecture and design standard
 - [Running Evals](docs/RUNNING_EVALS.md) and the [plugin eval suite](evals/plugin/README.md) — the scored evals for contributors
+- For contributors: the [contributor guide](.claude/CLAUDE.md), the [skill roadmap](docs/SKILL_ROADMAP.md), and the [submittal-review design record](docs/SUBMITTAL_REVIEW_DECISIONS.md)
 
 ## Requirements
 

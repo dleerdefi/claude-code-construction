@@ -219,7 +219,7 @@ What an expert PE does on submittals that this stack does not do at all (judged)
 - `legacy_numbers`, `same_as`, `applies_if`, `escalate`, `override`/`merge` and edge `suppress` from the schema and resolver; replace each with a sentence in the profile. Together they touch under 2% of ids and exist to patch inheritance.
 - Overlays other than `healthcare*`, `foodservice` and `laboratory` until a test case needs them; the `education.k12` overlay produced two of the eight wrong-in-context items and the only (b) item in 12 35 53, so keep `edu.agency-approvals` as a single hook.
 - The eight (c) items listed in §3.1, and the `failure` text duplicated across the eight backing failure modes the `wall_close_in` view restates.
-- The 231 (d) items in the twelve audited sections, using the classification tables in `docs/audit/csi-layer/marginal-value/classification/` as the cut list; apply the same test to the other 214 sections before keeping them.
+- The 231 (d) items in the twelve audited sections, using the classification tables (kept with the archived branch, tag `archive/feat/csi-knowledge-layer`, under `docs/audit/csi-layer/marginal-value/classification/`) as the cut list; apply the same test to the other 214 sections before keeping them.
 
 **Fix before merging PR #13 (a day):**
 - `check_coverage.py:147` C1 (todo rows counted as covered); validate element, check, finding, hook and interface ids on every row (C2–C4); name the file in JSON parse errors (C5).
@@ -255,7 +255,7 @@ What an expert PE does on submittals that this stack does not do at all (judged)
 
 ## Appendix: what was run
 
-Evidence files are under `docs/audit/csi-layer/`: the 12 closed-book baselines, compiled contexts and classification tables (`marginal-value/`), the 40-item sample and verifier results (`correctness/`), the three fixtures with keys, both reviews, the with-layer context and the blind score for each (`ablation/`), both eval result JSONs and final messages (`eval/`), `gates.md`, `code-review.md`, `pr-claims.md`, `section-metrics.jsonl` and the compiled `reflexes-compiled.md`.
+Evidence files were removed from the repository with the layer itself on 2026-10-04 (they remain in git history and on the tag `archive/feat/csi-knowledge-layer`, under `docs/audit/csi-layer/`): the 12 closed-book baselines, compiled contexts and classification tables (`marginal-value/`), the 40-item sample and verifier results (`correctness/`), the three fixtures with keys, both reviews, the with-layer context and the blind score for each (`ablation/`), both eval result JSONs and final messages (`eval/`), `gates.md`, `code-review.md`, `pr-claims.md`, `section-metrics.jsonl` and the compiled `reflexes-compiled.md`.
 
 - `bin/construction-python scripts/csi/csi_knowledge.py validate` (and `--strict`): 293 files, 0 errors, 0 warnings, 0 lint, 293 at draft; 25–34 s.
 - `resolve --format md` and `--format yaml` for all 226 section profiles (token and item counts in §3.6); `resolve --facility education.k12 [--facility foodservice]` for the 12 test sections; `reflexes --format md`; `milestone --format md` and `--id wall_close_in`.

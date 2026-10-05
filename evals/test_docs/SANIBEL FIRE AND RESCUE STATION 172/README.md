@@ -29,6 +29,11 @@ The facts below are from the project manual cover and title pages.
 
 ## Getting the Drawings and Specifications
 
-The PDFs are too large for the repository. Download them with the links in [`docs/RUNNING_EVALS.md`](../../../docs/RUNNING_EVALS.md#get-test-documents) and place them in `01 - Drawings/` and `02 - Specifications/`. Git ignores everything inside those two folders.
+The PDFs are too large for the repository. Download the two Google Drive folders and place the files, with their names unchanged, in `01 - Drawings/` and `02 - Specifications/`:
+
+- Plans: https://drive.google.com/drive/folders/1daHRgQ7AZW71MWdTbeO5TPXpVR47Ux9t
+- Specifications: https://drive.google.com/drive/folders/1rAUukoAtcYixLcrwOtbMtAKQ0Jx3RKHj
+
+[`docs/RUNNING_EVALS.md`](../../../docs/RUNNING_EVALS.md#get-test-documents) lists each file with its page count and size. Git ignores everything inside those two folders.
 
 The drawing set contains the architectural, civil, electrical and mechanical sheets. The cover sheet also indexes structural, plumbing, fire protection, technology and landscape sheets, which are not part of this set.

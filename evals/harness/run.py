@@ -24,7 +24,7 @@ sys.path.insert(0, str(HERE))
 
 from cases import load_cases, select  # noqa: E402
 from graders import JudgeOptions, grade_run, score  # noqa: E402
-from report import write_run, write_summary  # noqa: E402
+from report import write_run, write_summary, write_trace  # noqa: E402
 from runner import RunOptions, cleanup, run_case  # noqa: E402
 
 PLUGIN_ROOT = HERE.parents[1]
@@ -83,7 +83,7 @@ async def main_async(args) -> int:
             if run.skipped:
                 skipped_reason = run.error
                 break
-            run_dir = write_run(out_dir, run, [])
+            run_dir = write_trace(out_dir, run)
             graders = await grade_run(case, run, judge, PLUGIN_ROOT, run_dir / "trace.jsonl")
             write_run(out_dir, run, graders)
             s = score(graders)
@@ -118,6 +118,9 @@ async def main_async(args) -> int:
 
 def main() -> int:
     args = parse_args()
+    for stream in (sys.stdout, sys.stderr):  # grader verdicts contain characters a cp1252 console cannot print
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
     try:

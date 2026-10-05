@@ -56,7 +56,7 @@ The three skills that need bids or contracts run on generated fixtures in `_fixt
 | `bid-evaluator` | From the tabulated JSON: the silent omission marked SILENT, the math error flagged not corrected, the buried exclusion scored, budget pricing not awardable, the clean low bid recommended, five workbook tabs |
 | `subcontract-writer` | From the awarded bid and the template: parties and sum from the bid, `sole negligence` fixed and flagged, stale example parties dropped, no placeholders left, spec sections and bid exclusions carried in |
 
-Through the harness on Sonnet, one run of every case costs about $45 (smoke $9, real $21, synthetic $13, plus the large-pdf case, not yet measured); single cases range from under $1 (spec-splitter) to about $6 (subcontract-writer). Note that `claude plugin eval` has no skip convention: without the downloads, the `real` cases fail there rather than skip.
+Through the harness on Sonnet, one run of every case costs about $45 (smoke $9, real $21, synthetic $13, plus about $4 for the large-pdf case); single cases range from under $1 (spec-splitter) to about $6 (subcontract-writer). Note that `claude plugin eval` has no skip convention: without the downloads, the `real` cases fail there rather than skip.
 
 ## Known issues
 
@@ -81,7 +81,7 @@ State of the suite as of 2026-10-02. Each case has passed once through the harne
 - `bid-tabulator`'s workbook lacks the lowest/highest highlighting and the "Base Bid" row its SKILL.md promises, and allowances are never rendered; the case grades the per-bid JSON instead.
 - Secondary: `sheet-splitter` does not say how `sheet_index.yaml` follows a rename and a re-run re-adds `page_NNN` entries; `spec-splitter` claims to skip existing sections but overwrites; `submittal-log-generator` merges batch files with `jq`, which may be missing on Windows; `schedule-extractor`'s pdfplumber method has no allow-listed script; `code-researcher`'s worked example still describes a Baltimore, Maryland project.
 
-**submittal-review cases: variances from the conventions above** (merged from `feat/submittal-review` on 2026-10-04). Measured 2026-10-03 under `claude plugin eval` with a Sonnet judge (two runs per arm, macOS/Linux): `submittal-review` scored 1.00 with the plugin and 0.78 without it (about $0.71 and 18 turns per run with the plugin); `submittal-review-foodservice` scored 1.00 with the plugin and 0.72 without it (about $1.31 and 44 turns per run with the plugin). Through the harness on Windows with Sonnet, `submittal-review` scored 1.00 at $4.07 and 42 turns on 2026-10-04. `submittal-review-foodservice` has not been run through the harness.
+**submittal-review cases: variances from the conventions above** (merged from `feat/submittal-review` on 2026-10-04). Measured 2026-10-03 under `claude plugin eval` with a Sonnet judge (two runs per arm, macOS/Linux): `submittal-review` scored 1.00 with the plugin and 0.78 without it (about $0.71 and 18 turns per run with the plugin); `submittal-review-foodservice` scored 1.00 with the plugin and 0.72 without it (about $1.31 and 44 turns per run with the plugin). Through the harness on Windows with Sonnet, `submittal-review` scored 1.00 at $4.07 and 42 turns on 2026-10-04. `submittal-review-foodservice` through the harness on Windows (Sonnet, three-vote Sonnet judge, 2026-10-04): 1.00 in both of two runs, $3.64 and $4.98, 61 and 59 turns, about 12 minutes each.
 
 | Convention | What the two cases do instead |
 |---|---|
