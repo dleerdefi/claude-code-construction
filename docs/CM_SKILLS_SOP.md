@@ -10,7 +10,7 @@
 2. [The Construction Document Hierarchy](#2-the-construction-document-hierarchy)
 3. [Engineering the `SKILL.md` Entry Point](#3-engineering-the-skillmd-entry-point)
 4. [Tier 3 Resource Management: The Two-Layer Asset Model](#4-tier-3-resource-management-the-two-layer-asset-model)
-5. [Core Skill Library: Standard CM Workflows](#5-core-skill-library-standard-cm-workflows)
+5. [Skill Requirements, Composition, and Relationship to the Document Codebase](#5-skill-requirements-composition-and-relationship-to-the-document-codebase)
 6. [The Refactoring Lifecycle for CM Skills](#6-the-refactoring-lifecycle-for-cm-skills)
 7. [Performance Validation via Construction-Specific Evals](#7-performance-validation-via-construction-specific-evals)
 8. [Continuous Optimization and Agentic Orchestration](#8-continuous-optimization-and-agentic-orchestration)
@@ -36,17 +36,17 @@ The Three Tiers of Information Loading for Construction Management:
 
 | Tier | Components | Loading Trigger | Context Impact |
 |---|---|---|---|
-| **Tier 1: Discovery** | YAML Front Matter (`name` + `description`) | Always loaded when the skill is installed (a skills directory or an enabled plugin). ~100 tokens per skill. | High (Constant). Consumes the system-wide Context Budget. Descriptions **truncated at 250 characters** in the listing. |
+| **Tier 1: Discovery** | YAML Front Matter (`name` + `description`) | Always loaded when the skill is installed (a skills directory or an enabled plugin). ~100 tokens per skill. | High (Constant). Consumes the system-wide Context Budget. `description` plus `when_to_use` are **truncated at 1,536 characters combined** in the listing. |
 | **Tier 2: Execution** | `SKILL.md` Body (Workflow SOP, Routing Logic, Domain Knowledge) | Loaded only upon explicit skill activation | Moderate. Contains PE-level decision logic and document navigation patterns. Recommended ≤500 lines / ≤5,000 tokens. |
 | **Tier 3: Deep Knowledge** | `/references`, `/scripts`, `/assets` and the **Global Project Document Store** | Just-in-Time (JIT) via explicit reference in Tier 2 | Low (Ephemeral). Navigated with minimum viable precision. Cleared after step completion. |
 
-### The Context Budget and 250-Character Description Truncation
+### The Context Budget and Description Truncation
 
-All installed skill descriptions share a cumulative budget of **1% of the context window (~8,000 characters fallback)**. This is configurable via `SLASH_COMMAND_TOOL_CHAR_BUDGET` but the default is tight. In a construction project with dozens of active skills (RFI, Submittal, Schedule, Punchlist, Closeout, etc.), budget overruns will degrade reasoning before a single document is parsed.
+Installed skill descriptions share a cumulative context budget (Claude Code's docs give the current figures). In a construction project with dozens of active skills (RFI, Submittal, Schedule, Punchlist, Closeout, etc.), budget overruns will degrade reasoning before a single document is parsed.
 
-**Critical:** Each skill's `description` is **truncated at 250 characters** in the skill listing that Claude sees at startup. This means the first 250 characters of every description must contain the key use case and trigger keywords. Anything beyond 250 characters is only visible after the skill is activated.
+**Critical:** Each skill's `description` and `when_to_use` text, combined, is **truncated at 1,536 characters** in the skill listing that Claude sees at startup (see the [Claude Code skills docs](https://code.claude.com/docs/en/skills)). The key use case and trigger keywords must come first, so they survive the cut. Anything beyond 1,536 characters is only visible after the skill is activated.
 
-**Rule:** Every character spent in a YAML description must earn its place. Front-load the primary trigger and purpose in the first 250 characters. If a concept requires more than two sentences to trigger correctly, it belongs in the `SKILL.md` body, not the description.
+**Rule:** Every character spent in a YAML description must earn its place. Front-load the primary trigger and purpose. If a concept requires more than two sentences to trigger correctly, it belongs in the `SKILL.md` body, not the description.
 
 ---
 
@@ -66,54 +66,42 @@ Skills do not bootstrap themselves. Before any skill can navigate a project's do
 
 For construction projects, `/init` will produce a generic `CLAUDE.md` that captures the folder structure but lacks construction-specific context (document classification, discipline conventions, register locations).
 
-#### Step 2: `/project-setup` (Construction Skill — Planned)
+#### Step 2: `/project-setup` (Construction Skill)
 
-After `/init` creates the base `CLAUDE.md`, a construction-specific `/project-setup` skill enriches it with domain context:
+After `/init` creates the base `CLAUDE.md`, the `/project-setup` skill enriches it with domain context:
 
 1. **Traverse the directory tree** — Walk the full folder structure and classify construction document types: drawing sets (by discipline prefix: A-, S-, M-, E-, P-, C-, L-), the specification book (Division folders or a single Project Manual PDF), schedule files, and active registers (RFI log, Submittal log, Change Order log).
 2. **Detect operational mode** — Check for `.construction/project.yaml`, which AgentCM writes. If present, the project is AgentCM-backed. If absent, it operates in Flat File Mode.
 3. **Amend `CLAUDE.md`** — Append construction-specific context to the existing `CLAUDE.md`:
-   - Project name, number, GC, Owner, Architect (if discoverable)
-   - The canonical path to each document category
-   - The drawing discipline prefix conventions in use on this project
-   - Any non-standard folder structures or naming conventions
-
-> **Note:** `/project-setup` is a planned skill. Currently, each skill discovers document paths independently through directory search (look for `Specifications/`, `drawings/`, `plans/`, etc.). This works but creates redundant discovery across skills. `/project-setup` would centralize this into a one-time operation.
+   - Document locations: drawing set, specifications, schedule, RFI log, submittal log (or "not found")
+   - Status: operational mode, and whether sheets are indexed, specs are split and spec text is extracted
+   - A pointer to the `construction:construction-guide` skill and the rule never to read construction PDFs directly
 
 **The `CLAUDE.md` is the universal context anchor.** Every skill reads it at activation to know where documents live and which navigation strategy to use. Skills must never hardcode paths — they must always resolve paths through `CLAUDE.md`.
 
-**Example `CLAUDE.md` skeleton (flat file mode):**
+**The block `/project-setup` appends (from `skills/project-setup/SKILL.md`):**
 ```markdown
-# Project: Holabird Elementary School Renovation
+## Construction Project Context
 
-## Project Info
-- Project Number: 2024-0047
-- GC: Barton Malow Company
-- Owner: Baltimore City Public Schools
-- Architect: Ziger/Snead Architects
+### Document Locations
+- Drawing set: {path} ({N} sheets, disciplines: {list})
+- Specifications: {path} ({N} sections or "bound manual, not yet split")
+- Schedule: {path or "not found"}
+- RFI log: {path or "not found"}
+- Submittal log: {path or "not found"}
 
-## Document Store Paths
-- Drawing set: ./drawings/ (disciplines: A, S, M, E, P, FP, C, L)
-- Spec book: ./specifications/project_manual.pdf
-- Schedule: ./schedule/master_schedule.xlsx
-- RFI log: ./logs/rfi_log.xlsx
-- Submittal log: ./logs/submittal_log.xlsx
+### Status
+- Operational mode: {AgentCM / Flat File}
+- Sheets indexed: {yes/no}
+- Specs split: {yes/no}
+- Spec text extracted: {yes/no}
+
+### Working With These Documents
+- Load the `construction:construction-guide` skill before reading drawings, specs or other project documents.
+- Never read construction PDFs directly; rasterize pages to PNG first (see the guide).
 ```
 
-**Example `CLAUDE.md` skeleton (AgentCM mode):**
-```markdown
-# Project: Holabird Elementary School Renovation
-
-## AgentCM
-The `.construction/` directory contains the project graph and extracted data.
-- Graph (snapshot): .construction/graph/navigation_graph.json — use database for current data
-- Graph summary (snapshot): .construction/graph/graph_summary.yaml — use database for current counts
-- Database config: .construction/database.yaml — psql connection info for Claude Code
-- Schema reference: .construction/db_schema.yaml — available tables, views, write endpoints
-- Spec text: .construction/skills/spec_text/ (written by spec-splitter)
-- Sheet index: .construction/index/sheet_index.yaml
-- Spec index: .construction/index/spec_index.yaml
-```
+In AgentCM projects, AgentCM's own data layout is documented in the "Data Mode Detection" section of `skills/construction-guide/SKILL.md`, which is the source for that layout. This SOP does not repeat it, because it changes with AgentCM versions.
 
 ---
 
@@ -142,22 +130,7 @@ Step 5: Return the relevant content — do not load the full spec book
 
 #### Mode B: AgentCM Mode
 
-The project has been processed through AgentCM. Its `.construction/` directory (marked by `.construction/project.yaml`) contains structured data: a navigation graph (JSON), YAML indexes, extracted text files, and graph summaries.
-
-**How skills navigate in AgentCM Mode:**
-- Read `.construction/CLAUDE.md` for navigation context
-- Query database for project orientation (read `query_command` from `.construction/database.yaml`):
-  `{query_command} -c "SELECT COUNT(*) FROM sheets WHERE project_id = '...'; SELECT COUNT(*) FROM rooms WHERE project_id = '...'"`
-  Fallback: read `.construction/graph/graph_summary.yaml` if database unavailable
-- Read specific JSON/YAML files from `.construction/` for structured lookups (spec text, sheet indexes, findings)
-- The `.construction/` data layer is the index; the underlying PDFs remain the source of truth for content
-
-**Example — finding a concrete mix design in AgentCM Mode:**
-```
-Step 1: Check .construction/project.yaml exists (yes — AgentCM mode)
-Step 2: Read .construction/skills/spec_text/03_30_00.txt (pre-extracted text)
-Step 3: Return the relevant content from the .txt file
-```
+The project has been processed through AgentCM, which writes `.construction/project.yaml`. In this mode, skills follow the navigation instructions in the "Data Mode Detection" section of `skills/construction-guide/SKILL.md` (and the `.construction/CLAUDE.md` it points to) instead of the flat-file search. This SOP does not describe AgentCM's layout or its database access; that guide is the source. The one rule kept here: the AgentCM data layer is the index, and the underlying PDFs remain the source of truth for content.
 
 **The rule in both modes is identical:**
 > Skills navigate to the minimum viable document fragment. They do not load categories of documents — they load specific files, sections, pages, or text extracts.
@@ -190,22 +163,19 @@ Reference files and index files do **not** hold plans, specs, or schedules. They
 Think of the Global Document Store as the library and reference/index files as the skill's private card catalog, tuned for its specific workflow.
 
 Reference files can live in two places (both are valid per the official Agent Skills spec):
-1. **Shared resources** at the skills root: `reference/` (PE domain knowledge), `scripts/` (Python tools shared across skills)
+1. **Shared resources** at the plugin root: `reference/` (PE domain knowledge), `scripts/` (Python tools shared across skills)
 2. **Per-skill resources** inside each skill directory: `references/`, `scripts/`, `assets/` (output schemas, decision trees specific to one skill)
 
 **Index and Reference Files Currently in Use:**
 
 | File | Location | Purpose | Generated By |
 |---|---|---|---|
-| `sheet_index.yaml` | `sheets/` or `.construction/index/` | Drawing sheet numbers, titles, discipline prefixes, file paths | `/sheet-splitter` + `/sheet-index-builder` |
+| `sheet_index.yaml` | `sheets/` or `.construction/index/` | Drawing sheet numbers, titles, discipline prefixes, file paths | `/sheet-splitter` (in `sheets/`) or AgentCM (in `.construction/index/`) |
 | `spec_index.yaml` | `Specification Sections/` | Spec section numbers, titles, page counts, file paths | `/spec-splitter` |
-| `manifest.json` | `.construction/spec_text/` | Spec text extraction quality (GOOD/DEGRADED/POOR) per section | `/spec-splitter` |
+| `manifest.json` | `.construction/skills/spec_text/` | Spec text extraction quality (GOOD/DEGRADED/POOR) per section | `/spec-splitter` |
 | `submittal_log_schema.json` | `submittal-log-generator/references/` | JSON schema for submittal log output data contract | Manual |
 | `pe-review/references/*.md` | `pe-review/` skill dir | PE behavioral rules, red flags, coordination matrix, scope gaps | Manual |
-| `navigation_graph.json` | `.construction/graph/` | Project entity relationships **snapshot** — use database `v_sheet_contents`, `v_cross_references` for current data | AgentCM export |
-| `graph_summary.yaml` | `.construction/graph/` | Entity counts **snapshot** — use database orientation query for current data | AgentCM export |
-| `database.yaml` | `.construction/` | PostgreSQL connection info for Claude Code (agentcm_reader role) | AgentCM export |
-| `db_schema.yaml` | `.construction/` | Available tables, views, write endpoints, example queries | AgentCM export |
+| AgentCM files | `.construction/` | Described in construction-guide's "Data Mode Detection" section; skills read them, never write them | AgentCM |
 
 **Planned reference files** (not yet implemented):
 - `submittal_routing_rules.md` — Maps CSI divisions to responsible subcontractors
@@ -239,18 +209,20 @@ Every `SKILL.md` must begin with a structured YAML block. This is the **only** c
 | Field | Required | Constraints |
 |-------|----------|-------------|
 | `name` | Yes | Max 64 chars. Lowercase letters, numbers, hyphens only. **Must match the parent directory name.** |
-| `description` | Yes | Max 1,024 chars. Truncated to **250 chars** in the skill listing. Front-load triggers and purpose. |
+| `description` | Yes | Max 1,024 chars (Agent Skills standard). Claude Code truncates `description` + `when_to_use` combined at **1,536 chars** in the skill listing. Front-load triggers and purpose. |
 
 **Optional fields (Claude Code extensions):**
 
 | Field | Use Case for CM Skills |
 |-------|------------------------|
 | `argument-hint` | Autocomplete hint, e.g., `"<project_manual.pdf> [--output-dir <path>]"` |
-| `disable-model-invocation` | Set `true` for skills with side effects (PDF splitting, file writing) to prevent auto-triggering |
+| `disable-model-invocation` | Set `true` for skills a user must trigger deliberately (side effects such as PDF splitting or file writing). Skills that other skills chain to, such as `spec-splitter`, stay model-invocable so the Skill tool can call them |
 | `paths` | Glob patterns to limit auto-activation, e.g., `"*.pdf"` |
 | `context` | Set to `fork` for heavy processing skills that benefit from isolated subagent execution |
 | `model` | Override model when skill is active (e.g., use Opus for complex analysis) |
 | `effort` | Override effort level: `low`, `medium`, `high`, `max` |
+
+Claude Code supports further fields not listed above: `when_to_use`, `user-invocable`, `allowed-tools`, `disallowed-tools` and `arguments`. They are only named here; see the [Claude Code skills documentation](https://code.claude.com/docs/en/skills) for what each does.
 
 **Fields that do NOT exist and must not be used:** `triggers`, `negative_constraints`, `outcome`, `document_authority`, `reads_from`, `writes_to`, `tags`, `category`, `priority`. Claude Code does not parse these — they would be silently ignored.
 
@@ -268,10 +240,10 @@ This is the most critical architectural decision in CM skill design. The wrong c
 
 | Situation | Flat File Mode — Correct Action | AgentCM Mode — Correct Action | Never Do This |
 |---|---|---|---|
-| Need the concrete mix design from Section 03 30 00 | Search for split spec PDF or bound `project_manual.pdf` for "03 30 00", extract matching pages only | Read `.construction/spec_text/03_30_00.txt` directly | Load all of Division 03 |
+| Need the concrete mix design from Section 03 30 00 | Search for split spec PDF or bound `project_manual.pdf` for "03 30 00", extract matching pages only | Read `.construction/skills/spec_text/03_30_00.txt` directly | Load all of Division 03 |
 | Need structural sheets intersecting grid line G | Filter `sheet_index.yaml` for S-series entries | Read `.construction/index/sheet_index.yaml` for S-series entries | Scan all structural PDFs sequentially |
 | Need the subcontractor responsible for fire suppression submittals | Lookup Division 21 in scope matrix reference file | Read graph summary for Division 21 relationships | Read the entire submittal log |
-| Need the current RFI count and latest open item | Read header rows of `rfi_log.xlsx` declared in `CLAUDE.md` | Read RFI findings from `.construction/graph/` | Load the entire project document store |
+| Need the current RFI count and latest open item | Read header rows of `rfi_log.xlsx` declared in `CLAUDE.md` | Read RFI findings from `.construction/agent_findings/` | Load the entire project document store |
 
 ### JIT Loading Protocol
 
@@ -280,9 +252,9 @@ Tier 2 (`SKILL.md`) must explicitly command the loading of Tier 3 references at 
 **Correct pattern:**
 ```
 Step 3: Identify affected specification sections.
-  → Check for .construction/ directory to determine mode
+  → Check for .construction/project.yaml to determine mode
   → [Flat File] Search spec_index.yaml or bound spec PDF for the matching division
-  → [AgentCM]  Read .construction/spec_text/{section_number}.txt
+  → [AgentCM]  Read .construction/skills/spec_text/{section_number}.txt
   → Proceed to Step 4 with only the relevant section content in context.
 ```
 
@@ -369,17 +341,30 @@ claude-code-construction/               # Plugin root = ${CLAUDE_PLUGIN_ROOT} (e
 │   ├── common_abbreviations.yaml
 │   ├── scale_factors.yaml
 │   ├── ada_requirements.yaml
-│   └── ibc_egress_tables.yaml
+│   ├── ibc_egress_tables.yaml
+│   └── common-issue-types.md
 ├── scripts/                            # Shared Python tools
 │   ├── pdf/                            # PDF rasterize, crop, annotate, extract
-│   └── graph/                          # Graph write utilities (AgentCM)
+│   ├── graph/                          # Finding write/query utilities (write_finding.py)
+│   ├── bulk/                           # Bulk extraction consolidation
+│   ├── rfi/                            # RFI PDF generation
+│   ├── vision/                         # Title-block analysis
+│   ├── issue_manager.py                # Issue registry (.construction/skills/issues/)
+│   └── shared.py                       # Helpers shared by the scripts
 ├── bin/                                # On the Bash PATH while the plugin is enabled
-│   └── construction-python             # Python venv wrapper (creates the venv on first use)
+│   ├── construction-python             # Python venv wrapper (creates the venv on first use)
+│   ├── construction-config             # Plugin configuration helper
+│   └── construction-analytics          # Usage analytics helper
+├── evals/                              # Eval harness (harness/) and cases (plugin/); see Section 7
+├── docs/                               # Quickstart, troubleshooting, validation, this SOP
 ├── dev/                                # Contributor scripts (link a live checkout)
+├── setup                               # Install script: creates the Python venv
+├── requirements.txt                    # Python dependencies for the venv
+├── VERSION
 └── .claude/CLAUDE.md                   # Dev/contributor guide (not loaded by plugin installs)
 ```
 
-Per-skill `references/`, `scripts/`, and `assets/` subdirectories are also valid per the official spec and appropriate for skill-specific resources (output schemas, decision trees). Currently our skills use the shared resources at the plugin root.
+Per-skill `references/`, `scripts/`, and `assets/` subdirectories are also valid per the official spec and appropriate for skill-specific resources (output schemas, decision trees).
 
 ---
 
@@ -390,21 +375,26 @@ This is the only file Claude Code reads at skill activation. It must do three th
 **1. Declare itself via YAML front matter (Tier 1):**
 
 ```yaml
+# From skills/spec-splitter/SKILL.md
 ---
 name: spec-splitter
-description: "Split a bound project manual PDF into individual specification section PDFs and extract searchable text from each section. Two functions: (1) split combined PDF into per-section PDFs, (2) extract per-section text to .txt files. Use when specs are in a single bound PDF, when text extraction is needed, or as a prerequisite for submittal-log-generator. Triggers on 'split specs', 'break up the project manual', 'separate spec sections', 'extract spec text'."
+description: >
+  Split a bound project manual PDF into individual spec section PDFs and
+  extract searchable text. Triggers: 'split specs', 'break up the project
+  manual', 'separate spec sections', 'extract spec text'. Prerequisite
+  for /submittal-log-generator.
 argument-hint: "<project_manual.pdf> [--output-dir <path>]"
 ---
 ```
 
-Only `name` and `description` are required. See Section 3 for the full list of supported optional fields (`argument-hint`, `disable-model-invocation`, `paths`, `context`, `model`, `effort`).
+Only `name` and `description` are required. See Section 3 for the list of supported optional fields.
 
 **2. Check operational mode (Tier 2):**
 
 The first executable step of every skill should determine the operational mode:
 
 ```
-Step 1: Check for .construction/ directory.
+Step 1: Check for .construction/project.yaml (not the .construction/ folder, which every project has).
   → If present: AgentCM mode. Read .construction/CLAUDE.md for navigation context.
   → If absent: Flat File mode. Discover paths via directory search or CLAUDE.md.
 ```
@@ -426,17 +416,11 @@ Steps load exactly one reference at a time, use it, and release it before the ne
 
 Scripts are referenced via `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PLUGIN_ROOT}` for portability:
 ```bash
-${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py          # per-skill script
-${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py            # shared script
+# per-skill script
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py" --output "{output_path}"
+# shared script
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 150 --output page.png
 ```
-
----
-
-#### The `learnings.md` File (Aspirational)
-
-> **Status: Not yet implemented.** The concept of a per-skill self-improvement file is valuable but is not currently part of the shipped skill architecture. This section describes the planned design for future implementation.
-
-When implemented, `learnings.md` would start empty and be populated by a session wrap-up process. It would contain only validated observations: patterns that measurably improved output, edge cases discovered in real project data, and superseded instructions that should be pruned. Every entry must state: what was observed, in which scenario, and what rule change it implies.
 
 ---
 
@@ -476,7 +460,7 @@ While this SOP does not prescribe a fixed skill catalog (each project team will 
 **Research Skills** — Navigate external sources (building codes, standards, product data) and return findings in a form that can be directly applied to the project's open questions.
 > *Examples: `code-researcher`*
 
-When scoping a new skill, identify its category first. Builder skills must be run before Extraction or Generation skills that depend on their outputs. This dependency order should be declared in `CLAUDE.md` and respected by the Wrap-Up orchestration layer.
+When scoping a new skill, identify its category first. Builder skills must be run before Extraction or Generation skills that depend on their outputs. This dependency order should be declared in `CLAUDE.md`.
 
 ---
 
@@ -494,7 +478,7 @@ Identify the ratio of **workflow logic** (what the PE does) versus **embedded kn
 - Trade scope definitions written as prose in the skill body (move to `reference/` files)
 - Project document paths hardcoded in the skill (must always be resolved through `CLAUDE.md` or directory discovery)
 - AgentCM-specific logic without checking for `.construction/project.yaml` first
-- A skill that doesn't check operational mode at all — it should branch based on `.construction/` directory presence
+- A skill that doesn't check operational mode at all — it should branch based on whether `.construction/project.yaml` exists
 
 ### Step 2 — Abstract
 
@@ -502,9 +486,9 @@ Migrate all embedded knowledge to the appropriate layer:
 
 | Content Type | Destination |
 |---|---|
-| CSI spec section text | Read from `.construction/spec_text/` (AgentCM) or split PDFs (flat file) — never inline |
-| Drawing sheet indices | `sheet_index.yaml` — generated by `/sheet-splitter` + `/sheet-index-builder` |
-| Trade scope descriptions | `reference/` files at the skills root |
+| CSI spec section text | Read from `.construction/skills/spec_text/` (AgentCM) or split PDFs (flat file) — never inline |
+| Drawing sheet indices | `sheet_index.yaml` — generated by `/sheet-splitter` (in `sheets/`) or AgentCM |
+| Trade scope descriptions | `reference/` files at the plugin root |
 | Output templates (RFI form, CO form) | Per-skill `references/` as a named template file |
 | Decision trees (conflict classification) | Per-skill `references/` or shared `reference/` directory |
 | Project document paths | `CLAUDE.md` at project root or directory discovery — never hardcoded |
@@ -522,6 +506,10 @@ Run the skill against a representative set of real project scenarios (see Sectio
 ## 7. Performance Validation via Construction-Specific Evals
 
 No skill ships to a production project without passing an Evals Framework. CM projects carry contractual and financial consequences for errors. An 80% pass rate is the minimum threshold.
+
+### The Eval Suite in This Repository
+
+The plugin's scored evals live in `evals/`. `evals/plugin/README.md` documents the tiers, the case folder layout and the conventions every case follows; `evals/harness/README.md` documents the runner (`evals/harness/run.py`). The harness passes a case at a score of 1.00 by default; use `--threshold` to lower it. The 80% in this SOP is the minimum a skill must reach to ship, not the harness default.
 
 ### Assertion-Based Testing
 
@@ -562,11 +550,10 @@ The vision: each skill directory would contain a `learnings.md` file populated b
 ### Skill Orchestration Patterns
 
 Construction management workflows rarely exist in isolation. Skills should be designed to **invoke one another** across a document lifecycle. For example:
-- `submittal-log-generator` invokes `/spec-splitter` if spec text hasn't been extracted yet
-- `sheet-index-builder` depends on `/sheet-splitter` having already split the drawing set
-- Future skills may chain: `/project-setup` → `/spec-splitter` → `/submittal-log-generator`
+- `submittal-log-generator` invokes `construction:spec-splitter` if spec text hasn't been extracted yet
+- The chain `/project-setup` → `/spec-splitter` → `/submittal-log-generator` works today
 
-Skills invoke other skills using the `/skill-name` syntax — they do NOT call shared scripts directly when a skill exists for that function.
+Skills invoke other skills through the Skill tool with namespaced names (for example `construction:spec-splitter`), not with `/skill-name`. They do NOT call another skill's scripts directly when a skill exists for that function.
 
 ### The Non-Destructive Merge Principle
 
@@ -574,7 +561,7 @@ When skills update the Global Project Document Store (adding an RFI, logging a s
 - Use additive merge logic for index files (e.g., `spec_index.yaml`, `sheet_index.yaml` merge by key)
 - Use `safe_output_path()` or equivalent versioning for output files (auto-version `_v2`, `_v3`)
 - Include timestamps in graph entries (AgentCM mode)
-- In AgentCM mode: write findings as append-only timestamped entries via `write_finding.py`
+- In AgentCM mode: write findings as append-only timestamped entries in `.construction/agent_findings/` via `write_finding.py`; issues go to `.construction/skills/issues/` via `issue_manager.py`
 - In Flat File mode: version output files and merge index YAMLs additively
 
 ---
@@ -585,10 +572,10 @@ Before any CM skill is deployed on a live project, verify every item:
 
 **YAML Front Matter (Tier 1)**
 - [ ] **`name` matches directory:** The `name` field exactly matches the skill's parent directory name (hard requirement)
-- [ ] **Description front-loaded:** The first 250 characters of `description` contain the primary use case and trigger keywords (descriptions are truncated at 250 chars in the listing)
-- [ ] **Description within budget:** All skill descriptions collectively fit within the ~8,000-character system budget
-- [ ] **No fabricated fields:** Only officially supported YAML fields are used (`name`, `description`, `argument-hint`, `disable-model-invocation`, `paths`, `context`, `model`, `effort`, etc.)
-- [ ] **Side effects flagged:** Skills that write files or modify project data use `disable-model-invocation: true` to prevent auto-triggering
+- [ ] **Description front-loaded:** The primary use case and trigger keywords come first in `description` (`description` + `when_to_use` are truncated at 1,536 chars combined in the listing)
+- [ ] **Description within budget:** the skill's description stays short and specific (Claude Code truncates description plus `when_to_use` at 1,536 characters)
+- [ ] **No fabricated fields:** Only officially supported YAML fields are used (see the field lists in Section 3)
+- [ ] **Side effects flagged:** Skills with side effects that a user must trigger use `disable-model-invocation: true`; skills that other skills chain to (`spec-splitter`) stay model-invocable
 
 **Architecture (Tier 2)**
 - [ ] **500-Line soft limit:** Is `SKILL.md` under 500 lines? If over, is all content actively used during processing (not pure reference)?
@@ -597,8 +584,8 @@ Before any CM skill is deployed on a live project, verify every item:
 - [ ] **JIT Loading:** Are reference files loaded only at the step that requires them?
 
 **Construction Document Integrity**
-- [ ] **Mode-Aware Navigation:** Does the skill check for `.construction/` directory to determine mode — using file search in Flat File and `.construction/` data layer in AgentCM?
-- [ ] **No Inline Spec Content:** Are specification section texts read from split PDFs or `.construction/spec_text/` — never copied into `SKILL.md`?
+- [ ] **Mode-Aware Navigation:** Does the skill check for `.construction/project.yaml` to determine mode — using file search in Flat File and `.construction/` data layer in AgentCM?
+- [ ] **No Inline Spec Content:** Are specification section texts read from split PDFs or `.construction/skills/spec_text/` — never copied into `SKILL.md`?
 - [ ] **No Hardcoded Sheet Lists:** Are drawing indices in `sheet_index.yaml`, not embedded in skill logic?
 - [ ] **Conflict Surfacing:** Does the skill explicitly flag document conflicts rather than silently resolving them?
 - [ ] **No Hallucination Pathways:** Does every sheet number and spec section reference trace back to a query against the actual document store?
@@ -611,7 +598,7 @@ Before any CM skill is deployed on a live project, verify every item:
 **Lifecycle**
 - [ ] **Orchestration Mapped:** Is this skill's position in the project workflow chain documented (e.g., spec-splitter must run before submittal-log-generator)?
 - [ ] **Non-Destructive Writes:** Do all index updates use additive merge logic? Do output files use versioning (`safe_output_path()`)?
-- [ ] **Graph Entries:** Does the skill write findings to `.construction/graph/` when in AgentCM mode?
+- [ ] **Graph Entries:** Does the skill write findings to `.construction/agent_findings/` (via `write_finding.py`) when in AgentCM mode, and issues to `.construction/skills/issues/` (via `issue_manager.py`)?
 
 ---
 

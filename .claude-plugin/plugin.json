@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "construction",
   "displayName": "Construction Skills",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Skills that give Claude Code the working knowledge of a Project Engineer: split drawing sets and spec manuals, extract schedules, generate submittal logs, tabulate and evaluate bids, draft RFIs and subcontracts, and research building codes.",
   "author": {
     "name": "dleerdefi",

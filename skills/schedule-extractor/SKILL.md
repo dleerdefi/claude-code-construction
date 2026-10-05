@@ -41,10 +41,10 @@ For dedicated schedule sheets, the entire page is the extraction target — no n
 
 #### Source B — AgentCM database query (supplementary)
 
-If `.construction/database.yaml` exists, read `query_command` from it, then query known schedules:
+If `.construction/database.yaml` exists, query known schedules through AgentCM's wrapper:
 ```bash
-# Read query_command and project_id from .construction/database.yaml
-{query_command} -c "SELECT id, schedule_type, title, sheet_id, bounding_region FROM schedules WHERE project_id = '{PROJECT_ID}'"
+# project_id is in .construction/database.yaml
+sh .construction/query.sh "SELECT id, schedule_type, title, sheet_id, bounding_region FROM schedules WHERE project_id = '{PROJECT_ID}'"
 ```
 This returns all schedules already detected (including stubs from Group Review with bounding regions). For embedded schedules on non-schedule sheets, check the `bounding_region` column.
 
@@ -155,7 +155,7 @@ After extraction (by either method):
 - **Merged cell cleanup**: Expand merged header cells (e.g., "WALLS" spanning A/B/C/D sub-columns)
 - **Normalize dimensions**: `3' - 0"` → `3'-0"` (remove spaces around dashes)
 - **Flag revisions**: Note any cells within revision clouds or delta markers
-- **Cross-reference with database**: If `.construction/database.yaml` exists, read `query_command` from it, then verify room numbers via `{query_command} -c "SELECT number FROM rooms WHERE project_id = '{PROJECT_ID}' AND number = '{room_number}'"` and door numbers via `{query_command} -c "SELECT tag_number FROM graph_elements WHERE element_type = 'door' AND tag_number = '{door_mark}'"`
+- **Cross-reference with database**: If `.construction/database.yaml` exists, verify room numbers via `sh .construction/query.sh "SELECT number FROM rooms WHERE project_id = '{PROJECT_ID}' AND number = '{room_number}'"` and door numbers via `sh .construction/query.sh "SELECT ge.tag_number FROM graph_elements ge JOIN sheets s ON s.id = ge.sheet_id WHERE s.project_id = '{PROJECT_ID}' AND ge.element_type = 'door' AND ge.tag_number = '{door_mark}'"`
 
 ### Step 5: Output to Excel
 
@@ -233,8 +233,8 @@ The ingest endpoint automatically:
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
   --type "schedule_extracted" \
   --title "Door schedule extracted from A-0.01" \
-  --source_sheet "A-0.01" \
-  --output_file "Door_Schedule_A-0.01.xlsx" \
+  --source-sheet "A-0.01" \
+  --output-file "Door_Schedule_A-0.01.xlsx" \
   --data '{"schedule_type": "door", "row_count": 45, "columns": ["MARK","SIZE","TYPE","FRAME","HARDWARE SET"]}'
 ```
 
@@ -267,14 +267,14 @@ Run the diff engine to compare the edited Excel against current DB state:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/xlsx_to_changeset.py" \
   --excel "edited_schedule.xlsx" \
-  --query-command "$(cat .construction/database.yaml | grep query_command | cut -d'"' -f2)" \
+  --query-wrapper ".construction/query.sh" \
   --output changeset.json
 ```
 
 The script:
 1. Reads `_agentcm_meta` → extracts `schedule_id`
 2. Reads data sheet → extracts `_row_key` column + all data columns
-3. Queries DB for current schedule rows/cells via psql
+3. Queries DB for current schedule rows/cells through `.construction/query.sh`
 4. Computes diff: cell changes, new rows, deleted rows, new columns, hidden columns
 5. Outputs a structured JSON changeset
 

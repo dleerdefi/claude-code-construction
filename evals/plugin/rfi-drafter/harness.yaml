@@ -1,0 +1,4 @@
+checks:
+  - name: rfi-document
+    script: checks/rfi_document.py
+    weight: 4

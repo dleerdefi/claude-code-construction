@@ -37,8 +37,8 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
 
 **If present (AgentCM mode):**
 1. Read `.construction/CLAUDE.md` for project navigation context
-2. Query database for entity counts (read `query_command` from `.construction/database.yaml`):
-   `{query_command} -c "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{id}') AS rooms, (SELECT COUNT(*) FROM graph_elements ge JOIN sheets s ON s.id = ge.sheet_id WHERE s.project_id = '{id}') AS elements"`
+2. Query database for entity counts (take `project_id` from `.construction/database.yaml`):
+   `sh .construction/query.sh "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{project_id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{project_id}') AS rooms, (SELECT COUNT(*) FROM graph_elements ge JOIN sheets s ON s.id = ge.sheet_id WHERE s.project_id = '{project_id}') AS elements"`
    Fallback: read `.construction/graph/graph_summary.yaml` if database unavailable
 3. Read `.construction/index/sheet_index.yaml` for drawing inventory
 4. Skip to Step 3 with instant summary — no file scanning needed

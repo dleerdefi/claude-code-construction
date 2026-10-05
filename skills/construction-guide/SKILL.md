@@ -12,6 +12,10 @@ description: >
 
 You are a Project Engineer / Assistant Project Manager operating on construction project documents. These skills give you domain expertise for navigating drawings, specifications, schedules, and all construction project files.
 
+## AgentCM's Text Files Come First
+
+If `.construction/INDEX.md` exists, AgentCM has written this project's drawings and specifications as searchable text: one file per sheet and per spec section, kept current from its database. Then follow `.construction/CLAUDE.md` to find and read documents: start at `.construction/INDEX.md`, search `.construction/sheets/` and `.construction/specs/`, run database queries through `.construction/query.sh` or `.construction/query.ps1`, and open a drawing only to check what the text points to. That route takes precedence over the data-access rules, the `.construction/` tree and the reading sequence below, which describe an earlier AgentCM layout. The drawing conventions, cross-reference conventions and document precedence in this guide still apply.
+
 ## Interaction Model: Graph-Guided Vision
 
 **Core principle:** AgentCM = navigation brain + context layer. Vision = eyes.
@@ -62,7 +66,7 @@ All coordinates are **normalized 0-1**. Centroids are `[cx, cy]` tuples. Multipl
 ### Database & API Discovery (when AgentCM is present)
 1. Read `.construction/database.yaml` for connection info (host, port, database, user, project_id, api_url)
 2. Read `.construction/db_schema.yaml` for available tables, views, and write endpoints
-3. Reads: `{query_command} -c "SQL QUERY"` (where `query_command` is from database.yaml)
+3. Reads: `sh .construction/query.sh "SQL QUERY"` (or `powershell -File .construction/query.ps1 "SQL QUERY"`), one query per call. One database serves every project and every view starts with `project_id`: filter on this project's `project_id` from database.yaml
 4. Writes: `curl -X POST "{api_url}/projects/{project_id}/{endpoint}"`
 
 **Extraction file usage** (per-sheet files in `extractions/{sheet_number}/`):
@@ -79,7 +83,7 @@ All coordinates are **normalized 0-1**. Centroids are `[cx, cy]` tuples. Multipl
 Read `.construction/database.yaml` for connection info (host, port, database, user, project_id, api_url).
 Read `.construction/db_schema.yaml` for available tables, views, and write endpoints.
 
-**Reads:** Use psql with the agentcm_reader role. Prefer views over raw table queries:
+**Reads:** Run each query through `.construction/query.sh` (or `query.ps1`), which connects as the read-only agentcm_reader role. Filter every view on `project_id`. Prefer views over raw table queries:
   - `v_room_profile` — all data for a room across sheets and schedules
   - `v_sheet_contents` — all elements on a given sheet
   - `v_schedule_pivot` — schedule data in readable tabular form
@@ -135,9 +139,9 @@ You can also rasterize individual sheets on demand using the `rasterize_page.py`
 **Follow this sequence — do not skip steps:**
 
 1. **Sheet lookup** — find the sheet in `sheet_index.yaml` → get `title`, `discipline`, `scale`, `pageIndex`, `filePath`
-2. **Graph query** — read `query_command` from `.construction/database.yaml`, then query:
+2. **Graph query** — take `project_id` from `.construction/database.yaml`, then query:
    ```bash
-   {query_command} -c "SELECT * FROM v_sheet_contents WHERE sheet_number = '{sheet}'"
+   sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '{sheet}'"
    ```
    For detailed data, also query:
    - `v_room_profile` — rooms with schedule data
@@ -219,9 +223,9 @@ If AgentCM is present, read these 4 files for instant orientation:
 1. `.construction/CLAUDE.md` — full project navigation guide
 2. `.construction/project.yaml` — project name, number, location
 3. `.construction/index/sheet_index.yaml` — all sheets with metadata
-4. Query database (read `query_command` from `.construction/database.yaml`):
+4. Query database (take `project_id` from `.construction/database.yaml`):
    ```bash
-   {query_command} -c "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{id}') AS rooms"
+   sh .construction/query.sh "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{project_id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{project_id}') AS rooms"
    ```
    Fallback: `.construction/graph/graph_summary.yaml` if database unavailable
 
@@ -250,12 +254,12 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 | `code-researcher` | Deep research on building codes, standards, and jurisdiction requirements | Markdown + YAML report |
 | `subcontract-writer` | Generate scope-specific subcontract from firm's template | Word document (.docx) |
 | `rfi-drafter` | Draft formal RFIs from identified issues; manage ambient issue detection registry | Word document (.docx) or PDF |
-| `viewport-highlighter` | Auto-identify and highlight viewports on drawing sheets using vision — titles, detail numbers, scales, types | Viewports via API + marked-up PNGs |
+| `submittal-review` | Review a submittal package against specs, drawings, code questions and trade coordination, with a completeness gate and a draft GC review | Review records + Excel workbook |
 | `tag-audit-and-takeoff` | Count-based QTO and tag completeness auditing — identifies tagged elements using vision + OCR | QTO JSON + marked-up PNGs |
 
 ### Cross-Skill Infrastructure
 
-**Issue Registry** — Any skill can log potential issues to `.construction/skills/issues/` via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, spec-parser, etc.) and are reviewed/escalated by the user through `rfi-drafter`. No skill writes an RFI directly — only issue records.
+**Issue Registry** — Any skill can log potential issues to `.construction/skills/issues/` via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, submittal-review, etc.) and are reviewed/escalated by the user through `rfi-drafter`. No skill writes an RFI directly — only issue records.
 
 ### Behavioral Skills (setup / orientation)
 
@@ -393,7 +397,7 @@ When responding about construction documents:
 
 ## PE Review
 
-**For document review, coordination analysis, or any query requiring PE judgment**, load the `pe-review` skill.
+**For document review, coordination analysis, or any query requiring PE judgment**, load the `pe-review` skill. **For a full review of a submittal package**, use `/construction:submittal-review`: it traces requirements from the contract documents, reviews every element, routes coordination to the trades and proves the review is complete before reporting.
 
 The PE behavioral rules (document precedence, mandatory verification, point-of-no-return thinking, output format, project learning) are in the pe-review skill's `references/pe_review_rules.md` — read it at the start of any PE-level session.
 
@@ -414,4 +418,4 @@ The PE behavioral rules (document precedence, mandatory verification, point-of-n
 - **Always confirm scale** before reporting any measurement
 - **Title blocks** contain project name, number, location, architect, date, revision — read these to establish project context
 - **Never fabricate** dimensions, spec requirements, or code citations — if uncertain, flag for human review
-- **AgentCM does NOT process specifications** — spec-related skills (spec-splitter, submittal-log-generator) always use pdfplumber/vision regardless of AgentCM presence
+- **Spec text comes from spec-splitter** (`.construction/skills/spec_text/`) unless AgentCM has written `.construction/INDEX.md` with its own `specs/` text, in which case that text comes first (see "AgentCM's Text Files Come First") presence

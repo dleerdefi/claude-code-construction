@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec bash "$(dirname "${BASH_SOURCE[0]}")/../_fixtures/prepare-real-workspace.sh" a500 addendum

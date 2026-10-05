@@ -30,7 +30,7 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
 
 **AgentCM mode** (`.construction/project.yaml` exists):
 - Read `.construction/CLAUDE.md` for project context
-- Read `.construction/database.yaml` for `query_command` and `project_id`
+- Read `.construction/database.yaml` for `project_id` and `api_url`; run each query with `sh .construction/query.sh "SQL"`
 - Sheet images at `.construction/rasters/{sheet_number}.png`
 
 **Verify raster images exist:** Check `.construction/rasters/` for PNG files.
@@ -42,9 +42,11 @@ You can also rasterize individual sheets on demand using the rasterize_page.py s
 - Write results back via API: `POST /api/projects/{id}/tag-detections/ingest`
 
 **Flat File mode** (no `.construction/project.yaml`):
-- Discover sheet images from CLAUDE.md or user-provided paths
+- Discover sheet images from CLAUDE.md or user-provided paths; rasterize sheet
+  PDFs with `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py <pdf> <page> --dpi 200 --output <png>`
 - Vision-only pipeline (Steps 2-3 skipped)
-- Write marked-up PNGs and QTO JSON to project directory
+- Write marked-up PNGs and the Excel workbook to the project directory; the QTO
+  JSON goes to `.construction/skills/tag-audit-and-takeoff/qto/` (Step 8)
 
 ## Step 1: User Scopes the Task
 
@@ -93,7 +95,7 @@ Do not skip this step. If the API is unreachable, stop and tell the user.
 Before scanning sheets, query what's already tagged per sheet:
 
 ```bash
-curl -s "http://localhost:3001/api/projects/{project_id}/sheets/{sheet_id}/claimed-elements"
+curl -s "{api_url}/projects/{project_id}/sheets/{sheet_id}/claimed-elements"
 ```
 
 Response:
@@ -162,7 +164,7 @@ using the **most distinctive word** in the tag text. "WALK-IN FREEZER"
 → search "FREEZER". "WOMEN'S RESTROOM" → search "WOMEN".
 
 ```bash
-{query_command} -c "SELECT id, text, x_min, y_min, x_max, y_max FROM extracted_items WHERE sheet_id = '{sheet_id}' AND text ILIKE '%FREEZER%'"
+sh .construction/query.sh "SELECT id, text, x_min, y_min, x_max, y_max FROM extracted_items WHERE sheet_id = '{sheet_id}' AND is_deleted = false AND text ILIKE '%FREEZER%'"
 ```
 
 Multiple hits expected — each is a potential tag location. Zero hits
@@ -174,7 +176,7 @@ For each anchor, pull nearby extracted items. Padding values by tag type
 in `references/spatial-params.md`. Target: 8-25 candidates per tag.
 
 ```bash
-{query_command} -c "SELECT id, text, x_min, y_min, x_max, y_max FROM extracted_items WHERE sheet_id = '{sheet_id}' AND x_min BETWEEN {anchor_x - pad} AND {anchor_x + pad} AND y_min BETWEEN {anchor_y - pad} AND {anchor_y + pad}"
+sh .construction/query.sh "SELECT id, text, x_min, y_min, x_max, y_max FROM extracted_items WHERE sheet_id = '{sheet_id}' AND is_deleted = false AND x_min BETWEEN {anchor_x - pad} AND {anchor_x + pad} AND y_min BETWEEN {anchor_y - pad} AND {anchor_y + pad}"
 ```
 
 Adaptive: double padding if < 3 items returned, reduce 30% if > 40.
@@ -276,7 +278,7 @@ your ingest calls per sheet.
 
 **AgentCM mode:** POST detection results to the API:
 ```bash
-curl -X POST "http://localhost:3001/api/projects/{project_id}/tag-detections/ingest" \
+curl -X POST "{api_url}/projects/{project_id}/tag-detections/ingest" \
   -H "Content-Type: application/json" \
   -d '{"sheet_id": "{sheet_id}", "detections": [...]}'
 ```
@@ -285,7 +287,7 @@ Each detection: `{ tag_text, tag_type, element_ids, bounding_box, confidence, vi
 `bounding_box` must be `{ x, y, width, height }` in normalized 0-1 coordinates.
 Results appear as highlighted overlays in AgentCM's canvas UI.
 
-Also write JSON to `.construction/agent_findings/qto_{tag_type}_{timestamp}.json`.
+In AgentCM mode, also write the finding to `.construction/agent_findings/qto_{tag_type}_{timestamp}.json`.
 
 **CRITICAL — use the EXACT schema from `references/qto-output-format.md`.**
 The Excel script is rigid and parses specific key names. Required keys:
@@ -345,6 +347,7 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 ## Allowed Scripts
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize a sheet PDF page to PNG (flat file mode, or on demand)
 - `scripts/markup_tags.py` — sheet markup with tag highlights
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/annotate_pdf.py` — native PDF annotations
 - `scripts/qto_to_xlsx.py` — QTO Excel export (4-sheet workbook)

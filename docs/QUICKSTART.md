@@ -2,31 +2,19 @@
 
 ## What This Is
 
-Construction skills for Claude Code that let you navigate drawings, extract schedules, parse specs, tabulate bids, and generate subcontracts — all from your terminal or IDE.
+Construction skills for Claude Code that let you navigate drawings, extract schedules, parse specs, tabulate bids, and generate subcontracts — all from your terminal or IDE. See the [README](../README.md#skills) for the full list of skills.
 
-**These skills work standalone** with any construction PDFs using Claude Code's built-in vision and PDF tools. No additional platform required. AgentCM integration is optional and makes skills faster with pre-indexed data.
+**These skills work standalone** with any construction PDFs. They rasterize PDF pages with the plugin's own scripts and read the resulting images; they never read a PDF directly. No additional platform is required. AgentCM, a separate project-data tool, is optional; the skills work without it and use its pre-indexed data when it is present.
 
 ## Prerequisites
 
-- [Claude Code](https://claude.com/claude-code) installed (CLI, VS Code extension, or web)
-- Python 3.10+ (on macOS, Apple's built-in `python3` is 3.9 — install a newer one from python.org or Homebrew)
-- On Windows: [Git for Windows](https://git-scm.com/download/win) (run the commands below in Git Bash)
-
-See the [README prerequisites](../README.md#prerequisites) for details per operating system.
+- [Claude Code](https://claude.ai/code) installed
+- Python 3.10+ and, on Windows, [Git for Windows](https://git-scm.com/download/win) (run the commands in Git Bash). See the [README prerequisites](../README.md#prerequisites) for details per operating system.
 - Construction project PDFs (drawings and/or specs)
 
 ## Install
 
-```bash
-# Clone into your Claude Code skills directory; Claude Code loads it as the "construction" plugin
-git clone https://github.com/dleerdefi/claude-code-construction ~/.claude/skills/construction
-
-# Run setup (creates the Python venv)
-cd ~/.claude/skills/construction
-./setup
-```
-
-Prefer the marketplace? Inside Claude Code run `/plugin marketplace add dleerdefi/claude-code-construction`, then `/plugin install construction@construction-skills`. See the [README](../README.md#setup) for per-project installs, and [Validating your install](VALIDATING.md) to check everything works.
+Follow [Setup in the README](../README.md#setup), then check the install with [Validating your install](VALIDATING.md).
 
 ## Try It: Index Your Project
 
@@ -53,7 +41,7 @@ If you have a drawing sheet with a door, finish, or equipment schedule:
 Claude will:
 1. Open the PDF and locate the schedule table
 2. Extract every row using pdfplumber (with vision fallback if table detection fails)
-3. Save the data to Excel (.xlsx) and CSV
+3. Save the data to an Excel (.xlsx) workbook
 4. Report the extraction quality (row count, column count)
 
 ## Try It: Read a Drawing
@@ -75,22 +63,23 @@ If you have a bound project manual (one large PDF with all spec sections):
 Claude will:
 1. Parse the Table of Contents
 2. Find section boundaries in the PDF
-3. Split into individual PDFs: `03 30 00 - CAST-IN-PLACE CONCRETE.pdf`, etc.
+3. Split into individual PDFs in a `Specification Sections/` folder (inside your specs folder): `03 30 00 - CAST-IN-PLACE CONCRETE.pdf`, etc.
 4. Create a spec index YAML
+5. Extract each section's text to `.construction/skills/spec_text/`, with a quality rating per section
 
 ## Try It: Generate a Submittal Log
 
-After splitting specs (or if specs are already individual PDFs):
+Run this on a project with specs. If spec text has not been extracted yet, the skill runs spec-splitter itself first.
 
 ```
 /construction:submittal-log-generator
 ```
 
 Claude will:
-1. Read each spec section
-2. Find the SUBMITTALS heading in Part 1
-3. Parse every lettered submittal item
-4. Generate an Excel register with trade vs. general tabs, status dropdowns, and date columns
+1. Read the extracted text of each spec section
+2. Find submittal requirements in Part 1 (the SUBMITTALS articles, quality assurance, closeout and similar articles) and in Parts 2 and 3 where a product or execution article calls for one
+3. Score each item's confidence and flag uncertain ones
+4. Generate `Submittal_Log.xlsx` with three sheets: "Submittal Log", "Summary" and "Extraction QA"
 
 ## What Gets Created
 
@@ -100,13 +89,13 @@ Skills save deliverables in your project folder, where you can open them, and ke
 your-project/
   drawings/                         # Your PDFs
     sheets/                         # Split sheet PDFs + sheet_index.yaml (sheet-splitter)
-  Specification Sections/           # Split spec PDFs + spec_index.yaml (spec-splitter)
+  specs/Specification Sections/     # Split spec PDFs + spec_index.yaml (spec-splitter; goes in your specs folder)
   Submittal_Log.xlsx                # Excel/Word deliverables (or in a matching folder, e.g. Submittals/)
   .construction/                    # Hidden on Mac/Linux; you don't need to open it
     skills/                         # Skills' working data: spec text, issue registry, progress
 ```
 
-With [AgentCM](https://github.com/dleerdefi/AgentCM), `.construction/` also holds AgentCM's project data, and skills record their findings there.
+In projects that use AgentCM (marked by `.construction/project.yaml`), `.construction/` also holds AgentCM's project data, and skills record their findings in `.construction/agent_findings/`.
 
 ## Running Evals
 
@@ -116,19 +105,4 @@ Want to verify the skills work? See [Running Evals](RUNNING_EVALS.md) for how to
 
 See [Troubleshooting](TROUBLESHOOTING.md) for common issues and fixes.
 
-## Available Skills
-
-| Skill | What it does |
-|-------|-------------|
-| `/construction:project-setup` | Set up project: inventory files, classify documents, establish context |
-| `/construction:sheet-splitter` | Split bound drawing set into individual sheet PDFs |
-| `/construction:spec-splitter` | Split bound project manual into individual spec PDFs |
-| `/construction:schedule-extractor` | Extract schedule data from drawings to Excel |
-| `/construction:submittal-log-generator` | Extract submittal requirements from specs to Excel |
-| `/construction:bid-tabulator` | Tabulate multiple subcontractor bids into comparison spreadsheet |
-| `/construction:bid-evaluator` | Evaluate tabulated bids: scope gaps, risk scoring, recommendation |
-| `/construction:code-researcher` | Deep research on building codes and jurisdiction requirements |
-| `/construction:subcontract-writer` | Generate scope-specific subcontract from firm's template |
-| `/construction:construction-guide` | Operating guide: data-access rules, drawing conventions, document precedence |
-
-Drawing reading and construction domain conventions live in the `construction-guide` skill, which Claude loads automatically when you work with construction documents.
+For the full list of skills, see the [README skill table](../README.md#skills). Drawing reading and construction conventions live in the `construction-guide` skill, which Claude loads when you work with construction documents.

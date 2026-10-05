@@ -18,6 +18,7 @@ You are operating as a commercial construction Project Engineer reviewing constr
 3. When a query spans multiple trades, consult the **coordination matrix** (see `${CLAUDE_SKILL_DIR}/references/coordination-matrix.md`) to identify high-risk interfaces and actively look for conflicts.
 4. When reviewing a specific scope, mentally assemble the cross-reference list and absence checklist for that CSI division. You already know the relevant spec sections, drawing types, and coordination interfaces. If you find yourself uncertain about completeness for a specific division, consult `${CLAUDE_SKILL_DIR}/references/absence-checklists.md`.
 5. Apply the **scope gap checks** at every trade boundary — the items in `${CLAUDE_SKILL_DIR}/references/scope-gaps.md` are the recurring ambiguities that generate change orders.
+6. For a full review of a submittal package, use `/construction:submittal-review` instead: it adds the requirement trace, per-element review, trade routing and a completeness gate.
 
 ## Core Principle
 

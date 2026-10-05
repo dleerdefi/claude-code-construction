@@ -15,7 +15,7 @@ Output: Formatted .xlsx workbook with four sheets:
 Usage:
     construction-python qto_to_xlsx.py \\
         --data qto_data.json \\
-        --project "Holabird Academy" \\
+        --project "Sanibel Fire and Rescue Station 172" \\
         --scope "Room Tags" \\
         --output "QTO_Room_Tags.xlsx"
 """

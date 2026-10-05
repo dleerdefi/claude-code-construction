@@ -4,19 +4,7 @@ This repo is a Claude Code plugin (`construction`) of skills for construction do
 
 ## For Users
 
-Clone into a Claude Code skills directory and run setup:
-```bash
-git clone https://github.com/dleerdefi/claude-code-construction ~/.claude/skills/construction
-cd ~/.claude/skills/construction && ./setup
-```
-
-Or install from the marketplace inside Claude Code:
-```
-/plugin marketplace add dleerdefi/claude-code-construction
-/plugin install construction@construction-skills
-```
-
-Skills are invoked as `/construction:<skill>`. See README.md.
+Install steps, the skill table and validation are in README.md, docs/QUICKSTART.md and docs/VALIDATING.md. Skills are invoked as `/construction:<skill>`.
 
 ## For Contributors
 
@@ -24,7 +12,7 @@ Skills are invoked as `/construction:<skill>`. See README.md.
 - Production skills live in `skills/<name>/SKILL.md` — edit directly
 - `skills/construction-guide/` is the operating guide (data-access rules, drawing conventions, document precedence). It replaced the shared CLAUDE.md, which a plugin can't ship
 - Dev/experimental skills live in `.claude/skills/_dev/<name>/` (gitignored, not shipped, never loaded by the plugin)
-- Deprecated skills move to `.claude/skills/_deprecated_<name>/` (gitignored; outside `skills/`, so the plugin doesn't load them)
+- Deprecated skills move to `.claude/skills/_deprecated_<name>/` (gitignored; outside `skills/`, so the plugin doesn't load them). Anything left under `skills/` is loaded, whatever its name: `--plugin-dir .` showed a `_deprecated_` folder as a 15th skill
 - This contributor guide lives at `.claude/CLAUDE.md`: a CLAUDE.md at the plugin root is not loaded by plugins and fails `claude plugin validate --strict`
 
 ### Dev Workflow
@@ -51,9 +39,13 @@ claude plugin validate --strict .claude-plugin/plugin.json   # Check manifest + 
 - When creating a new skill, copy an existing `agents/openai.yaml` and update the name/description
 
 ### Script Allowlist
-- Skills must declare an exhaustive list of allowed scripts in their SKILL.md
+- Skills must declare an exhaustive list of allowed scripts in their SKILL.md (a skill that runs no scripts says so, as project-setup does)
 - Skills must NOT create custom Python scripts during execution
 - All scripts live in the shared `scripts/` directory or per-skill `scripts/` subdirectories
+
+### Evals
+- Every skill has a case in `evals/plugin/<case>/`; the case conventions are in `evals/plugin/README.md` and the runner is `evals/harness/run.py` (`bin/construction-python evals/harness/run.py --tag smoke --runs 1`, see `evals/harness/README.md` and `docs/RUNNING_EVALS.md`)
+- A new or changed skill gets its case run through the harness before it merges
 
 ### Authoritative SOP
 - The comprehensive skill architecture SOP is at `docs/CM_SKILLS_SOP.md`

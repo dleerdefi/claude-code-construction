@@ -16,8 +16,8 @@ investigation before any draft is written.
 ```bash
 # ${CLAUDE_PLUGIN_ROOT} is not set in the shell here: use the plugin path that
 # rfi-drafter's SKILL.md commands show.
-# Read database.yaml for query_command, then:
-{query_command} -c "SELECT * FROM v_sheet_contents WHERE sheet_number = '{sheet}'"
+# project_id is in .construction/database.yaml; one query per call:
+sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '{sheet}'"
 # Rasterize + crop to the conflict zone for vision reading:
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf}" {page} --dpi 200 --output page.png
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --box x1,y1,x2,y2 --normalized --output conflict_area.png
@@ -35,7 +35,7 @@ investigation before any draft is written.
 
 **With AgentCM**:
 ```bash
-{query_command} -c "SELECT * FROM v_cross_references WHERE source_sheet = '{sheet}' OR dest_sheet = '{sheet}'"
+sh .construction/query.sh "SELECT * FROM v_cross_references WHERE project_id = '{project_id}' AND (from_sheet = '{sheet}' OR to_sheet = '{sheet}')"
 ```
 
 **Without AgentCM**:
@@ -70,7 +70,7 @@ investigation before any draft is written.
 
 **With AgentCM**:
 ```bash
-{query_command} -c "SELECT sheet_number, sheet_title FROM sheets WHERE project_id = '{id}' AND sheet_title ILIKE '%general%note%'"
+sh .construction/query.sh "SELECT sheet_number, sheet_title FROM sheets WHERE project_id = '{project_id}' AND sheet_title ILIKE '%general%note%'"
 ```
 
 **Without AgentCM**: Check `.01` sheets for each discipline (e.g., A-0.01, S-0.01, M-0.01) — these typically contain general notes.

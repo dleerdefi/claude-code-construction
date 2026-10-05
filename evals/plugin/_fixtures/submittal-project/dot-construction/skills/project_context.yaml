@@ -1,0 +1,10 @@
+project:
+  name: SAMPLE SCHOOL RENOVATION
+  location:
+    city: Example City
+    state: FL
+building:
+  occupancy_type: E
+  building_use: K-12 school renovation
+  facility_types:
+  - education.k12

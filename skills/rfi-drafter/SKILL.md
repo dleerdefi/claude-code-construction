@@ -161,7 +161,7 @@ The script uses `safe_output_path()` — never overwrites existing files.
 
 ## Mode 2: Issue Detection Registry
 
-Other skills (tag-audit-and-takeoff, pe-review, spec-parser, etc.)
+Other skills (tag-audit-and-takeoff, pe-review, submittal-review, etc.)
 surface potential issues during their normal work. These issues
 accumulate in `.construction/skills/issues/` as JSON records, NOT as RFIs.
 

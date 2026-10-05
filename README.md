@@ -8,7 +8,7 @@ The skills ship as a Claude Code plugin named `construction` and work on Windows
 
 | | Windows | macOS | Linux |
 |---|---|---|---|
-| [Claude Code](https://claude.ai/code) (CLI, VS Code or JetBrains) | ✓ | ✓ | ✓ |
+| [Claude Code](https://claude.ai/code) | ✓ | ✓ | ✓ |
 | Shell for the skills' commands | [Git for Windows](https://git-scm.com/download/win) (Git Bash) | built in | built in |
 | Python 3.10 or newer | [python.org](https://www.python.org/downloads/) installer (the `py` launcher is fine) | [python.org](https://www.python.org/downloads/) or Homebrew — Apple's built-in `python3` is 3.9, too old | your distribution's `python3` (3.10+) with `venv` |
 | `git` | included in Git for Windows | `xcode-select --install` or Homebrew | your package manager |
@@ -72,9 +72,9 @@ To check that everything works on your machine, follow [Validating your install]
 | `/construction:code-researcher` | Research applicable building codes, standards, and jurisdiction requirements |
 | `/construction:subcontract-writer` | Generate a scope-specific subcontract from your firm's template |
 | `/construction:rfi-drafter` | Draft RFIs and review the issues other skills have flagged |
+| `/construction:submittal-review` | Review a submittal against specs, drawings, code questions and trade coordination, with trade routing, a completeness gate and a draft GC review |
 | `/construction:pe-review` | Review drawings, specs, submittals or RFIs with Project Engineer judgment |
 | `/construction:tag-audit-and-takeoff` | Count tagged elements across sheets and audit tag completeness |
-| `/construction:viewport-highlighter` | Find and highlight the views on drawing sheets (requires AgentCM) |
 | `/construction:construction-guide` | Operating guide Claude loads before working with your documents (data-access rules, conventions, document precedence) |
 
 Type `/construction:` in Claude Code to list every skill. Claude also runs them on its own when your request matches.
@@ -83,19 +83,9 @@ Type `/construction:` in Claude Code to list every skill. Claude also runs them 
 
 Tested in Claude Code with **Claude Opus 5.5** and **Claude Sonnet 5.5** on Windows and macOS.
 
-| Skill | Status |
-|---|---|
-| project-setup | ✅ Validated |
-| spec-splitter | ✅ Validated |
-| sheet-splitter | ✅ Validated |
-| submittal-log-generator | 🔄 Testing in progress |
-| All other skills | 🔄 Testing in progress |
+Every skill has an eval case that passed on Windows with Sonnet through the eval harness (one run each, 2026-10-02 to 2026-10-04); see the [eval suite README](evals/plugin/README.md) for what each case checks and the suite's known issues.
 
 Found a problem? [Open an issue](https://github.com/dleerdefi/claude-code-construction/issues) with your OS, model, and the skill's output.
-
-## AgentCM (Optional)
-
-If your project uses [AgentCM](https://github.com/dleerdefi/AgentCM), skills automatically read from its pre-indexed structured data in `.construction/` for faster results. Skills work without AgentCM using Claude's built-in vision and PDF tools.
 
 ## Output
 
@@ -107,13 +97,13 @@ Deliverables — Excel workbooks, Word documents, split sheet and spec PDFs, rep
 - [Validating your install](docs/VALIDATING.md) — check the plugin works on your machine
 - [Troubleshooting](docs/TROUBLESHOOTING.md) — common issues and fixes
 - [CM Skills SOP](docs/CM_SKILLS_SOP.md) — skill architecture and design standard
-- [Evaluation Spec](evals/EVAL_SPEC.md) and [Running Evals](docs/RUNNING_EVALS.md) — the scored eval framework for contributors
+- [Running Evals](docs/RUNNING_EVALS.md) and the [plugin eval suite](evals/plugin/README.md) — the scored evals for contributors
 
 ## Requirements
 
 Python dependencies are installed into an isolated venv at `~/.construction-skills/venv/`, by `./setup` or automatically on first use, and re-synced whenever `requirements.txt` changes. No manual activation needed — all scripts run through `bin/construction-python`.
 
-Packages: `pdfplumber`, `pymupdf`, `openpyxl`, `Pillow`, `PyYAML`, `python-docx`, `fpdf2`
+Packages: `pdfplumber`, `pymupdf`, `openpyxl`, `Pillow`, `PyYAML`, `python-docx`, `fpdf2`, and `claude-agent-sdk` (used only by the eval harness)
 
 ## License
 

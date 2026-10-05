@@ -16,7 +16,8 @@ from pathlib import Path
 import fitz  # PyMuPDF
 
 OUT = Path(__file__).resolve().parent / "sample-project"
-PROJECT = "HOLABIRD ACADEMY RENOVATION"
+PROJECT = "SAMPLE OFFICE RENOVATION"
+FIXTURE_NOTICE = "EVAL FIXTURE - fictional document generated for a synthetic evaluation; not a real project or firm"
 
 SHEETS = [  # number, printed title, bookmark title
     ("G-001", "COVER SHEET AND DRAWING INDEX", "COVER SHEET AND DRAWING INDEX"),
@@ -61,6 +62,8 @@ def drawing_set(path):
         toc.append([1, f"{number} {bookmark}", i + 1])
     doc.set_toc(toc)
     path.parent.mkdir(parents=True, exist_ok=True)
+    for page in doc:  # every page says what it is, in the bottom margin
+        page.insert_text((12, page.rect.height - 8), FIXTURE_NOTICE, fontsize=6)
     doc.save(str(path), garbage=4, deflate=True)
 
 
@@ -87,6 +90,8 @@ def project_manual(path):
                    ("A.  Install according to manufacturer's written instructions.", 10), ("", 10),
                    (f"END OF SECTION {num}", 11)])
     path.parent.mkdir(parents=True, exist_ok=True)
+    for page in doc:  # every page says what it is, in the bottom margin
+        page.insert_text((12, page.rect.height - 8), FIXTURE_NOTICE, fontsize=6)
     doc.save(str(path), garbage=4, deflate=True)
 
 

@@ -101,15 +101,17 @@ procurement and layout adjustments."
 
 ## Example RFI
 
+The condition below and its sheet, room and door references are invented to show the format. It is not a finding on the real drawings.
+
 ```
 REQUEST FOR INFORMATION
 
-Project:      Holabird Academy Elementary/Middle School
-Project No:   GP#21553
+Project:      Sanibel Fire and Rescue Station 172
+Project No:   2023820
 RFI No:       RFI-026
 Date:         September 18, 2025
-From:         Barton Malow — David Chen, PE
-To:           Marks Thomas Architects — Robert Marks, AIA
+From:         Example Builders, Inc. — David Chen, PE
+To:           Schenkel Shultz Architecture — Project Architect
 
 Subject:      Corridor Width at Grid B — Reduced Below Code Minimum
               by Door Swing
@@ -119,7 +121,7 @@ Drawing Ref:  Sheet A-2.01 (First Floor Plan), Grid Line B between
               Rooms 104 and 105; Door tag 105A
 
 DESCRIPTION:
-The corridor between Rooms 104 (Corridor) and 105 (Classroom) is
+The corridor between Rooms 104 (Corridor) and 105 (Office) is
 dimensioned at 3'-8" clear on Sheet A-2.01. Per IBC Table 1005.1,
 the corridor requires a minimum 44" (3'-8") clear width based on
 occupant load. However, the door swing from Room 105 (door 105A)

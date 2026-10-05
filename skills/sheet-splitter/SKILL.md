@@ -18,7 +18,7 @@ Run after `/project-setup` identifies bound drawing sets. Produces split PDFs an
 
 This is valuable for:
 - **Project teams**: Navigate drawings by sheet number instead of scrolling a multi-page PDF
-- **Other skills**: `sheet-index-builder`, `drawing-reader`, and all drawing analysis skills work better with individual sheet files
+- **Other skills**: schedule-extractor, tag-audit-and-takeoff, pe-review and every other drawing analysis skill work better with individual sheet files
 - **AgentCM**: Split files become the basis for per-sheet structured data
 
 ## Workflow
