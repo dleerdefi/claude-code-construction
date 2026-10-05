@@ -69,7 +69,7 @@
     "defect_type": "unclear_value",
     "where": "09 67 10 extended price is hidden under an opaque smudge on the scan",
     "expected_tabulator_behaviour": "Record extended_price as '[unclear: smudged on scan]' (never guess, never 0); text layer is empty so vision is required; true value is in ground_truth_hidden.",
-    "expected_evaluator_behaviour": "Flag the value as unclear, request clarification, and do not treat it as zero or silently back-solve it from the base bid."
+    "expected_evaluator_behaviour": "Flag the value as unclear and request a clean copy before award. A figure may be derived only when it reconciles exactly to the stated base bid, and it is then labelled derived/confirm, never presented as read (SKILL.md 2e). Never treat the value as zero."
   },
   {
     "bid": "D",
@@ -78,7 +78,7 @@
     "defect_type": "missing_addenda",
     "where": "Addenda acknowledgement line is blank",
     "expected_tabulator_behaviour": "addenda_acknowledged = [] (not acknowledged).",
-    "expected_evaluator_behaviour": "Flag no addenda acknowledgment (red flag / bid completeness); obtain written acknowledgement of Addenda 1 and 2 before award."
+    "expected_evaluator_behaviour": "Flag no addenda acknowledgment (red flag / bid completeness). Sandbar is the apparent low bidder, so it may be recommended conditionally with written acknowledgement of Addenda 1 and 2 (no price change) and the 09 67 10 confirmation as named award conditions and Gulfshore as the fully responsive fallback; recommending Gulfshore outright is also acceptable (SKILL.md 2e)."
   },
   {
     "bid": "E",

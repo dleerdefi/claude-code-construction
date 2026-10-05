@@ -43,6 +43,39 @@ def _parse_ve_deducts(qualifications):
     return results
 
 
+def _num(v):
+    """float for a number or numeric string; None for blank, lump sum or '[unclear ...]' text."""
+    if isinstance(v, bool) or v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    try:
+        return float(str(v).replace("$", "").replace(",", "").strip())
+    except ValueError:
+        return None
+
+
+def _arithmetic_checks(bids):
+    """(bidder, message) for every line whose qty x unit price is not its extended
+    price, and for every bid whose line items do not sum to its stated base bid."""
+    out = []
+    for b in bids:
+        bname = b.get("company_name", "?")
+        total = 0.0
+        for n, li in enumerate(b.get("line_items", []), 1):
+            qty, rate, ext = _num(li.get("qty")), _num(li.get("unit_price")), _num(li.get("extended_price"))
+            if ext is not None:
+                total += ext
+            if qty is not None and rate is not None and ext is not None and abs(qty * rate - ext) > 0.01:
+                out.append((bname, f"line {n} ({li.get('spec_section') or li.get('description', '')[:40]}): "
+                                   f"{qty:g} x {rate:,.2f} = {qty * rate:,.2f}, extended price states {ext:,.2f}"))
+        base = _num(b.get("base_bid_amount"))
+        if base is not None and b.get("line_items") and abs(total - base) > 0.01:
+            out.append((bname, f"line items sum to {total:,.2f}; stated base bid is {base:,.2f} "
+                               f"(difference {base - total:+,.2f})"))
+    return out
+
+
 def _quote_tab(name):
     """Quote sheet name for cross-sheet Excel formulas."""
     escaped = name.replace("'", "''")
@@ -72,6 +105,12 @@ def bid_comparison_to_xlsx(
     if not bids:
         print(f"ERROR: No bid JSON files found in {data_dir}")
         sys.exit(1)
+
+    # Arithmetic checks on the as-submitted numbers. Nothing is corrected:
+    # a mismatch is reported here and on the Flags tab for the engineer.
+    arithmetic_flags = _arithmetic_checks(bids)
+    for bname, msg in arithmetic_flags:
+        print(f"CHECK: {bname}: {msg}")
 
     wb = Workbook()
     thin = Border(
@@ -397,8 +436,27 @@ def bid_comparison_to_xlsx(
     row += 1  # separator
 
     # Static info rows
+    def _listed(v, empty):
+        if isinstance(v, list):
+            return "; ".join(str(x) for x in v) if v else empty
+        return v if v not in (None, "") else empty
+
+    def _allowances(b):
+        items = []
+        for a in b.get("allowances", []) or []:
+            if isinstance(a, dict):
+                amt = _num(a.get("amount"))
+                items.append(f"{a.get('description', a.get('name', ''))}"
+                             + (f" ${amt:,.2f}" if amt is not None else ""))
+            else:
+                items.append(str(a))
+        return "; ".join(items) if items else "None stated"
+
     info_rows = [
         ("Bond Included", [b.get("bond_included", "") for b in bids]),
+        ("Insurance Confirmed", [b.get("insurance_confirmed", "") for b in bids]),
+        ("Addenda Acknowledged", [_listed(b.get("addenda_acknowledged"), "None stated") for b in bids]),
+        ("Allowances", [_allowances(b) for b in bids]),
         ("Schedule Duration", [b.get("schedule_duration", "") for b in bids]),
         ("Payment Terms", [b.get("payment_terms", "") for b in bids]),
         ("Bid Date", [b.get("bid_date", "") for b in bids]),
@@ -570,6 +628,34 @@ def bid_comparison_to_xlsx(
             value="No scope items detected from inclusion/exclusion lists.",
         )
         ws_gaps.cell(row=5, column=1).font = Font(italic=True, color="666666")
+
+    # -------------------------------------------------------------------
+    # Flags — extraction flags from each bid's JSON, [unclear ...] notes,
+    # and the arithmetic checks. As submitted, nothing corrected.
+    # -------------------------------------------------------------------
+    ws_flags = wb.create_sheet(title="Flags")
+    ws_flags["A1"] = "FLAGS & DISCREPANCIES (as submitted; nothing corrected)"
+    ws_flags["A1"].font = Font(bold=True, size=14)
+    write_header(ws_flags, 3, ["Bidder", "Flag"], [30, 110])
+    row = 4
+    flag_rows = []
+    for idx, bid in enumerate(bids):
+        bname = bidder_names[idx]
+        for f in bid.get("flags", []) or []:
+            flag_rows.append((bname, str(f)))
+        for li in bid.get("line_items", []):
+            note = str(li.get("notes") or "")
+            if "[unclear" in note.lower():
+                flag_rows.append((bname, f"{li.get('spec_section', '')} {li.get('description', '')}: {note}"))
+    flag_rows += arithmetic_flags
+    for bname, text in flag_rows:
+        ws_flags.cell(row=row, column=1, value=bname).border = thin
+        cell_f = ws_flags.cell(row=row, column=2, value=text)
+        cell_f.border = thin
+        cell_f.alignment = wrap_top
+        row += 1
+    if row == 4:
+        ws_flags.cell(row=4, column=1, value="No flags.").font = Font(italic=True, color="666666")
 
     # Save
     out = safe_output_path(output)

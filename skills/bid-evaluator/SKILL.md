@@ -58,6 +58,15 @@ Extract from each spec section: work included (Parts 1-3), work by
 others (GC/NIC/Owner), related section cross-references, performance
 requirements, coordination and temporary requirements.
 
+This step is never skipped. The spec sections are the baseline that
+SILENT is measured against; a scope sheet lists sections, not their
+requirements, and "no drawing review" does not mean "no spec review".
+In flat-file mode dump each section's text (TEXT pages in the dump are
+read as text; rasterize VISION pages):
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "{section.pdf}"
+```
+
 ### 1b. Drawing Review
 Load `references/drawing-review.md` for guidance on what to look for
 per drawing type. Vision-read key sheets to identify scope items,
@@ -133,11 +142,32 @@ capacity, DBE/MBE, bid completeness.
 **Bust detection:** >20-30% below field + scope gaps + incomplete
 submission. Flag for verification, never call it a bust.
 
+### 2e. Responsiveness and the Recommendation
+
+- A **curable** defect (addenda not acknowledged; an illegible or missing
+  line that reconciles to the stated total; validity shorter than required;
+  bond not mentioned where one is required) keeps the bid in the ranking at
+  its stated price.
+- Recommend the apparent low bidder **conditionally**: each cure is a named
+  award condition in `recommendation.conditions` (written addenda
+  acknowledgment with no price change; a clean copy of the illegible line;
+  a validity extension; a bond commitment). Name the next fully responsive
+  bidder as the fallback and state the spread.
+- A figure derived for an illegible line is allowed only when it reconciles
+  exactly to the stated total, and it is always labelled "derived, confirm",
+  never presented as read.
+- A **non-curable** defect (budgetary-only pricing; a stale drawing basis the
+  bidder has not re-confirmed; SILENT spec-required scope the bidder will not
+  carry) makes the bid "not awardable as submitted"; it is ranked but never
+  recommended.
+
 ---
 
 ## Step 3: Output
 
-Build JSON per schema in `scripts/sample_input.json`, then run:
+Build JSON per schema in `scripts/sample_input.json` with the Write tool
+(not a shell heredoc, which fails here on an apostrophe, and not a helper
+script), then run:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py" input.json output.xlsx
 ```
@@ -183,6 +213,11 @@ Without AgentCM, skip — the Excel workbook is the deliverable.
 | 3 | `scripts/sample_input.json` | Building output JSON | Step 3 complete |
 | 5 | `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` | AgentCM mode detected | Step 5 complete |
 
+## Gotchas (measured in eval runs)
+
+- Write JSON and YAML with the Write tool. `cat > file <<'EOF'` failed with "unexpected EOF while looking for matching `'`" whenever the content held an apostrophe (3 of 15 runs, 2026-10-04), costing a turn each time.
+- Do not write helper scripts or inline `python -c`, even to assemble your own JSON or to read a PDF; the allowlisted scripts are the toolkit, and the exporters do the arithmetic checks. If the toolkit lacks something you need, say so in the handoff instead (bid-tabulator and subcontract-writer each wrote a helper script in their 2026-10-04 runs; the eval guard blocked both).
+
 ## Error Handling
 
 - Uneven formats: note difficulty, don't penalize lump-sum bids
@@ -206,5 +241,10 @@ Never overwrite an existing bid evaluation. The export script uses `safe_output_
 ## Allowed Scripts
 
 - `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py` — spec section and bid text (Step 1a)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — drawing sheets and VISION pages
 - `${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
+
+No other code: no `python -c`, no helper script. If the toolkit lacks something
+you need, say so in the handoff.

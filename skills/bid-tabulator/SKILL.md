@@ -49,14 +49,18 @@ Bid Tabulation Progress:
 
 ### Step 2: Read First Bid to Discover Structure
 
-Open the first bid PDF to understand what data is available:
-
-Try pdfplumber first. If text extraction returns meaningful content (>50 chars per page), use text mode. Otherwise fall back to vision.
-
-**Vision fallback** for scanned bids:
+Open the first bid PDF to understand what data is available. Dump its text layer
+first; the script marks each page TEXT or VISION (fewer than 50 characters):
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "BID.pdf"
+```
+Read TEXT pages from the dump. Rasterize each VISION page (scanned bids show
+VISION on every page) and read it with vision:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "BID.pdf" 1 --dpi 200 --output bid_page.png
 ```
+Do not write your own extraction code (no `python -c`, no helper script); the
+two scripts above are the whole reading toolkit for this skill.
 
 From the first bid, identify what data fields are present. Common bid data:
 
@@ -90,7 +94,14 @@ schedule_duration: ""   # Proposed duration if stated
 payment_terms: ""       # Net 30, etc.
 bond_included: false    # Whether bid/performance bond is included
 insurance_confirmed: false
+addenda_acknowledged: []  # Addenda the bid acknowledges, as written ("Addendum 1"); [] if none
+flags: []               # Extraction flags for the engineer: math discrepancies, unclear values, missing acknowledgements
 ```
+
+The exporter reports every line whose qty × unit price is not its extended
+price and every bid whose lines do not sum to its stated base bid, on the
+console and on the workbook's Flags tab. Record the numbers as submitted and
+let the exporter flag them; do not correct or re-derive them.
 
 **Line item extraction rules:**
 - Every line item MUST be an object with the fields above — never a bare string.
@@ -105,14 +116,14 @@ insurance_confirmed: false
 
 Process each bid PDF individually. For each bid:
 
-1. **Extract text** via pdfplumber (preferred) or vision (fallback)
-2. **Quality gate**: If pdfplumber returns less than 100 characters per page, switch to vision for that bid
+1. **Extract text** with `pdf_text.py` (Step 2 command); read TEXT pages from the dump
+2. **Quality gate**: rasterize every page the dump marks VISION and read it with vision
 3. **Extract all identified fields** from the bid document
 4. **Preserve original language** — do NOT paraphrase, normalize, or reformat line item descriptions. Extract them exactly as written in the bid.
 5. **Flag ambiguities** — if a value is unclear or could be interpreted multiple ways, include it with a note in brackets: `[unclear: possibly $45,000 or $45/SF]`
-6. **Save per-bid JSON** to `.construction/skills/bid-tabulator/bids/{company_name_slug}.json`
+6. **Save per-bid JSON** to `.construction/skills/bid-tabulator/bids/{company_name_slug}.json` with the Write tool, one file per bid (not through a script, and not with a shell heredoc: `cat > file <<'EOF'` fails here when the content holds an apostrophe)
 
-**State persistence** — write progress after each bid:
+**State persistence** — write `extraction_state.yaml` after each bid, every run, so an interrupted run resumes:
 ```yaml
 # .construction/skills/bid-tabulator/extraction_state.yaml
 scope: "Division 09 - Finishes"
@@ -174,7 +185,7 @@ After generating the Excel:
 - **[Y] qualifications/exclusions** across all bidders (see Exclusions tab)
 - **[Z] bids** had unclear values that are flagged with [unclear] notes
 
-The Excel file is at [path]. All line items are extracted as-submitted — you'll want to review the Scope Gaps tab and contact subs to clarify any discrepancies before finalizing your comparison."
+The Excel file is at [path]. All line items are extracted as-submitted — you'll want to review the Flags tab (math discrepancies, unclear values) and the Scope Gaps tab, and contact subs to clarify any discrepancies before finalizing your comparison."
 
 ### Step 6: Write Graph Entry
 
@@ -189,6 +200,11 @@ The Excel file is at [path]. All line items are extracted as-submitted — you'l
 ## Resumption
 
 Check for `.construction/skills/bid-tabulator/extraction_state.yaml`. If `status: in_progress`, resume from the next unprocessed bid.
+
+## Gotchas (measured in eval runs)
+
+- Write JSON and YAML with the Write tool. `cat > file <<'EOF'` failed with "unexpected EOF while looking for matching `'`" whenever the content held an apostrophe (3 of 15 runs, 2026-10-04), costing a turn each time.
+- Do not write helper scripts or inline `python -c`, even to assemble your own JSON or to read a PDF; the allowlisted scripts are the toolkit, and the exporters do the arithmetic checks. If the toolkit lacks something you need, say so in the handoff instead (bid-tabulator and subcontract-writer each wrote a helper script in their 2026-10-04 runs; the eval guard blocked both).
 
 ## Tips
 
@@ -207,6 +223,7 @@ Never overwrite an existing bid comparison. If a file exists at the target locat
 ## Allowed Scripts
 
 - `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py`
 - `${CLAUDE_SKILL_DIR}/scripts/bid_comparison_to_xlsx.py`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
