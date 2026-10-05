@@ -283,9 +283,9 @@ A skill that logs issues lists `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` 
 
 ### Behavioral Skills (setup / orientation)
 
-| Skill | When to use | Output |
-|---|---|---|
-| `project-setup` | Set up a construction project after `/init` — inventories files, classifies documents, appends construction context to project CLAUDE.md | Amended CLAUDE.md |
+| Skill | When to use | Output | Invoked by |
+|---|---|---|---|
+| `project-setup` | Set up a construction project after `/init` — inventories files, classifies documents, appends construction context to project CLAUDE.md | Amended CLAUDE.md | User |
 
 ## PDF & Vision Tools
 
