@@ -42,7 +42,8 @@ SYSTEM_PREFIXES = ("/dev", "/tmp", "/usr", "/bin", "/etc", "/proc", "/mingw64", 
 _WIN_ABS = r"[A-Za-z]:[\\/][^\s\"'|&;<>()]*"
 _POSIX_ABS = r"/[^\s\"'|&;<>()]*"
 _HOME_REL = r"(?:~|\$HOME|%USERPROFILE%)(?:[\\/][^\s\"'|&;<>()]*)?"
-_PATH_TOKEN = re.compile(rf"(?<![\w.-])({_WIN_ABS}|{_POSIX_ABS}|{_HOME_REL})")
+# A glob such as `ls */` or `sheets/*/` is not a path from the root.
+_PATH_TOKEN = re.compile(rf"(?<![\w.*?-])({_WIN_ABS}|{_POSIX_ABS}|{_HOME_REL})")
 # Inside quotes a path may contain spaces.
 _QUOTED_PATH = re.compile(rf"^\s*([A-Za-z]:[\\/][^\"'|&;<>()]*|/[^\"'|&;<>()]*|(?:~|\$HOME|%USERPROFILE%)(?:[\\/][^\"'|&;<>()]*)?)\s*$")
 _QUOTED = re.compile(r"\"([^\"]*)\"|'([^']*)'")
