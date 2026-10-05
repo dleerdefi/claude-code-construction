@@ -101,8 +101,15 @@ def _path_allowed(path: str, policy: Policy) -> bool:
     return False
 
 
+_HEREDOC = re.compile(r"<<-?\s*(['\"]?)(\w+)\1[^\n]*\n.*?\n[ \t]*\2[ \t]*(?=\n|$)", re.DOTALL)
+
+
 def shell_paths(command: str) -> list[str]:
-    """Absolute and home-relative paths named in a shell command (quoted or bare)."""
+    """Absolute and home-relative paths named in a shell command (quoted or bare).
+
+    Heredoc bodies are data (YAML, JSON, prose), not paths the shell opens, so they are skipped.
+    """
+    command = _HEREDOC.sub(" ", command)
     found: list[str] = []
     for q in _QUOTED.finditer(command):
         text = q.group(1) if q.group(1) is not None else q.group(2)
