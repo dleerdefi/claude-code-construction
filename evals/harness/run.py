@@ -81,9 +81,10 @@ async def regrade_async(args, cases) -> int:
         print(f"{case.dir.name} ({len(run_dirs)} saved run{'s' if len(run_dirs) != 1 else ''})")
         run_scores, run_details, cost = [], [], 0.0
         for run_dir in run_dirs:
-            run, stored = load_saved_run(run_dir, case.dir.name)
+            run, stored, source = load_saved_run(run_dir, case.dir.name)
             new_dir = write_trace(out_dir, run)
-            graders = await regrade_run(case, run, stored, judge, PLUGIN_ROOT, new_dir / "trace.jsonl", args.rejudge)
+            graders = await regrade_run(case, run, stored, judge, PLUGIN_ROOT, new_dir / "trace.jsonl", args.rejudge,
+                                        source)
             write_run(out_dir, run, graders)
             s = score(graders)
             run_scores.append(s)
@@ -94,7 +95,7 @@ async def regrade_async(args, cases) -> int:
                                 "elapsed_s": round(run.elapsed_s), "cost_usd": run.cost_usd, "error": run.error,
                                 "graders": [g.__dict__ for g in graders],
                                 "guard_denials": [d for d in run.guard_log if not d["allow"]],
-                                "kept_workspace": str(run.workspace) if run.workspace.exists() else ""})
+                                "kept_workspace": str(run.workspace) if source == "workspace" else ""})
         case_score = round(sum(run_scores) / len(run_scores), 4)
         ok = case_score >= args.threshold
         print(f"  score {case_score:.2f}  {'PASS' if ok else 'FAIL'}")

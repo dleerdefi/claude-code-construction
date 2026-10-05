@@ -13,6 +13,7 @@ sys.path.insert(0, str(HERE))
 from cases import Case, Grader  # noqa: E402
 from graders import JudgeOptions  # noqa: E402
 from regrade import KEPT, load_saved_run, regrade_run  # noqa: E402
+from report import write_created  # noqa: E402
 
 
 def _save_run(run_dir: Path, workspace: Path, stored: list[dict]) -> None:
@@ -53,12 +54,13 @@ class Regrade(unittest.TestCase):
         ])
 
     def _regrade(self, graders):
-        run, stored = load_saved_run(self.run_dir, "demo")
+        run, stored, source = load_saved_run(self.run_dir, "demo")
         return asyncio.run(regrade_run(_case(graders), run, stored, JudgeOptions(), HERE.parents[1],
-                                       self.run_dir / "trace.jsonl", rejudge=False))
+                                       self.run_dir / "trace.jsonl", rejudge=False, source=source))
 
     def test_saved_run_is_rebuilt(self):
-        run, stored = load_saved_run(self.run_dir, "demo")
+        run, stored, source = load_saved_run(self.run_dir, "demo")
+        self.assertEqual(source, "workspace")
         self.assertEqual(run.run_index, 1)
         self.assertEqual(run.created_files, ["out.json"])
         self.assertEqual(len(run.tool_uses), 3)
@@ -90,6 +92,27 @@ class Regrade(unittest.TestCase):
         self.assertIn(KEPT, results[0].detail)
         self.assertFalse(results[1].passed)
         self.assertIn("not evaluated", results[1].detail)
+
+    def test_snapshot_stands_in_for_a_deleted_workspace(self):
+        run, _, _ = load_saved_run(self.run_dir, "demo")
+        snap = write_created(self.tmp / "results", run)   # what write_run does before cleanup
+        self.assertEqual(snap, self.run_dir / "workspace")
+        self.assertTrue((snap / "out.json").is_file())
+        os.remove(self.workspace / "out.json")
+        self.workspace.rmdir()
+        run, _, source = load_saved_run(self.run_dir, "demo")
+        self.assertEqual(source, "snapshot")
+        self.assertEqual(run.workspace, snap)
+        results = self._regrade([
+            _grader("output", "file_exists", path="out.json"),
+            _grader("brand-new", "file_exists", path="other.json"),
+        ])
+        self.assertTrue(results[0].passed)
+        self.assertIn("on the snapshot", results[0].detail)
+        self.assertNotIn(KEPT, results[0].detail)
+        self.assertEqual(run.modified_files, [])
+        self.assertFalse(results[1].passed)          # evaluated, not kept: the file really is absent
+        self.assertIn("on the snapshot", results[1].detail)
 
     def test_llm_grader_keeps_its_verdict_without_rejudge(self):
         results = self._regrade([_grader("judged", "llm")])
