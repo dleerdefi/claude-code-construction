@@ -201,6 +201,11 @@ The Excel file is at [path]. All line items are extracted as-submitted — you'l
 
 Check for `.construction/skills/bid-tabulator/extraction_state.yaml`. If `status: in_progress`, resume from the next unprocessed bid.
 
+## Gotchas (measured in eval runs)
+
+- Write JSON and YAML with the Write tool. `cat > file <<'EOF'` failed with "unexpected EOF while looking for matching `'`" whenever the content held an apostrophe (3 of 15 runs, 2026-10-04), costing a turn each time.
+- Do not write helper scripts or inline `python -c`, even to assemble your own JSON or to read a PDF; the allowlisted scripts are the toolkit, and the exporters do the arithmetic checks. If the toolkit lacks something you need, say so in the handoff instead (bid-tabulator and subcontract-writer each wrote a helper script in their 2026-10-04 runs; the eval guard blocked both).
+
 ## Tips
 
 - Bids over 10 pages likely contain detailed breakdowns — process all pages, not just the summary

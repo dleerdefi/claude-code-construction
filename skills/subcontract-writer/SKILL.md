@@ -530,6 +530,11 @@ Never overwrite an existing subcontract. The formatter uses `safe_output_path()`
 - `${CLAUDE_SKILL_DIR}/scripts/generate_subcontract_docx.py`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
 
+## Gotchas (measured in eval runs)
+
+- Write JSON and YAML with the Write tool. `cat > file <<'EOF'` failed with "unexpected EOF while looking for matching `'`" whenever the content held an apostrophe (3 of 15 runs, 2026-10-04), costing a turn each time.
+- Do not write helper scripts or inline `python -c`, even to assemble your own JSON or to read a PDF; the allowlisted scripts are the toolkit, and the exporters do the arithmetic checks. If the toolkit lacks something you need, say so in the handoff instead (bid-tabulator and subcontract-writer each wrote a helper script in their 2026-10-04 runs; the eval guard blocked both).
+
 ## Tips
 
 - "Furnish and install" is the standard scope phrase unless the sub is furnish-only or install-only

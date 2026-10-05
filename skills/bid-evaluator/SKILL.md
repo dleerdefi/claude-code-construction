@@ -213,6 +213,11 @@ Without AgentCM, skip — the Excel workbook is the deliverable.
 | 3 | `scripts/sample_input.json` | Building output JSON | Step 3 complete |
 | 5 | `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` | AgentCM mode detected | Step 5 complete |
 
+## Gotchas (measured in eval runs)
+
+- Write JSON and YAML with the Write tool. `cat > file <<'EOF'` failed with "unexpected EOF while looking for matching `'`" whenever the content held an apostrophe (3 of 15 runs, 2026-10-04), costing a turn each time.
+- Do not write helper scripts or inline `python -c`, even to assemble your own JSON or to read a PDF; the allowlisted scripts are the toolkit, and the exporters do the arithmetic checks. If the toolkit lacks something you need, say so in the handoff instead (bid-tabulator and subcontract-writer each wrote a helper script in their 2026-10-04 runs; the eval guard blocked both).
+
 ## Error Handling
 
 - Uneven formats: note difficulty, don't penalize lump-sum bids
