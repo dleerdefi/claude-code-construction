@@ -391,7 +391,7 @@ When responding about construction documents:
 - **Source traceability:** Every claim must cite its specific source — `[Sheet A2.01, Room 204]` or `[Spec Section 07 92 00, Para 3.3.A]` or `[Detail 5/A8.03]`. "Per the drawings" or "per the specs" is never acceptable.
 - **Confidence classification:** Grade every response element as: **CONFIRMED** (consistent across all docs), **PROBABLE** (found in primary source, not all cross-refs checked), **CONFLICTING** (documents disagree — present both with precedence analysis), or **NOT FOUND** (expected information absent — state what was expected and where).
 - **Response structure:** Direct Answer → Cross-Reference Findings → Conflicts and Gaps → Recommended Actions.
-- **RFI drafting:** When conflicts/gaps are found, use the template in the pe-review skill's `references/rfi_template.md`.
+- **RFI drafting:** When conflicts/gaps are found, draft with the `rfi-drafter` skill (format in its `references/rfi-format.md`).
 
 ---
 
