@@ -104,7 +104,7 @@ project scope before answering questions.
 
 #### 2. Vision + PDF Tools (unguided fallback)
 Use Claude Code vision on rasterized PDF pages plus `pdfplumber` / `pymupdf` for text and annotation extraction.
-Run `/sheet-splitter` first to split bound drawing sets into individual sheet PDFs.
+Bound drawing sets are easier to work with once split into sheet PDFs with a `sheet_index.yaml`. `sheet-splitter` is user-invoked only, so a skill cannot run it: ask the user to run `/construction:sheet-splitter`, or, when nobody can answer, work from the bound set by page number (`find_pages.py` locates a sheet by its number or title).
 
 ---
 
@@ -177,7 +177,7 @@ You can also rasterize individual sheets on demand using the `rasterize_page.py`
 
 **Following a detail callout**: With graph → query `calloutEdges[]`, if resolved navigate to destination view centroid. Without → read the detail bubble (number/sheet), find the target.
 
-**Reading a schedule on a sheet**: Use `schedule-extractor` skill for structured extraction.
+**Reading a schedule on a sheet**: For a structured workbook the user runs `/construction:schedule-extractor` (user-invoked only). Inside a skill, crop the schedule region and read it with vision, or extract the table with `pdfplumber` when the sheet has a text layer.
 
 **Checking a note**: With graph → query `noteBlocks[]` for bounding region, crop directly. Without → locate the note number, find the corresponding key note area.
 
@@ -242,21 +242,23 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 
 ## Skills
 
-### Critical Skills (invocable — produce deliverables)
+### Deliverable Skills
 
-| Skill | When to use | Output |
-|---|---|---|
-| `submittal-log-generator` | Extract submittal requirements from specs (DRAFT — engineer review required) | Excel register |
-| `schedule-extractor` | Extract structured schedule data from drawings or specs | Excel workbook |
-| `spec-splitter` | Split bound project manual into individual spec section PDFs | Section PDFs + index |
-| `sheet-splitter` | Split bound drawing set into individual sheet PDFs | Sheet PDFs + sheet_index.yaml |
-| `bid-tabulator` | Tabulate multiple subcontractor bids into comparison spreadsheet. **Input: bid PDFs.** | Excel workbook |
-| `bid-evaluator` | Evaluate tabulated bids against construction documents — scope gaps, risk scoring, recommendation. **Input: bid-tabulator output + specs/drawings.** | Excel workbook + memo |
-| `code-researcher` | Deep research on building codes, standards, and jurisdiction requirements | Markdown + YAML report |
-| `subcontract-writer` | Generate scope-specific subcontract from firm's template | Word document (.docx) |
-| `rfi-drafter` | Draft formal RFIs from identified issues; manage ambient issue detection registry | Word document (.docx) or PDF |
-| `submittal-review` | Review a submittal package against specs, drawings, code questions and trade coordination, with a completeness gate and a draft GC review | Review records + Excel workbook |
-| `tag-audit-and-takeoff` | Count-based QTO and tag completeness auditing — identifies tagged elements using vision + OCR | QTO JSON + marked-up PNGs |
+"User" in the last column means the skill sets `disable-model-invocation` and only the user can start it, with `/construction:<name>`. A skill cannot invoke one of those with the Skill tool. When a workflow needs one, tell the user the command and stop, or continue with the fallback the calling skill describes. "User or skill" means a skill may invoke it with the Skill tool.
+
+| Skill | When to use | Output | Invoked by |
+|---|---|---|---|
+| `submittal-log-generator` | Extract submittal requirements from specs (DRAFT — engineer review required) | Excel register | User |
+| `schedule-extractor` | Extract structured schedule data from drawings or specs | Excel workbook | User |
+| `spec-splitter` | Split bound project manual into individual spec section PDFs | Section PDFs + index | User or skill |
+| `sheet-splitter` | Split bound drawing set into individual sheet PDFs | Sheet PDFs + sheet_index.yaml | User |
+| `bid-tabulator` | Tabulate multiple subcontractor bids into comparison spreadsheet. **Input: bid PDFs.** | Excel workbook | User |
+| `bid-evaluator` | Evaluate tabulated bids against construction documents — scope gaps, risk scoring, recommendation. **Input: bid-tabulator output + specs/drawings.** | Excel workbook + memo | User |
+| `code-researcher` | Deep research on building codes, standards, and jurisdiction requirements | Markdown + YAML report | User or skill |
+| `subcontract-writer` | Generate scope-specific subcontract from firm's template | Word document (.docx) | User |
+| `rfi-drafter` | Draft formal RFIs from identified issues; manage ambient issue detection registry | Word document (.docx) or PDF | User or skill |
+| `submittal-review` | Review a submittal package against specs, drawings, code questions and trade coordination, with a completeness gate and a draft GC review | Review records + Excel workbook | User |
+| `tag-audit-and-takeoff` | Count-based QTO and tag completeness auditing — identifies tagged elements using vision + OCR | QTO JSON + marked-up PNGs | User |
 
 ### Cross-Skill Infrastructure
 

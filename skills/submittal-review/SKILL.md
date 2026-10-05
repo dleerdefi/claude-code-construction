@@ -78,8 +78,8 @@ prior.json            resubmittals only: what happened to each prior finding
    - submittal types, using `submittal-log-generator`'s labels (Shop Drawings, Product Data, Samples, Design Data, Test Reports, Certificates, Delegated Design, ...).
 3. **Resubmittal.** If the revision is above zero or the user names a prior review, find the prior review directory. Every prior finding must be accounted for in `prior.json` (Step 6).
 4. **Prerequisites.**
-   - **Spec text** must exist in `.construction/skills/spec_text/`. If it does not, run `/construction:spec-splitter`.
-   - **Drawing sheets** must be split and indexed (`sheet_index.yaml`, or AgentCM's index). If they are not, run `/construction:sheet-splitter`.
+   - **Spec text** must exist in `.construction/skills/spec_text/`. If it does not, invoke the `construction:spec-splitter` skill (Skill tool) yourself.
+   - **Drawing sheets** should be split and indexed (`sheet_index.yaml`, or AgentCM's index). `sheet-splitter` is user-invoked only, so you cannot run it from here: ask the user to run `/construction:sheet-splitter` and resume. If nobody can answer (unattended run), continue with the bound drawing set, locate sheets with `find_pages.py`, and add a `notes` entry in `state.yaml` saying the drawings were not split.
 5. **Project facts.** Read `.construction/skills/project_context.yaml`:
    - **Facility types** (`building.facility_types`): if missing, infer them from the cover sheet and code analysis, and confirm them at the checkpoint.
    - **Jurisdiction:** city, county and state.

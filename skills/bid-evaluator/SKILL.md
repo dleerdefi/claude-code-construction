@@ -20,11 +20,11 @@ foundation so the PE/PM can decide quickly and confidently.
 /bid-tabulator → THIS SKILL → user confirms → /subcontract-writer
 ```
 
-**This skill requires tabulated bids as input.** If the user has raw bid PDFs that haven't been tabulated yet, run `/bid-tabulator` first to produce the per-bidder JSON files and comparison Excel. This skill consumes that output.
+**This skill requires tabulated bids as input.** If the user has raw bid PDFs that haven't been tabulated yet, stop and ask them to run `/construction:bid-tabulator` first; it is user-invoked only, so you cannot start it from here. It produces the per-bidder JSON files and comparison Excel that this skill consumes.
 
-- User has **bid PDFs** → `/bid-tabulator` (data capture) → then offer this skill
+- User has **bid PDFs** → ask them to run `/construction:bid-tabulator` (data capture), then `/construction:bid-evaluator`
 - User has **tabulated bids** and wants analysis → this skill directly
-- User says "compare bids" or "buyout" → check if bids are already tabulated; if not, start with `/bid-tabulator`
+- User says "compare bids" or "buyout" → check if bids are already tabulated; if not, ask them to run `/construction:bid-tabulator` first
 
 ## Tier System
 
@@ -154,7 +154,7 @@ Exclusion Detail, Qualification Summary, Recommendation.
 3. Ask for explicit confirmation: selected bidder, scope adjustments,
    alternates, special conditions
 
-**Do NOT proceed to /subcontract-writer without user confirmation.**
+**Do NOT proceed to a subcontract without user confirmation.** `subcontract-writer` is user-invoked only; once the user has confirmed the selected bidder, tell them the next step is `/construction:subcontract-writer` and stop.
 
 ---
 
