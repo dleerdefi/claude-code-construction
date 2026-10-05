@@ -29,7 +29,7 @@ Expert submittal reviews for any CSI scope, not surface-level checks. The output
 - **Goals left unmet.** It solved none of: health-department validation, large brochures, or need-by dates.
 - **The value was in the procedure.** Trace the contract documents first, inventory both ways, cite both sides, keep code questions open, route to trades.
 
-The classification tables in `docs/audit/csi-layer/marginal-value/classification/` list every item with its verdict. The roughly 60 items that changed a review are mostly cross-trade handoffs a single-trade reviewer doesn't think of (freezer underfloor heat, sprinklers inside walk-ins, return air through rated walls) and code questions phrased as questions.
+The classification tables (in git history and on the tag `archive/feat/csi-knowledge-layer`, under `docs/audit/csi-layer/marginal-value/classification/`) list every item with its verdict. The roughly 60 items that changed a review are mostly cross-trade handoffs a single-trade reviewer doesn't think of (freezer underfloor heat, sprinklers inside walk-ins, return air through rated walls) and code questions phrased as questions.
 
 ## The decision
 
