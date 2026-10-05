@@ -1,6 +1,11 @@
 # Code Researcher Output Schemas
 # JIT-loaded per phase step — see SKILL.md for when each is used
 # Each section is delimited and named for reference from SKILL.md
+#
+# The filled-in values below are illustrative. Bracketed values such as
+# "[code] §[section]" are placeholders for what your research verified.
+# Never copy a section number, threshold or regulation name from this file
+# into a finding; every citation in your output comes from a source you read.
 
 # ═══════════════════════════════════════════════════════════════
 # PHASE 1a — Project Context
@@ -190,46 +195,42 @@ jurisdiction:
 topic_findings:
   topic: "Slip Resistance"
   research_findings:
-    - code: "ADA 2010 Standards"
-      section: "402.2"
-      requirement: "Floor or ground surfaces shall be stable, firm, and slip resistant"
+    - code: "[accessibility standard, e.g. ADA 2010 Standards]"
+      section: "[section number as verified]"
+      requirement: "[requirement text quoted or closely paraphrased from the source]"
       specific_to_this_scope: true
-      edition_confirmed: true
-      source_url: ""
+      edition_confirmed: false     # true only after you confirmed the adopted edition
+      source_url: "[URL or document you read]"
 
-    - code: "IBC 2021"
-      section: "1210.3"
-      requirement: "Floor surfaces in commercial kitchens shall have a static
-                    coefficient of friction of not less than 0.60"
-      specific_to_this_scope: true
-      edition_confirmed: true
-      source_url: ""
-
-    - code: "ASTM C 1028 / DCOF AcuTest"
-      section: null
-      requirement: "Test method for measuring slip resistance — DCOF ≥ 0.42
-                    commonly referenced for wet floors"
+    - code: "[building code and edition adopted by the jurisdiction]"
+      section: "[section number as verified]"
+      requirement: "[requirement text; include any numeric threshold exactly
+                    as the source states it]"
       specific_to_this_scope: true
       edition_confirmed: false
       source_url: ""
-      note: "ASTM C 1028 withdrawn 2014; DCOF AcuTest per ANSI A137.1 now standard
-             for tile, but resinous flooring has no equivalent standard — verify
-             what test method AHJ requires"
 
-    - code: "USDA/FDA Food Service Requirements"
+    - code: "[test standard, e.g. ANSI A137.1 DCOF]"
       section: null
-      requirement: "Floors in food preparation areas must be non-slip; specific
-                    requirements vary by state health department"
+      requirement: "[what the standard measures and the threshold it sets, if any]"
       specific_to_this_scope: true
       edition_confirmed: false
       source_url: ""
-      note: "Maryland Department of Health has food service facility regulations —
-             project kitchen (Rooms 1411-1419) likely subject to these"
+      note: "[status of the standard (current, withdrawn, superseded) and
+             whether it applies to this floor system type]"
+
+    - code: "[state or local health regulation, if a food service area is in scope]"
+      section: null
+      requirement: "[requirement text as verified]"
+      specific_to_this_scope: true
+      edition_confirmed: false
+      source_url: ""
+      note: "[which rooms or areas in the scope trigger this regulation]"
 
   applicable_test_standards:
-    - "DCOF AcuTest per ANSI A137.1 (tile)"
-    - "No industry standard specific to urethane mortar systems — manufacturer
-       test data typically used"
+    - "[test standard and the material type it applies to]"
+    - "[note when no industry standard exists for the specified system and
+       manufacturer test data is the only source]"
 
   gaps_identified:
     - "No COF or slip resistance requirement in 09 67 23"
@@ -249,9 +250,8 @@ gap_analysis:
       confidence: confirmed
 
       code_requirement:
-        code: "IBC 2021 §1210.3"
-        text: "Floor surfaces in commercial kitchens shall have a static
-               coefficient of friction of not less than 0.60"
+        code: "[code and edition] §[section]"      # as verified in topic_findings
+        text: "[requirement text, with any threshold exactly as the source states it]"
 
       project_status:
         addressed: false
@@ -273,17 +273,15 @@ gap_analysis:
       confidence: needs_review
 
       code_requirement:
-        code: "Maryland Department of Health Food Service Facility Regs
-               (COMAR 10.15.03)"
-        text: "Floors in food preparation areas shall be smooth, easily cleanable,
-               and nonabsorbent"
+        code: "[state health department regulation, as verified]"
+        text: "[requirement text as verified]"
 
       project_status:
         addressed: false
         in_documents: null
         note: "Kitchen complex (Rooms 1411–1419) is within the resinous flooring
-               scope. No reference to health department requirements or COMAR
-               10.15.03 found in 09 67 23 or in project manual."
+               scope. No reference to health department requirements found in
+               09 67 23 or in the project manual."
 
       recommended_action: "Confirm with Owner whether food service permit is
                            required. If yes, coordinate with health department
@@ -299,7 +297,7 @@ gap_analysis:
       confidence: confirmed
 
       code_requirement:
-        code: "IBC 2021 §1210.2 (via Section 01 61 16)"
+        code: "[VOC regulation adopted for the project] (via Section 01 61 16)"
         text: "VOC content of floor coatings shall comply with applicable
                regulations"
 
@@ -314,7 +312,7 @@ gap_analysis:
 
       recommended_action: "Add cross-reference to Section 01 61 16 in 09 67 23
                            §1.1 or §1.5. Confirm manufacturer's VOC data for
-                           Stonclad UT system against limits in 01 61 16."
+                           the specified system against limits in 01 61 16."
 
       engineer_action_required: false
       pe_decision_required: false
@@ -332,10 +330,10 @@ gap_analysis:
       confidence: confirmed
 
   uncertain:
-    - topic: "Baltimore City Amendments to Slip Resistance"
-      note: "Could not confirm whether Baltimore City has local amendments
-             that modify IBC §1210.3. Recommend confirming with building
+    - topic: "[Local jurisdiction] Amendments to Slip Resistance"
+      note: "Could not confirm whether [local jurisdiction] has local amendments
+             that modify [code] §[section]. Recommend confirming with building
              department AHJ."
-      recommended_action: "Call Baltimore City building department or consult
-                           project architect who should have local amendment
-                           knowledge."
+      recommended_action: "Call the [local jurisdiction] building department or
+                           consult the project architect, who should have local
+                           amendment knowledge."

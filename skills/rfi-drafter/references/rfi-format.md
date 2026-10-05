@@ -40,7 +40,7 @@ can generate annotated sheet crops showing the conflict area.]
 ### Subject Line
 Specific enough that anyone can understand the issue from the
 subject alone. Include the location and nature of the issue.
-- GOOD: "Corridor Width at Grid B Does Not Meet ADA Minimum"
+- GOOD: "Corridor Width at Grid B — Floor Plan and Enlarged Plan Disagree"
 - GOOD: "Conflicting Finish Schedules — Room 203 Flooring"
 - BAD: "Question about the floor plan"
 - BAD: "Dimension issue"
@@ -85,7 +85,9 @@ Common resolution patterns by issue type:
 - **Product conflict**: "Suggest using [product] per manufacturer's
   recommendation for this application."
 - **Code conflict**: "Per [code section], [requirement]. Please
-  clarify how the design addresses this."
+  clarify how the design addresses this." Only with a section you
+  have read and verified applies to this project; otherwise describe
+  the condition and ask the design professional to confirm compliance.
 
 Always frame as a question or suggestion, never a directive.
 
@@ -101,7 +103,11 @@ procurement and layout adjustments."
 
 ## Example RFI
 
-The condition below and its sheet, room and door references are invented to show the format. It is not a finding on the real drawings.
+The condition below and its sheet, room, door and dimension references are
+invented to show the format. It is not a finding on the real drawings. The
+example deliberately contains no code citation: an RFI states what the
+documents show and asks the design professional to resolve it. Cite a code
+section only when you have read that section and verified it applies.
 
 ```
 REQUEST FOR INFORMATION
@@ -113,28 +119,29 @@ Date:         September 18, 2025
 From:         Example Builders, Inc. — David Chen, PE
 To:           Schenkel Shultz Architecture — Project Architect
 
-Subject:      Corridor Width at Grid B — Reduced Below Code Minimum
-              by Door Swing
+Subject:      Corridor Width at Grid B — Floor Plan and Enlarged Plan
+              Dimensions Disagree
 
-Spec Section: N/A — Building Code / ADA issue
+Spec Section: N/A — Drawing-only issue
 Drawing Ref:  Sheet A-2.01 (First Floor Plan), Grid Line B between
-              Rooms 104 and 105; Door tag 105A
+              Rooms 104 and 105; Enlarged Plan 2/A-2.11; Door tag 105A
 
 DESCRIPTION:
-The corridor between Rooms 104 (Corridor) and 105 (Office) is
-dimensioned at 3'-8" clear on Sheet A-2.01. Per IBC Table 1005.1,
-the corridor requires a minimum 44" (3'-8") clear width based on
-occupant load. However, the door swing from Room 105 (door 105A)
-projects into the corridor, reducing the clear width to approximately
-3'-2" when the door is at 90 degrees. This falls below both the IBC
-egress minimum and the ADA accessible route minimum of 3'-0" clear
-(per ADA Standards Section 403.5.1) when considering the simultaneous
-passage requirement.
+Sheet A-2.01 dimensions the corridor (Room 104) at 3'-8" clear
+between the face of stud at Grid B and the Room 105 (Office) wall.
+Enlarged Plan 2/A-2.11 dimensions the same corridor at 4'-0" clear.
+The dimension string on 2/A-2.11 closes to the Grid B to Grid C
+spacing shown on Sheet A-2.01; the 3'-8" string on A-2.01 does not.
+Door 105A (3'-0" wide per the door schedule, Sheet A-6.01) swings
+into this corridor. The two sheets cannot both be built, and the
+corridor wall location sets the layout for the adjacent office
+walls.
 
 SUGGESTED RESOLUTION:
-Either (a) increase the corridor width to 4'-0" clear to accommodate
-the full door swing, or (b) specify a reduced-projection door type
-(pocket or sliding) at opening 105A.
+The 4'-0" clear dimension on 2/A-2.11 appears to govern, since its
+dimension string closes to the grid spacing. Please confirm 4'-0"
+clear and issue a corrected dimension on Sheet A-2.01, or advise if
+the office wall is to shift instead.
 
 IMPACT IF NOT RESOLVED:
 Interior framing at Grid B is scheduled for October 15, 2025. A
@@ -142,6 +149,7 @@ response is requested by October 1, 2025 to avoid impact to the
 framing and drywall schedule.
 
 ATTACHMENTS:
-1. Annotated crop of Sheet A-2.01 at Grid B showing conflict area
-2. Door schedule excerpt for door 105A
+1. Annotated crop of Sheet A-2.01 at Grid B showing the 3'-8" string
+2. Annotated crop of Enlarged Plan 2/A-2.11 showing the 4'-0" string
+3. Door schedule excerpt for door 105A
 ```

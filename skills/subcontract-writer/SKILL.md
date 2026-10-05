@@ -175,7 +175,7 @@ After validation, compute fields the user will need to confirm:
 | `bond_amount` | = contract sum (100% P&P bond for public works) |
 | `mbe_goal` / `wbe_goal` | Extract from prime contract or template |
 | `governing_state` | Infer from project address |
-| `prevailing_wage_statute` | Infer from state (e.g., Maryland = L&E Article §17-201) |
+| `prevailing_wage_statute` | The statute cited in the prime contract or template; if neither names one, leave `[STATUTE — VERIFY]` and flag it. Do not cite a statute from memory. |
 
 ---
 
@@ -298,9 +298,9 @@ After showing Group 2, ask: *"Do the commercial terms look right — schedule, m
 
 **Article 8 — Submittals** — Submittal schedule deadline (e.g., 15 days from execution). For each spec section in scope, list all required submittals extracted from Part 1. Include installer qualifications and manufacturer certifications where required by spec. LEED documentation requirements. **Do not leave this article as a placeholder under any circumstances.**
 
-**Article 9 — Prevailing Wages and Labor** — Statute citation for governing state. Certified payroll requirements. MBE/WBE goals with percentages. E-Verify requirement.
+**Article 9 — Prevailing Wages and Labor** — Statute citation for the governing state, taken from the prime contract or template (`[STATUTE — VERIFY]` if neither names one). Certified payroll requirements. MBE/WBE goals with percentages. E-Verify requirement.
 
-**Article 10 — Indemnification** — Intermediate-form indemnity. Indemnitees named: Contractor, Owner, Architect, and their officers/directors/employees. **Carve-out must use "sole negligence" — not just "negligence."** This is a legal requirement in Maryland and most states. If the template omits "sole", FIX IT and set `content_type: "review"` with a `legal_flags` entry.
+**Article 10 — Indemnification** — Intermediate-form indemnity. Indemnitees named: Contractor, Owner, Architect, and their officers/directors/employees. **Carve-out must use "sole negligence" — not just "negligence."** Most states limit or void broad-form indemnity in construction contracts; the GC's counsel confirms the governing state's rule. If the template omits "sole", FIX IT and set `content_type: "review"` with a `legal_flags` entry.
 
 **Article 11 — Warranty** — General warranty (1 year from Substantial Completion or longer per specs). Extended warranty table: one row per spec section with extended warranty requirement from the Data Model. Warranty response obligations. **Do not leave this article as a placeholder under any circumstances.**
 
@@ -318,7 +318,7 @@ After showing Group 2, ask: *"Do the commercial terms look right — schedule, m
 
 For each preserved article, review the template text for legal adequacy:
 
-**Indemnity:** Verify "sole negligence or willful misconduct" carve-out. Broad-form indemnity is unenforceable in most states (e.g., Maryland Code CJP §5-401). If the template says "negligence" without "sole", FIX IT and set `content_type: "review"`.
+**Indemnity:** Verify "sole negligence or willful misconduct" carve-out. Broad-form indemnity is limited or void in most states; cite the governing state's anti-indemnity statute only if the template or prime contract names it, otherwise flag it for counsel. If the template says "negligence" without "sole", FIX IT and set `content_type: "review"`.
 
 **Insurance:** Verify limits are adequate for project size. CGL $1M/$2M, Auto $1M, Umbrella $5M is standard for commercial.
 
