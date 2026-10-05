@@ -138,7 +138,7 @@ You can also rasterize individual sheets on demand using the `rasterize_page.py`
 
 **Follow this sequence — do not skip steps:**
 
-1. **Sheet lookup** — find the sheet in `sheet_index.yaml` → get `title`, `discipline`, `scale`, `pageIndex`, `filePath`
+1. **Sheet lookup** — find the sheet in `sheet_index.yaml` → get `title`, `discipline`, `scale`, `filename` (or `filePath`) and, for a bound set, `page_index` (counted from 0)
 2. **Graph query** — take `project_id` from `.construction/database.yaml`, then query:
    ```bash
    sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '{sheet}'"
@@ -149,8 +149,9 @@ You can also rasterize individual sheets on demand using the `rasterize_page.py`
    - `v_schedule_pivot` — schedule data if sheet contains schedules
 3. **Rasterize** — convert the PDF page to PNG (do NOT attempt to read the PDF directly):
    ```bash
-   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{filePath}" {pageIndex} --dpi 200 --output sheet.png
+   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{filePath}" {page} --dpi 200 --output sheet.png
    ```
+   `{page}` is 1-based. A split sheet PDF has one page, so pass `1`. For a page inside a bound set, pass `page_index + 1`.
 4. **Targeted crop** (optional) — if reviewing a specific area, crop using graph coordinates:
    ```bash
    "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" sheet.png --box {x1},{y1},{x2},{y2} --normalized --output detail.png
