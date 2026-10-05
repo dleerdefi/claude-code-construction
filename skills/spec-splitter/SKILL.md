@@ -192,3 +192,4 @@ Never overwrite existing split spec PDFs or extracted text. The split script ski
 - `scripts/extract_spec_text.py` — extract searchable text from section PDFs
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision fallback
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — graph entry (Step 9)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log a referenced spec section that does not exist to the Issue Registry (command and severity mapping in construction-guide)

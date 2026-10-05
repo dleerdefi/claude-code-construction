@@ -256,13 +256,30 @@ Present the summary immediately. Also inventory non-drawing files that AgentCM d
 | `bid-evaluator` | Evaluate tabulated bids against construction documents — scope gaps, risk scoring, recommendation. **Input: bid-tabulator output + specs/drawings.** | Excel workbook + memo | User |
 | `code-researcher` | Deep research on building codes, standards, and jurisdiction requirements | Markdown + YAML report | User or skill |
 | `subcontract-writer` | Generate scope-specific subcontract from firm's template | Word document (.docx) | User |
-| `rfi-drafter` | Draft formal RFIs from identified issues; manage ambient issue detection registry | Word document (.docx) or PDF | User or skill |
+| `rfi-drafter` | Draft formal RFIs from identified issues; review and escalate the issue registry | Word document (.docx) or PDF | User |
 | `submittal-review` | Review a submittal package against specs, drawings, code questions and trade coordination, with a completeness gate and a draft GC review | Review records + Excel workbook | User |
 | `tag-audit-and-takeoff` | Count-based QTO and tag completeness auditing — identifies tagged elements using vision + OCR | QTO JSON + marked-up PNGs | User |
 
 ### Cross-Skill Infrastructure
 
-**Issue Registry** — Any skill can log potential issues to `.construction/skills/issues/` via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, submittal-review, etc.) and are reviewed/escalated by the user through `rfi-drafter`. No skill writes an RFI directly — only issue records.
+**Issue Registry** — Any skill can log a potential issue (a conflict between documents, an absence, a question only the design team can answer) to `.construction/skills/issues/` with `issue_manager.py`. Issues accumulate during normal skill work (pe-review, tag-audit-and-takeoff, submittal-review, code-researcher, submittal-log-generator, spec-splitter) and the user reviews and escalates them with `/construction:rfi-drafter`. No skill writes an RFI directly — only issue records. Log and continue; never interrupt the current workflow to draft an RFI.
+
+Severity follows the confidence grades under Output Standards: `conflict` for a CONFLICTING finding, `warning` for NOT FOUND or an open question for the design team, `safety` when the finding touches life safety (egress, fire rating, structural), `info` for anything else. `--source-skill`, `--severity` and `--description` are required.
+
+```bash
+# Log an issue
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" add \
+  --source-skill "{this skill}" --severity {info|warning|conflict|safety} --confidence {high|medium|low} \
+  --description "Door D-142 references HW set 7, not found in 08 71 00" \
+  --sheets "A3.1" --spec-sections "08 71 00" --elements "D-142" \
+  --context "{where it surfaced, e.g. submittal-review 12-35-53-001-R0 finding 3}" \
+  --rfi-subject "{subject line if it becomes an RFI}"
+
+# List open issues (--severity or --source-skill to filter; --all to include resolved)
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" list --table
+```
+
+A skill that logs issues lists `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` in its script allowlist. `${CLAUDE_PLUGIN_ROOT}/reference/common-issue-types.md` has the pattern vocabulary of what to watch for.
 
 ### Behavioral Skills (setup / orientation)
 
@@ -394,7 +411,7 @@ When responding about construction documents:
 - **Source traceability:** Every claim must cite its specific source — `[Sheet A2.01, Room 204]` or `[Spec Section 07 92 00, Para 3.3.A]` or `[Detail 5/A8.03]`. "Per the drawings" or "per the specs" is never acceptable.
 - **Confidence classification:** Grade every response element as: **CONFIRMED** (consistent across all docs), **PROBABLE** (found in primary source, not all cross-refs checked), **CONFLICTING** (documents disagree — present both with precedence analysis), or **NOT FOUND** (expected information absent — state what was expected and where).
 - **Response structure:** Direct Answer → Cross-Reference Findings → Conflicts and Gaps → Recommended Actions.
-- **RFI drafting:** When conflicts/gaps are found, draft with the `rfi-drafter` skill (format in its `references/rfi-format.md`).
+- **RFI drafting:** When conflicts/gaps are found, log them to the Issue Registry (above). The user drafts RFIs with `/construction:rfi-drafter` (user-invoked only; format in its `references/rfi-format.md`).
 
 ---
 

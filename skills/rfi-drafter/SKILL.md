@@ -4,6 +4,8 @@ description: >
   Draft RFIs and manage the ambient issue registry. Reviews issues surfaced
   by other skills, escalates to formal RFIs. Triggers: 'draft RFI', 'write
   RFI', 'drawing conflict', 'review issues', 'issue queue'.
+argument-hint: "[issue id or description of the conflict]"
+disable-model-invocation: true
 ---
 
 # RFI Drafter
@@ -217,24 +219,10 @@ issues have been found", "any problems detected"):
 
 ### Writing Issues from Other Skills
 
-If you are running a skill OTHER than rfi-drafter and you notice a
-potential issue (schedule conflict, missing reference, spec/drawing
-mismatch), write it to the registry:
-
-```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" add \
-  --source-skill "tag-audit-and-takeoff" \
-  --severity "warning" \
-  --description "Door D-142 references HW set 7, not found in 08 71 00" \
-  --sheets "A3.1" \
-  --spec-sections "08 71 00" \
-  --confidence "medium"
-```
-
-Do NOT interrupt the current workflow to draft an RFI. Log and continue.
-
-See `${CLAUDE_PLUGIN_ROOT}/reference/common-issue-types.md` for the pattern vocabulary of
-what to watch for across skills.
+Other skills log issues without loading this skill: the `issue_manager.py add`
+command, the severity mapping and the pattern vocabulary are in
+construction-guide's Issue Registry paragraph. This skill only reads the
+registry and escalates.
 
 ---
 

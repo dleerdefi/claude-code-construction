@@ -461,3 +461,4 @@ Never overwrite an existing gap report. Version output files (`_v2`, `_v3`) if a
 
 - `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log a code gap the design team must answer to the Issue Registry (command and severity mapping in construction-guide)

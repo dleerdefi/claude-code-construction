@@ -16,7 +16,7 @@ After a document review session, evaluate what was found and append to the appro
 
 - `coordination_issues.md` — Cross-scope conflicts. Format: date, sheets involved, conflict description, resolution status.
 - `document_gaps.md` — Missing sheets, details, or spec sections. Format: date, what's missing, where it was expected.
-- `rfi_candidates.md` — Issues requiring design team clarification. Format: date, subject, references, issue description.
+- Issues requiring design team clarification go to the Issue Registry (`issue_manager.py add`, see construction-guide), which `rfi-drafter` reads. Do not keep a separate `rfi_candidates.md`.
 
 ## Rules
 

@@ -25,6 +25,7 @@ This skill uses a three-tier approach:
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `export_submittal_log.py` — Excel output from assembled JSON (Step 4)
 - `write_finding.py` — graph entry (Step 5)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log a submittal requirement with no matching spec product to the Issue Registry (command and severity mapping in construction-guide)
 Do not create, generate, or write any `.py`, `.sh`, or other script files. All data assembly is Claude writing JSON directly.
 
 ## Current Submittal State
