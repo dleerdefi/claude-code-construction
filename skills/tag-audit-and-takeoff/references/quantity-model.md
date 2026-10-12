@@ -17,9 +17,7 @@ installed item at a specific building location.
 | composite_bbox     | object  | Union bbox of all constituents           |
 | associated_items   | object  | Room number, dimensions, codes, etc.     |
 | view_type          | string  | Always "floor_plan" for instances        |
-| status             | enum    | pending_review / approved / rejected     |
-| approved_by        | string  | User who approved (null if pending)      |
-| approved_at        | datetime| Approval timestamp                       |
+| status             | enum    | accepted / to_confirm / rejected (`qto-output-format.md`) |
 | confidence         | string  | high / medium / low                      |
 | provenance         | string  | "vision_detected" or "user_added"        |
 
@@ -41,7 +39,7 @@ applies to all locations of that type.
 | constituent_ids    | int[]   | OCR extracted item IDs                   |
 | composite_bbox     | object  | Union bbox                               |
 | view_type          | string  | detail / section / elevation / enlarged  |
-| status             | enum    | pending_review / approved / rejected     |
+| status             | enum    | accepted / to_confirm / rejected (`qto-output-format.md`) |
 | elements_in_type   | object[]| All elements defined in this view        |
 | confidence         | string  | high / medium / low                      |
 
@@ -60,7 +58,7 @@ between a type definition and floor plan references.
 | tag_type           | string  | Inherited from type definition           |
 | tag_text           | string  | Inherited from type definition           |
 | derivation_method  | string  | How the link was established (see below) |
-| status             | enum    | pending_review / approved / rejected     |
+| status             | enum    | accepted / to_confirm / rejected (`qto-output-format.md`) |
 | deduplicated       | boolean | True if a direct instance already exists |
 
 ## Derivation Methods

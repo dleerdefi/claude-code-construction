@@ -367,7 +367,7 @@ In both modes, once the QTO JSON is saved (below), record a finding in `.constru
 **CRITICAL — use the EXACT schema from `references/qto-output-format.md`.**
 The Excel script is rigid and parses specific key names. Required keys:
 - `line_items[]` (NOT `qto_lines`) — one entry per unique element/designation
-- Each line item has `instance_details[]` with `detection_id`, `sheet`, `tag_text`, `room`, `bounding_box`, `status` (`accepted` or `to_confirm`), `source`, `confidence`
+- Each line item has `instance_details[]` with `detection_id`, `sheet`, `tag_text`, `room`, `bounding_box`, `status` (`accepted`, `to_confirm` or `rejected`), `source`, `confidence`
 - `scope{}` with `mode` (`agentcm` or `flat_file`), `completeness{}`, `issues[]`
 
 **What the count holds** (Step 1.5): every tag once. `accepted` instances are
