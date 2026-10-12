@@ -55,10 +55,10 @@ From `.construction/database.yaml` read only `project_id` and `api_url`; nothing
 - AgentCM's data changes only through its write endpoints, `{api_url}/projects/{project_id}/...`: `schedules/ingest`, `schedules/reconcile`, `tag-detections/ingest`. Tell the PE what you sent; AgentCM refreshes the files it affects.
 - A write names a sheet by its id: the `id` of the entry in `.construction/index/sheet_index.yaml` whose `sheet_number` matches. Never guess it from the number. If that file is missing or its entries have no `id` (an older sheet-splitter wrote a `pages:` list with `filename` and `page_index`), say so and stop.
 - A reconcile names its schedule by the `schedule_id` in the schedule file's comment line (or INDEX.md); a table with `schedule_id=none` was never ingested, so there is nothing to reconcile.
-- **Sending a write, and AgentCM closed.** Put the payload in `.construction/skills/<skill>/outbox/<endpoint>-<sheet>-<YYYYMMDD-HHMMSS>.json` (with the Write tool, or the script your skill names for it), then send that file: `curl -sS --fail-with-body -X POST "{api_url}/projects/{project_id}/<endpoint>" -H "Content-Type: application/json" -d @<file>`. The attempt is the check that AgentCM answers:
-  - curl exits 0: AgentCM took it. Move the file to `.construction/skills/<skill>/sent/` and tell the PE what was sent.
-  - curl cannot connect (exit 7): AgentCM is not running and nothing was sent. Leave the file in `outbox/`, finish the rest of the task from the files, and tell the PE to start AgentCM and rerun the write step, which sends what waits in `outbox/`.
-  - curl exits 22: AgentCM refused it. Show the PE its answer and leave the file in `outbox/`.
+- **Sending a write, and AgentCM closed.** Put the payload in `.construction/skills/<skill>/outbox/<endpoint>-<sheet>-<YYYYMMDD-HHMMSS>.json` (with the Write tool, or the script your skill names for it), then send that file: `curl -sS -X POST "{api_url}/projects/{project_id}/<endpoint>" -H "Content-Type: application/json" -d @<file> -w "\nHTTP %{http_code}\n"` (AgentCM's answer, then its status on the last line). The attempt is the check that AgentCM answers:
+  - HTTP 200 (any 2xx): AgentCM took it. Move the file to `.construction/skills/<skill>/sent/` and tell the PE what was sent.
+  - curl cannot connect (exit 7, "Failed to connect"): AgentCM is not running and nothing was sent. Leave the file in `outbox/`, finish the rest of the task from the files, and tell the PE to start AgentCM and rerun the write step, which sends what waits in `outbox/`.
+  - Any other status: AgentCM refused it. Show the PE its answer and leave the file in `outbox/`.
 - A skill's own working data goes in `.construction/skills/<skill>/`.
 
 ## When AgentCM is wrong

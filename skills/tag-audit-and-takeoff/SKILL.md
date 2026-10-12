@@ -101,7 +101,7 @@ Do not skip this step.
 Before scanning sheets, read what's already tagged per sheet:
 
 ```bash
-curl -sS --fail-with-body "{api_url}/projects/{project_id}/sheets/{sheet_id}/claimed-elements"
+curl -sS "{api_url}/projects/{project_id}/sheets/{sheet_id}/claimed-elements" -w "\nHTTP %{http_code}\n"
 ```
 
 Response:
@@ -160,7 +160,10 @@ redundant *output*.
 **Before proceeding to Step 2, report coverage and get confirmation:**
 "Existing coverage: {N} sheets have {M} accepted, {P} pending detections
 for this tag type. {Q} sheets have zero coverage.
-Proceed with vision scan on {Q} uncovered sheets?"
+Proceed with the vision scan of the {S} sheets in scope?"
+Every sheet in scope is looked at, covered or not: existing tags are matched,
+never skipped (one tag, once), and coverage only narrows the neighborhood
+search within a sheet (the EXCLUDE rule above), never which sheets are scanned.
 Wait for explicit user confirmation before continuing.
 
 ## Step 2: Vision Tag Identification
@@ -327,9 +330,10 @@ to `.construction/skills/tag-audit-and-takeoff/outbox/tag-detections-ingest-<she
 and send it as `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` says under
 Writing back; if AgentCM is closed, the payload waits there and the PE is told:
 ```bash
-curl -sS --fail-with-body -X POST "{api_url}/projects/{project_id}/tag-detections/ingest" \
+curl -sS -X POST "{api_url}/projects/{project_id}/tag-detections/ingest" \
   -H "Content-Type: application/json" \
-  -d @".construction/skills/tag-audit-and-takeoff/outbox/tag-detections-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json"
+  -d @".construction/skills/tag-audit-and-takeoff/outbox/tag-detections-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json" \
+  -w "\nHTTP %{http_code}\n"
 ```
 
 Each detection: `{ tag_text, tag_type, element_ids, bounding_box, confidence, view_type, room_id }`.

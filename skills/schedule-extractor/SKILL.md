@@ -184,9 +184,10 @@ After Excel output, send the extracted data to AgentCM's schedule ingest, which 
 
 ```bash
 # api_url and project_id from .construction/database.yaml
-curl -sS --fail-with-body -X POST "{api_url}/projects/{project_id}/schedules/ingest" \
+curl -sS -X POST "{api_url}/projects/{project_id}/schedules/ingest" \
   -H "Content-Type: application/json" \
-  -d @".construction/skills/schedule-extractor/outbox/schedules-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json"
+  -d @".construction/skills/schedule-extractor/outbox/schedules-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json" \
+  -w "\nHTTP %{http_code}\n"
 ```
 
 **The sheet's id.** `sheetId` is the `id` of the entry in `.construction/index/sheet_index.yaml` whose `sheet_number` is the schedule's sheet. Never guess it from the number. If that file is missing, or its entries have no `id` (an older sheet-splitter wrote a `pages:` list with `filename` and `page_index`), say so and stop: do not ingest. The Excel workbook from Step 5 stands either way.
@@ -293,9 +294,10 @@ Send the changeset R2 wrote to the outbox, as `${CLAUDE_PLUGIN_ROOT}/reference/a
 
 ```bash
 # api_url and project_id from .construction/database.yaml
-curl -sS --fail-with-body -X POST "{api_url}/projects/{project_id}/schedules/reconcile" \
+curl -sS -X POST "{api_url}/projects/{project_id}/schedules/reconcile" \
   -H "Content-Type: application/json" \
-  -d @".construction/skills/schedule-extractor/outbox/schedules-reconcile-<sheet>-<YYYYMMDD-HHMMSS>.json"
+  -d @".construction/skills/schedule-extractor/outbox/schedules-reconcile-<sheet>-<YYYYMMDD-HHMMSS>.json" \
+  -w "\nHTTP %{http_code}\n"
 ```
 
 The reconcile endpoint applies changes with:
