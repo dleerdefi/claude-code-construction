@@ -208,7 +208,7 @@ A skill that can find AgentCM wrong lists `${CLAUDE_PLUGIN_ROOT}/scripts/correct
 
 **Tables, and where a word sits:**
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py" "{pdf_path}" {page} --words --match "^220$"
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py" "{pdf_path}" {page} --words --match "^HARDWARE$"
 ```
 Each word's `x y w h` are fractions of the page from the top left: crop that strip of the rasterized page with `crop_region.py --box x,y,x+w,y+h --normalized`, widened to the row or the column, or re-rasterize it sharper with `rasterize_page.py --crop` (the fractions times 100).
 
