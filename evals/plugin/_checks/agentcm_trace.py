@@ -18,7 +18,9 @@ FIXTURE = HERE.parent / "agentcm-mode" / "construction"
 WORKSPACE = Path(os.environ.get("EVAL_WORKSPACE", "."))
 NUM = r"(0?\.\d+|0|1(?:\.0+)?)"
 CROP = re.compile(r"crop\.(?:sh|ps1)[\"']?\s+[\"']?([A-Za-z0-9._-]+)[\"']?\s+" + r"\s+".join([NUM] * 4))
-READS = ("claimed-elements", "group-review/available-types", "/rows")
+READS = ("/rows",)  # contract 1's one promised read
+CANONICAL = {"room_tag", "door_tag", "element_tag", "simple_callout", "multi_detail_callout", "grid_label",
+             "view_label", "note_block", "schedule_block", "schedule_zone", "annotation", "viewport_highlight"}
 WRITES = ("schedules/ingest", "schedules/reconcile", "tag-detections/ingest")
 BOX = ("x", "y", "width", "height")
 
@@ -119,6 +121,10 @@ def detection_problems(d):
     b = d.get("bounding_box")
     if not (isinstance(b, dict) and all(isinstance(b.get(k), (int, float)) and 0 <= b[k] <= 1 for k in BOX)):
         out.append(f"bounding_box not {{x, y, width, height}} in 0-1: {b}")
+    if "tag_type" in d and d["tag_type"] not in CANONICAL:
+        out.append(f"tag_type {d['tag_type']!r} is not one of contract 1's names")
+    if d.get("element_ids"):
+        out.append("element_ids sent: a detection goes by its box")
     return out
 
 
@@ -201,31 +207,55 @@ def check_outbox(skill, kind, sheet):
 
 
 # -- the takeoff, twice -----------------------------------------------------------------------------
+def answered(endpoint):
+    """(sheet id, detection, the stand-in's answer to it) for every detection sent to `endpoint`, in order."""
+    out = []
+    for r in posts(endpoint):
+        body = r["body"] if isinstance(r["body"], dict) else {}
+        results = {e.get("index"): e for e in ((r.get("response") or {}).get("results") or []) if isinstance(e, dict)}
+        out += [(body.get("sheet_id"), d, results.get(i, {})) for i, d in enumerate(body.get("detections") or [])
+                if isinstance(d, dict)]
+    return out
+
+
 def check_takeoff_twice(accepted, pending):
     """Two QTO JSONs with the same confirmed, to confirm and possible total per item; confirmed is the
-    accepted tags (`accepted`), to confirm holds at least the pending ones; coverage read again after the
-    first ingest; no tag sent twice."""
+    accepted tags (`accepted`), to confirm holds at least the pending ones. A tag sent again (the files
+    do not refresh here) came back already_held, never as a second card; a tag AgentCM answered rejected
+    is in each QTO once, as rejected, in no number."""
     sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
     import qto_to_xlsx as q
     files = sorted((WORKSPACE / ".construction" / "skills" / "tag-audit-and-takeoff" / "qto").glob("*.json"))
     if len(files) < 2:
         finish(False, "", f"{len(files)} QTO JSON(s); a second takeoff was asked for")
-    runs = []
+    runs, datas = [], []
     for f in files[-2:]:
         data = json.loads(f.read_text(encoding="utf-8"))
+        datas.append(data)
         per_item, total = q.all_counts(data)
         runs.append(({q.label(i): c[:1] + c[1:2] + c[3:] for i, c in per_item}, (total[0], total[1], total[3])))
     same = runs[0] == runs[1]
     conf, todo, _ = runs[1][1]
-    reqs = requests()
-    first_post = next((i for i, r in enumerate(reqs) if r["method"] == "POST"), None)
-    reread = first_post is not None and any(r["method"] == "GET" and "claimed-elements" in r["path"] for r in reqs[first_post:])
-    sent = [(r["body"].get("sheet_id"), q.norm_text(d.get("tag_text")), d.get("bounding_box"))
-            for r in posts("tag-detections/ingest") if isinstance(r["body"], dict) for d in r["body"].get("detections") or []]
-    twice = [a for i, a in enumerate(sent) for b in sent[i + 1:] if a[0] == b[0] and a[1] == b[1] and a[2] and b[2]
-             and (q.center_inside(q.box_of({"bounding_box": a[2]}), q.box_of({"bounding_box": b[2]}))
-                  or q.center_inside(q.box_of({"bounding_box": b[2]}), q.box_of({"bounding_box": a[2]})))]
-    ok = same and conf == accepted and todo >= pending and (first_post is None or reread) and not twice
-    finish(ok, f"both takeoffs: confirmed {conf}, to confirm {todo}; coverage re-read; nothing sent twice",
-           f"runs {runs}; expected confirmed {accepted}, to confirm >= {pending}; coverage re-read after the first "
-           f"ingest: {reread}; tags sent twice: {twice[:3]}")
+
+    def one_tag(a, b):
+        ba, bb = q.box_of(a[1]), q.box_of(b[1])
+        return (a[0] == b[0] and q.norm_text(a[1].get("tag_text")) == q.norm_text(b[1].get("tag_text")) and ba and bb
+                and (q.center_inside(ba, bb) or q.center_inside(bb, ba)))
+
+    sent = answered("tag-detections/ingest")
+    second_card = [s[1].get("tag_text") for i, s in enumerate(sent) for later in sent[i + 1:]
+                   if one_tag(s, later) and later[2].get("outcome") == "created"]
+    number = {v: k for k, v in sheet_ids().items()}
+    turned_down = {(number.get(s), q.norm_text(d.get("tag_text"))) for s, d, a in sent if a.get("outcome") == "rejected"}
+    not_listed_once = []
+    for k, data in enumerate(datas, start=1):
+        for sheet, text in sorted(turned_down):
+            found = [d for item in data.get("line_items", []) for d in item.get("instance_details", [])
+                     if d.get("sheet") == sheet and q.norm_text(d.get("tag_text")) == text]
+            if [q.status_of(d) for d in found] != ["rejected"]:
+                not_listed_once.append(f"run {k}: {text} on {sheet} as {[d.get('status') for d in found]}")
+    ok = same and conf == accepted and todo >= pending and not second_card and not not_listed_once
+    finish(ok, f"both takeoffs: confirmed {conf}, to confirm {todo}; a tag sent again was already held; "
+               f"rejected listed once: {sorted(t for _, t in turned_down)}",
+           f"runs {runs}; expected confirmed {accepted}, to confirm >= {pending}; second cards: {second_card[:3]}; "
+           f"rejected not listed once as rejected: {not_listed_once[:3]}")

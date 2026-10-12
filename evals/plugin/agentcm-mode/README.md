@@ -19,9 +19,13 @@ failing, except the cases that send something back: those start the stub (`setup
 and list `http://127.0.0.1:47817/` in `allow_urls`, the one address curl may reach. A writing skill's offline case keeps
 the stub off and expects the payload in `.construction/skills/<skill>/outbox/`.
 
-**The stub** answers GETs from `api-responses.json`, keeps and answers the three write endpoints, and
-answers nothing else; every request goes to `.eval-api/requests.jsonl`, which the trace graders read
-(the right endpoint, the contract's payload, the sheet id from `index/sheet_index.yaml`).
+**The stub** answers GETs from `api-responses.json` (contract 1 promises one read, a schedule's rows),
+keeps and answers the three write endpoints, and answers nothing else. A tag ingest is answered by
+each detection's box over the workspace's sheet files, as D-249 has AgentCM do: `created`,
+`already_held` (with the holding card), `no_free_text`, or `rejected` for a tag the recorded ingest
+shows rejected. Every request, with a write's answer, goes to `.eval-api/requests.jsonl`, which the
+trace graders read (the right endpoint, the contract's payload, the sheet id from
+`index/sheet_index.yaml`, what the skill was told).
 
 **Waiting cases.** A case whose `setup.sh` names a need the fixture does not meet (`specs`,
 `unread-manual`, `groups`, `pending`, `pdfs`, `api`, `api-url`, `schedule-id`, `flooring-specs`,

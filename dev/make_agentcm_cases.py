@@ -67,26 +67,46 @@ XREF_A102 = [l.split("\t") for l in (C / "xrefs.tsv").read_text(encoding="utf-8"
 RESP = json.loads((A / "api-responses.json").read_text(encoding="utf-8")) if (A / "api-responses.json").exists() else {}
 
 
-def claimed(sheet_id):
-    return next((v for k, v in RESP.items() if k.startswith("GET ") and k.endswith(f"/sheets/{sheet_id}/claimed-elements")), None)
+def tsv(path):
+    rows = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    head = rows[0].split("\t") if rows else []
+    return [dict(zip(head, r.split("\t"))) for r in rows[1:]]
 
 
-def sheet_id(number):
-    text = (C / "index" / "sheet_index.yaml").read_text(encoding="utf-8")
-    m = re.search(rf'id: "([^"]+)"\s+sheet_number: "{re.escape(number)}"', text)
-    return m.group(1) if m else None
+def box(row):
+    return tuple(float(row[k]) for k in ("x", "y", "w", "h"))
 
 
-def tags_of(sheets, tag_type, status):
-    n = 0
+def near(a, b, pad=0.01):
+    return a[0] - pad <= b[0] + b[2] and b[0] - pad <= a[0] + a[2] and a[1] - pad <= b[1] + b[3] and b[1] - pad <= a[1] + a[3]
+
+
+def room_tags(sheets):
+    """(accepted, pending) room tags on `sheets`, from AgentCM's files as tag-audit reads them: accepted, the
+    .groups.tsv room_tag lines and the accepted room lines of tags.tsv outside every such box; pending, the .tsv
+    room_tag lines marked pending, neighbouring lines one tag."""
+    accepted = pending = 0
+    points = [t for t in tsv(C / "tags.tsv") if t.get("kind") == "room" and t.get("how") == "accepted"]
     for s in sheets:
-        body = claimed(sheet_id(s)) or {}
-        n += sum(1 for t in body.get("existing_tags", []) if t.get("proposedType") == tag_type and t.get("status") == status)
-    return n
+        groups = [box(g) for g in tsv(C / "sheets" / f"{s}.groups.tsv") if g.get("type") == "room_tag"]
+        accepted += len(groups) + sum(1 for t in points if t.get("sheet") == s and not any(
+            g[0] <= float(t["x"]) <= g[0] + g[2] and g[1] <= float(t["y"]) <= g[1] + g[3] for g in groups))
+        lines = [box(l) for l in tsv(C / "sheets" / f"{s}.tsv") if l.get("tag") == "room_tag" and l.get("how") == "pending"]
+        seen = set()
+        for i in range(len(lines)):
+            if i in seen:
+                continue
+            pending += 1
+            stack = [i]
+            while stack:
+                j = stack.pop()
+                if j not in seen:
+                    seen.add(j)
+                    stack += [k for k in range(len(lines)) if k not in seen and near(lines[j], lines[k])]
+    return accepted, pending
 
 
-ROOM_ACCEPTED = tags_of(["A-101", "A-102"], "room_tag", "accepted")
-ROOM_PENDING = tags_of(["A-101", "A-102"], "room_tag", "pending")
+ROOM_ACCEPTED, ROOM_PENDING = room_tags(["A-101", "A-102"])
 
 # ---- fixture scripts ------------------------------------------------------------------------------
 write("agentcm-mode/README.md", f"""
@@ -111,9 +131,13 @@ write("agentcm-mode/README.md", f"""
     and list `{STUB}` in `allow_urls`, the one address curl may reach. A writing skill's offline case keeps
     the stub off and expects the payload in `.construction/skills/<skill>/outbox/`.
 
-    **The stub** answers GETs from `api-responses.json`, keeps and answers the three write endpoints, and
-    answers nothing else; every request goes to `.eval-api/requests.jsonl`, which the trace graders read
-    (the right endpoint, the contract's payload, the sheet id from `index/sheet_index.yaml`).
+    **The stub** answers GETs from `api-responses.json` (contract 1 promises one read, a schedule's rows),
+    keeps and answers the three write endpoints, and answers nothing else. A tag ingest is answered by
+    each detection's box over the workspace's sheet files, as D-249 has AgentCM do: `created`,
+    `already_held` (with the holding card), `no_free_text`, or `rejected` for a tag the recorded ingest
+    shows rejected. Every request, with a write's answer, goes to `.eval-api/requests.jsonl`, which the
+    trace graders read (the right endpoint, the contract's payload, the sheet id from
+    `index/sheet_index.yaml`, what the skill was told).
 
     **Waiting cases.** A case whose `setup.sh` names a need the fixture does not meet (`specs`,
     `unread-manual`, `groups`, `pending`, `pdfs`, `api`, `api-url`, `schedule-id`, `flooring-specs`,
@@ -336,7 +360,9 @@ write("_checks/agentcm_trace.py", '''
     WORKSPACE = Path(os.environ.get("EVAL_WORKSPACE", "."))
     NUM = r"(0?\\.\\d+|0|1(?:\\.0+)?)"
     CROP = re.compile(r"crop\\.(?:sh|ps1)[\\"']?\\s+[\\"']?([A-Za-z0-9._-]+)[\\"']?\\s+" + r"\\s+".join([NUM] * 4))
-    READS = ("claimed-elements", "group-review/available-types", "/rows")
+    READS = ("/rows",)  # contract 1's one promised read
+    CANONICAL = {"room_tag", "door_tag", "element_tag", "simple_callout", "multi_detail_callout", "grid_label",
+                 "view_label", "note_block", "schedule_block", "schedule_zone", "annotation", "viewport_highlight"}
     WRITES = ("schedules/ingest", "schedules/reconcile", "tag-detections/ingest")
     BOX = ("x", "y", "width", "height")
 
@@ -437,6 +463,10 @@ write("_checks/agentcm_trace.py", '''
         b = d.get("bounding_box")
         if not (isinstance(b, dict) and all(isinstance(b.get(k), (int, float)) and 0 <= b[k] <= 1 for k in BOX)):
             out.append(f"bounding_box not {{x, y, width, height}} in 0-1: {b}")
+        if "tag_type" in d and d["tag_type"] not in CANONICAL:
+            out.append(f"tag_type {d['tag_type']!r} is not one of contract 1's names")
+        if d.get("element_ids"):
+            out.append("element_ids sent: a detection goes by its box")
         return out
 
 
@@ -519,34 +549,58 @@ write("_checks/agentcm_trace.py", '''
 
 
     # -- the takeoff, twice -----------------------------------------------------------------------------
+    def answered(endpoint):
+        """(sheet id, detection, the stand-in's answer to it) for every detection sent to `endpoint`, in order."""
+        out = []
+        for r in posts(endpoint):
+            body = r["body"] if isinstance(r["body"], dict) else {}
+            results = {e.get("index"): e for e in ((r.get("response") or {}).get("results") or []) if isinstance(e, dict)}
+            out += [(body.get("sheet_id"), d, results.get(i, {})) for i, d in enumerate(body.get("detections") or [])
+                    if isinstance(d, dict)]
+        return out
+
+
     def check_takeoff_twice(accepted, pending):
         """Two QTO JSONs with the same confirmed, to confirm and possible total per item; confirmed is the
-        accepted tags (`accepted`), to confirm holds at least the pending ones; coverage read again after the
-        first ingest; no tag sent twice."""
+        accepted tags (`accepted`), to confirm holds at least the pending ones. A tag sent again (the files
+        do not refresh here) came back already_held, never as a second card; a tag AgentCM answered rejected
+        is in each QTO once, as rejected, in no number."""
         sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
         import qto_to_xlsx as q
         files = sorted((WORKSPACE / ".construction" / "skills" / "tag-audit-and-takeoff" / "qto").glob("*.json"))
         if len(files) < 2:
             finish(False, "", f"{len(files)} QTO JSON(s); a second takeoff was asked for")
-        runs = []
+        runs, datas = [], []
         for f in files[-2:]:
             data = json.loads(f.read_text(encoding="utf-8"))
+            datas.append(data)
             per_item, total = q.all_counts(data)
             runs.append(({q.label(i): c[:1] + c[1:2] + c[3:] for i, c in per_item}, (total[0], total[1], total[3])))
         same = runs[0] == runs[1]
         conf, todo, _ = runs[1][1]
-        reqs = requests()
-        first_post = next((i for i, r in enumerate(reqs) if r["method"] == "POST"), None)
-        reread = first_post is not None and any(r["method"] == "GET" and "claimed-elements" in r["path"] for r in reqs[first_post:])
-        sent = [(r["body"].get("sheet_id"), q.norm_text(d.get("tag_text")), d.get("bounding_box"))
-                for r in posts("tag-detections/ingest") if isinstance(r["body"], dict) for d in r["body"].get("detections") or []]
-        twice = [a for i, a in enumerate(sent) for b in sent[i + 1:] if a[0] == b[0] and a[1] == b[1] and a[2] and b[2]
-                 and (q.center_inside(q.box_of({"bounding_box": a[2]}), q.box_of({"bounding_box": b[2]}))
-                      or q.center_inside(q.box_of({"bounding_box": b[2]}), q.box_of({"bounding_box": a[2]})))]
-        ok = same and conf == accepted and todo >= pending and (first_post is None or reread) and not twice
-        finish(ok, f"both takeoffs: confirmed {conf}, to confirm {todo}; coverage re-read; nothing sent twice",
-               f"runs {runs}; expected confirmed {accepted}, to confirm >= {pending}; coverage re-read after the first "
-               f"ingest: {reread}; tags sent twice: {twice[:3]}")
+
+        def one_tag(a, b):
+            ba, bb = q.box_of(a[1]), q.box_of(b[1])
+            return (a[0] == b[0] and q.norm_text(a[1].get("tag_text")) == q.norm_text(b[1].get("tag_text")) and ba and bb
+                    and (q.center_inside(ba, bb) or q.center_inside(bb, ba)))
+
+        sent = answered("tag-detections/ingest")
+        second_card = [s[1].get("tag_text") for i, s in enumerate(sent) for later in sent[i + 1:]
+                       if one_tag(s, later) and later[2].get("outcome") == "created"]
+        number = {v: k for k, v in sheet_ids().items()}
+        turned_down = {(number.get(s), q.norm_text(d.get("tag_text"))) for s, d, a in sent if a.get("outcome") == "rejected"}
+        not_listed_once = []
+        for k, data in enumerate(datas, start=1):
+            for sheet, text in sorted(turned_down):
+                found = [d for item in data.get("line_items", []) for d in item.get("instance_details", [])
+                         if d.get("sheet") == sheet and q.norm_text(d.get("tag_text")) == text]
+                if [q.status_of(d) for d in found] != ["rejected"]:
+                    not_listed_once.append(f"run {k}: {text} on {sheet} as {[d.get('status') for d in found]}")
+        ok = same and conf == accepted and todo >= pending and not second_card and not not_listed_once
+        finish(ok, f"both takeoffs: confirmed {conf}, to confirm {todo}; a tag sent again was already held; "
+                   f"rejected listed once: {sorted(t for _, t in turned_down)}",
+               f"runs {runs}; expected confirmed {accepted}, to confirm >= {pending}; second cards: {second_card[:3]}; "
+               f"rejected not listed once as rejected: {not_listed_once[:3]}")
 ''')
 
 # ---- cases ----------------------------------------------------------------------------------------
@@ -711,12 +765,13 @@ t.finish(not touched_read and bool(touched_unread), f"split and extracted only {
 # Writing skills, AgentCM running (the stand-in) -------------------------------------------------------
 case("tag-audit-and-takeoff", "/construction:tag-audit-and-takeoff",
      "Do a quantity takeoff of the room tags on sheets A-101 and A-102 and save its QTO JSON and workbook. "
-     "Then run the same takeoff a second time from scratch, as a new session would (read AgentCM's coverage again and look "
+     "Then run the same takeoff a second time from scratch, as a new session would (read AgentCM's files again and look "
      "at the sheets again), save its own QTO JSON and workbook, and report both runs' confirmed, to confirm and possible "
      "totals. Ingest new detections without asking; nobody can confirm.",
      needs="groups pending pdfs", api=True, max_turns=150, timeout=2700,
-     desc="AgentCM running: a takeoff twice gives the same three numbers, confirmed = accepted tags only, and sends no tag twice.",
-     graders={"three-numbers": ("llm", "", 2, "The final message reports, for each takeoff, confirmed, to confirm and the possible total, with the caveat that confirmed holds only tags accepted in AgentCM's review and the rest wait to be confirmed there; the two takeoffs report the same numbers.")},
+     desc="AgentCM running: a takeoff twice gives the same three numbers, confirmed = accepted tags only; a tag sent again is already held, a rejected one is listed once.",
+     graders={"three-numbers": ("llm", "", 2, "The final message reports, for each takeoff, confirmed, to confirm and the possible total, with the caveat that confirmed holds only tags accepted in AgentCM's review and the rest wait to be confirmed there; the two takeoffs report the same numbers."),
+              "outcomes": ("llm", "", 1, "The final message reports what AgentCM answered for the tags it sent (how many were created, already held, rejected or had no free text), taken from AgentCM's answer, not assumed from the request succeeding; a tag AgentCM said the PE rejected is listed apart and not counted.")},
      checks={"twice-the-same": (f"t.check_takeoff_twice(accepted={ROOM_ACCEPTED}, pending={ROOM_PENDING})", 3),
              "contract-requests": ("t.check_contract_requests()", 1),
              "tag-ingest": ('t.check_tag_ingest(["A-101", "A-102"])', 2),
