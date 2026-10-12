@@ -813,6 +813,7 @@ case("schedule-extractor-reconcile", "/construction:schedule-extractor",
      "The PE edited the schedule they exported from AgentCM; the workbook is in the project root, named \"... Schedule (PE edits).xlsx\". "
      "Apply their changes back to AgentCM.",
      needs="schedule-id", api=True, own_extraction_ok=True,
+     drop=("agentcm-files",),  # the round trip's sources are the workbook's _agentcm_meta and the rows endpoint
      extra_setup='"$HERE/../../../bin/construction-python" "$HERE/../agentcm-mode/make_edited_schedule.py" .',
      desc="AgentCM running: the Excel round trip reads the stored rows from the rows endpoint and reconciles the PE's edit.",
      checks={"reconcile": ('''
