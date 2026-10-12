@@ -44,7 +44,7 @@ sh .construction/query.sh "SELECT * FROM v_cross_references WHERE project_id = '
   for any language addressing the condition
 - Check Division 01 general requirements for any overriding provisions
 
-**With AgentCM**: Check `.construction/index/file_manifest.yaml` for spec files, or query spec text if extracted.
+**With AgentCM**: Find the section in `.construction/INDEX.md` and read its text in `.construction/specs/<section>.txt` (`08 71 00` is `08-71-00.txt`; each line starts with its page). Only for a manual INDEX.md lists under "Spec manuals not read", read spec-splitter's `.construction/skills/spec_text/` instead.
 
 **Without AgentCM**: Search the project directory for spec PDFs. Use pdfplumber to extract text from relevant sections.
 

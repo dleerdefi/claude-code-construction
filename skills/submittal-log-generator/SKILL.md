@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 Long-running skill that processes every specification section to extract submittal requirements and produces a professional submittal register in Excel. Designed to handle full project manuals (200+ spec sections) with state persistence.
 
-**Prerequisite:** This skill depends on `/spec-splitter` to provision clean, per-section `.txt` files at `.construction/skills/spec_text/`. The spec-splitter owns all text quality — extraction, repair, and quality assessment. This skill reads those `.txt` files and focuses on identifying submittal items.
+**Prerequisite:** This skill reads one `.txt` file per spec section. In an AgentCM project (`.construction/project.yaml` exists) AgentCM provides them in `.construction/specs/`. Otherwise `/spec-splitter` provisions them at `.construction/skills/spec_text/`, and it does so in an AgentCM project too for a manual AgentCM could not read. The provider owns text quality — extraction, repair, and quality assessment. This skill reads those `.txt` files and focuses on identifying submittal items.
 
 ## Design Philosophy: Scripts for Structure, Claude for Judgment
 
@@ -78,7 +78,14 @@ Submittal Log Progress:
 
 ### Step 0: Ensure Spec Text Is Available — RIGID
 
-This skill reads from `.construction/skills/spec_text/*.txt` files provisioned by `/spec-splitter`. Check whether they exist and invoke spec-splitter if needed.
+This skill reads from `.construction/skills/spec_text/*.txt` files provisioned by `/spec-splitter`, or in AgentCM mode from AgentCM's `.construction/specs/`. Check whether they exist and invoke spec-splitter if needed.
+
+**AgentCM mode** (`.construction/project.yaml` exists):
+1. Read `.construction/INDEX.md`. The queue is every section under `## Specification sections`; read each from its Agent file, `.construction/specs/<section>.txt` (`08 71 00` is `08-71-00.txt`; each line starts with its page in the manual, which gives the page for citations). These files carry no quality rating.
+2. If INDEX.md lists manuals under `## Spec manuals not read`, their sections are spec-splitter's: use Branch A or B below for those manuals only, and add their sections to the queue from `.construction/skills/spec_text/manifest.json`. Never invoke spec-splitter for a manual AgentCM has read.
+3. If INDEX.md is missing, say that AgentCM has not written its index for this folder, and stop.
+
+**Flat-file mode** (no `.construction/project.yaml`): Branch A or B.
 
 **Branch A — Text already extracted:**
 1. Check `.construction/skills/spec_text/manifest.json` (older versions used `.construction/spec_text/`: if only that exists, move it to `.construction/skills/spec_text/` first)
@@ -91,7 +98,7 @@ This skill reads from `.construction/skills/spec_text/*.txt` files provisioned b
 
 **Important:** Always invoke spec-splitter as a skill (`construction:spec-splitter`) — do not call `extract_spec_text.py` or `split_spec_manual.py` directly. The spec-splitter skill manages directory discovery, naming conventions, text extraction, and text repair.
 
-**Build processing queue from manifest:**
+**Build processing queue from manifest** (in AgentCM mode, INDEX.md's sections plus these):
 1. Read all section keys from `manifest.json`
 2. For each section, verify the corresponding `.txt` file exists
 3. Sort by CSI section number
@@ -113,7 +120,7 @@ errors: []
 
 ### Step 1: Submittal Identification — FLEXIBLE (Claude Intelligence)
 
-For each section in the queue, read the `.txt` file from `.construction/skills/spec_text/` and identify submittal items.
+For each section in the queue, read its `.txt` file (`.construction/specs/` for a section AgentCM read, otherwise `.construction/skills/spec_text/`) and identify submittal items.
 
 This is where your understanding of construction specifications matters most.
 Do not follow a rigid script here — use the domain knowledge below to identify
@@ -391,8 +398,8 @@ The accumulator is `.construction/skills/submittal-log-generator/submittal_extra
 
 **Sequential processing:**
 For each section in the queue, perform Steps 1-2 as a unit:
-1. Read `.txt` from `.construction/skills/spec_text/`
-2. Check `quality_rating` in manifest — if POOR or DEGRADED, minimum confidence = MEDIUM
+1. Read `.txt` from `.construction/specs/` (a section AgentCM read) or `.construction/skills/spec_text/`
+2. Check `quality_rating` in manifest (spec-splitter's text only) — if POOR or DEGRADED, minimum confidence = MEDIUM
 3. Identify submittals (Step 1)
 4. Score confidence (Step 2)
 5. Append extracted items to your in-memory accumulator (the JSON array you are building)

@@ -29,7 +29,7 @@ Either way, the awarded bid document (Slot B) is the mandatory input.
 
 ## Mode Detection
 Check for AgentCM: `.construction/project.yaml` at the project root.
-- **AgentCM mode**: Read specs from `.construction/skills/spec_text/{section}.txt`. Use sheet index from `.construction/index/sheet_index.yaml` for drawing references. Read project metadata from `.construction/CLAUDE.md`.
+- **AgentCM mode**: Read each spec section from `.construction/specs/<section>.txt` (`09 65 13` is `09-65-13.txt`; each line starts with its page), listed in `.construction/INDEX.md`. Only for a manual INDEX.md lists under "Spec manuals not read", read spec-splitter's `.construction/skills/spec_text/` instead. Use sheet index from `.construction/index/sheet_index.yaml` for drawing references. Read project metadata from `.construction/CLAUDE.md`.
 - **Flat File mode**: Discover spec PDFs via project `CLAUDE.md` paths or directory search. Read drawing sheets directly from PDF.
 
 ---

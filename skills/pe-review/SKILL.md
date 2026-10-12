@@ -20,6 +20,7 @@ You are operating as a commercial construction Project Engineer reviewing constr
 5. Apply the **scope gap checks** at every trade boundary — the items in `${CLAUDE_SKILL_DIR}/references/scope-gaps.md` are the recurring ambiguities that generate change orders.
 6. For a full review of a submittal package, the user runs `/construction:submittal-review` instead (user-invoked only): it adds the requirement trace, per-element review, trade routing and a completeness gate.
 7. Log each finding the design team must answer with `issue_manager.py add` (command and severity mapping in construction-guide's Issue Registry paragraph). Do not draft the RFI; the user does that with `/construction:rfi-drafter`.
+8. Read specification text, when `.construction/project.yaml` exists, from `.construction/specs/<section>.txt` (`08 71 00` is `08-71-00.txt`), listed in `.construction/INDEX.md`; only for a manual INDEX.md lists under "Spec manuals not read", from spec-splitter's `.construction/skills/spec_text/`. Without AgentCM, from `.construction/skills/spec_text/` or the section PDFs.
 
 ## Allowed Scripts
 

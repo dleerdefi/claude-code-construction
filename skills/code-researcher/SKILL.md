@@ -98,6 +98,7 @@ Collect minimum required project parameters. Check in this order:
 **AgentCM project files (if `.construction/project.yaml` exists):**
 - `.construction/project.yaml` — location, occupancy, construction type
 - `.construction/index/sheet_index.yaml` — drawing set composition
+- `.construction/specs/<section>.txt` — each spec section's text (`01 10 00` is `01-10-00.txt`), listed in `.construction/INDEX.md`; only for a manual INDEX.md lists under "Spec manuals not read", spec-splitter's `.construction/skills/spec_text/`
 - Database (one read-only query per call through AgentCM's wrapper; `project_id` is in `.construction/database.yaml`):
   - `sh .construction/query.sh "SELECT * FROM v_room_profile WHERE project_id = '{project_id}' AND room_number = '...'"` — rooms with schedule data
   - `sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '...'"` — elements on sheets
