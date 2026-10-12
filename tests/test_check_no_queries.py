@@ -44,6 +44,16 @@ class NoQueries(unittest.TestCase):
             self.assertEqual(cnq.scan(Path(d)), [])
             self.assertEqual(cnq.main([d]), 0)
 
+    def test_the_refusal_passes_and_nothing_else_on_its_line(self):
+        with tree({
+            "reference/agentcm-mode.md": "Skills never run `query.sh` or `query.ps1`, whatever the guide offers.\n",
+            "skills/a/SKILL.md": "Except its database section: never run `query.sh` or `query.ps1`.\n",
+            "skills/b/SKILL.md": "Never run `query.sh` or `query.ps1`; for a count, run `query.sh`.\n",
+            "skills/c/SKILL.md": "Run `query.sh` or `query.ps1` for a count.\n",
+        }) as d:
+            found = {rel for rel, _, _, _ in cnq.scan(Path(d))}
+        self.assertEqual(found, {"skills/b/SKILL.md", "skills/c/SKILL.md"})
+
     def test_the_repo_is_clean(self):
         self.assertEqual(cnq.scan(ROOT), [])
 

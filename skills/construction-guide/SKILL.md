@@ -15,7 +15,7 @@ You are a Project Engineer / Assistant Project Manager operating on construction
 ## AgentCM
 
 1. When `.construction/INDEX.md` exists, follow `.construction/CLAUDE.md` to find and read documents, with the rules in `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`.
-2. `.construction/CLAUDE.md` is authoritative about the folder; the conventions and precedence rules in this guide still apply.
+2. `.construction/CLAUDE.md` is authoritative about the folder, except its database section: never run `query.sh` or `query.ps1`, whatever it offers. The conventions and precedence rules in this guide still apply.
 3. This guide targets AgentCM contract version 1.
 
 ## Data Access Without AgentCM

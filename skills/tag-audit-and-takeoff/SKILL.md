@@ -30,7 +30,9 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
 
 **AgentCM mode** (`.construction/project.yaml` exists):
 - Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`: which source wins, what a missing file or an empty search means, sheet ids, and how to record a correction of AgentCM's data (a missed tag goes through the ingest in Step 8)
-- Read `.construction/CLAUDE.md` for project context
+- Read `.construction/CLAUDE.md` for project context and where things are,
+  except its database section: never run `query.sh` or `query.ps1`, whatever
+  the guide offers
 - Read `.construction/database.yaml` for `project_id` and `api_url`, nothing else in it
 - Every `{sheet_id}` below (the endpoints) is
   the `id` of the entry in `.construction/index/sheet_index.yaml` whose
