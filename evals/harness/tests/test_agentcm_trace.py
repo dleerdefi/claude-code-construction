@@ -2,6 +2,7 @@
 import contextlib
 import io
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -84,6 +85,28 @@ class Checks(unittest.TestCase):
             self.assertIn(words, out)
         self.run.requests(req("POST", "tag-detections/ingest", {"sheet_id": A101, "detections": [dict(DET, element_ids=[])]}))
         self.assertEqual(outcome(t.check_tag_ingest, ["A-101"])[0], 0)
+
+    def bash(self, *commands):
+        p = self.run.ws / "trace.jsonl"
+        p.write_text("".join(json.dumps({"type": "tool_use", "name": "Bash", "input": {"command": c}}) + "\n"
+                             for c in commands), encoding="utf-8")
+        os.environ["EVAL_TRACE"] = str(p)
+        self.addCleanup(os.environ.pop, "EVAL_TRACE", None)
+
+    def test_no_own_extraction_of_what_agentcm_read(self):
+        read, drawings = ["Specifications/Project Manual.pdf"], ["drawings/A-101.pdf", "drawings/A-601.pdf"]
+        PY, TK = '"$PY"', '"${CLAUDE_PLUGIN_ROOT}/scripts/pdf'
+        # spec-splitter on the manual INDEX.md lists as not read, and on the sections it split from it; crop.sh
+        self.bash(f'{PY} {TK}/pdf_text.py" "Specifications/Scanned Volume.pdf" --summary',
+                  f'{PY} {TK}/pdf_text.py" ".construction/skills/spec_text/09-30-00.pdf"',
+                  "sh .construction/crop.sh A-601 0.1 0.06 0.44 0.346")
+        self.assertEqual(outcome(t.check_no_own_extraction, read, drawings)[0], 0)
+        for bad in (f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf"',
+                    f'{PY} {TK}/rasterize_page.py" "drawings/A-601.pdf" 1 --dpi 200'):
+            self.bash(bad)
+            code, out = outcome(t.check_no_own_extraction, read, drawings)
+            self.assertEqual(code, 1, bad)
+            self.assertIn("extraction of what AgentCM read", out)
 
     def test_contract_requests(self):
         self.run.requests(req("GET", "schedules/s1/rows"), req("POST", "tag-detections/ingest", {"sheet_id": A101}))

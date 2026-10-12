@@ -59,6 +59,8 @@ SHEETS = [r[0] for r in table("Drawing sheets")]
 SCHEDULES = table("Schedules and legends")
 SECTIONS = table("Specification sections")
 UNREAD = table("Spec manuals not read")
+READ_MANUALS = sorted({r[4] for r in SECTIONS})
+DRAWINGS = sorted(f"drawings/{f.name}" for f in (A / "project" / "drawings").glob("*.pdf"))
 ROOMS = re.search(r"^Rooms known: (\d+)", INDEX, re.M)
 door = next((l.split("\t") for l in (C / "schedules" / "A-601-1.tsv").read_text(encoding="utf-8").splitlines()
              if "\tD103\t" in l), None)
@@ -443,6 +445,20 @@ write("_checks/agentcm_trace.py", '''
                f"no crop.sh call on {sheets} with a box on a line of the sheet files; crops made: {cs[:6]}")
 
 
+    # -- own extraction -------------------------------------------------------------------------------
+    EXTRACTION = re.compile(r"rasterize_page|pdf_text\\.py|split_drawing_set|split_spec_manual|extract_spec_text|find_pages|"
+                            r"extract_text_region|pdfplumber|import fitz")
+
+
+    def check_no_own_extraction(read, drawings):
+        """Nothing AgentCM read is extracted again: no extraction command names a manual INDEX.md lists as read
+        (`read`) or a drawing PDF (`drawings`, looked at through crop.sh). A manual INDEX.md lists as not read is
+        spec-splitter's to split and extract, and so are the section PDFs it splits from it."""
+        bad = [(Path(f).name, c[:160]) for c in bash_commands() if EXTRACTION.search(c)
+               for f in read + drawings if Path(f).name in c]
+        finish(not bad, "nothing AgentCM read is extracted again", f"extraction of what AgentCM read: {bad[:4]}")
+
+
     # -- the API --------------------------------------------------------------------------------------
     def check_contract_requests():
         """Every request to the stand-in is one of the contract's reads or writes, for this project, answered."""
@@ -625,9 +641,6 @@ COMMON = {
     "crops-through-crop-sh": ("tool_used", 'tool: Write\ninput_match: "\\\\.construction[\\\\\\\\/]+crops"\nmin: 0\nmax: 0', 1,
                               ".construction/crops/ is written only by crop.sh, never by the Write tool."),
 }
-NO_OWN_EXTRACTION = ("tool_used", 'tool: Bash\ninput_match: "rasterize_page|pdf_text\\\\.py|split_drawing_set|split_spec_manual|extract_spec_text|find_pages|extract_text_region|pdfplumber|import fitz"\nmin: 0\nmax: 0', 1,
-                     "No extraction of its own: AgentCM's files hold the text, and drawings are looked at through crop.sh.")
-
 
 def case(name, skill_cmd, prompt, needs="", graders=None, checks=None, extra_setup="", api=False, offline_write=False,
          tools="[Read, Write, Edit, Glob, Grep, Bash, Skill]", own_extraction_ok=False, max_turns=80, timeout=1500,
@@ -662,9 +675,11 @@ def case(name, skill_cmd, prompt, needs="", graders=None, checks=None, extra_set
         {extra_setup}
         bash "$HERE/../agentcm-mode/baseline.sh"
     """)
+    for sub in ("graders", "checks"):  # written in full below: a grader or check dropped here must not linger
+        shutil.rmtree(P / d / sub, ignore_errors=True)
     all_graders = dict(COMMON)
     if not own_extraction_ok:
-        all_graders["no-own-extraction"] = NO_OWN_EXTRACTION
+        checks = {"no-own-extraction": (f"t.check_no_own_extraction({READ_MANUALS!r}, {DRAWINGS!r})", 1), **(checks or {})}
     all_graders.update(graders or {})
     for g in drop:
         all_graders.pop(g, None)

@@ -101,6 +101,20 @@ def check_crop_from_sheet_files(sheets):
            f"no crop.sh call on {sheets} with a box on a line of the sheet files; crops made: {cs[:6]}")
 
 
+# -- own extraction -------------------------------------------------------------------------------
+EXTRACTION = re.compile(r"rasterize_page|pdf_text\.py|split_drawing_set|split_spec_manual|extract_spec_text|find_pages|"
+                        r"extract_text_region|pdfplumber|import fitz")
+
+
+def check_no_own_extraction(read, drawings):
+    """Nothing AgentCM read is extracted again: no extraction command names a manual INDEX.md lists as read
+    (`read`) or a drawing PDF (`drawings`, looked at through crop.sh). A manual INDEX.md lists as not read is
+    spec-splitter's to split and extract, and so are the section PDFs it splits from it."""
+    bad = [(Path(f).name, c[:160]) for c in bash_commands() if EXTRACTION.search(c)
+           for f in read + drawings if Path(f).name in c]
+    finish(not bad, "nothing AgentCM read is extracted again", f"extraction of what AgentCM read: {bad[:4]}")
+
+
 # -- the API --------------------------------------------------------------------------------------
 def check_contract_requests():
     """Every request to the stand-in is one of the contract's reads or writes, for this project, answered."""

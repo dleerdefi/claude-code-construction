@@ -2,6 +2,9 @@ checks:
   - name: agentcm-mode-writes
     script: ../_checks/agentcm_mode_writes.py
     weight: 1
+  - name: no-own-extraction
+    script: checks/no_own_extraction.py
+    weight: 1
   - name: twice-the-same
     script: checks/twice_the_same.py
     weight: 3
