@@ -96,12 +96,12 @@ types. When in doubt, ask.
 ## Step 1.5: Check Existing Coverage [REQUIRED GATE] (AgentCM mode only)
 
 **HARD GATE — you MUST complete this step before proceeding to Step 2.**
-Do not skip this step. If the API is unreachable, stop and tell the user.
+Do not skip this step.
 
-Before scanning sheets, query what's already tagged per sheet:
+Before scanning sheets, read what's already tagged per sheet:
 
 ```bash
-curl -s "{api_url}/projects/{project_id}/sheets/{sheet_id}/claimed-elements"
+curl -sS --fail-with-body "{api_url}/projects/{project_id}/sheets/{sheet_id}/claimed-elements"
 ```
 
 Response:
@@ -117,28 +117,45 @@ Response:
 }
 ```
 
+Keep the `existing_tags` of the resolved tag type (`proposedType`), each with
+its `status` (accepted or pending) and its box (`combinedBbox`).
+
+**If curl cannot connect (exit 7), AgentCM is closed.** Read the existing tags
+from its files instead and go on:
+- accepted: the lines of `.construction/sheets/<sheet>.groups.tsv` whose
+  `type` is the resolved type (box `x y w h`, `text`)
+- pending: the lines of `.construction/sheets/<sheet>.tsv` with that type in
+  `tag` and `pending` in `how`, grouped into tags as Step 5 groups
+
+Tell the PE the existing tags came from AgentCM's files, and that this run's
+new tags will wait in the outbox (Step 8). In both cases, the payloads in
+`.construction/skills/tag-audit-and-takeoff/outbox/` (an earlier run's, saved
+while AgentCM was closed) hold existing tags too: not yet in AgentCM.
+
 Report to user: "Sheet A-1.4: 12 tags already detected (8 accepted, 4 pending)."
 
-**Reconciliation rules:**
+**Reconciliation rules (the count, `references/qto-output-format.md`):**
+- **Confirmed** is the accepted existing tags, and only those.
+- **To confirm** is every tag not yet accepted: the pending existing tags,
+  the tags waiting in the outbox, and the tags this run finds that match none
+  of them.
+- **One tag, once.** A tag found in this run is an existing tag when it is on
+  the same sheet, its text matches (upper case, spaces collapsed) and one
+  box's center falls inside the other box. Keep the existing tag, with its
+  `detection_id`, and drop this run's sighting of it.
+- **Send only the new ones:** the tags found in this run that match no
+  existing tag, and nothing else, go to ingest (Step 8). Nothing new, no POST.
 - **EXCLUDE** from the neighborhood search (Steps 3-4) the lines an existing
-  tag already holds: a line whose box's center falls inside an
-  `existing_tags` item's `combinedBbox`
-- **COUNT** the `existing_tags` AgentCM's review accepted (`status` accepted)
-  together with this session's new detections
-- **LIST, never count,** the `existing_tags` still pending in AgentCM's review
-  (`status` pending): they go in the QTO's `pending_review`, "to confirm in
-  AgentCM"
-- During vision (Step 2), note tags that match existing `proposedText`
-  values — these are "confirmed" not "new"
-- New detections that survive dedup → POST to ingest as usual
+  tag already holds: a line whose box's center falls inside an existing tag's
+  box
 - The server also deduplicates at ingest: detections with element IDs
   overlapping existing suggestions are skipped (safety net)
-- Final QTO JSON: accepted `existing_tags` + newly detected (from the ingest
-  response) in `line_items`; pending `existing_tags` in `pending_review`
 
-**The QTO counts what is accepted plus what this session detected; pending
-items are listed beside the count, never inside it.** Reconciliation avoids
-redundant detection *work*, not redundant *output*.
+**Run it twice, get the same numbers.** A second run finds the first run's new
+tags pending in AgentCM (or waiting in the outbox), matches its own sightings
+to them, sends nothing again, and reports the same confirmed, to confirm and
+possible total. Reconciliation avoids redundant detection *work*, not
+redundant *output*.
 
 **Before proceeding to Step 2, report coverage and get confirmation:**
 "Existing coverage: {N} sheets have {M} accepted, {P} pending detections
@@ -292,8 +309,8 @@ Record type depends on view type. Full data model in
 
 **Pre-ingest confirmation (REQUIRED before POSTing):**
 Before making ANY ingest API calls, present this summary to the user:
-- Total new detections to ingest: {N}
-- Total existing from claimed-elements: {M}
+- Total new detections to ingest: {N} (found in this run, matching no existing tag)
+- Total existing: {M} accepted, {P} pending, {W} waiting in the outbox
 - Resolved tag type: {type_name}
 - 3-5 sample detections (tag_text, confidence, element_ids count)
 - Any flagged items (low confidence, no OCR anchor, skipped sheets)
@@ -324,24 +341,25 @@ In both modes, once the QTO JSON is saved (below), record a finding in `.constru
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
   --skill "tag-audit-and-takeoff" --type "qto_{tag_type}" \
-  --title "QTO: {tag_type_display} — {building_quantity} across {N} sheets" \
+  --title "QTO: {tag_type_display} — {confirmed} confirmed, {possible} possible across {N} sheets" \
   --output-file "{qto_json_path}" \
-  --data '{"tag_type": "...", "building_quantity": ..., "sheets": [...], "ingested": ...}'
+  --data '{"tag_type": "...", "confirmed": ..., "to_confirm": ..., "possible_total": ..., "sheets": [...], "ingested": ...}'
 ```
 
 **CRITICAL — use the EXACT schema from `references/qto-output-format.md`.**
 The Excel script is rigid and parses specific key names. Required keys:
 - `line_items[]` (NOT `qto_lines`) — one entry per unique element/designation
-- `totals{}` with `sheet_instances`, `derived_instances`, `deduplicated`, `building_quantity`
-- Each line item has `instance_details[]` with `detection_id`, `sheet`, `room`, `status` (`accepted` or `new`), `confidence`
-- `scope{}`, `completeness{}`, `issues[]`, and `pending_review[]` (AgentCM mode)
+- Each line item has `instance_details[]` with `detection_id`, `sheet`, `tag_text`, `room`, `bounding_box`, `status` (`accepted` or `to_confirm`), `source`, `confidence`
+- `scope{}` with `mode` (`agentcm` or `flat_file`), `completeness{}`, `issues[]`
 
-**What the count holds:** accepted existing items (Step 1.5) and this session's
-new detections, in `line_items[].instance_details[]`. Existing items still
-pending in AgentCM's review go in `pending_review[]`, never in `line_items`:
-the export refuses a `pending` item inside the count and lists `pending_review`
-on a "To Confirm in AgentCM" sheet. Report both to the PE: the count, and
-separately the items to confirm in AgentCM.
+**What the count holds** (Step 1.5): every tag once. `accepted` instances are
+the confirmed count; every other tag is `to_confirm`, with its `source`
+(`pending_in_agentcm`, `waiting_in_outbox`, or `found_this_run` with `ingest`
+`sent` or `outbox`); derived instances are to confirm too. In flat-file mode
+nothing is accepted: every tag is `to_confirm`. The export computes the three
+numbers per item, prints them, and refuses a file that lists the same tag
+twice. Report the export's lines, never your own tally: per item, confirmed,
+to confirm and the possible total, and the caveat in its words.
 
 **Both modes:** Save the QTO JSON (working data) to
 `.construction/skills/tag-audit-and-takeoff/qto/{tag_type}_{timestamp}.json` and the
@@ -359,10 +377,10 @@ and invoke the export script to produce a styled multi-sheet workbook:
   --output "QTO_{tag_type}_{date}.xlsx"
 ```
 
-The workbook has 5 sheets: QTO Summary (line items with counts),
-Instance Detail (every detection with provenance), Type Definitions
-(templates applied to rooms), Completeness (coverage metrics), and To Confirm
-in AgentCM (`pending_review`, not counted).
+The workbook has 5 sheets: QTO Summary (confirmed, to confirm and possible
+total per line item, with the caveat), Instance Detail (every detection with
+provenance), Type Definitions (templates applied to rooms), Completeness
+(coverage metrics), and To Confirm in AgentCM (every tag not yet accepted).
 
 ---
 
@@ -395,7 +413,7 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 - AgentCM's `.construction/crop.sh` / `crop.ps1` (a box of a sheet as a PNG), in AgentCM mode
 - `scripts/markup_tags.py` — sheet markup with tag highlights
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/annotate_pdf.py` — native PDF annotations
-- `scripts/qto_to_xlsx.py` — QTO Excel export (5-sheet workbook; refuses a pending item inside the count)
+- `scripts/qto_to_xlsx.py` — QTO Excel export (5-sheet workbook; computes and prints confirmed, to confirm and possible total; refuses a tag listed twice)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log schedule/drawing count mismatches to the Issue Registry (command and severity mapping in construction-guide)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — record the QTO as a finding (Step 8)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data other than a missed tag (`reference/agentcm-mode.md`)

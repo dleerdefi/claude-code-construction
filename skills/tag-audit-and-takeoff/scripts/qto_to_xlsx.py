@@ -3,14 +3,22 @@
 
 Claude Code calls this with structured JSON data matching the QTO output
 format from references/qto-output-format.md. This script does not make
-any judgment calls — it formats the data identically every time.
+any judgment calls — it counts and formats the data identically every time.
 
-Input:  JSON file with project{}, scope{}, totals{}, line_items[], etc.
-Output: Formatted .xlsx workbook with four sheets:
-  - QTO Summary: one row per line item with counts and confidence
+The count: per line item, confirmed (instances accepted in AgentCM's review),
+to confirm (every instance not yet accepted, plus every derived instance not
+deduplicated) and the possible total (the two together). The script computes
+the three numbers from the instances itself, prints one line per item, and
+refuses a file that lists the same tag twice (same text, one box's center
+inside the other, on one sheet) or still carries the retired pending_review key.
+
+Input:  JSON file with project{}, scope{}, line_items[], etc.
+Output: Formatted .xlsx workbook with five sheets:
+  - QTO Summary: one row per line item with the three numbers and confidence
   - Instance Detail: every detection record with full provenance
   - Type Definitions: type defs applied and their room targets
   - Completeness: coverage metrics, gap sheets, and issues
+  - To Confirm in AgentCM: every instance not yet accepted
 
 Usage:
     construction-python qto_to_xlsx.py \\
@@ -18,6 +26,8 @@ Usage:
         --project "Sanibel Fire and Rescue Station 172" \\
         --scope "Room Tags" \\
         --output "QTO_Room_Tags.xlsx"
+
+Exit codes: 0 workbook written; 1 data file missing; 2 refused (no workbook).
 """
 
 import argparse
@@ -84,17 +94,118 @@ CONFIDENCE_STYLES = {
 }
 
 
+# ── The count ──────────────────────────────────────────────────────
+
+ACCEPTED = {"accepted", "approved"}             # approved: older files
+TO_CONFIRM = {"to_confirm", "new", "pending"}   # new, pending: older files
+
+CAVEAT_AGENTCM = (
+    "Confirmed: tags accepted in AgentCM's review. To confirm: every tag not yet accepted, found in this "
+    "run or waiting from an earlier one, and every count derived from a type definition. Possible total: "
+    "confirmed plus to confirm, what has been seen so far, not a ceiling."
+)
+CAVEAT_FLAT = (
+    "No review step in this project (no AgentCM): every tag found is to confirm on the drawings, so none "
+    "is confirmed yet. Possible total: what this run saw, not a ceiling."
+)
+
+
+def caveat(data):
+    return CAVEAT_FLAT if data.get("scope", {}).get("mode") == "flat_file" else CAVEAT_AGENTCM
+
+
+def status_of(det):
+    """accepted or to_confirm; None for anything else."""
+    s = str(det.get("status", "")).strip().lower()
+    if s in ACCEPTED:
+        return "accepted"
+    if s in TO_CONFIRM:
+        return "to_confirm"
+    return None
+
+
+def label(item):
+    return " ".join(p for p in (str(item.get("designation", "")).strip(), str(item.get("element", "")).strip()) if p) or "?"
+
+
+def counts(item):
+    """(confirmed, to confirm, of which derived, possible total) for one line item."""
+    statuses = [status_of(d) for d in item.get("instance_details", [])]
+    derived = sum(1 for d in item.get("derived_details", []) if not d.get("deduplicated"))
+    confirmed = statuses.count("accepted")
+    to_confirm = statuses.count("to_confirm") + derived
+    return confirmed, to_confirm, derived, confirmed + to_confirm
+
+
+def all_counts(data):
+    per_item = [(item, counts(item)) for item in data.get("line_items", [])]
+    total = tuple(sum(c[i] for _, c in per_item) for i in range(4))
+    return per_item, total
+
+
+def norm_text(text):
+    return " ".join(str(text or "").upper().split())
+
+
+def box_of(det):
+    """The instance's bounding_box as (x, y, width, height), None when absent; ValueError when malformed."""
+    b = det.get("bounding_box")
+    if b is None:
+        return None
+    try:
+        box = tuple(float(b[k]) for k in ("x", "y", "width", "height"))
+    except (TypeError, KeyError, ValueError):
+        raise ValueError(f"bounding_box must be {{x, y, width, height}}, got {json.dumps(b)[:80]}")
+    return box
+
+
+def center_inside(a, b):
+    cx, cy = a[0] + a[2] / 2, a[1] + a[3] / 2
+    return b[0] <= cx <= b[0] + b[2] and b[1] <= cy <= b[1] + b[3]
+
+
+def problems(data):
+    """Everything that stops the export, as messages: an unknown status, a malformed box, a tag listed twice,
+    the retired pending_review key."""
+    found = []
+    if "pending_review" in data:
+        found.append("pending_review is retired: a tag pending in AgentCM's review goes in line_items with "
+                     "status to_confirm and source pending_in_agentcm")
+    placed = {}  # (sheet, text) -> [(box, where)]
+    for item in data.get("line_items", []):
+        for det in item.get("instance_details", []):
+            where = f"{label(item)}: {det.get('detection_id') or det.get('tag_text') or '?'} on {det.get('sheet', '?')}"
+            if status_of(det) is None:
+                found.append(f"{where} has status {det.get('status')!r}: use accepted or to_confirm")
+            try:
+                box = box_of(det)
+            except ValueError as e:
+                found.append(f"{where}: {e}")
+                continue
+            if box is None:
+                continue
+            key = (str(det.get("sheet", "")), norm_text(det.get("tag_text") or item.get("designation")))
+            for other_box, other in placed.get(key, []):
+                if center_inside(box, other_box) or center_inside(other_box, box):
+                    found.append(f"the same tag twice: {other} and {where} (same text, one box inside the other)")
+            placed.setdefault(key, []).append((box, where))
+        for der in item.get("derived_details", []):
+            if status_of(der) is None and der.get("status") is not None:
+                found.append(f"{label(item)}: derived {der.get('derived_id', '?')} has status {der.get('status')!r}")
+    return found
+
+
 # ── Column Definitions ────────────────────────────────────────────
 
 SUMMARY_COLUMNS = [
-    ("Element",        24),
-    ("Designation",    14),
-    ("Sheet Instances", 14),
-    ("Derived",        12),
-    ("Deduplicated",   12),
-    ("Building Qty",   14),
-    ("Avg Confidence", 14),
-    ("Notes",          40),
+    ("Element",          24),
+    ("Designation",      14),
+    ("Confirmed",        12),
+    ("To Confirm",       12),
+    ("Possible Total",   14),
+    ("Of Which Derived", 14),
+    ("Avg Confidence",   14),
+    ("Notes",            40),
 ]
 
 DETAIL_COLUMNS = [
@@ -104,7 +215,7 @@ DETAIL_COLUMNS = [
     ("Type",           16),
     ("View Type",      14),
     ("Room",           10),
-    ("Provenance",     16),
+    ("Source",         20),
     ("Confidence",     12),
     ("Status",         12),
     ("Detection ID",   36),
@@ -123,6 +234,17 @@ TYPEDEF_COLUMNS = [
 COMPLETENESS_COLUMNS = [
     ("Metric",     24),
     ("Value",      40),
+]
+
+TO_CONFIRM_COLUMNS = [
+    ("Tag Text",     22),
+    ("Designation",  14),
+    ("Sheet",        10),
+    ("Room",         10),
+    ("Source",       20),
+    ("Ingest",       12),
+    ("Detection ID", 38),
+    ("Note",         50),
 ]
 
 
@@ -184,67 +306,50 @@ def write_title_row(ws, text, col_count, row=1):
     return row + 1
 
 
+def write_note_row(ws, text, col_count, row):
+    """A merged, wrapped line of explanation under a title."""
+    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=col_count)
+    cell = ws.cell(row=row, column=1, value=text)
+    cell.font = Font(name="Arial", italic=True, size=10)
+    cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+    ws.row_dimensions[row].height = 42
+    return row + 1
+
+
 # ── Sheet Builders ─────────────────────────────────────────────────
 
 def build_summary_sheet(ws, data, project_name, scope_name):
     """Build the QTO Summary sheet."""
     ws.title = "QTO Summary"
+    per_item, (t_conf, t_todo, t_derived, t_possible) = all_counts(data)
 
-    # Title row
-    row = write_title_row(
-        ws,
-        f"QTO Summary — {project_name} — {scope_name}",
-        len(SUMMARY_COLUMNS),
-    )
+    row = write_title_row(ws, f"QTO Summary — {project_name} — {scope_name}", len(SUMMARY_COLUMNS))
 
-    # Totals sub-header
-    totals = data.get("totals", {})
     ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=len(SUMMARY_COLUMNS))
-    cell = ws.cell(
-        row=row, column=1,
-        value=(
-            f"Sheet Instances: {totals.get('sheet_instances', 0)}  |  "
-            f"Derived: {totals.get('derived_instances', 0)}  |  "
-            f"Dedup: {totals.get('deduplicated', 0)}  |  "
-            f"Building Qty: {totals.get('building_quantity', 0)}"
-        ),
-    )
+    cell = ws.cell(row=row, column=1,
+                   value=f"Confirmed: {t_conf}  |  To Confirm: {t_todo}  |  Possible Total: {t_possible}")
     cell.font = SUBTITLE_FONT
     cell.fill = SUBTITLE_FILL
     cell.alignment = Alignment(horizontal="left", vertical="center")
     ws.row_dimensions[row].height = 24
     row += 1
+    row = write_note_row(ws, caveat(data), len(SUMMARY_COLUMNS), row)
 
-    # Headers
     apply_header(ws, SUMMARY_COLUMNS, row=row)
     row += 1
 
-    # Line items
-    for item in data.get("line_items", []):
-        element = item.get("element", "")
-        designation = item.get("designation", "")
-        sheet_inst = item.get("sheet_instances", 0)
-        derived = item.get("derived_instances", 0)
-        dedup = item.get("deduplicated", 0)
-        bldg_qty = item.get("building_qty", 0)
-
-        # Compute average confidence from instance details
+    for item, (confirmed, to_confirm, derived, possible) in per_item:
         details = item.get("instance_details", [])
-        avg_conf = 0.0
-        if details:
-            confs = [d.get("confidence", 0) for d in details if isinstance(d.get("confidence"), (int, float))]
-            avg_conf = sum(confs) / len(confs) if confs else 0.0
+        confs = [d.get("confidence", 0) for d in details if isinstance(d.get("confidence"), (int, float))]
+        avg_conf = sum(confs) / len(confs) if confs else 0.0
+        dedup = sum(1 for d in item.get("derived_details", []) if d.get("deduplicated"))
+        notes = f"{dedup} derived dedup'd (direct takes precedence)" if dedup else ""
 
-        notes = ""
-        if dedup > 0:
-            notes = f"{dedup} dedup'd (direct takes precedence)"
-
-        values = [element, designation, sheet_inst, derived, dedup, bldg_qty, avg_conf, notes]
+        values = [item.get("element", ""), item.get("designation", ""), confirmed, to_confirm, possible,
+                  derived, avg_conf, notes]
         for col_idx, val in enumerate(values, 1):
             cell = ws.cell(row=row, column=col_idx, value=val)
             style_body_cell(cell, row)
-
-            # Number formatting for quantity columns
             if col_idx in (3, 4, 5, 6):
                 cell.number_format = "#,##0"
                 cell.alignment = RIGHT_ALIGN
@@ -252,13 +357,11 @@ def build_summary_sheet(ws, data, project_name, scope_name):
                 cell.number_format = "0.00"
                 cell.alignment = CENTER_ALIGN
                 style_confidence_cell(cell, val)
-
         row += 1
 
-    # Totals row
     ws.cell(row=row, column=1, value="TOTAL").font = Font(name="Arial", bold=True, size=10)
-    for col_idx, key in [(3, "sheet_instances"), (4, "derived_instances"), (5, "deduplicated"), (6, "building_quantity")]:
-        cell = ws.cell(row=row, column=col_idx, value=totals.get(key, 0))
+    for col_idx, val in [(3, t_conf), (4, t_todo), (5, t_possible), (6, t_derived)]:
+        cell = ws.cell(row=row, column=col_idx, value=val)
         cell.font = Font(name="Arial", bold=True, size=10)
         cell.border = THIN_BORDER
         cell.number_format = "#,##0"
@@ -280,9 +383,9 @@ def build_detail_sheet(ws, data):
                 det.get("type", "element_instance"),
                 det.get("view_type", "floor_plan"),
                 det.get("room", ""),
-                det.get("provenance", det.get("type", "")),
+                det.get("source", det.get("provenance", "")),
                 det.get("confidence", 0),
-                det.get("status", "new"),
+                status_of(det),
                 det.get("detection_id", ""),
                 ", ".join(det.get("element_ids", [])) if det.get("element_ids") else "",
             ]
@@ -295,10 +398,8 @@ def build_detail_sheet(ws, data):
                     style_confidence_cell(cell, val)
                 elif col_idx == 9:
                     cell.alignment = CENTER_ALIGN
-
             row += 1
 
-        # Derived instances
         for der in item.get("derived_details", []):
             values = [
                 der.get("target_sheet", ""),
@@ -307,9 +408,9 @@ def build_detail_sheet(ws, data):
                 "derived_instance",
                 "derived",
                 der.get("target_room", ""),
-                f"from {der.get('source_detail', '')} ({der.get('derivation_method', '')})",
+                f"derived from {der.get('source_detail', '')} ({der.get('derivation_method', '')})",
                 "",
-                der.get("status", "new"),
+                "deduplicated" if der.get("deduplicated") else "to_confirm",
                 der.get("derived_id", ""),
                 "",
             ]
@@ -323,7 +424,6 @@ def build_detail_sheet(ws, data):
             if der.get("deduplicated"):
                 for col_idx in range(1, len(DETAIL_COLUMNS) + 1):
                     ws.cell(row=row, column=col_idx).fill = PatternFill("solid", fgColor=COLORS["dedup_bg"])
-
             row += 1
 
 
@@ -374,8 +474,8 @@ def build_completeness_sheet(ws, data, project_name, scope_name):
     row += 1
 
     scope = data.get("scope", {})
-    totals = data.get("totals", {})
     comp = data.get("completeness", {})
+    _, (t_conf, t_todo, t_derived, t_possible) = all_counts(data)
 
     metrics = [
         ("Tag Type", scope.get("tag_type", "")),
@@ -384,10 +484,10 @@ def build_completeness_sheet(ws, data, project_name, scope_name):
         ("Sheets with Detections", str(len(scope.get("sheets_with_detections", [])))),
         ("Sheets with Zero", ", ".join(scope.get("sheets_with_zero", [])) or "None"),
         ("", ""),
-        ("Building Quantity", str(totals.get("building_quantity", 0))),
-        ("Sheet Instances", str(totals.get("sheet_instances", 0))),
-        ("Derived Instances", str(totals.get("derived_instances", 0))),
-        ("Deduplicated", str(totals.get("deduplicated", 0))),
+        ("Confirmed", str(t_conf)),
+        ("To Confirm", str(t_todo)),
+        ("Of Which Derived", str(t_derived)),
+        ("Possible Total", str(t_possible)),
         ("", ""),
         ("Schedule Reference", comp.get("schedule_reference", "N/A")),
         ("Expected Count", str(comp.get("expected_count", "N/A"))),
@@ -447,34 +547,35 @@ def build_completeness_sheet(ws, data, project_name, scope_name):
     )
 
 
-def pending_in_count(data):
-    """Items marked pending inside line_items: they belong in pending_review, never in the count."""
-    found = []
-    for item in data.get("line_items", []):
-        for det in item.get("instance_details", []) + item.get("derived_details", []):
-            if str(det.get("status", "")).lower() == "pending":
-                found.append(f"{item.get('designation') or item.get('element', '?')}: "
-                             f"{det.get('detection_id') or det.get('derived_id') or det.get('sheet', '?')}")
-    return found
-
-
-def build_pending_sheet(ws, data):
-    """Items still waiting in AgentCM's review: listed for the PE, not counted."""
+def build_to_confirm_sheet(ws, data):
+    """Every instance not yet accepted, and every derived instance counted: listed for the PE to confirm."""
     ws.title = "To Confirm in AgentCM"
-    columns = [("Tag Text", 22), ("Tag Type", 18), ("Sheet", 10), ("Room", 10),
-               ("Detection ID", 38), ("Status", 12), ("Note", 50)]
-    write_title_row(ws, "Pending in AgentCM's review: confirm there; not in the QTO count", len(columns))
-    apply_header(ws, columns, row=2)
-    pending = data.get("pending_review", [])
-    if not pending:
-        ws.cell(row=3, column=1, value="No pending items.")
-        return
-    for i, p in enumerate(pending):
-        row = 3 + i
-        values = [p.get("tag_text", ""), p.get("tag_type", ""), p.get("sheet", ""), p.get("room", ""),
-                  p.get("detection_id", ""), p.get("status", "pending"), p.get("note", "")]
-        for col, v in enumerate(values, start=1):
-            style_body_cell(ws.cell(row=row, column=col, value=v), i)
+    row = write_title_row(ws, "Not yet accepted: confirm in AgentCM (inside the possible total, not the confirmed count)",
+                          len(TO_CONFIRM_COLUMNS))
+    row = write_note_row(ws, caveat(data), len(TO_CONFIRM_COLUMNS), row)
+    apply_header(ws, TO_CONFIRM_COLUMNS, row=row)
+    row += 1
+    first = row
+    for item in data.get("line_items", []):
+        for det in item.get("instance_details", []):
+            if status_of(det) != "to_confirm":
+                continue
+            values = [det.get("tag_text", ""), item.get("designation", ""), det.get("sheet", ""), det.get("room", ""),
+                      det.get("source", ""), det.get("ingest", ""), det.get("detection_id", ""), det.get("note", "")]
+            for col, v in enumerate(values, start=1):
+                style_body_cell(ws.cell(row=row, column=col, value=v), row)
+            row += 1
+        for der in item.get("derived_details", []):
+            if der.get("deduplicated"):
+                continue
+            values = [item.get("element", ""), item.get("designation", ""), der.get("target_sheet", ""),
+                      der.get("target_room", ""), "derived", "", der.get("derived_id", ""),
+                      f"from {der.get('source_detail', '')} ({der.get('derivation_method', '')})"]
+            for col, v in enumerate(values, start=1):
+                style_body_cell(ws.cell(row=row, column=col, value=v), row)
+            row += 1
+    if row == first:
+        ws.cell(row=row, column=1, value="Nothing to confirm.")
 
 
 # ── Main ───────────────────────────────────────────────────────────
@@ -486,6 +587,7 @@ def main():
     parser.add_argument("--scope", default="", help="Scope label (e.g., 'Room Tags')")
     parser.add_argument("--output", required=True, help="Output .xlsx path")
     args = parser.parse_args()
+    sys.stdout.reconfigure(errors="replace")  # a tag's text never stops the report on a narrow console
 
     # Load data
     data_path = Path(args.data)
@@ -493,22 +595,23 @@ def main():
         print(f"ERROR: Data file not found: {data_path}", file=sys.stderr)
         sys.exit(1)
 
-    with open(data_path, "r") as f:
+    with open(data_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     # Validate expected schema keys — the skill must produce exact key names
-    required_keys = ["line_items", "totals", "scope"]
+    required_keys = ["line_items", "scope"]
     missing = [k for k in required_keys if k not in data]
     if missing:
         print(f"WARNING: Missing expected keys: {missing}. Output may be empty.", file=sys.stderr)
         print(f"  Found keys: {list(data.keys())}", file=sys.stderr)
         print(f"  See references/qto-output-format.md for required schema.", file=sys.stderr)
 
-    pending = pending_in_count(data)
-    if pending:
-        print(f"ERROR: {len(pending)} item(s) marked pending are inside line_items, so inside the count: "
-              f"{pending[:5]}. Move them to pending_review (references/qto-output-format.md); "
-              f"no workbook written.", file=sys.stderr)
+    found = problems(data)
+    if found:
+        print(f"ERROR: {len(found)} problem(s), no workbook written (references/qto-output-format.md):",
+              file=sys.stderr)
+        for p in found[:20]:
+            print(f"  - {p}", file=sys.stderr)
         sys.exit(2)
 
     project_name = args.project or data.get("project", {}).get("name", "Unknown Project")
@@ -521,11 +624,18 @@ def main():
     build_detail_sheet(wb.create_sheet(), data)
     build_typedef_sheet(wb.create_sheet(), data)
     build_completeness_sheet(wb.create_sheet(), data, project_name, scope_name)
-    build_pending_sheet(wb.create_sheet(), data)
+    build_to_confirm_sheet(wb.create_sheet(), data)
 
     # Save
     out = safe_output_path(args.output)
     wb.save(str(out))
+
+    # The three numbers, as the skill reports them
+    per_item, (t_conf, t_todo, _, t_possible) = all_counts(data)
+    for item, (confirmed, to_confirm, _, possible) in per_item:
+        print(f"{label(item)}: confirmed {confirmed}, to confirm {to_confirm}, possible {possible}")
+    print(f"TOTAL: confirmed {t_conf}, to confirm {t_todo}, possible {t_possible}")
+    print(caveat(data))
     print(f"OK: {out}")
 
 

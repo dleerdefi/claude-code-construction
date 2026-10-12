@@ -101,11 +101,14 @@ derived instance actually represent different physical items.
 ## QTO Aggregation
 
 ```
-Building Qty = (approved element instances where deduplicated=false)
-             + (approved derived instances where deduplicated=false)
+Confirmed      = element instances accepted in AgentCM's review
+To confirm     = element instances not yet accepted (each tag once)
+               + derived instances where deduplicated=false
+Possible total = confirmed + to confirm
 ```
 
-Every number traces to either:
-- "Detected on sheet X at bbox Y, approved by user Z on date W"
-- "Derived from type def T applied to room R via method M,
-   approved by user Z on date W"
+`scripts/qto_to_xlsx.py` computes the three from the QTO JSON
+(`references/qto-output-format.md`). Every number traces to either:
+- "Detected on sheet X at bbox Y, accepted in AgentCM's review" (confirmed),
+  or found and not yet accepted (to confirm)
+- "Derived from type def T applied to room R via method M" (to confirm)
