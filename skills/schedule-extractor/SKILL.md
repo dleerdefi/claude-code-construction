@@ -12,6 +12,10 @@ disable-model-invocation: true
 
 Extracts tabular schedule data embedded in drawing sheets or spec pages and outputs structured Excel files. Schedules are typically one element among many on a sheet — or the entire sheet may be a schedule.
 
+## First: the mode (both workflows)
+
+Before extracting or reconciling, read `.construction/project.yaml`. Present and readable means AgentCM mode: note its `contract_version` and follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`. Absent means flat-file mode. A listing that shows the file, or `.construction/database.yaml` alone, does not decide it: read the file.
+
 ## Workflow
 
 ```
