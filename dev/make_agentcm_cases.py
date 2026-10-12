@@ -587,6 +587,10 @@ write("_checks/agentcm_trace.py", '''
         sent = answered("tag-detections/ingest")
         second_card = [s[1].get("tag_text") for i, s in enumerate(sent) for later in sent[i + 1:]
                        if one_tag(s, later) and later[2].get("outcome") == "created"]
+        # the second run's trace: the files do not refresh here, so it sends a first-run tag again and hears already_held
+        created = [i for i, s in enumerate(sent) if s[2].get("outcome") == "created"]
+        resent = not created or any(one_tag(sent[i], later) and later[2].get("outcome") == "already_held"
+                                    for i in created for later in sent[i + 1:])
         number = {v: k for k, v in sheet_ids().items()}
         turned_down = {(number.get(s), q.norm_text(d.get("tag_text"))) for s, d, a in sent if a.get("outcome") == "rejected"}
         not_listed_once = []
@@ -596,11 +600,12 @@ write("_checks/agentcm_trace.py", '''
                          if d.get("sheet") == sheet and q.norm_text(d.get("tag_text")) == text]
                 if [q.status_of(d) for d in found] != ["rejected"]:
                     not_listed_once.append(f"run {k}: {text} on {sheet} as {[d.get('status') for d in found]}")
-        ok = same and conf == accepted and todo >= pending and not second_card and not not_listed_once
+        ok = same and conf == accepted and todo >= pending and resent and not second_card and not not_listed_once
         finish(ok, f"both takeoffs: confirmed {conf}, to confirm {todo}; a tag sent again was already held; "
                    f"rejected listed once: {sorted(t for _, t in turned_down)}",
-               f"runs {runs}; expected confirmed {accepted}, to confirm >= {pending}; second cards: {second_card[:3]}; "
-               f"rejected not listed once as rejected: {not_listed_once[:3]}")
+               f"runs {runs}; expected confirmed {accepted}, to confirm >= {pending}; a first-run tag sent again and "
+               f"already held: {resent}; second cards: {second_card[:3]}; rejected not listed once as rejected: "
+               f"{not_listed_once[:3]}")
 ''')
 
 # ---- cases ----------------------------------------------------------------------------------------
@@ -771,7 +776,7 @@ case("tag-audit-and-takeoff", "/construction:tag-audit-and-takeoff",
      needs="groups pending pdfs", api=True, max_turns=150, timeout=2700,
      desc="AgentCM running: a takeoff twice gives the same three numbers, confirmed = accepted tags only; a tag sent again is already held, a rejected one is listed once.",
      graders={"three-numbers": ("llm", "", 2, "The final message reports, for each takeoff, confirmed, to confirm and the possible total, with the caveat that confirmed holds only tags accepted in AgentCM's review and the rest wait to be confirmed there; the two takeoffs report the same numbers."),
-              "outcomes": ("llm", "", 1, "The final message reports what AgentCM answered for the tags it sent (how many were created, already held, rejected or had no free text), taken from AgentCM's answer, not assumed from the request succeeding; a tag AgentCM said the PE rejected is listed apart and not counted.")},
+              "outcomes": ("llm", "", 1, "The final message reports what AgentCM answered for the tags it sent (how many were created, already held, rejected or had no free text), taken from AgentCM's answer, not assumed from the request succeeding. If AgentCM answered that the PE rejected a tag, that tag is listed apart and not counted; a run with no rejected tag passes this on the rest.")},
      checks={"twice-the-same": (f"t.check_takeoff_twice(accepted={ROOM_ACCEPTED}, pending={ROOM_PENDING})", 3),
              "contract-requests": ("t.check_contract_requests()", 1),
              "tag-ingest": ('t.check_tag_ingest(["A-101", "A-102"])', 2),

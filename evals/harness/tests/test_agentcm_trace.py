@@ -118,6 +118,15 @@ class Checks(unittest.TestCase):
         self.run.requests(ingest("created"), ingest("created", dets=[dict(DET, bounding_box=dict(BOX, x=0.405))]))
         self.assertEqual(outcome(t.check_takeoff_twice, accepted=1, pending=1)[0], 1)  # the same tag made two cards
 
+    def test_takeoff_twice_fails_when_the_second_run_never_sent(self):
+        # the second QTO a copy of the first: nothing from the first run was ever sent again
+        self.run.file(self.Q + "room_tag_1.json", qto(["accepted", "to_confirm"]))
+        self.run.file(self.Q + "room_tag_2.json", qto(["accepted", "to_confirm"]))
+        self.run.requests(ingest("created"))
+        code, out = outcome(t.check_takeoff_twice, accepted=1, pending=1)
+        self.assertEqual(code, 1, out)
+        self.assertIn("already held: False", out)
+
     def test_takeoff_twice_a_rejected_tag_is_listed_once_in_each_run(self):
         stair = dict(DET, tag_text="STAIR 2", bounding_box=dict(BOX, x=0.8))
         listed = qto(["accepted", "to_confirm"])
