@@ -25,12 +25,7 @@ from pathlib import Path
 ALLOWED_PREFIXES = ("skills/", "crops/")
 
 # Known lines waiting for a queued change, each with why. A test fails when one no longer matches.
-KNOWN = [
-    ("skills/construction-guide/SKILL.md", "Older versions wrote working data directly into",
-     "construction-guide's copy-not-move change is queued until its eval case is green (PR #28)"),
-    ("skills/construction-guide/SKILL.md", "**AgentCM areas** — `agent_findings/`",
-     "construction-guide's Where Skills Write bullet (agent_findings/) is queued until its eval case is green (PR #28)"),
-]
+KNOWN = []
 
 PATH = re.compile(r"\.construction/([A-Za-z0-9_.{}<>*\[\]-][^\s`'\"),;]*)?")
 WRITE_VERB = re.compile(
@@ -44,6 +39,7 @@ NEGATION = re.compile(
     re.IGNORECASE)
 HISTORICAL = re.compile(r"\b(older versions?|before v0|previously|used to)\b", re.IGNORECASE)
 NOUN_BEFORE = re.compile(r"\b(a|an|the|each|every|one|no)\s+$", re.IGNORECASE)  # "a write names ..." is a noun
+NOUN_AFTER = re.compile(r"^\s+endpoints?\b", re.IGNORECASE)  # "its write endpoints" names the API
 NEGATED_MOVE = re.compile(r"\b(never|not|don't|do not|no need to)\s+(\w+\s+){0,2}$", re.IGNORECASE)
 
 
@@ -70,7 +66,7 @@ def scan_text(rel, text):
             if NEGATION.search(s) or HISTORICAL.search(s):
                 continue
             for verb in WRITE_VERB.finditer(s):
-                if NOUN_BEFORE.search(s[:verb.start()]):
+                if NOUN_BEFORE.search(s[:verb.start()]) or NOUN_AFTER.search(s[verb.end():]):
                     continue
                 if any(disallowed(p.group(1)) for p in PATH.finditer(s[verb.end():])):
                     findings.append((rel, n, f"writes under .construction/ outside skills/ ('{verb.group(0)}')", line))

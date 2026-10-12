@@ -168,11 +168,21 @@ Severity follows the confidence grades under Output Standards: `conflict` for a 
 
 A skill that logs issues lists `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` in its script allowlist. `${CLAUDE_PLUGIN_ROOT}/reference/common-issue-types.md` has the pattern vocabulary of what to watch for.
 
+**Corrections of AgentCM's data** (AgentCM mode only) — When a drawing shows AgentCM wrong (a wrong text, a room name, a wrong zone), use the drawing's value in the task at hand, say so with the crop as evidence, and record the correction for the PE to resolve in AgentCM. Never edit `.construction/`; a missed tag or callout goes through `tag-detections/ingest` instead. The rules are in `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`; the command, the only way to write `.construction/skills/corrections.tsv`:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py" \
+  --sheet "A-101" --x 0.41 --y 0.22 --w 0.08 --h 0.03 --kind room \
+  --crop "{the PNG crop.sh printed}" --agentcm "{AgentCM's value}" --drawing "{the drawing's value}"
+```
+
+A skill that can find AgentCM wrong lists `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` in its script allowlist.
+
 ### Behavioral Skills (setup / orientation)
 
 | Skill | When to use | Output | Invoked by |
 |---|---|---|---|
-| `project-setup` | Set up a construction project after `/init` — inventories files, classifies documents, appends construction context to project CLAUDE.md | Amended CLAUDE.md | User |
+| `project-setup` | Set up a construction project after `/init` — inventories files, classifies documents, appends construction context to project CLAUDE.md; in an AgentCM project, reports AgentCM's orientation instead and changes nothing | Amended CLAUDE.md (flat-file projects) | User |
 
 ## PDF & Vision Tools
 
@@ -207,9 +217,12 @@ with pdfplumber.open(pdf_path) as pdf:
   - `.construction/skills/issues/` — the issue registry (`issue_manager.py`)
   - `.construction/skills/project_context.yaml` — shared project facts
   - `.construction/skills/<skill>/` — one skill's own state (e.g. `bid-tabulator/bids/`)
-- **AgentCM areas** — `agent_findings/` (graph entries via `write_finding.py`), the database and the API — are written only when AgentCM is present (`.construction/project.yaml` exists). There, every work product also gets a graph entry so future queries can traverse prior work. Everything else in `.construction/` belongs to AgentCM: read it, never write it.
+  - `.construction/skills/<skill>/findings/` — the skill's findings (`write_finding.py --skill <skill>`), in both modes
+  - `.construction/skills/corrections.tsv` — corrections of AgentCM's data for the PE to resolve (AgentCM mode, `corrections_append.py` only)
+  - `.construction/skills/<skill>/outbox/` — a payload for AgentCM's write endpoints that waits while AgentCM is closed (AgentCM mode; `reference/agentcm-mode.md`)
+- **AgentCM's data** changes only through its write endpoints (the API), and only when AgentCM is present (`.construction/project.yaml` exists). Every file in `.construction/` outside `.construction/skills/` belongs to AgentCM: read it, never write it.
 
-Older versions wrote working data directly into `.construction/` (`spec_text/`, `issues/`, `bid_tab/`, `code_research/`, `submittal_*`, `rfi_template_map.json`, `project_context.yaml`, `qto/`). If you find one of those and its `.construction/skills/` counterpart doesn't exist, move it there before continuing.
+Older versions wrote working data directly into `.construction/` (`spec_text/`, `issues/`, `bid_tab/`, `code_research/`, `submittal_*`, `rfi_template_map.json`, `project_context.yaml`, `qto/`). If you find one of those and its `.construction/skills/` counterpart doesn't exist, copy it there before continuing and leave the old one as it is.
 
 ## Reference Data
 

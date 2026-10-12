@@ -24,6 +24,8 @@ class Markdown(unittest.TestCase):
         self.assertFalse(self.flagged("Older versions wrote it to `.construction/spec_text/`: copy it to "
                                       "`.construction/skills/spec_text/` and leave the old one as it is."))
         self.assertFalse(self.flagged("A write names a sheet by its id in `.construction/index/sheet_index.yaml`."))
+        self.assertFalse(self.flagged("It changes only through its write endpoints, when `.construction/project.yaml` exists."))
+        self.assertTrue(self.flagged("Write endpoints aside, write the list to `.construction/index/extra.yaml`."))
         self.assertFalse(self.flagged("`sh .construction/crop.sh <sheet> <x> <y> <w> <h>` writes `.construction/crops/A-101.png`."))
         self.assertFalse(self.flagged("Read `.construction/INDEX.md` first."))
 
