@@ -653,6 +653,9 @@ COMMON = {
                          "No inline Python (`python -c`, `\"$PY\" -c`, Python fed on stdin as `python - <<EOF`) and no script "
                          "written through a shell redirect or heredoc: the toolkit is the allowlisted scripts. (Matched "
                          "against the JSON-encoded command, so a quote may carry a backslash.)"),
+    "no-helper-scripts": ("tool_used", "tool: Write\ninput_match: '\\.py\"'\nmin: 0\nmax: 0", 1,
+                          "No Python file is written by the model: its JSON goes through the Write tool and its deliverables "
+                          "through the allowlisted scripts."),
     "crops-through-crop-sh": ("tool_used", 'tool: Write\ninput_match: "\\\\.construction[\\\\\\\\/]+crops"\nmin: 0\nmax: 0', 1,
                               ".construction/crops/ is written only by crop.sh, never by the Write tool."),
 }

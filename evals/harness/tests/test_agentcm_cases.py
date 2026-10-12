@@ -101,5 +101,20 @@ class InlinePython(unittest.TestCase):
                     self.assertTrue(grade_tool_used(g, self.running(command)).passed)
 
 
+class HelperScripts(unittest.TestCase):
+    def writing(self, path):
+        return RunResult(case="t", run_index=1, workspace=Path("."),
+                         trace=[{"type": "tool_use", "name": "Write", "input": {"file_path": path, "content": "x"}}])
+
+    def test_every_case_fails_a_python_file_written_by_the_model(self):
+        cases = {c.name for c in load_cases(EVALS) if "agentcm-mode" in c.tags}
+        graders = [(c.name, g) for c in load_cases(EVALS) if c.name in cases for g in c.graders if g.name == "no-helper-scripts"]
+        self.assertEqual({name for name, _ in graders}, cases)
+        for case, g in graders:
+            with self.subTest(case=case):
+                self.assertFalse(grade_tool_used(g, self.writing("C:\\ws\\work\\mk.py")).passed)
+                self.assertTrue(grade_tool_used(g, self.writing("C:\\ws\\.construction\\skills\\s\\A-601-1.json")).passed)
+
+
 if __name__ == "__main__":
     unittest.main()
