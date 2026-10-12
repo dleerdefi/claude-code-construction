@@ -168,11 +168,14 @@ async def grade_llm(g: Grader, run: RunResult, judge: JudgeOptions) -> GraderRes
 
 def grade_python(check: Check, run: RunResult, plugin_root: Path, trace_path: Path | None) -> GraderResult:
     py = plugin_root / "bin" / "construction-python"
-    env = dict(os.environ, EVAL_WORKSPACE=str(run.workspace), EVAL_CASE_DIR=str(check.script.parent.parent),
-               EVAL_TRACE=str(trace_path or ""), CONSTRUCTION_SKILLS_NO_BOOTSTRAP="1")
+    # Absolute paths: the check runs from inside the workspace, so a relative one (a regrade of
+    # evals/results/<stamp>) would resolve a second time from there and find nothing.
+    workspace, script = Path(run.workspace).resolve(), Path(check.script).resolve()
+    env = dict(os.environ, EVAL_WORKSPACE=str(workspace), EVAL_CASE_DIR=str(script.parent.parent),
+               EVAL_TRACE=str(Path(trace_path).resolve()) if trace_path else "", CONSTRUCTION_SKILLS_NO_BOOTSTRAP="1")
     try:
         from runner import find_bash
-        proc = subprocess.run([find_bash(), py.as_posix(), check.script.as_posix()], cwd=run.workspace, env=env,
+        proc = subprocess.run([find_bash(), py.as_posix(), script.as_posix()], cwd=workspace, env=env,
                               capture_output=True, text=True, timeout=600)
     except Exception as e:
         return GraderResult(check.name, "python", check.weight, False, f"could not run check: {e}")

@@ -114,6 +114,21 @@ class Regrade(unittest.TestCase):
         self.assertFalse(results[1].passed)          # evaluated, not kept: the file really is absent
         self.assertIn("on the snapshot", results[1].detail)
 
+    def test_a_python_check_finds_a_workspace_given_by_a_relative_path(self):
+        # evals/results/<stamp> passed relative: the check runs from inside the workspace and must still find it
+        from cases import Check
+        from graders import grade_python
+        script = self.tmp / "checks" / "has_out.py"
+        script.parent.mkdir()
+        script.write_text("import os, sys\nfrom pathlib import Path\n"
+                          "sys.exit(0 if (Path(os.environ['EVAL_WORKSPACE']) / 'out.json').is_file() else 1)\n",
+                          encoding="utf-8")
+        run, _, _ = load_saved_run(self.run_dir, "demo")
+        run.workspace = Path(os.path.relpath(self.workspace))
+        result = grade_python(Check(name="has-out", script=Path(os.path.relpath(script))), run, HERE.parents[1],
+                              Path(os.path.relpath(self.run_dir / "trace.jsonl")))
+        self.assertTrue(result.passed, result.detail)
+
     def test_llm_grader_keeps_its_verdict_without_rejudge(self):
         results = self._regrade([_grader("judged", "llm")])
         self.assertFalse(results[0].passed)
