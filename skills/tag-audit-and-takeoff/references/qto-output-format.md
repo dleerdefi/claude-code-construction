@@ -26,6 +26,8 @@ Three numbers per line item, which the export computes from the instances and pr
 - **To confirm:** instances with `status` `to_confirm`, every tag not yet accepted (older files say `new` or `pending`), plus every derived instance not `deduplicated`. Derived instances come from type definitions, not tags, so nothing confirms them.
 - **Possible total:** confirmed plus to confirm.
 
+A tag the PE already turned down in AgentCM's review has `status` `rejected`. It is in no number and not on the to-confirm list: the export lists it once, apart (its own sheet, and a line after the total).
+
 Each instance has a `source`:
 
 | `source` | `status` | What it is |
@@ -165,6 +167,9 @@ Floor Drain FD-1  |        10 |          5 |             15
 TO CONFIRM IN AGENTCM: [n] tags (pending in its review, waiting in the
   outbox, or found and sent in this run) and [n] derived counts
 
+REJECTED IN AGENTCM (not counted): [n] tags the PE already turned down,
+  each listed once, as the export printed them
+
 COMPLETENESS: 66/70 (94.3%) per fixture schedule
 GAPS: P1.03 (4 fixtures expected, 0 detected)
 
@@ -189,3 +194,4 @@ The Excel export produces a workbook with:
 - Sheet 3: Type Definitions applied
 - Sheet 4: Completeness
 - Sheet 5: To Confirm in AgentCM (every instance not yet accepted, and every derived count)
+- Sheet 6: Rejected in AgentCM (every instance the PE turned down there; not counted)

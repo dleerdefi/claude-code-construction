@@ -10,15 +10,17 @@ to confirm (every instance not yet accepted, plus every derived instance not
 deduplicated) and the possible total (the two together). The script computes
 the three numbers from the instances itself, prints one line per item, and
 refuses a file that lists the same tag twice (same text, one box's center
-inside the other, on one sheet) or still carries the retired pending_review key.
+inside the other, on one sheet) or still carries the retired pending_review key. A tag the PE
+rejected in AgentCM (status rejected) is in no number: it is listed once, apart.
 
 Input:  JSON file with project{}, scope{}, line_items[], etc.
-Output: Formatted .xlsx workbook with five sheets:
+Output: Formatted .xlsx workbook with six sheets:
   - QTO Summary: one row per line item with the three numbers and confidence
   - Instance Detail: every detection record with full provenance
   - Type Definitions: type defs applied and their room targets
   - Completeness: coverage metrics, gap sheets, and issues
   - To Confirm in AgentCM: every instance not yet accepted
+  - Rejected in AgentCM: every instance the PE already turned down there, not counted
 
 Usage:
     construction-python qto_to_xlsx.py \\
@@ -98,6 +100,7 @@ CONFIDENCE_STYLES = {
 
 ACCEPTED = {"accepted", "approved"}             # approved: older files
 TO_CONFIRM = {"to_confirm", "new", "pending"}   # new, pending: older files
+REJECTED = {"rejected"}                         # the PE turned it down in AgentCM: never counted
 
 CAVEAT_AGENTCM = (
     "Confirmed: tags accepted in AgentCM's review. To confirm: every tag not yet accepted, found in this "
@@ -115,12 +118,14 @@ def caveat(data):
 
 
 def status_of(det):
-    """accepted or to_confirm; None for anything else."""
+    """accepted, to_confirm or rejected; None for anything else."""
     s = str(det.get("status", "")).strip().lower()
     if s in ACCEPTED:
         return "accepted"
     if s in TO_CONFIRM:
         return "to_confirm"
+    if s in REJECTED:
+        return "rejected"
     return None
 
 
@@ -141,6 +146,12 @@ def all_counts(data):
     per_item = [(item, counts(item)) for item in data.get("line_items", [])]
     total = tuple(sum(c[i] for _, c in per_item) for i in range(4))
     return per_item, total
+
+
+def rejected(data):
+    """(line item, instance) for every tag the PE rejected in AgentCM."""
+    return [(item, det) for item in data.get("line_items", []) for det in item.get("instance_details", [])
+            if status_of(det) == "rejected"]
 
 
 def norm_text(text):
@@ -176,7 +187,7 @@ def problems(data):
         for det in item.get("instance_details", []):
             where = f"{label(item)}: {det.get('detection_id') or det.get('tag_text') or '?'} on {det.get('sheet', '?')}"
             if status_of(det) is None:
-                found.append(f"{where} has status {det.get('status')!r}: use accepted or to_confirm")
+                found.append(f"{where} has status {det.get('status')!r}: use accepted, to_confirm or rejected")
             try:
                 box = box_of(det)
             except ValueError as e:
@@ -244,6 +255,15 @@ TO_CONFIRM_COLUMNS = [
     ("Source",       20),
     ("Ingest",       12),
     ("Detection ID", 38),
+    ("Note",         50),
+]
+
+REJECTED_COLUMNS = [
+    ("Tag Text",     22),
+    ("Designation",  14),
+    ("Sheet",        10),
+    ("Room",         10),
+    ("Rejected Card", 38),
     ("Note",         50),
 ]
 
@@ -578,6 +598,23 @@ def build_to_confirm_sheet(ws, data):
         ws.cell(row=row, column=1, value="Nothing to confirm.")
 
 
+def build_rejected_sheet(ws, data):
+    """Every tag the PE already turned down in AgentCM: listed once, in no number."""
+    ws.title = "Rejected in AgentCM"
+    row = write_title_row(ws, "Rejected in AgentCM: the PE turned these down there (not counted)", len(REJECTED_COLUMNS))
+    apply_header(ws, REJECTED_COLUMNS, row=row)
+    row += 1
+    first = row
+    for item, det in rejected(data):
+        values = [det.get("tag_text", ""), item.get("designation", ""), det.get("sheet", ""), det.get("room", ""),
+                  det.get("detection_id", ""), det.get("note", "")]
+        for col, v in enumerate(values, start=1):
+            style_body_cell(ws.cell(row=row, column=col, value=v), row)
+        row += 1
+    if row == first:
+        ws.cell(row=row, column=1, value="Nothing rejected.")
+
+
 # ── Main ───────────────────────────────────────────────────────────
 
 def main():
@@ -625,6 +662,7 @@ def main():
     build_typedef_sheet(wb.create_sheet(), data)
     build_completeness_sheet(wb.create_sheet(), data, project_name, scope_name)
     build_to_confirm_sheet(wb.create_sheet(), data)
+    build_rejected_sheet(wb.create_sheet(), data)
 
     # Save
     out = safe_output_path(args.output)
@@ -636,6 +674,11 @@ def main():
         print(f"{label(item)}: confirmed {confirmed}, to confirm {to_confirm}, possible {possible}")
     print(f"TOTAL: confirmed {t_conf}, to confirm {t_todo}, possible {t_possible}")
     print(caveat(data))
+    turned_down = rejected(data)
+    if turned_down:
+        print(f"Rejected in AgentCM, not counted: {len(turned_down)}")
+        for item, det in turned_down:
+            print(f"  {det.get('tag_text') or label(item)} on {det.get('sheet', '?')} ({det.get('detection_id', '')})")
     print(f"OK: {out}")
 
 

@@ -86,6 +86,22 @@ class ThreeNumbers(Export):
         r, out = self.export(qto([inst("accepted", "OFFICE 101", 0.20)]))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("Nothing to confirm.", [c.value for c in load_workbook(out)["To Confirm in AgentCM"]["A"]])
+        self.assertIn("Nothing rejected.", [c.value for c in load_workbook(out)["Rejected in AgentCM"]["A"]])
+        self.assertNotIn("Rejected in AgentCM", r.stdout)
+
+    def test_a_rejected_tag_is_listed_once_and_never_counted(self):
+        r, out = self.export(qto([inst("accepted", "OFFICE 101", 0.20, source="accepted_in_agentcm"),
+                                  inst("to_confirm", "STORAGE 102", 0.40, source="found_this_run", ingest="created"),
+                                  inst("rejected", "STAIR 2", 0.60, source="found_this_run", ingest="rejected",
+                                       detection_id="card-9")]))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("TOTAL: confirmed 1, to confirm 1, possible 2", r.stdout)
+        self.assertIn("Rejected in AgentCM, not counted: 1", r.stdout)
+        self.assertEqual(r.stdout.count("STAIR 2"), 1)
+        wb = load_workbook(out)
+        listed = [[c.value for c in row] for row in wb["Rejected in AgentCM"].iter_rows()]
+        self.assertEqual([row[:5] for row in listed if row[0] == "STAIR 2"], [["STAIR 2", "RT", "A-101", None, "card-9"]])
+        self.assertNotIn("STAIR 2", [c.value for c in wb["To Confirm in AgentCM"]["A"]])
 
 
 class Refusals(Export):
@@ -118,7 +134,12 @@ class Refusals(Export):
                      "pending_review is retired")
 
     def test_an_unknown_status_is_refused(self):
-        self.refused(qto([inst("maybe", "OFFICE 101", 0.2)]), "use accepted or to_confirm")
+        self.refused(qto([inst("maybe", "OFFICE 101", 0.2)]), "use accepted, to_confirm or rejected")
+
+    def test_a_rejected_tag_listed_again_is_refused(self):
+        self.refused(qto([inst("rejected", "STAIR 2", 0.4, source="found_this_run", ingest="rejected"),
+                          inst("to_confirm", "STAIR 2", 0.41, source="found_this_run", ingest="created")]),
+                     "the same tag twice")
 
     def test_a_malformed_box_is_refused(self):
         d = inst("accepted", "OFFICE 101", 0.2)

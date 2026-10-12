@@ -383,10 +383,11 @@ and invoke the export script to produce a styled multi-sheet workbook:
   --output "QTO_{tag_type}_{date}.xlsx"
 ```
 
-The workbook has 5 sheets: QTO Summary (confirmed, to confirm and possible
+The workbook has 6 sheets: QTO Summary (confirmed, to confirm and possible
 total per line item, with the caveat), Instance Detail (every detection with
 provenance), Type Definitions (templates applied to rooms), Completeness
-(coverage metrics), and To Confirm in AgentCM (every tag not yet accepted).
+(coverage metrics), To Confirm in AgentCM (every tag not yet accepted), and
+Rejected in AgentCM (tags the PE already turned down there, in no number).
 
 ---
 
@@ -419,7 +420,7 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 - AgentCM's `.construction/crop.sh` / `crop.ps1` (a box of a sheet as a PNG), in AgentCM mode
 - `scripts/markup_tags.py` — sheet markup with tag highlights
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/annotate_pdf.py` — native PDF annotations
-- `scripts/qto_to_xlsx.py` — QTO Excel export (5-sheet workbook; computes and prints confirmed, to confirm and possible total; refuses a tag listed twice)
+- `scripts/qto_to_xlsx.py` — QTO Excel export (6-sheet workbook; computes and prints confirmed, to confirm and possible total, and lists rejected tags apart; refuses a tag listed twice)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log schedule/drawing count mismatches to the Issue Registry (command and severity mapping in construction-guide)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — record the QTO as a finding (Step 8)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data other than a missed tag (`reference/agentcm-mode.md`)
