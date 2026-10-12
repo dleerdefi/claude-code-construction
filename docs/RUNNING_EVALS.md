@@ -43,6 +43,8 @@ bin/construction-python evals/harness/run.py --runs 1                  # all 18 
 
 Each run is a headless Claude Code session that is then graded; see the [harness README](../evals/harness/README.md) for options, requirements and how runs are confined, and the [eval suite README](../evals/plugin/README.md) for what every case checks and the suite's known issues. On Windows the harness needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`). The `real` cases are skipped, not failed, when the Sanibel PDFs have not been downloaded. Add `--judge-model sonnet` when running `submittal-review`; the default judge misreads its long findings table. A red case is not a regression until it fails again with `--runs 3`. When you change a grader, check it against the last results folder first with `--regrade evals/results/<stamp>`, which re-grades the saved runs without running the agent.
 
+The agentcm-mode cases (`--tag agentcm-mode`) need Poppler: AgentCM's crop scripts render the fixture's drawings with `pdfinfo` and `pdftoppm`. Set `AGENTCM_POPPLER_BIN` to Poppler's bin folder for the run, for example `AGENTCM_POPPLER_BIN="C:\Program Files\poppler-24.08.0\Library\bin"`. On Windows this matters: Git Bash ships Xpdf tools under the same names, and the harness puts this folder first. Unset, Poppler must come first on PATH. The harness checks once, before any case, and stops with a setup error naming what is missing rather than letting the cases fail.
+
 Alternatives:
 
 - `claude plugin eval` runs the same cases with Claude Code's own sandbox and report on macOS, Linux and WSL2: see the [plugin eval suite README](../evals/plugin/README.md).

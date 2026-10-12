@@ -24,6 +24,7 @@ from claude_agent_sdk.types import TextBlock, ToolResultBlock, ToolUseBlock
 
 from cases import Case
 from guard import GUARDED_TOOLS, Policy, decide
+from poppler import TAG as AGENTCM_TAG, case_env
 
 SCAFFOLD_TIMEOUT = 120
 SCAFFOLD_SKIP_EXIT = 3  # a scaffold exits 3 when the case's inputs are not available on this machine
@@ -102,11 +103,17 @@ class ScaffoldSkipped(Exception):
     """The scaffold reported that this case cannot run here (exit 3), e.g. missing downloads."""
 
 
+def extra_env(case: Case) -> dict:
+    """What a case adds to its environment: for an agentcm-mode case, the harness run's AGENTCM_POPPLER_BIN, first on
+    PATH (poppler.py); the folder is never written into a file."""
+    return case_env() if AGENTCM_TAG in case.tags else {}
+
+
 def run_scaffold(case: Case, workspace: Path) -> str:
     """Run the case's setup.sh in the workspace. Returns captured output; raises on failure."""
     if not case.scaffold:
         return ""
-    env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1")
+    env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1", **extra_env(case))
     proc = subprocess.run([find_bash(), case.scaffold.as_posix()], cwd=workspace, env=env,
                           capture_output=True, text=True, timeout=SCAFFOLD_TIMEOUT)
     out = (proc.stdout + proc.stderr).strip()
@@ -123,7 +130,7 @@ def run_teardown(case: Case, workspace: Path) -> str:
     if not case.teardown:
         return ""
     try:
-        env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1")
+        env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1", **extra_env(case))
         proc = subprocess.run([find_bash(), case.teardown.as_posix()], cwd=workspace, env=env,
                               capture_output=True, text=True, timeout=SCAFFOLD_TIMEOUT)
         return f"exit {proc.returncode}: {(proc.stdout + proc.stderr).strip()}"
@@ -176,7 +183,7 @@ async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunRes
         max_buffer_size=MAX_MESSAGE_BYTES,
         model=opts.model,
         add_dirs=[str(d) for d in case.add_dirs],
-        env={"CONSTRUCTION_SKILLS_NO_BOOTSTRAP": "1"},
+        env={"CONSTRUCTION_SKILLS_NO_BOOTSTRAP": "1", **extra_env(case)},
         sandbox={"enabled": True} if opts.sandbox == "auto" and sys.platform != "win32" else None,
         stderr=lambda line: result.trace.append({"type": "stderr", "line": line}),
     )

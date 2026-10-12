@@ -33,7 +33,8 @@ from cases import load_cases, select  # noqa: E402
 from graders import JudgeOptions, grade_run, score  # noqa: E402
 from regrade import load_saved_run, regrade_run  # noqa: E402
 from report import write_run, write_summary, write_trace  # noqa: E402
-from runner import RunOptions, cleanup, run_case  # noqa: E402
+from runner import RunOptions, cleanup, find_bash, run_case  # noqa: E402
+import poppler  # noqa: E402
 
 PLUGIN_ROOT = HERE.parents[1]
 
@@ -149,6 +150,14 @@ async def main_async(args) -> int:
             for ch in c.checks:
                 print(f"    check {ch.name}: {ch.script.name} w={ch.weight:g}")
         return 0
+
+    if any(poppler.TAG in c.tags for c in cases):  # AgentCM's crop scripts need Poppler: check once, before any case
+        try:
+            for line in poppler.preflight(find_bash()):
+                print(f"preflight: {line}")
+        except poppler.PopplerError as e:
+            print(f"SETUP ERROR, no case run: {e}", file=sys.stderr)
+            return 2
 
     stamp = time.strftime("%Y-%m-%dT%H-%M-%S")
     out_dir = Path(args.output_dir) if args.output_dir else PLUGIN_ROOT / "evals" / "results" / stamp
