@@ -48,6 +48,17 @@ class Findings(unittest.TestCase):
         self.assertTrue(r.stdout.decode("utf-8").startswith("OK: Finding written"))
         self.assertEqual(len(construction_files(self.project)), 1)
 
+    def test_run_from_inside_construction_the_finding_lands_in_the_projects_folder(self):
+        # the 13:33 bid-evaluator run wrote it from .construction/skills/bid-evaluator/ and got a nested .construction/
+        inside = self.project / ".construction" / "skills" / "bid-evaluator"
+        inside.mkdir(parents=True)
+        r = subprocess.run([sys.executable, str(WRITE), "--skill", "bid-evaluator", "--type", "bid_evaluation_complete",
+                            "--title", "BP-08"], cwd=inside, capture_output=True, text=True, env=ENV)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        files = construction_files(self.project)
+        self.assertEqual(len(files), 1, files)
+        self.assertEqual(files[0].split("/")[:3], ["skills", "bid-evaluator", "findings"])
+
     def test_agentcm_finding_goes_to_the_same_place_not_agent_findings(self):
         (self.project / ".construction").mkdir()
         (self.project / ".construction" / "project.yaml").write_text("project:\n  name: x\n", encoding="utf-8")

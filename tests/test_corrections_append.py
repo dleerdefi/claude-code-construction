@@ -106,6 +106,15 @@ class CorrectionsAppend(unittest.TestCase):
             self.assertNotIn("REPORTED EARLIER", r.stdout)
         self.assertEqual(len(self.tsv.read_text(encoding="utf-8").splitlines()), 5)
 
+    def test_run_from_inside_construction_it_appends_to_the_projects_file(self):
+        inside = self.root / ".construction" / "skills" / "tag-audit-and-takeoff"
+        inside.mkdir(parents=True)
+        r = subprocess.run([sys.executable, str(SCRIPT), *GOOD], cwd=inside, capture_output=True, text=True,
+                           env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertTrue(self.tsv.is_file())
+        self.assertFalse((inside / ".construction").exists())
+
     def test_without_once_both_lines_are_kept(self):
         self.run_script(GOOD)
         self.run_script(GOOD)

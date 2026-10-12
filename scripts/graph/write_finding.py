@@ -22,6 +22,15 @@ from datetime import datetime
 SKILL_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 
 
+def project_root(cwd):
+    """The project folder: cwd, or, when cwd is inside the project's .construction/ (a skill working in its own
+    folder), the folder that holds that .construction/; so a finding never lands in a .construction/ nested there."""
+    parts = os.path.normpath(os.path.abspath(cwd)).split(os.sep)
+    if ".construction" not in parts:
+        return cwd
+    return os.sep.join(parts[:parts.index(".construction")]) or os.sep
+
+
 def findings_dir_for(root, skill):
     if not SKILL_NAME.match(skill or ""):
         raise ValueError(f"--skill must be the skill's folder name (lowercase letters, digits, hyphens), got {skill!r}")
@@ -31,7 +40,7 @@ def findings_dir_for(root, skill):
 def write_finding(finding_type, title, data=None, source_sheet=None, source_sheets=None,
                   output_file=None, output_files=None, findings_dir=None, skill=None):
     if findings_dir is None:
-        findings_dir = findings_dir_for(os.getcwd(), skill)
+        findings_dir = findings_dir_for(project_root(os.getcwd()), skill)
 
     os.makedirs(findings_dir, exist_ok=True)
 

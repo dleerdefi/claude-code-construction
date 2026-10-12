@@ -141,6 +141,13 @@ def append(values, path):
     return line
 
 
+def project_root(cwd):
+    """The project folder: cwd, or, inside the project's .construction/ (a skill working in its own folder), the
+    folder that holds it."""
+    marker = ".construction"
+    return Path(*cwd.parts[:cwd.parts.index(marker)]) if marker in cwd.parts else cwd
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description="Append one correction of AgentCM's data to .construction/skills/corrections.tsv")
     for name in COLUMNS:
@@ -148,7 +155,7 @@ def main(argv=None):
     p.add_argument("--once", action="store_true",
                    help="append nothing when the file already has this sheet and kind with an overlapping box")
     args = p.parse_args(argv)
-    root = Path.cwd()
+    root = project_root(Path.cwd())
     path = root / ".construction" / "skills" / "corrections.tsv"
     try:
         values = check(args, root)
