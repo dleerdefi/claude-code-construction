@@ -92,13 +92,13 @@ class AllowedUrls(unittest.TestCase):
         return decide("Bash", {"command": cmd}, policy).allow
 
     def test_curl_to_the_stub_is_allowed(self):
-        self.assertTrue(self.allowed(f'curl -sS "{API}/sheets/s1/claimed-elements" -w "\\nHTTP %{{http_code}}\\n"'))
+        self.assertTrue(self.allowed(f'curl -sS "{API}/schedules/s1/rows" -w "\\nHTTP %{{http_code}}\\n"'))
         self.assertTrue(self.allowed(
             f'curl -sS -X POST "{API}/tag-detections/ingest" -H "Content-Type: application/json" '
             f'-d @".construction/skills/tag-audit-and-takeoff/outbox/tag-detections-ingest-A-101-20261012-040000.json"'))
 
     def test_only_in_a_case_that_lists_the_address(self):
-        self.assertFalse(self.allowed(f'curl -sS "{API}/sheets/s1/claimed-elements"', POLICY))
+        self.assertFalse(self.allowed(f'curl -sS "{API}/schedules/s1/rows"', POLICY))
 
     def test_any_other_address_is_denied(self):
         self.assertFalse(self.allowed("curl -sS https://example.com/x"))
