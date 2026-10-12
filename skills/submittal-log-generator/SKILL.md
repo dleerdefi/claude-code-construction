@@ -89,7 +89,7 @@ This skill reads from `.construction/skills/spec_text/*.txt` files provisioned b
 **Flat-file mode** (no `.construction/project.yaml`): Branch A or B.
 
 **Branch A — Text already extracted:**
-1. Check `.construction/skills/spec_text/manifest.json` (older versions used `.construction/spec_text/`: if only that exists, move it to `.construction/skills/spec_text/` first)
+1. Check `.construction/skills/spec_text/manifest.json` (older versions used `.construction/spec_text/`: if only that exists, copy it to `.construction/skills/spec_text/` first and leave the old one as it is)
 2. If present with corresponding `.txt` files → inventory them, build the processing queue, proceed to Step 1
 3. Note any sections with `quality_rating: "POOR"` in the manifest — items extracted from these sections will receive a minimum confidence of MEDIUM
 
