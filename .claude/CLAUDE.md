@@ -21,6 +21,7 @@ claude --plugin-dir .    # Load this checkout live (any OS); run /reload-plugins
 dev/link                 # Or symlink ~/.claude/skills/construction here (macOS/Linux)
 dev/unlink               # Remove that symlink
 claude plugin validate --strict .claude-plugin/plugin.json   # Check manifest + skills
+bin/construction-python -m unittest discover -s tests        # Unit tests for the toolkit's scripts
 ```
 
 ### Key Rules
