@@ -132,8 +132,11 @@ def grade_tool_order(g: Grader, run: RunResult) -> GraderResult:
 
 async def _judge_once(rubric: str, material: str, model: str) -> tuple[bool, str]:
     prompt = f"RUBRIC:\n{rubric.strip()}\n\nMATERIAL:\n{material}\n\nReply with the JSON object."
+    # Isolated like the agent run (runner.py): without these the judge loads the user's plugins,
+    # skills and MCP servers, whose tool definitions alone can exceed the context window
     options = ClaudeAgentOptions(system_prompt=JUDGE_SYSTEM, tools=[], allowed_tools=[], max_turns=1,
-                                 model=model, permission_mode="dontAsk")
+                                 model=model, permission_mode="dontAsk",
+                                 setting_sources=[], strict_mcp_config=True)
     text = ""
     async for msg in query(prompt=prompt, options=options):
         if isinstance(msg, AssistantMessage):
