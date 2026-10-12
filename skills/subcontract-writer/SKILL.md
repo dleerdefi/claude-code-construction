@@ -29,7 +29,7 @@ Either way, the awarded bid document (Slot B) is the mandatory input.
 
 ## Mode Detection
 Read `.construction/project.yaml` at the project root: present and readable means AgentCM mode (note its `contract_version`), absent means flat-file mode. A listing that shows the file does not decide it: read it.
-- **AgentCM mode**: Read each spec section from `.construction/specs/<section>.txt` (`09 65 13` is `09-65-13.txt`; each line starts with its page), listed in `.construction/INDEX.md`. Only for a manual INDEX.md lists under "Spec manuals not read", read spec-splitter's `.construction/skills/spec_text/` instead. Use sheet index from `.construction/index/sheet_index.yaml` for drawing references. Read project metadata from `.construction/CLAUDE.md`. Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (which source wins, missing files).
+- **AgentCM mode**: Read each spec section from `.construction/specs/<section>.txt` (`09 65 13` is `09-65-13.txt`; each line starts with its page), listed in `.construction/INDEX.md`: it is the section's text, and a section's pages are never extracted again from the PDF. A read manual's pages in no section (INDEX.md lists them) are read in the PDF, those pages only. Only for a manual INDEX.md lists under "Spec manuals not read", read spec-splitter's `.construction/skills/spec_text/` instead. Use sheet index from `.construction/index/sheet_index.yaml` for drawing references. Read project metadata from `.construction/CLAUDE.md`. Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (which source wins, missing files).
 - **Flat File mode**: Discover spec PDFs via project `CLAUDE.md` paths or directory search. Read drawing sheets directly from PDF.
 
 ---
