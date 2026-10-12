@@ -1,0 +1,56 @@
+{
+  "company_name": "Northgate Metal Openings LLC",
+  "contact_name": "Priya Raman",
+  "contact_phone": "(555) 010-2202",
+  "contact_email": "estimating@northgatemetal.example",
+  "bid_date": "September 23, 2026",
+  "bid_validity_period": "60 days",
+  "base_bid_amount": 11365.0,
+  "bond_included": true,
+  "schedule_duration": "6 weeks from approved submittals",
+  "payment_terms": "Net 30 from approved pay application",
+  "addenda_acknowledged": [],
+  "line_items": [
+    {
+      "spec_section": "08 11 13",
+      "description": "Hollow metal frame, 3'-0\" x 7'-0\", for D101 to D115",
+      "qty": 15,
+      "unit": "EA",
+      "unit_price": 455.0,
+      "extended_price": 6825.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "08 11 13",
+      "description": "Hollow metal door, 3'-0\" x 7'-0\" x 1-3/4\", where A-601 says HM",
+      "qty": 7,
+      "unit": "EA",
+      "unit_price": 610.0,
+      "extended_price": 4270.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "08 11 13",
+      "description": "Floor anchors, 20 gauge, 2 per frame",
+      "qty": 30,
+      "unit": "EA",
+      "unit_price": 9.0,
+      "extended_price": 270.0,
+      "notes": "20 ga (0.0359 in)"
+    }
+  ],
+  "alternates": [],
+  "scope_inclusions": [
+    "Furnish and install hollow metal frames and doors per 08 11 13 and the A-601 door schedule"
+  ],
+  "scope_exclusions": [
+    "Door hardware (by others)",
+    "Field painting"
+  ],
+  "qualifications": [
+    "Frames 16 gauge, knock-down",
+    "Floor anchors 20 gauge (0.0359 in), manufacturer's standard"
+  ],
+  "allowances": [],
+  "insurance_confirmed": true
+}

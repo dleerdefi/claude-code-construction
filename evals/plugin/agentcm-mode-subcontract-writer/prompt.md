@@ -1,6 +1,6 @@
 ---
 name: agentcm-mode-subcontract-writer
-description: "AgentCM closed: reads the scope's spec sections from AgentCM's specs/. Waits for spec sections matching the BP-09 bids."
+description: "AgentCM closed: writes the BP-08 subcontract for the synthetic awarded bid, its scope from 08 11 13 in AgentCM's specs/."
 tags: [agentcm-mode, subcontract-writer]
 runs: 1
 max_turns: 80
@@ -11,4 +11,4 @@ append_system_prompt: "This is an unattended evaluation run in a construction pr
 
 /construction:subcontract-writer
 
-Write the BP-09 Flooring subcontract for the awarded bidder from the firm's template.
+Write the BP-08 Hollow Metal Frames and Doors subcontract for the awarded bidder from the firm's template.

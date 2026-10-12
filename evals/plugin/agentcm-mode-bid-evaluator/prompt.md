@@ -1,6 +1,6 @@
 ---
 name: agentcm-mode-bid-evaluator
-description: "AgentCM closed: reads the bid's spec sections from AgentCM's specs/. Waits for spec sections matching the BP-09 bids."
+description: "AgentCM closed: evaluates three synthetic BP-08 bids against 08 11 13, read from AgentCM's specs/."
 tags: [agentcm-mode, bid-evaluator]
 runs: 1
 max_turns: 80
@@ -11,4 +11,4 @@ append_system_prompt: "This is an unattended evaluation run in a construction pr
 
 /construction:bid-evaluator
 
-Evaluate the tabulated BP-09 Flooring bids against the specifications.
+Evaluate the tabulated BP-08 Hollow Metal Frames and Doors bids against the specifications.

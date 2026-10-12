@@ -1,6 +1,6 @@
 ---
 name: agentcm-mode-submittal-review
-description: "AgentCM closed: reads the governing sections from AgentCM's specs/ and the trace from tags.tsv and xrefs.tsv. Waits for a submittal against one of the fixture's sections."
+description: "AgentCM closed: reviews a synthetic 08 11 13 submittal against AgentCM's specs/ and the A-601 door schedule."
 tags: [agentcm-mode, submittal-review]
 runs: 1
 max_turns: 80

@@ -12,6 +12,7 @@ need to run against it:
 | `setup-fixture.sh` | | Each case's setup: copies the fixture, makes `query.sh` fail, records a baseline, starts or stops the stub |
 | `stub_api.py`, `teardown.sh` | | The stand-in for AgentCM's API, and its stop |
 | `baseline.py` | `.eval-api/fixture-baseline.json` | The fixture's files as setup left them, for the writes check |
+| `make_case_inputs.py` | the project folder | The synthetic documents bid-evaluator, subcontract-writer and submittal-review bring (bids, a submittal), around 08 11 13; written to each case's `inputs/`, copied by its setup |
 
 **AgentCM closed by default.** Skills read AgentCM's files and never its database, and a read-only skill
 must work with AgentCM closed. So every case runs with nothing answering at `api_url` and `query.sh`

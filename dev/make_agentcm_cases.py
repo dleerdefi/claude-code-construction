@@ -143,6 +143,7 @@ write("agentcm-mode/README.md", f"""
     | `setup-fixture.sh` | | Each case's setup: copies the fixture, makes `query.sh` fail, records a baseline, starts or stops the stub |
     | `stub_api.py`, `teardown.sh` | | The stand-in for AgentCM's API, and its stop |
     | `baseline.py` | `.eval-api/fixture-baseline.json` | The fixture's files as setup left them, for the writes check |
+    | `make_case_inputs.py` | the project folder | The synthetic documents bid-evaluator, subcontract-writer and submittal-review bring (bids, a submittal), around 08 11 13; written to each case's `inputs/`, copied by its setup |
 
     **AgentCM closed by default.** Skills read AgentCM's files and never its database, and a read-only skill
     must work with AgentCM closed. So every case runs with nothing answering at `api_url` and `query.sh`
@@ -837,14 +838,17 @@ for name, cmd, prompt, needs, desc, extra in [
      "AgentCM closed: reads AgentCM's specs/ text, and runs spec-splitter only for a manual AgentCM could not read.", ""),
     ("code-researcher", "/construction:code-researcher", "What do the specifications require of the hollow metal doors and frames, and which codes and standards do they cite?", "specs",
      "AgentCM closed: reads AgentCM's specs/ and sheet files and looks through crop.sh.", ""),
-    ("bid-evaluator", "/construction:bid-evaluator", "Evaluate the tabulated BP-09 Flooring bids against the specifications.", "specs flooring-specs",
-     "AgentCM closed: reads the bid's spec sections from AgentCM's specs/. Waits for spec sections matching the BP-09 bids.",
-     'bash "$HERE/../_fixtures/prepare-real-workspace.sh" bids bids-tabulated'),
-    ("subcontract-writer", "/construction:subcontract-writer", "Write the BP-09 Flooring subcontract for the awarded bidder from the firm's template.", "specs flooring-specs",
-     "AgentCM closed: reads the scope's spec sections from AgentCM's specs/. Waits for spec sections matching the BP-09 bids.",
-     'bash "$HERE/../_fixtures/prepare-real-workspace.sh" subcontract-template awarded-bid'),
-    ("submittal-review", "/construction:submittal-review", "Review the submittal package in 06 - Submittals/.", "specs pdfs submittal",
-     "AgentCM closed: reads the governing sections from AgentCM's specs/ and the trace from tags.tsv and xrefs.tsv. Waits for a submittal against one of the fixture's sections.", ""),
+    # their own documents (bids, a submittal) are in each case's inputs/, written by agentcm-mode/make_case_inputs.py
+    # around 08 11 13, a section the fixture's read manual has
+    ("bid-evaluator", "/construction:bid-evaluator", "Evaluate the tabulated BP-08 Hollow Metal Frames and Doors bids against the specifications.", "specs",
+     "AgentCM closed: evaluates three synthetic BP-08 bids against 08 11 13, read from AgentCM's specs/.",
+     'cp -R "$HERE/inputs/project/." . && mkdir -p .construction/skills/bid-tabulator/bids && cp "$HERE/inputs/tabulated/"*.json .construction/skills/bid-tabulator/bids/'),
+    ("subcontract-writer", "/construction:subcontract-writer", "Write the BP-08 Hollow Metal Frames and Doors subcontract for the awarded bidder from the firm's template.", "specs",
+     "AgentCM closed: writes the BP-08 subcontract for the synthetic awarded bid, its scope from 08 11 13 in AgentCM's specs/.",
+     'bash "$HERE/../_fixtures/prepare-real-workspace.sh" subcontract-template && cp -R "$HERE/inputs/project/." .'),
+    ("submittal-review", "/construction:submittal-review", "Review the submittal package in 06 - Submittals/.", "specs pdfs",
+     "AgentCM closed: reviews a synthetic 08 11 13 submittal against AgentCM's specs/ and the A-601 door schedule.",
+     'cp -R "$HERE/inputs/project/." .'),
 ]:
     case(name, cmd, prompt, needs=needs, desc=desc, extra_setup=extra,
          graders={"reads-specs": ("regex", 'target: tool_inputs\npattern: "\\\\.construction[\\\\\\\\/]+specs[\\\\\\\\/]+"', 2, "The skill read the spec text from AgentCM's specs/, not its own extraction.")})
