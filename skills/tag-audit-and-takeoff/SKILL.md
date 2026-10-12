@@ -31,13 +31,13 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
 **AgentCM mode** (`.construction/project.yaml` exists):
 - Read `.construction/CLAUDE.md` for project context
 - Read `.construction/database.yaml` for `project_id` and `api_url`; run each query with `sh .construction/query.sh "SQL"`
-- Sheet images at `.construction/rasters/{sheet_number}.png`
-
-**Verify raster images exist:** Check `.construction/rasters/` for PNG files.
-If empty, tell the user: "Raster images not found. Open this project in
-AgentCM to trigger the export, or run:
-`curl -s -X POST '{api_url}/projects/{project_id}/graph/export' -H 'Content-Type: application/json' -d '{\"rootPath\": \"'$(pwd)'\"}'`"
-You can also rasterize individual sheets on demand using the rasterize_page.py script.
+- Look at a sheet through AgentCM's crop script, a box at a time:
+  `sh .construction/crop.sh <sheet> <x> <y> <w> <h>` (or
+  `powershell -File .construction/crop.ps1 <sheet> <x> <y> <w> <h>`) renders
+  that box of the sheet's PDF page as a PNG and prints its path. `<sheet>` is
+  the sheet's number as `.construction/INDEX.md` names it; the box is 0 to 1
+  from the top left of the sheet. Never rasterize whole sheets, and never ask
+  for `rasters/` or `graph/export`: they are not part of AgentCM's contract.
 - OCR data queryable via `extracted_items` table in PostgreSQL
 - Write results back via API: `POST /api/projects/{id}/tag-detections/ingest`
 
@@ -138,17 +138,26 @@ Wait for explicit user confirmation before continuing.
 ## Step 2: Vision Tag Identification
 
 **CRITICAL — Vision is MANDATORY for this step.**
-- You MUST read each sheet's raster image via vision to identify tags
+- You MUST read each sheet's image via vision to identify tags
 - You may NOT substitute OCR text pattern matching (regex, ILIKE queries)
   for visual identification — OCR regex finds text, not tags
 - OCR data is used ONLY in Steps 3-4 to spatially anchor
   vision-identified tags, not to replace the visual identification step
-- If you cannot read a raster image for a sheet, FLAG it as
-  "skipped — raster unavailable" and move to the next sheet
+- If you cannot get an image of a sheet, FLAG it as
+  "skipped — image unavailable" and move to the next sheet
 - Do NOT report OCR text matches as "detected tags"
 
 Examine each sheet image. Identify all visible tags of the requested
 type. Return tag texts and view type classification — no coordinates.
+
+**In AgentCM mode** a sheet is read in boxes through `crop.sh` (Step 0): one
+box per view, from the `## view` headings in `.construction/sheets/<sheet>.txt`
+(each heading gives the view's area as x, y, w, h), or quadrants
+(`0 0 0.5 0.5`, `0.5 0 0.5 0.5`, `0 0.5 0.5 0.5`, `0.5 0.5 0.5 0.5`) for a
+sheet without views. If `crop.sh` refuses a box as too large to read (exit 2),
+split it in four and crop those. Keep each PNG with its box: a point at pixel
+(px, py) in a crop of box (x, y, w, h) sized W × H pixels is at sheet position
+(x + px / W × w, y + py / H × h).
 
 Vision must classify each tag's view: FLOOR PLAN, ENLARGED PLAN,
 DETAIL, SECTION, or ELEVATION. This determines record type in Step 5.
@@ -242,6 +251,12 @@ Items JSON format (pixel coordinates):
 ```
 
 Convert normalized 0-1 coordinates to pixels using sheet image dimensions.
+
+**In AgentCM mode** the base images are the `crop.sh` PNGs from Step 2, one
+marked-up image per box: give `--base` the crop's path and the items' pixel
+positions within that crop (sheet position minus the box's x and y, divided by
+its w and h, times the image's width and height). The crops live in AgentCM's
+`.construction/crops/`; write the marked-up PNGs to the project directory.
 
 **If PDF is available**, also create native PDF annotations:
 ```bash
@@ -355,7 +370,8 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 ## Allowed Scripts
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
-- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize a sheet PDF page to PNG (flat file mode, or on demand)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize a sheet PDF page to PNG (flat file mode)
+- AgentCM's `.construction/crop.sh` / `crop.ps1` (a box of a sheet as a PNG) and `.construction/query.sh` / `query.ps1` (one read-only query), in AgentCM mode
 - `scripts/markup_tags.py` — sheet markup with tag highlights
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/annotate_pdf.py` — native PDF annotations
 - `scripts/qto_to_xlsx.py` — QTO Excel export (4-sheet workbook)
