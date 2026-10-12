@@ -56,7 +56,23 @@ def parse_args(argv=None):
     p.add_argument("--dry-run", action="store_true", help="list the selected cases and graders, run nothing")
     p.add_argument("--regrade", metavar="RESULTS_DIR", help="re-grade the runs saved in this results folder; run nothing")
     p.add_argument("--rejudge", action="store_true", help="with --regrade: ask the judge again for llm graders")
+    p.add_argument("--check-negatives", action="store_true",
+                   help="judge each selected case's negatives/*.md with its llm grader; run nothing")
     return p.parse_args(argv)
+
+
+async def negatives_async(args, cases) -> int:
+    from negatives import check_negative, load_negatives
+    judge = JudgeOptions(model=args.judge_model, votes=args.judge_votes)
+    checked = failed = 0
+    for case in cases:
+        for neg in load_negatives(case):
+            ok, detail = await check_negative(case, neg, judge)
+            checked += 1
+            failed += not ok
+            print(f"{'OK  ' if ok else 'FAIL'} {case.dir.name}/negatives/{neg.path.name} ({neg.grader}): {detail}")
+    print(f"{checked} negative(s) checked, {failed} judged otherwise than expected")
+    return 1 if failed else 0
 
 
 async def regrade_async(args, cases) -> int:
@@ -120,6 +136,8 @@ async def main_async(args) -> int:
         return 2
     if args.regrade:
         return await regrade_async(args, cases)
+    if args.check_negatives:
+        return await negatives_async(args, cases)
     if args.dry_run:
         for c in cases:
             print(f"{c.dir.name}: tags={c.tags} runs={args.runs or c.runs} max_turns={c.max_turns} "
