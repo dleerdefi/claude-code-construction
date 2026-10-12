@@ -11,7 +11,9 @@ deduplicated) and the possible total (the two together). The script computes
 the three numbers from the instances itself, prints one line per item, and
 refuses a file that lists the same tag twice (same text, one box's center
 inside the other, on one sheet) or still carries the retired pending_review key. A tag the PE
-rejected in AgentCM (status rejected) is in no number: it is listed once, apart.
+rejected in AgentCM (status rejected) is in no number: it is listed once, apart. When line items
+name their group (the schedule whose key column holds the code), it prints the three numbers per
+group too, "not in any schedule" last with its codes.
 
 Input:  JSON file with project{}, scope{}, line_items[], etc.
 Output: Formatted .xlsx workbook with six sheets:
@@ -148,6 +150,29 @@ def all_counts(data):
     return per_item, total
 
 
+NOT_IN_SCHEDULE = "not in any schedule"
+
+
+def groups(data):
+    """[(group, (confirmed, to confirm, of which derived, possible), designations)] in the order the groups first
+    appear, "not in any schedule" last; empty when no line item names its group. A group is the schedule whose
+    key column holds the item's code, as the skill read it from the files: the report's wording, nothing more."""
+    per_item, _ = all_counts(data)
+    if not any(str(item.get("group", "")).strip() for item, _ in per_item):
+        return []
+    order, sums, codes = [], {}, {}
+    for item, c in per_item:
+        g = str(item.get("group", "")).strip() or NOT_IN_SCHEDULE
+        g = NOT_IN_SCHEDULE if g.lower() == NOT_IN_SCHEDULE else g
+        if g not in sums:
+            order.append(g)
+            sums[g], codes[g] = (0, 0, 0, 0), []
+        sums[g] = tuple(a + b for a, b in zip(sums[g], c))
+        codes[g].append(str(item.get("designation", "")).strip() or label(item))
+    order.sort(key=lambda g: g == NOT_IN_SCHEDULE)
+    return [(g, sums[g], codes[g]) for g in order]
+
+
 def rejected(data):
     """(line item, instance) for every tag the PE rejected in AgentCM."""
     return [(item, det) for item in data.get("line_items", []) for det in item.get("instance_details", [])
@@ -209,6 +234,7 @@ def problems(data):
 # ── Column Definitions ────────────────────────────────────────────
 
 SUMMARY_COLUMNS = [
+    ("Group",            26),
     ("Element",          24),
     ("Designation",      14),
     ("Confirmed",        12),
@@ -365,22 +391,23 @@ def build_summary_sheet(ws, data, project_name, scope_name):
         dedup = sum(1 for d in item.get("derived_details", []) if d.get("deduplicated"))
         notes = f"{dedup} derived dedup'd (direct takes precedence)" if dedup else ""
 
-        values = [item.get("element", ""), item.get("designation", ""), confirmed, to_confirm, possible,
+        group = str(item.get("group", "")).strip() or (NOT_IN_SCHEDULE if groups(data) else "")
+        values = [group, item.get("element", ""), item.get("designation", ""), confirmed, to_confirm, possible,
                   derived, avg_conf, notes]
         for col_idx, val in enumerate(values, 1):
             cell = ws.cell(row=row, column=col_idx, value=val)
             style_body_cell(cell, row)
-            if col_idx in (3, 4, 5, 6):
+            if col_idx in (4, 5, 6, 7):
                 cell.number_format = "#,##0"
                 cell.alignment = RIGHT_ALIGN
-            elif col_idx == 7:
+            elif col_idx == 8:
                 cell.number_format = "0.00"
                 cell.alignment = CENTER_ALIGN
                 style_confidence_cell(cell, val)
         row += 1
 
     ws.cell(row=row, column=1, value="TOTAL").font = Font(name="Arial", bold=True, size=10)
-    for col_idx, val in [(3, t_conf), (4, t_todo), (5, t_possible), (6, t_derived)]:
+    for col_idx, val in [(4, t_conf), (5, t_todo), (6, t_possible), (7, t_derived)]:
         cell = ws.cell(row=row, column=col_idx, value=val)
         cell.font = Font(name="Arial", bold=True, size=10)
         cell.border = THIN_BORDER
@@ -673,6 +700,12 @@ def main():
     for item, (confirmed, to_confirm, _, possible) in per_item:
         print(f"{label(item)}: confirmed {confirmed}, to confirm {to_confirm}, possible {possible}")
     print(f"TOTAL: confirmed {t_conf}, to confirm {t_todo}, possible {t_possible}")
+    by_group = groups(data)
+    if by_group:
+        print("By schedule:")
+        for g, (confirmed, to_confirm, _, possible), codes in by_group:
+            listed = f" ({', '.join(codes)})" if g == NOT_IN_SCHEDULE else ""
+            print(f"  {g}: confirmed {confirmed}, to confirm {to_confirm}, possible {possible}{listed}")
     print(caveat(data))
     turned_down = rejected(data)
     if turned_down:

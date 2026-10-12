@@ -26,6 +26,8 @@ Three numbers per line item, which the export computes from the instances and pr
 - **To confirm:** instances with `status` `to_confirm`, every tag not yet accepted (older files say `new` or `pending`), plus every derived instance not `deduplicated`. Derived instances come from type definitions, not tags, so nothing confirms them.
 - **Possible total:** confirmed plus to confirm.
 
+**Groups.** Each line item's `group` is the schedule whose key column holds its code (`schedules/*.tsv`, named as INDEX.md names the table, with its sheet), or `not in any schedule`. It is the report's wording, never a `tag_type`. When line items carry it, the export also prints the three numbers per group under "By schedule:", `not in any schedule` last with its codes listed.
+
 A tag the PE already turned down in AgentCM's review has `status` `rejected`. It is in no number and not on the to-confirm list: the export lists it once, apart (its own sheet, and a line after the total).
 
 Each instance has a `source`:
@@ -78,6 +80,7 @@ readable output and the source for human-readable reports.
     {
       "element": "Water Closet",
       "designation": "WC-1",
+      "group": "PLUMBING FIXTURE SCHEDULE (P0.01)",
       "instance_details": [
         {
           "type": "element_instance",
@@ -161,6 +164,10 @@ Water Closet WC-1 |        12 |          6 |             18
 Lavatory LAV-2    |         8 |         10 |             18
 Floor Drain FD-1  |        10 |          5 |             15
 ...
+
+BY SCHEDULE (as the export printed it, when line items name their group):
+  PLUMBING FIXTURE SCHEDULE (P0.01): confirmed 30, to confirm 21, possible 51
+  not in any schedule: confirmed 0, to confirm 2, possible 2 (XF-9, ZZ-1)
 
 [the caveat, as the export printed it]
 

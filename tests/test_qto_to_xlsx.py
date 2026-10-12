@@ -63,12 +63,34 @@ class ThreeNumbers(Export):
         self.assertIn("not a ceiling", r.stdout)
         wb = load_workbook(out)
         summary = [[c.value for c in row] for row in wb["QTO Summary"].iter_rows()]
-        header = next(i for i, row in enumerate(summary) if row[0] == "Element")
-        self.assertEqual(summary[header][2:6], ["Confirmed", "To Confirm", "Possible Total", "Of Which Derived"])
-        self.assertEqual(summary[header + 1][2:6], [1, 3, 4, 1])
+        header = next(i for i, row in enumerate(summary) if row[1] == "Element")
+        self.assertEqual(summary[header][3:7], ["Confirmed", "To Confirm", "Possible Total", "Of Which Derived"])
+        self.assertEqual(summary[header + 1][3:7], [1, 3, 4, 1])
+        self.assertNotIn("By schedule:", r.stdout)
         listed = [[c.value for c in row] for row in wb["To Confirm in AgentCM"].iter_rows()]
         sources = [row[4] for row in listed if row[4] in ("pending_in_agentcm", "found_this_run", "derived")]
         self.assertEqual(sources, ["pending_in_agentcm", "found_this_run", "derived"])
+
+    def test_numbers_by_schedule_with_codes_in_no_schedule_last_and_listed(self):
+        data = qto([])
+        data["line_items"] = [
+            {"element": "Exhaust fan", "designation": "XF-9", "group": "not in any schedule",
+             "instance_details": [inst("to_confirm", "XF-9", 0.70)]},
+            {"element": "Water closet", "designation": "WC-1", "group": "PLUMBING FIXTURE SCHEDULE (P-601)",
+             "instance_details": [inst("accepted", "WC-1", 0.20), inst("to_confirm", "WC-1", 0.40)]},
+            {"element": "Lavatory", "designation": "LAV-2", "group": "PLUMBING FIXTURE SCHEDULE (P-601)",
+             "instance_details": [inst("to_confirm", "LAV-2", 0.60)]},
+            {"element": "Unknown", "designation": "ZZ-1", "instance_details": [inst("to_confirm", "ZZ-1", 0.80)]},
+        ]
+        r, out = self.export(data)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        lines = r.stdout.splitlines()
+        at = lines.index("By schedule:")
+        self.assertEqual(lines[at + 1:at + 3], [
+            "  PLUMBING FIXTURE SCHEDULE (P-601): confirmed 1, to confirm 2, possible 3",
+            "  not in any schedule: confirmed 0, to confirm 2, possible 2 (XF-9, ZZ-1)"])
+        summary = [[c.value for c in row] for row in load_workbook(out)["QTO Summary"].iter_rows()]
+        self.assertIn(["not in any schedule", "Unknown", "ZZ-1"], [row[:3] for row in summary])
 
     def test_older_statuses_are_read(self):
         r, _ = self.export(qto([inst("approved", "OFFICE 101", 0.20), inst("new", "STORAGE 102", 0.40),
