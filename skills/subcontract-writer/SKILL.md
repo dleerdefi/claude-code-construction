@@ -474,10 +474,10 @@ Present a summary:
 - Scope highlights: spec section count, line item count, total contract sum
 - **Remind the user:** "Contract documents require professional review before execution."
 
-Write graph entry:
+Write a finding (both modes), in `.construction/skills/subcontract-writer/findings/`:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
-  --type "subcontract_generated" \
+  --skill "subcontract-writer" --type "subcontract_generated" \
   --title "Subcontract: {scope} — {subcontractor}" \
   --output-file "{output_path}" \
   --data '{"scope": "...", "subcontractor": "...", "contract_sum": ..., "spec_sections": ..., "line_items": ..., "legal_flags": ...}'

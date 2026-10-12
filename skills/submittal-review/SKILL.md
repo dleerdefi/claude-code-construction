@@ -31,7 +31,7 @@ The procedure is the same for every CSI division. Your knowledge of the trade su
 | `annotate_pdf.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/` | Write review clouds and notes onto a copy of the submittal |
 | `rasterize_page.py`, `crop_region.py`, `extract_text_region.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/` | Read submittal and drawing pages |
 | `issue_manager.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/` | Log design-team questions as issues for `rfi-drafter` |
-| `write_finding.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/graph/` | Graph entry (AgentCM only) |
+| `write_finding.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/graph/` | A finding in `.construction/skills/submittal-review/findings/` (both modes) |
 
 Run every script through `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python"`. Double-quote every path. Do not write custom scripts: write the JSON files below directly and let the permitted scripts read them.
 
@@ -211,7 +211,7 @@ Deliverables go in the project's submittals folder (or the project root), never 
 
 Then:
 1. **Issues.** Each design-team-owned finding (an absence in the CDs, a conflict between documents, a question only the A/E can answer) goes to the issue registry with `issue_manager.py add --source-skill submittal-review`, so `rfi-drafter` can turn it into an RFI. Never draft or send the RFI from here.
-2. **Graph.** In AgentCM mode: `write_finding.py --type submittal_review` with counts and the output paths.
+2. **Finding.** `write_finding.py --skill submittal-review --type submittal_review` with counts and the output paths, in both modes.
 3. **Tell the PE**, briefly, as `review-writing.md` describes. Never split a finding from its action.
 4. Set `status: complete` in `state.yaml`.
 

@@ -24,7 +24,7 @@ This skill uses a three-tier approach:
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `export_submittal_log.py` — Excel output from assembled JSON (Step 4)
-- `write_finding.py` — graph entry (Step 5)
+- `write_finding.py` — a finding in `.construction/skills/submittal-log-generator/findings/` (Step 5)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log a submittal requirement with no matching spec product to the Issue Registry (command and severity mapping in construction-guide)
 Do not create, generate, or write any `.py`, `.sh`, or other script files. All data assembly is Claude writing JSON directly.
 
@@ -73,7 +73,7 @@ Submittal Log Progress:
 - [ ] Step 2: Confidence scoring & flagging
 - [ ] Step 3: Assembly & deduplication
 - [ ] Step 4: Excel output (rigid script)
-- [ ] Step 5: Write graph entry
+- [ ] Step 5: Write a finding
 ```
 
 ### Step 0: Ensure Spec Text Is Available — RIGID
@@ -374,11 +374,11 @@ The script produces three sheets:
 
 The script uses `safe_output_path()` — if a file already exists at the target location, it auto-versions (e.g., `Submittal_Log_v2.xlsx`).
 
-### Step 5: Write Graph Entry — RIGID
+### Step 5: Write a Finding — RIGID
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
-  --type "submittal_log_generated" \
+  --skill "submittal-log-generator" --type "submittal_log_generated" \
   --title "Submittal register: {N} items from {M} spec sections" \
   --output-file "{resolved_output_path}" \
   --data '{"total_submittals": 142, "sections_parsed": 48, "by_type": {"Product Data": 55, "Shop Drawings": 30}}'

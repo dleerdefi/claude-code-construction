@@ -76,7 +76,7 @@ After sessions involving document review, record findings to `.construction/skil
 - `document_gaps.md` — missing sheets, details, or spec sections
 - Issues that should become RFIs go to the Issue Registry with `issue_manager.py add` (construction-guide), not to a file here; `rfi-drafter` reads only the registry
 
-Before new queries on a previously-analyzed project, check `.construction/skills/pe-review/` (and, in AgentCM projects, `.construction/agent_findings/`) for prior findings. Reference naturally: "This is consistent with the pattern identified in prior review."
+Before new queries on a previously-analyzed project, check `.construction/skills/pe-review/` and the other skills' findings in `.construction/skills/*/findings/` for prior findings. Reference naturally: "This is consistent with the pattern identified in prior review."
 
 ## Skills
 

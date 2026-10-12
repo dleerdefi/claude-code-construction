@@ -82,7 +82,7 @@ Phase 4 — Gap Analysis (Pass 3)
 
 Phase 5 — Report
   5a  Generate structured gap report
-  5b  Write graph entry
+  5b  Write a finding
 ```
 
 **Human checkpoints at 1c, 3c, and 4c.** Do not skip them.
@@ -411,12 +411,14 @@ Write the report where the user can see it — the project root as
 
 Populate all placeholder fields from the gap_analysis.yaml and jurisdiction.yaml data. The report must include: applicable codes table, all gaps (action required + confirm and close), uncertain items, already addressed items, documents reviewed, and the disclaimer.
 
-### 5b — Write Graph Entry
+### 5b — Write a Finding
+
+Record the analysis in `.construction/skills/code-researcher/findings/` (both modes):
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" \
   "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
-  --type "code_gap_analysis" \
+  --skill "code-researcher" --type "code_gap_analysis" \
   --title "Code gap analysis: {scope} — {n_gaps} gaps identified" \
   --data '{
     "scope": "[spec sections or topic]",

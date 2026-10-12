@@ -287,7 +287,15 @@ Each detection: `{ tag_text, tag_type, element_ids, bounding_box, confidence, vi
 `bounding_box` must be `{ x, y, width, height }` in normalized 0-1 coordinates.
 Results appear as highlighted overlays in AgentCM's canvas UI.
 
-In AgentCM mode, also write the finding to `.construction/agent_findings/qto_{tag_type}_{timestamp}.json`.
+In both modes, once the QTO JSON is saved (below), record a finding in `.construction/skills/tag-audit-and-takeoff/findings/`:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
+  --skill "tag-audit-and-takeoff" --type "qto_{tag_type}" \
+  --title "QTO: {tag_type_display} — {building_quantity} across {N} sheets" \
+  --output-file "{qto_json_path}" \
+  --data '{"tag_type": "...", "building_quantity": ..., "sheets": [...], "ingested": ...}'
+```
 
 **CRITICAL — use the EXACT schema from `references/qto-output-format.md`.**
 The Excel script is rigid and parses specific key names. Required keys:
@@ -352,3 +360,4 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/annotate_pdf.py` — native PDF annotations
 - `scripts/qto_to_xlsx.py` — QTO Excel export (4-sheet workbook)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log schedule/drawing count mismatches to the Issue Registry (command and severity mapping in construction-guide)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — record the QTO as a finding (Step 8)

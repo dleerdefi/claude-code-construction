@@ -95,7 +95,7 @@ your-project/
     skills/                         # Skills' working data: spec text, issue registry, progress
 ```
 
-In projects that use AgentCM (marked by `.construction/project.yaml`), `.construction/` also holds AgentCM's project data, and skills record their findings in `.construction/agent_findings/`.
+In projects that use AgentCM (marked by `.construction/project.yaml`), `.construction/` also holds AgentCM's project data, which skills read but never write; a skill's findings stay in `.construction/skills/` in every project.
 
 ## Running Evals
 

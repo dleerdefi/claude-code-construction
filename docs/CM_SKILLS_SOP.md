@@ -141,7 +141,8 @@ The project has been processed through AgentCM, which writes `.construction/proj
 
 - **Deliverables** — Excel, Word, PDF, reports, marked-up images, split sheets and spec sections — go where users can see them: the matching project folder when there is one, otherwise the project root. Never inside `.construction/`: it is a dot-folder, hidden in Finder and most Linux file managers.
 - **Working data** — extraction state, intermediate JSON, spec section text, the issue registry — goes in `.construction/skills/` (shared: `spec_text/`, `issues/`, `project_context.yaml`; per skill: `.construction/skills/<skill>/`).
-- **AgentCM's areas** — `agent_findings/`, the database and the API — are written only in AgentCM mode. Every other file in `.construction/` is AgentCM's: read it, never write it.
+- **Findings** go in `.construction/skills/<skill>/findings/` (via `write_finding.py --skill <skill>`), in both modes.
+- **AgentCM's data** changes only through its write endpoints (the API), and only in AgentCM mode. Every file in `.construction/` outside `.construction/skills/` is AgentCM's: read it, never write it.
 
 ### 2.2 — Layer 1: The Global Project Document Store
 
@@ -244,7 +245,7 @@ This is the most critical architectural decision in CM skill design. The wrong c
 | Need the concrete mix design from Section 03 30 00 | Search for split spec PDF or bound `project_manual.pdf` for "03 30 00", extract matching pages only | Read `.construction/specs/03-30-00.txt` directly (listed in `.construction/INDEX.md`) | Load all of Division 03 |
 | Need structural sheets intersecting grid line G | Filter `sheet_index.yaml` for S-series entries | Read `.construction/index/sheet_index.yaml` for S-series entries | Scan all structural PDFs sequentially |
 | Need the subcontractor responsible for fire suppression submittals | Lookup Division 21 in scope matrix reference file | Read graph summary for Division 21 relationships | Read the entire submittal log |
-| Need the current RFI count and latest open item | Read header rows of `rfi_log.xlsx` declared in `CLAUDE.md` | Read RFI findings from `.construction/agent_findings/` | Load the entire project document store |
+| Need the current RFI count and latest open item | Read header rows of `rfi_log.xlsx` declared in `CLAUDE.md` | Read the issue registry (`.construction/skills/issues/`) and RFI findings in `.construction/skills/rfi-drafter/findings/` | Load the entire project document store |
 
 ### JIT Loading Protocol
 
@@ -563,7 +564,7 @@ When skills update the Global Project Document Store (adding an RFI, logging a s
 - Use additive merge logic for index files (e.g., `spec_index.yaml`, `sheet_index.yaml` merge by key)
 - Use `safe_output_path()` or equivalent versioning for output files (auto-version `_v2`, `_v3`)
 - Include timestamps in graph entries (AgentCM mode)
-- In AgentCM mode: write findings as append-only timestamped entries in `.construction/agent_findings/` via `write_finding.py`; issues go to `.construction/skills/issues/` via `issue_manager.py`
+- In both modes: write findings as append-only timestamped entries in `.construction/skills/<skill>/findings/` via `write_finding.py --skill <skill>`; issues go to `.construction/skills/issues/` via `issue_manager.py`
 - In Flat File mode: version output files and merge index YAMLs additively
 
 ---
@@ -600,7 +601,7 @@ Before any CM skill is deployed on a live project, verify every item:
 **Lifecycle**
 - [ ] **Orchestration Mapped:** Is this skill's position in the project workflow chain documented (e.g., spec-splitter must run before submittal-log-generator)?
 - [ ] **Non-Destructive Writes:** Do all index updates use additive merge logic? Do output files use versioning (`safe_output_path()`)?
-- [ ] **Graph Entries:** Does the skill write findings to `.construction/agent_findings/` (via `write_finding.py`) when in AgentCM mode, and issues to `.construction/skills/issues/` (via `issue_manager.py`)?
+- [ ] **Findings:** Does the skill write findings to `.construction/skills/<skill>/findings/` (via `write_finding.py --skill <skill>`) in both modes, and issues to `.construction/skills/issues/` (via `issue_manager.py`)?
 
 ---
 

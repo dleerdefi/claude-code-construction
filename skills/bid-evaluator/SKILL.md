@@ -188,19 +188,17 @@ Exclusion Detail, Qualification Summary, Recommendation.
 
 ---
 
-## Step 5: Write Graph Entry
+## Step 5: Write a Finding
 
-If AgentCM is present (`.construction/project.yaml` exists), record the evaluation:
+Record the evaluation as a finding in `.construction/skills/bid-evaluator/findings/` (both modes):
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
-  --type "bid_evaluation_complete" \
+  --skill "bid-evaluator" --type "bid_evaluation_complete" \
   --title "Bid evaluation: {scope} — {N} bidders, recommended {company}" \
   --output-file "{output.xlsx}" \
   --data '{"scope": "...", "bidder_count": N, "recommended": "...", "adjusted_amount": ..., "pe_attention_items": [...]}'
 ```
-
-Without AgentCM, skip — the Excel workbook is the deliverable.
 
 ---
 
@@ -211,7 +209,7 @@ Without AgentCM, skip — the Excel workbook is the deliverable.
 | 1b | `references/drawing-review.md` | Drawing sheets provided | Step 1b complete |
 | 2 | `references/buyout-domain.md` | Entering bid analysis | Step 2d complete |
 | 3 | `scripts/sample_input.json` | Building output JSON | Step 3 complete |
-| 5 | `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` | AgentCM mode detected | Step 5 complete |
+| 5 | `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` | Step 5 | Step 5 complete |
 
 ## Gotchas (measured in eval runs)
 

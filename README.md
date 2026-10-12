@@ -98,7 +98,7 @@ Found a problem? [Open an issue](https://github.com/dleerdefi/claude-code-constr
 
 ## Output
 
-Deliverables — Excel workbooks, Word documents, split sheet and spec PDFs, reports — are saved in your project folder where you can open them, and each skill tells you where. Skills keep their working data (extraction progress, extracted spec text, the issue registry) in a hidden `.construction/skills/` folder that you don't need to open. In AgentCM projects, skills also record their findings in AgentCM's `.construction/` data.
+Deliverables — Excel workbooks, Word documents, split sheet and spec PDFs, reports — are saved in your project folder where you can open them, and each skill tells you where. Skills keep their working data (extraction progress, extracted spec text, the issue registry) in a hidden `.construction/skills/` folder that you don't need to open. In AgentCM projects, `.construction/` also holds AgentCM's data, which skills read but never write.
 
 ## Documentation
 

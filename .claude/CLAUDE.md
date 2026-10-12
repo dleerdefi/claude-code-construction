@@ -31,7 +31,7 @@ bin/construction-python -m unittest discover -s tests        # Unit tests for th
 - Skills run on Windows, macOS and Linux: double-quote every path in skill commands (`"${CLAUDE_PLUGIN_ROOT}/..."`) and run Python via `bin/construction-python`, never bare `python`; write intermediate files inside the project, never `/tmp`; don't commit symlinks (Git on Windows checks them out as plain text files)
 - `requirements.txt` is the single list of Python dependencies: `bin/construction-python` creates the venv on first use and re-syncs it whenever this file changes
 - Bump `version` in `.claude-plugin/plugin.json` and `VERSION` for each release; marketplace installs only update when it changes
-- Where skills write: deliverables in visible project folders, never in `.construction/` (hidden on macOS/Linux); working data in `.construction/skills/`; AgentCM's areas (`agent_findings/` graph entries, database, API) only when AgentCM is present, detected by `.construction/project.yaml` — never by the `.construction/` folder alone
+- Where skills write: deliverables in visible project folders, never in `.construction/` (hidden on macOS/Linux); working data, findings included (`.construction/skills/<skill>/findings/`, both modes), in `.construction/skills/`; AgentCM's data only through its write endpoints, and only when AgentCM is present, detected by `.construction/project.yaml` — never by the `.construction/` folder alone. Nothing under `.construction/` outside `skills/` is a skill's to write
 - Never fabricate dimensions, spec requirements, or code citations
 - Skills must pass eval before moving from `_dev/` to production
 

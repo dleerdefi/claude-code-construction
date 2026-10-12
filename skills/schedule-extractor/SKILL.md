@@ -21,7 +21,8 @@ Extraction Progress:
 - [ ] Step 3: Extract structured data (pdfplumber + vision)
 - [ ] Step 4: Validate and clean data
 - [ ] Step 5: Output to Excel
-- [ ] Step 6: Write graph entry
+- [ ] Step 6: Ingest to AgentCM (AgentCM mode)
+- [ ] Step 7: Write a finding
 ```
 
 ### Step 1: Discover Schedule Locations
@@ -182,7 +183,7 @@ The script creates a formatted Excel workbook with:
 - Conditional formatting for empty/flagged cells
 - Source metadata in a separate tab
 
-### Step 6: Ingest to Database
+### Step 6: Ingest to Database (AgentCM mode)
 
 After Excel output, POST extracted data to the AgentCM schedule ingest API so it's stored in PostgreSQL, linked to rooms, and queryable by agents:
 
@@ -235,11 +236,13 @@ The ingest endpoint automatically:
 4. Extracts finish/hardware codes into the code legends table
 5. Creates pending links for fixtures/equipment that need spatial resolution
 
-**Also write the graph finding entry** (for backwards compatibility with existing skills):
+### Step 7: Write a Finding
+
+In both modes, record the extraction in `.construction/skills/schedule-extractor/findings/`:
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
-  --type "schedule_extracted" \
+  --skill "schedule-extractor" --type "schedule_extracted" \
   --title "Door schedule extracted from A-0.01" \
   --source-sheet "A-0.01" \
   --output-file "Door_Schedule_A-0.01.xlsx" \
@@ -359,4 +362,4 @@ Never overwrite an existing schedule extraction. The export script uses `safe_ou
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — crop schedule region from full sheet image
 - `scripts/schedule_to_xlsx.py` — Excel export with reconciliation anchors
 - `scripts/xlsx_to_changeset.py` — diff edited Excel against DB for reconciliation
-- `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — graph entry (Step 6)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — record the extraction as a finding (Step 7)
