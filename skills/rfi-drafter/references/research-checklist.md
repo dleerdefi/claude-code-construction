@@ -17,11 +17,9 @@ investigation before any draft is written.
   the crop with vision
 - Read title block for revision date and project info
 
-**With AgentCM** (`.construction/project.yaml` exists), also query the sheet's
-contents. `project_id` is in `.construction/database.yaml`; one query per call:
-```bash
-sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '{sheet}'"
-```
+**With AgentCM** (`.construction/project.yaml` exists), also read the sheet's
+text in `.construction/sheets/<sheet>.tsv` (each line with its box, view and
+zone) and its accepted callouts and tags in `.construction/sheets/<sheet>.groups.tsv`.
 
 ### 2. Related Views
 - Check all details, sections, and elevations that reference or are
@@ -29,10 +27,9 @@ sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{p
 - Large-scale drawings govern small-scale — if a detail shows
   different info than the plan, note which governs
 
-**With AgentCM**:
-```bash
-sh .construction/query.sh "SELECT * FROM v_cross_references WHERE project_id = '{project_id}' AND (from_sheet = '{sheet}' OR to_sheet = '{sheet}')"
-```
+**With AgentCM**: search `.construction/xrefs.tsv` for the sheet: lines starting
+with `{sheet}` are references from it, lines with a tab, `{sheet}` and a tab
+elsewhere are references to it.
 
 **Without AgentCM**:
 - Search the source sheet visually for detail callouts, section marks, and elevation markers
@@ -55,7 +52,7 @@ sh .construction/query.sh "SELECT * FROM v_cross_references WHERE project_id = '
 - If an addendum supersedes the drawing/spec in question, the issue
   may already be resolved — inform the user, no RFI needed
 
-**With AgentCM**: Query `file_manifest.yaml` for `type: addendum` or `type: asi` files.
+**With AgentCM**: Search `.construction/index/file_manifest.yaml` for `type: addendum` or `type: asi` files.
 
 **Without AgentCM**: Search the project directory for addenda/ASI documents. Read title pages for affected sheets/sections.
 
@@ -64,10 +61,8 @@ sh .construction/query.sh "SELECT * FROM v_cross_references WHERE project_id = '
 - Many apparent conflicts are addressed by general notes that
   establish default conditions or clarify conventions
 
-**With AgentCM**:
-```bash
-sh .construction/query.sh "SELECT sheet_number, sheet_title FROM sheets WHERE project_id = '{project_id}' AND sheet_title ILIKE '%general%note%'"
-```
+**With AgentCM**: find the sheets titled GENERAL NOTES in `.construction/INDEX.md`'s
+Drawing sheets table and read their `.construction/sheets/<sheet>.txt`.
 
 **Without AgentCM**: Check `.01` sheets for each discipline (e.g., A-0.01, S-0.01, M-0.01) — these typically contain general notes.
 
@@ -82,7 +77,7 @@ sh .construction/query.sh "SELECT sheet_number, sheet_title FROM sheets WHERE pr
 Also check the issue registry with the `issue_manager.py list --table` command
 in SKILL.md (Reviewing the Issue Queue).
 
-**With AgentCM**: Query `file_manifest.yaml` for `type: rfi` files.
+**With AgentCM**: Search `.construction/index/file_manifest.yaml` for `type: rfi` files.
 
 **Without AgentCM**: Search the project directory for RFI logs (Excel/PDF). Ask the user if an RFI log exists.
 

@@ -36,18 +36,29 @@ powershell -File .construction/crop.ps1 <sheet> <x> <y> <w> <h>
 
 `<sheet>` is the sheet's number as INDEX.md names it (its file name in `sheets/`); the box is the one the sheet files give, 0 to 1 from the top left of the sheet (a view's heading gives its area, a `.tsv` line its own box). The script prints the PNG's path: read that PNG. A box too large to read sharply is refused (exit 2): crop a smaller one. Never ask for `rasters/`, `graph/export`, `extractions/` or `exports/`: they are not in the contract.
 
-## The database
+## Which file answers what
 
-- Query only through AgentCM's wrappers, one query per call: `sh .construction/query.sh "SELECT ..."` or `powershell -File .construction/query.ps1 "SELECT ..."`.
-- From `.construction/database.yaml` read only `project_id` and `api_url`. Never read or use a password or `query_command`: they are not part of the contract.
-- Filter every query on this project's `project_id`: one database serves several projects.
-- Query the five views (`v_room_profile`, `v_sheet_contents`, `v_schedule_pivot`, `v_cross_references`, `v_open_conflicts`) and, of the tables, only `sheets`, `rooms`, `schedules`, `schedule_rows`, `schedule_cells`, `extracted_items` and `graph_elements`, with the columns your skill's own instructions already query. Anything new goes through a view.
+Skills read AgentCM's files, never its database. A skill that only reads works the same with AgentCM closed.
+
+- **Orientation** (how many sheets, sections, schedules, rooms): INDEX.md's headings, found by name, never by position: Drawing sheets (N), Specification sections (N), Schedules and legends (N), and the line "Rooms known".
+- **A sheet's contents:** `sheets/<sheet>.tsv` (every line of text with its box, view and zone; `how` says accepted or pending), `sheets/<sheet>.txt` (the paragraphs under `## view` headings), `sheets/<sheet>.groups.tsv` (the accepted callouts and tags).
+- **Rooms, doors and other identifiers:** `tags.tsv`, by `id` and `kind` (the lines starting with `101` and a tab are room 101 wherever it occurs). INDEX.md says when its room list is incomplete; then search the sheet files.
+- **References** between sheets, details and specification sections: `xrefs.tsv` (what refers to A-101: the lines with a tab, `A-101` and a tab).
+- **Schedules, legends and keyed notes:** INDEX.md's Schedules and legends table, then the table's own `schedules/<sheet>-<n>.tsv`. Its comment line gives the table's box on the sheet and, for a schedule ingested into AgentCM, `schedule_id=<id>` (`schedule_id=none` for a table read from the text alone).
+- **Specification text:** `specs/<section>.txt` (above).
+
+From `.construction/database.yaml` read only `project_id` and `api_url`; nothing else in it is a skill's to use. AgentCM's API is read in three places only: tag-audit-and-takeoff's `GET {api_url}/projects/{project_id}/sheets/{sheet_id}/claimed-elements` and `.../group-review/available-types` before it writes, and schedule-extractor's `.../schedules/{schedule_id}/rows`, through `xlsx_to_changeset.py`, for the Excel round trip.
 
 ## Writing back
 
 - Never write under `.construction/` outside `.construction/skills/`. AgentCM regenerates its files and leaves alone any file changed since it wrote it, so an edited file goes stale and fixes nothing.
 - AgentCM's data changes only through its write endpoints, `{api_url}/projects/{project_id}/...`: `schedules/ingest`, `schedules/reconcile`, `tag-detections/ingest`. Tell the PE what you sent; AgentCM refreshes the files it affects.
 - A write names a sheet by its id: the `id` of the entry in `.construction/index/sheet_index.yaml` whose `sheet_number` matches. Never guess it from the number. If that file is missing or its entries have no `id` (an older sheet-splitter wrote a `pages:` list with `filename` and `page_index`), say so and stop.
+- A reconcile names its schedule by the `schedule_id` in the schedule file's comment line (or INDEX.md); a table with `schedule_id=none` was never ingested, so there is nothing to reconcile.
+- **Sending a write, and AgentCM closed.** Put the payload in `.construction/skills/<skill>/outbox/<endpoint>-<sheet>-<YYYYMMDD-HHMMSS>.json` (with the Write tool, or the script your skill names for it), then send that file: `curl -sS --fail-with-body -X POST "{api_url}/projects/{project_id}/<endpoint>" -H "Content-Type: application/json" -d @<file>`. The attempt is the check that AgentCM answers:
+  - curl exits 0: AgentCM took it. Move the file to `.construction/skills/<skill>/sent/` and tell the PE what was sent.
+  - curl cannot connect (exit 7): AgentCM is not running and nothing was sent. Leave the file in `outbox/`, finish the rest of the task from the files, and tell the PE to start AgentCM and rerun the write step, which sends what waits in `outbox/`.
+  - curl exits 22: AgentCM refused it. Show the PE its answer and leave the file in `outbox/`.
 - A skill's own working data goes in `.construction/skills/<skill>/`.
 
 ## When AgentCM is wrong

@@ -70,14 +70,15 @@ methods are available (in order of reliability):
 
 1. **callout_reference** — A detail callout bubble on a floor plan
    explicitly references the source detail number. Most reliable.
-   Graph query: find callout detections on floor plans whose
-   reference text matches the type definition's source_detail.
+   In AgentCM mode: the callouts in `.construction/xrefs.tsv` (kind
+   `callout` or `multi_callout`) from floor plans whose `detail` matches
+   the type definition's source_detail.
 
 2. **room_type_match** — Room tags on floor plans match the type
    definition's parent_view_label. E.g., all rooms tagged "TOILET"
    get elements from "TYPICAL TOILET" detail.
-   Graph query: find room tag detections whose text matches or
-   contains the parent_view_label.
+   In AgentCM mode: the room lines in `.construction/tags.tsv` (kind
+   `room`) whose text matches or contains the parent_view_label.
 
 3. **schedule_crossref** — A finish schedule or room schedule
    cross-references the detail. Least common but catches cases

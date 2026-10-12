@@ -23,7 +23,8 @@ dev/unlink               # Remove that symlink
 claude plugin validate --strict .claude-plugin/plugin.json   # Check manifest + skills
 bin/construction-python -m unittest discover -s tests        # Unit tests for the toolkit's scripts
 bash dev/gate && git commit ...   # The commit gate: validate, both unit-test suites, VERSION = plugin.json,
-                                  # no writes under .construction/ outside skills/; stops at the first failure
+                                  # no writes under .construction/ outside skills/, no database queries;
+                                  # stops at the first failure
 ```
 
 ### Key Rules
@@ -34,6 +35,7 @@ bash dev/gate && git commit ...   # The commit gate: validate, both unit-test su
 - `requirements.txt` is the single list of Python dependencies: `bin/construction-python` creates the venv on first use and re-syncs it whenever this file changes
 - Bump `version` in `.claude-plugin/plugin.json` and `VERSION` for each release; marketplace installs only update when it changes
 - Where skills write: deliverables in visible project folders, never in `.construction/` (hidden on macOS/Linux); working data, findings included (`.construction/skills/<skill>/findings/`, both modes), in `.construction/skills/`; AgentCM's data only through its write endpoints, and only when AgentCM is present, detected by `.construction/project.yaml` — never by the `.construction/` folder alone. Nothing under `.construction/` outside `skills/` is a skill's to write
+- How skills read AgentCM: its files only (INDEX.md, `sheets/`, `tags.tsv`, `xrefs.tsv`, `schedules/`, `specs/`), never its database (`dev/check_no_queries.py` fails the gate on any query wrapper, `query_command` or `psql`). The API is read only where a write needs it (`reference/agentcm-mode.md`). A write that finds AgentCM closed waits in `.construction/skills/<skill>/outbox/`
 - Never fabricate dimensions, spec requirements, or code citations
 - Skills must pass eval before moving from `_dev/` to production
 

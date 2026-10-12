@@ -98,14 +98,14 @@ Phase 5 — Report
 
 Collect minimum required project parameters. Check in this order:
 
-**AgentCM project files (if `.construction/project.yaml` exists):** follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (which source wins, missing files, queries, drawings through `crop.sh`, corrections of AgentCM's data).
+**AgentCM project files (if `.construction/project.yaml` exists):** follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (which source wins, missing files, which file answers what, drawings through `crop.sh`, corrections of AgentCM's data).
 - `.construction/project.yaml` — location, occupancy, construction type
 - `.construction/index/sheet_index.yaml` — drawing set composition
 - `.construction/specs/<section>.txt` — each spec section's text (`01 10 00` is `01-10-00.txt`), listed in `.construction/INDEX.md`; only for a manual INDEX.md lists under "Spec manuals not read", spec-splitter's `.construction/skills/spec_text/`
-- Database (one read-only query per call through AgentCM's wrapper; `project_id` is in `.construction/database.yaml`):
-  - `sh .construction/query.sh "SELECT * FROM v_room_profile WHERE project_id = '{project_id}' AND room_number = '...'"` — rooms with schedule data
-  - `sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '...'"` — elements on sheets
-  - Orientation: `sh .construction/query.sh "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{project_id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{project_id}') AS rooms"`
+- `.construction/INDEX.md` — orientation: how many sheets and specification sections there are, and how many rooms are known (its headings, found by name)
+- `.construction/tags.tsv` — each room by number, with every sheet it occurs on (`kind` room); INDEX.md says when its room list is incomplete
+- `.construction/schedules/<sheet>-<n>.tsv` — a room's finishes, a door's size or rating: the schedules INDEX.md lists under Schedules and legends
+- `.construction/sheets/<sheet>.tsv` — the text on a sheet, each line with its position and view
 
 **Project documents (read directly):**
 - Architectural title block — project name, location, jurisdiction

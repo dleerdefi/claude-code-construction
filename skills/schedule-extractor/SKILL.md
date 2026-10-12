@@ -40,16 +40,11 @@ Search `.construction/index/sheet_index.yaml` (or the sheet index you've built) 
 
 For dedicated schedule sheets, the entire page is the extraction target — no need to crop.
 
-#### Source B — AgentCM database query (supplementary)
+#### Source B — AgentCM's tables (AgentCM mode)
 
-In AgentCM mode (`.construction/project.yaml` exists; follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`), query known schedules through AgentCM's wrapper:
-```bash
-# project_id is in .construction/database.yaml
-sh .construction/query.sh "SELECT id, schedule_type, title, sheet_id, bounding_region FROM schedules WHERE project_id = '{PROJECT_ID}'"
-```
-This returns all schedules already detected (including stubs from Group Review with bounding regions). For embedded schedules on non-schedule sheets, check the `bounding_region` column.
+In AgentCM mode (`.construction/project.yaml` exists; follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`), `.construction/INDEX.md`'s Schedules and legends table lists every table AgentCM found, each in its own `.construction/schedules/<sheet>-<n>.tsv`. The file's comment line gives the table's box on the sheet (x y w h, 0 to 1 from the top left) and, for a schedule already ingested, its `schedule_id` (`none` for a table read from the sheet's text alone). For embedded schedules on non-schedule sheets, that box is where to look: `sh .construction/crop.sh <sheet> <x> <y> <w> <h>`.
 
-**Note**: Schedule bounding region detection is still being refined — treat these as hints, not definitive boundaries. Always verify with vision.
+**Note**: A table read from the text is AgentCM's reading, and its box an estimate: treat both as leads, not definitive boundaries. Always verify with vision.
 
 #### Source C — Discipline-based heuristics
 
@@ -164,7 +159,7 @@ After extraction (by either method):
 - **Merged cell cleanup**: Expand merged header cells (e.g., "WALLS" spanning A/B/C/D sub-columns)
 - **Normalize dimensions**: `3' - 0"` → `3'-0"` (remove spaces around dashes)
 - **Flag revisions**: Note any cells within revision clouds or delta markers
-- **Cross-reference with database**: In AgentCM mode, verify room numbers via `sh .construction/query.sh "SELECT number FROM rooms WHERE project_id = '{PROJECT_ID}' AND number = '{room_number}'"` and door numbers via `sh .construction/query.sh "SELECT ge.tag_number FROM graph_elements ge JOIN sheets s ON s.id = ge.sheet_id WHERE s.project_id = '{PROJECT_ID}' AND ge.element_type = 'door' AND ge.tag_number = '{door_mark}'"`
+- **Cross-reference with AgentCM's identifiers**: In AgentCM mode, check each room number and door mark against `.construction/tags.tsv` (`kind` room or door; the lines starting with the number and a tab). Not finding one there proves nothing (INDEX.md says when its room list is incomplete): report it as "not in AgentCM's index" and check the plan sheets' `.construction/sheets/<sheet>.tsv`.
 
 ### Step 5: Output to Excel
 
@@ -183,15 +178,15 @@ The script creates a formatted Excel workbook with:
 - Conditional formatting for empty/flagged cells
 - Source metadata in a separate tab
 
-### Step 6: Ingest to Database (AgentCM mode)
+### Step 6: Ingest to AgentCM (AgentCM mode)
 
-After Excel output, POST extracted data to the AgentCM schedule ingest API so it's stored in PostgreSQL, linked to rooms, and queryable by agents:
+After Excel output, send the extracted data to AgentCM's schedule ingest, which stores it and links its rows to rooms. Write the payload (below) to `.construction/skills/schedule-extractor/outbox/schedules-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json` and send it as `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` says under Writing back; if AgentCM is closed, the payload waits there and the PE is told:
 
 ```bash
-# Read api_url and project_id from .construction/database.yaml
-curl -X POST "{api_url}/projects/{project_id}/schedules/ingest" \
+# api_url and project_id from .construction/database.yaml
+curl -sS --fail-with-body -X POST "{api_url}/projects/{project_id}/schedules/ingest" \
   -H "Content-Type: application/json" \
-  -d @schedule_ingest_payload.json
+  -d @".construction/skills/schedule-extractor/outbox/schedules-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json"
 ```
 
 **The sheet's id.** `sheetId` is the `id` of the entry in `.construction/index/sheet_index.yaml` whose `sheet_number` is the schedule's sheet. Never guess it from the number. If that file is missing, or its entries have no `id` (an older sheet-splitter wrote a `pages:` list with `filename` and `page_index`), say so and stop: do not ingest. The Excel workbook from Step 5 stands either way.
@@ -253,7 +248,7 @@ In both modes, record the extraction in `.construction/skills/schedule-extractor
 
 ## Schedule Reconciliation (Excel → DB Round-Trip)
 
-When a PE edits an exported Excel schedule and wants changes applied back to the database:
+When a PE edits an exported Excel schedule and wants changes applied back to AgentCM:
 
 ### Reconciliation Workflow
 
@@ -280,7 +275,7 @@ Run the diff engine to compare the edited Excel against the rows AgentCM holds:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/xlsx_to_changeset.py" \
   --excel "edited_schedule.xlsx" \
-  --output ".construction/skills/schedule-extractor/changeset.json"
+  --output ".construction/skills/schedule-extractor/outbox/schedules-reconcile-<sheet>-<YYYYMMDD-HHMMSS>.json"
 ```
 
 The script:
@@ -294,11 +289,13 @@ It needs AgentCM running. If AgentCM does not answer, the script exits 3 and com
 
 ### Step R3: POST Changeset to Reconcile Endpoint
 
+Send the changeset R2 wrote to the outbox, as `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` says under Writing back:
+
 ```bash
-# Read api_url and project_id from .construction/database.yaml
-curl -X POST "{api_url}/projects/{project_id}/schedules/reconcile" \
+# api_url and project_id from .construction/database.yaml
+curl -sS --fail-with-body -X POST "{api_url}/projects/{project_id}/schedules/reconcile" \
   -H "Content-Type: application/json" \
-  -d @.construction/skills/schedule-extractor/changeset.json
+  -d @".construction/skills/schedule-extractor/outbox/schedules-reconcile-<sheet>-<YYYYMMDD-HHMMSS>.json"
 ```
 
 The reconcile endpoint applies changes with:

@@ -38,4 +38,5 @@ step "harness unit tests" "$PY" -m unittest discover -s evals/harness/tests
 step "toolkit unit tests" "$PY" -m unittest discover -s tests
 step "VERSION matches plugin.json" same_version
 step "no writes under .construction/ outside skills/" "$PY" dev/check_construction_writes.py
+step "no queries of AgentCM's database" "$PY" dev/check_no_queries.py
 echo "GATE PASSED"

@@ -71,7 +71,7 @@ prior.json            resubmittals only: what happened to each prior finding
 
 ### 1. Intake
 
-1. **Mode.** `.construction/project.yaml` present → AgentCM mode; otherwise flat file. In AgentCM mode, follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`: which source wins, what a missing file or an empty search means, queries, drawings through `crop.sh`, and how to record a correction of AgentCM's data.
+1. **Mode.** `.construction/project.yaml` present → AgentCM mode; otherwise flat file. In AgentCM mode, follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`: which source wins, what a missing file or an empty search means, which file answers what, drawings through `crop.sh`, and how to record a correction of AgentCM's data.
 2. **Submittal.** Locate the package file(s). Read the cover or transmittal for:
    - submittal number, revision and title;
    - subcontractor;
@@ -104,7 +104,7 @@ A review fails most often because the right detail was never pulled. Build `trac
 2. **Elements.** Every element of the scope in the contract documents:
    - Use each tagged elevation, equipment item, mark, door number, fixture type or assembly.
    - Find them in plans, elevations, details and schedules.
-   - In AgentCM mode, query the database for tags and cross-references instead of reading sheets: one read-only query per call through AgentCM's wrapper, `sh .construction/query.sh "SELECT ..."` (or `powershell -File .construction/query.ps1 "SELECT ..."`), filtered on `project_id` from `.construction/database.yaml`; the views are listed in `.construction/db_schema.yaml`. Read nothing else from `database.yaml`: the connection and `query_command` are not AgentCM's to promise.
+   - In AgentCM mode, start from AgentCM's files instead of reading sheets: `.construction/tags.tsv` (every occurrence of a mark, door number or other known identifier, with its sheet and position), `.construction/xrefs.tsv` (every reference between sheets, details and specification sections), the schedules INDEX.md lists (`.construction/schedules/<sheet>-<n>.tsv`) and, for what those miss, the sheet's `.construction/sheets/<sheet>.tsv`.
    - For product data with no tagged elements, the elements are the products the spec requires.
 3. **Governing references per element** (`cd_refs`): every sheet, detail, section cut, schedule row and spec article that governs it. Follow every cut drawn on an elevation or plan. Record in `stated` what each one states about the element (sizes, models, ratings, heights, voltages, finishes, supports).
 4. **Changes.** Apply responded RFIs, ASIs and bulletins to the trace, citing them.

@@ -31,8 +31,8 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
 **AgentCM mode** (`.construction/project.yaml` exists):
 - Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`: which source wins, what a missing file or an empty search means, sheet ids, and how to record a correction of AgentCM's data (a missed tag goes through the ingest in Step 8)
 - Read `.construction/CLAUDE.md` for project context
-- Read `.construction/database.yaml` for `project_id` and `api_url`; run each query with `sh .construction/query.sh "SQL"`
-- Every `{sheet_id}` below (the endpoints and the `extracted_items` queries) is
+- Read `.construction/database.yaml` for `project_id` and `api_url`, nothing else in it
+- Every `{sheet_id}` below (the endpoints) is
   the `id` of the entry in `.construction/index/sheet_index.yaml` whose
   `sheet_number` is that sheet. Never guess it from the number. If that file is
   missing, or its entries have no `id` (an older sheet-splitter wrote a `pages:`
@@ -44,8 +44,8 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
   the sheet's number as `.construction/INDEX.md` names it; the box is 0 to 1
   from the top left of the sheet. Never rasterize whole sheets, and never ask
   for `rasters/` or `graph/export`: they are not part of AgentCM's contract.
-- OCR data queryable via `extracted_items` table in PostgreSQL
-- Write results back via API: `POST {api_url}/projects/{project_id}/tag-detections/ingest`
+- A sheet's text, each line with its box: `.construction/sheets/<sheet>.tsv` (Steps 3-4)
+- Write results back via API: `POST {api_url}/projects/{project_id}/tag-detections/ingest`, sent from the outbox (Step 8)
 
 **Flat File mode** (no `.construction/project.yaml`):
 - Discover sheet images from CLAUDE.md or user-provided paths; rasterize sheet
@@ -120,8 +120,9 @@ Response:
 Report to user: "Sheet A-1.4: 12 tags already detected (8 accepted, 4 pending)."
 
 **Reconciliation rules:**
-- **EXCLUDE** claimed element IDs from spatial queries (Steps 3-4) —
-  add `AND id NOT IN ('{id1}', '{id2}', ...)` to SQL WHERE clauses
+- **EXCLUDE** from the neighborhood search (Steps 3-4) the lines an existing
+  tag already holds: a line whose box's center falls inside an
+  `existing_tags` item's `combinedBbox`
 - **COUNT** the `existing_tags` AgentCM's review accepted (`status` accepted)
   together with this session's new detections
 - **LIST, never count,** the `existing_tags` still pending in AgentCM's review
@@ -149,9 +150,9 @@ Wait for explicit user confirmation before continuing.
 
 **CRITICAL — Vision is MANDATORY for this step.**
 - You MUST read each sheet's image via vision to identify tags
-- You may NOT substitute OCR text pattern matching (regex, ILIKE queries)
-  for visual identification — OCR regex finds text, not tags
-- OCR data is used ONLY in Steps 3-4 to spatially anchor
+- You may NOT substitute text pattern matching (regex, searches of the
+  sheet files) for visual identification — a text search finds text, not tags
+- The sheet's text is used ONLY in Steps 3-4 to spatially anchor
   vision-identified tags, not to replace the visual identification step
 - If you cannot get an image of a sheet, FLAG it as
   "skipped — image unavailable" and move to the next sheet
@@ -178,12 +179,14 @@ Provide rough locations ("upper-left quadrant") for markup purposes.
 
 ## Step 3: Text-Anchor Search (AgentCM mode only)
 
-For each vision-identified tag, find its spatial anchor in the DB
-using the **most distinctive word** in the tag text. "WALK-IN FREEZER"
-→ search "FREEZER". "WOMEN'S RESTROOM" → search "WOMEN".
+For each vision-identified tag, find its spatial anchor in the sheet's
+`.construction/sheets/<sheet>.tsv` (one line of text per row: `x y w h
+source tag how label para view zone text`, the text last) using the **most
+distinctive word** in the tag text. "WALK-IN FREEZER" → search "FREEZER".
+"WOMEN'S RESTROOM" → search "WOMEN".
 
 ```bash
-sh .construction/query.sh "SELECT id, text, x_min, y_min, x_max, y_max FROM extracted_items WHERE sheet_id = '{sheet_id}' AND is_deleted = false AND text ILIKE '%FREEZER%'"
+grep -i "FREEZER" ".construction/sheets/<sheet>.tsv"
 ```
 
 Multiple hits expected — each is a potential tag location. Zero hits
@@ -191,11 +194,12 @@ Multiple hits expected — each is a potential tag location. Zero hits
 
 ## Step 4: Spatial Neighborhood Query (AgentCM mode only)
 
-For each anchor, pull nearby extracted items. Padding values by tag type
-in `references/spatial-params.md`. Target: 8-25 candidates per tag.
+For each anchor, pull the sheet's nearby lines: those whose `x` and `y` fall
+within the padding of the anchor's. Padding values by tag type in
+`references/spatial-params.md`. Target: 8-25 candidates per tag.
 
 ```bash
-sh .construction/query.sh "SELECT id, text, x_min, y_min, x_max, y_max FROM extracted_items WHERE sheet_id = '{sheet_id}' AND is_deleted = false AND x_min BETWEEN {anchor_x - pad} AND {anchor_x + pad} AND y_min BETWEEN {anchor_y - pad} AND {anchor_y + pad}"
+awk -F'\t' 'NR > 1 && $1 >= {anchor_x - pad} && $1 <= {anchor_x + pad} && $2 >= {anchor_y - pad} && $2 <= {anchor_y + pad}' ".construction/sheets/<sheet>.tsv"
 ```
 
 Adaptive: double padding if < 3 items returned, reduce 30% if > 40.
@@ -208,7 +212,7 @@ items). Group constituent items following `references/grouping-rules.md`
 confidence scoring.
 
 **Batching**: Process ALL tags per sheet in one call. 12 tags × ~200
-tokens each = ~2400 tokens. Never load the full extracted items set.
+tokens each = ~2400 tokens. Never load the sheet's whole `.tsv`.
 
 **Flat File mode**: Skip grouping. Tags come from vision only. Mark
 all detections as `confidence: "vision_only"` in output.
@@ -219,7 +223,7 @@ grouped detections to the user. Show for each:
 - Vision-identified text
 - OCR-reconstructed text (from constituents)
 - Confidence score
-- Number of constituent element IDs
+- Number of constituent lines
 - Approximate sheet location (combined bounding box)
 
 Get explicit user confirmation: "Grouping quality acceptable? Proceed
@@ -301,11 +305,14 @@ Ingesting without confirmation is a blocking violation of this skill.
 The server enforces a maximum of 100 detections per request — batch
 your ingest calls per sheet.
 
-**AgentCM mode:** POST detection results to the API:
+**AgentCM mode:** write each sheet's payload, `{"sheet_id": "{sheet_id}", "detections": [...]}`,
+to `.construction/skills/tag-audit-and-takeoff/outbox/tag-detections-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json`
+and send it as `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` says under
+Writing back; if AgentCM is closed, the payload waits there and the PE is told:
 ```bash
-curl -X POST "{api_url}/projects/{project_id}/tag-detections/ingest" \
+curl -sS --fail-with-body -X POST "{api_url}/projects/{project_id}/tag-detections/ingest" \
   -H "Content-Type: application/json" \
-  -d '{"sheet_id": "{sheet_id}", "detections": [...]}'
+  -d @".construction/skills/tag-audit-and-takeoff/outbox/tag-detections-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json"
 ```
 
 Each detection: `{ tag_text, tag_type, element_ids, bounding_box, confidence, view_type, room_id }`.
@@ -385,7 +392,7 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize a sheet PDF page to PNG (flat file mode)
-- AgentCM's `.construction/crop.sh` / `crop.ps1` (a box of a sheet as a PNG) and `.construction/query.sh` / `query.ps1` (one read-only query), in AgentCM mode
+- AgentCM's `.construction/crop.sh` / `crop.ps1` (a box of a sheet as a PNG), in AgentCM mode
 - `scripts/markup_tags.py` — sheet markup with tag highlights
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/annotate_pdf.py` — native PDF annotations
 - `scripts/qto_to_xlsx.py` — QTO Excel export (5-sheet workbook; refuses a pending item inside the count)
