@@ -146,6 +146,19 @@ def check_no_own_extraction(read, drawings):
     finish(not bad, "nothing AgentCM read is extracted again", f"extraction of what AgentCM read: {bad[:4]}")
 
 
+# -- where a run writes -----------------------------------------------------------------------------
+DELIVERABLES = (".xlsx", ".docx")
+
+
+def check_deliverables_visible():
+    """No workbook or Word document under .construction/: deliverables go in the project's visible folders,
+    never in .construction/, which macOS and Linux hide (working data goes in .construction/skills/)."""
+    base = WORKSPACE / ".construction"
+    hidden = sorted(p.relative_to(WORKSPACE).as_posix() for p in base.rglob("*")
+                    if p.is_file() and p.suffix.lower() in DELIVERABLES) if base.is_dir() else []
+    finish(not hidden, "no deliverable under .construction/", f"deliverables hidden under .construction/: {hidden[:5]}")
+
+
 # -- the API --------------------------------------------------------------------------------------
 def check_contract_requests():
     """Every request to the stand-in is one of the contract's reads or writes, for this project, answered."""

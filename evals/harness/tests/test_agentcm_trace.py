@@ -118,6 +118,20 @@ class Checks(unittest.TestCase):
             self.assertEqual(code, 1, bad)
             self.assertIn("extraction of what AgentCM read", out)
 
+    def test_deliverables_stay_out_of_construction(self):
+        (self.run.ws / "BP-08_Bid_Evaluation.xlsx").write_bytes(b"x")  # the project root: visible
+        (self.run.ws / ".construction" / "skills" / "bid-evaluator").mkdir(parents=True)
+        (self.run.ws / ".construction" / "skills" / "bid-evaluator" / "input.json").write_text("{}", encoding="utf-8")
+        self.assertEqual(outcome(t.check_deliverables_visible)[0], 0)
+        for hidden in ("bid-evaluator/BP-08_Bid_Evaluation.xlsx", "subcontract-writer/Subcontract_Lakeside_BP-08.docx"):
+            p = self.run.ws / ".construction" / "skills" / hidden  # where the 13:33 runs put them
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(b"x")
+            code, out = outcome(t.check_deliverables_visible)
+            self.assertEqual(code, 1, hidden)
+            self.assertIn("hidden under .construction/", out)
+            p.unlink()
+
     def test_contract_requests(self):
         self.run.requests(req("GET", "schedules/s1/rows"), req("POST", "tag-detections/ingest", {"sheet_id": A101}))
         self.assertEqual(outcome(t.check_contract_requests)[0], 0)

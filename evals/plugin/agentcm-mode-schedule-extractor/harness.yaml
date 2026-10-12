@@ -2,6 +2,9 @@ checks:
   - name: agentcm-mode-writes
     script: ../_checks/agentcm_mode_writes.py
     weight: 1
+  - name: deliverables-visible
+    script: checks/deliverables_visible.py
+    weight: 1
   - name: schedule-ingest
     script: checks/schedule_ingest.py
     weight: 3

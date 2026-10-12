@@ -510,6 +510,19 @@ write("_checks/agentcm_trace.py", '''
         finish(not bad, "nothing AgentCM read is extracted again", f"extraction of what AgentCM read: {bad[:4]}")
 
 
+    # -- where a run writes -----------------------------------------------------------------------------
+    DELIVERABLES = (".xlsx", ".docx")
+
+
+    def check_deliverables_visible():
+        """No workbook or Word document under .construction/: deliverables go in the project's visible folders,
+        never in .construction/, which macOS and Linux hide (working data goes in .construction/skills/)."""
+        base = WORKSPACE / ".construction"
+        hidden = sorted(p.relative_to(WORKSPACE).as_posix() for p in base.rglob("*")
+                        if p.is_file() and p.suffix.lower() in DELIVERABLES) if base.is_dir() else []
+        finish(not hidden, "no deliverable under .construction/", f"deliverables hidden under .construction/: {hidden[:5]}")
+
+
     # -- the API --------------------------------------------------------------------------------------
     def check_contract_requests():
         """Every request to the stand-in is one of the contract's reads or writes, for this project, answered."""
@@ -765,6 +778,7 @@ def case(name, skill_cmd, prompt, needs="", graders=None, checks=None, extra_set
     all_graders = dict(COMMON)
     if not own_extraction_ok:
         checks = {"no-own-extraction": (f"t.check_no_own_extraction({READ_MANUALS!r}, {DRAWINGS!r})", 1), **(checks or {})}
+    checks = {"deliverables-visible": ("t.check_deliverables_visible()", 1), **(checks or {})}
     all_graders.update(graders or {})
     for g in drop:
         all_graders.pop(g, None)
@@ -851,8 +865,15 @@ for name, cmd, prompt, needs, desc, extra in [
      "AgentCM closed: reviews a synthetic 08 11 13 submittal against AgentCM's specs/ and the A-601 door schedule.",
      'cp -R "$HERE/inputs/project/." .'),
 ]:
+    deliverable = {"bid-evaluator": ("workbook", "*.xlsx", "The evaluation workbook is in the project root, where the PE sees it."),
+                   "subcontract-writer": ("docx", "*.docx", "The subcontract is a Word document in the project root, where the PE sees it.")}
+    extra_graders = {}
+    if name in deliverable:
+        gname, pattern, body = deliverable[name]
+        extra_graders[gname] = ("file_exists", f'path: "{pattern}"', 1, body)
     case(name, cmd, prompt, needs=needs, desc=desc, extra_setup=extra,
-         graders={"reads-specs": ("regex", 'target: tool_inputs\npattern: "\\\\.construction[\\\\\\\\/]+specs[\\\\\\\\/]+"', 2, "The skill read the spec text from AgentCM's specs/, not its own extraction.")})
+         graders={"reads-specs": ("regex", 'target: tool_inputs\npattern: "\\\\.construction[\\\\\\\\/]+specs[\\\\\\\\/]+"', 2, "The skill read the spec text from AgentCM's specs/, not its own extraction."),
+                  **extra_graders})
 unread_names = [r[0] for r in UNREAD]
 case("spec-splitter", "/construction:spec-splitter", "",
      needs="specs unread-manual pdfs", own_extraction_ok=True,
