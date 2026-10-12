@@ -194,6 +194,8 @@ curl -X POST "{api_url}/projects/{project_id}/schedules/ingest" \
   -d @schedule_ingest_payload.json
 ```
 
+**The sheet's id.** `sheetId` is the `id` of the entry in `.construction/index/sheet_index.yaml` whose `sheet_number` is the schedule's sheet. Never guess it from the number. If that file is missing, or its entries have no `id` (an older sheet-splitter wrote a `pages:` list with `filename` and `page_index`), say so and stop: do not ingest. The Excel workbook from Step 5 stands either way.
+
 The ingest payload JSON follows this structure:
 
 ```json

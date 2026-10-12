@@ -31,6 +31,11 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
 **AgentCM mode** (`.construction/project.yaml` exists):
 - Read `.construction/CLAUDE.md` for project context
 - Read `.construction/database.yaml` for `project_id` and `api_url`; run each query with `sh .construction/query.sh "SQL"`
+- Every `{sheet_id}` below (the endpoints and the `extracted_items` queries) is
+  the `id` of the entry in `.construction/index/sheet_index.yaml` whose
+  `sheet_number` is that sheet. Never guess it from the number. If that file is
+  missing, or its entries have no `id` (an older sheet-splitter wrote a `pages:`
+  list with `filename` and `page_index`), say so and stop.
 - Look at a sheet through AgentCM's crop script, a box at a time:
   `sh .construction/crop.sh <sheet> <x> <y> <w> <h>` (or
   `powershell -File .construction/crop.ps1 <sheet> <x> <y> <w> <h>`) renders
