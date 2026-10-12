@@ -1,9 +1,12 @@
 ---
 name: code-researcher
 description: >
-  Scope-specific code gap analysis — extracts referenced codes from project
-  docs, researches what should apply, surfaces the delta. Triggers: 'code
-  research', 'what codes apply', 'code check', 'ADA requirements', 'egress'.
+  Researches which building codes, accessibility standards and authority
+  requirements (health department, fire marshal, state agency) apply to a
+  scope or spec section, and which the project documents miss. Use for 'what
+  codes apply', 'code check', 'ADA requirements', 'egress', 'health
+  department'. Not for reading what the drawings or specs say
+  (construction-guide).
 argument-hint: "<scope_or_question> e.g. 'Section 09 67 23 resinous flooring' or 'egress from the kitchen complex'"
 ---
 

@@ -1,10 +1,12 @@
 ---
 name: pe-review
 description: >
-  Construction document review with PE judgment — RFI research, submittal
-  analysis, coordination checking, scope gap detection. Use when reviewing
-  drawings, specs, submittals, or RFIs. Triggers: 'review', 'coordination',
-  'what's missing'.
+  Checks construction drawings and specs for what's missing, cross-trade
+  coordination conflicts and scope gaps, with PE judgment. Use for 'what's
+  missing', 'check coordination', 'scope gap', or researching an RFI before
+  answering it. Not for drafting RFIs (rfi-drafter), code research
+  (code-researcher) or reviewing a submittal package (the user runs
+  /construction:submittal-review).
 ---
 
 # PE Document Review
