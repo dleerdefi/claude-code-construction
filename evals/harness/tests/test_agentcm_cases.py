@@ -93,24 +93,29 @@ class PathGraders(unittest.TestCase):
 class InlinePython(unittest.TestCase):
     PY = '"C:/plugin/bin/construction-python"'
 
-    def graders(self):
-        return [(c.name, g) for c in load_cases(EVALS) if "agentcm-mode" in c.tags for g in c.graders
-                if g.name == "no-inline-python"]
+    def graders(self):  # the agentcm-mode cases' and the hand-written ones (bid cases, construction-guide)
+        return [(c.name, g) for c in load_cases(EVALS) for g in c.graders if g.name == "no-inline-python"]
 
     def running(self, command):
         return RunResult(case="t", run_index=1, workspace=Path("."),
                          trace=[{"type": "tool_use", "name": "Bash", "input": {"command": command}}])
 
-    def test_every_case_has_it(self):
+    def test_every_agentcm_case_has_it_and_every_copy_is_the_same(self):
         cases = {c.name for c in load_cases(EVALS) if "agentcm-mode" in c.tags}
-        self.assertEqual({name for name, _ in self.graders()}, cases)
+        self.assertLessEqual(cases, {name for name, _ in self.graders()})
+        self.assertEqual(len({g.fields["input_match"] for _, g in self.graders()}), 1)
 
     def test_inline_python_fails_and_the_toolkit_passes(self):
         inline = (f'cd "/ws"; {self.PY} -c "\nimport openpyxl\nwb=openpyxl.load_workbook(\'w.xlsx\')\n"',  # the 10:38 reconcile
-                  '"$PY" -c \'import fitz\'', f"{self.PY} - <<'EOF'\nimport openpyxl\nEOF", "cat > peek.py <<'EOF'\nEOF")
+                  '"$PY" -c \'import fitz\'', "python3 -c 'x'", f"{self.PY} - <<'EOF'\nimport openpyxl\nEOF",
+                  "python3 <<'EOF'\nprint(1)\nEOF", 'python - <<< "print(1)"', "cat > peek.py <<'EOF'\nEOF",
+                  'echo "print(1)" | python -', 'echo x | "$PY" -', f"echo x | {self.PY} -", "cat code.txt | python",
+                  "@'\nprint(1)\n'@ | python -", "$code | & $py -")  # piped in, and PowerShell here-strings
         toolkit = (f'PYTHONUTF8=1 {self.PY} "C:/plugin/scripts/graph/write_finding.py" --skill s --type t --title "a -c b"',
                    f'{self.PY} "C:/plugin/scripts/pdf/pdf_text.py" "Specifications/Scanned Volume.pdf"',
-                   "sh .construction/crop.sh A-601 0.1 0.06 0.44 0.346")
+                   "sh .construction/crop.sh A-601 0.1 0.06 0.44 0.346",
+                   'cat data.json | "$PY" "C:/plugin/scripts/x.py" --stdin',  # data piped into a script
+                   "cat > \"$OUT\" <<'EOF'\n{}\nEOF", "git log | head -5", 'ls | tee "$LOG"')
         for case, g in self.graders():
             for command in inline:
                 with self.subTest(case=case, command=command[:40]):
