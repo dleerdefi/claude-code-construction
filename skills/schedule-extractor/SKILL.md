@@ -275,21 +275,22 @@ If the Excel lacks `_agentcm_meta`, it was not exported by AgentCM — treat as 
 
 ### Step R2: Compute Changeset
 
-Run the diff engine to compare the edited Excel against current DB state:
+Run the diff engine to compare the edited Excel against the rows AgentCM holds:
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/xlsx_to_changeset.py" \
   --excel "edited_schedule.xlsx" \
-  --query-wrapper ".construction/query.sh" \
-  --output changeset.json
+  --output ".construction/skills/schedule-extractor/changeset.json"
 ```
 
 The script:
-1. Reads `_agentcm_meta` → extracts `schedule_id`
+1. Reads `_agentcm_meta` → extracts `schedule_id`. A table never ingested (`schedule_id=none`) has nothing to reconcile and is refused: ingest it first (Step 6)
 2. Reads data sheet → extracts `_row_key` column + all data columns
-3. Queries DB for current schedule rows/cells through `.construction/query.sh`
+3. Reads the schedule's stored rows from AgentCM, `GET {api_url}/projects/{project_id}/schedules/{schedule_id}/rows`, with `project_id` and `api_url` from `.construction/database.yaml` (nothing else in it)
 4. Computes diff: cell changes, new rows, deleted rows, new columns, hidden columns
-5. Outputs a structured JSON changeset
+5. Outputs a structured JSON changeset, with `sourceFile` the edited Excel's name
+
+It needs AgentCM running. If AgentCM does not answer, the script exits 3 and computes nothing: tell the PE to start AgentCM and rerun this step (the edited Excel is all it needs).
 
 ### Step R3: POST Changeset to Reconcile Endpoint
 
@@ -297,7 +298,7 @@ The script:
 # Read api_url and project_id from .construction/database.yaml
 curl -X POST "{api_url}/projects/{project_id}/schedules/reconcile" \
   -H "Content-Type: application/json" \
-  -d @changeset.json
+  -d @.construction/skills/schedule-extractor/changeset.json
 ```
 
 The reconcile endpoint applies changes with:
@@ -363,6 +364,6 @@ Never overwrite an existing schedule extraction. The export script uses `safe_ou
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision extraction
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — crop schedule region from full sheet image
 - `scripts/schedule_to_xlsx.py` — Excel export with reconciliation anchors
-- `scripts/xlsx_to_changeset.py` — diff edited Excel against DB for reconciliation
+- `scripts/xlsx_to_changeset.py` — diff the edited Excel against AgentCM's stored rows (its rows endpoint) for reconciliation
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — record the extraction as a finding (Step 7)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)
