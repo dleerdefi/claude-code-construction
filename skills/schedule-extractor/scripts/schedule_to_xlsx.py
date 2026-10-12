@@ -142,11 +142,19 @@ def schedule_to_xlsx(data_path, output="schedule.xlsx", schedule_type="generic",
     print(f"OK: {out} ({len(rows)} rows, {len(headers)} columns)")
 
 
+def schedule_kind(schedule_type):
+    """door from door_schedule or door: the kind both this exporter and agentcm_schedule.py key rows by, and the
+    ingest payload's scheduleType."""
+    t = str(schedule_type or "").strip().lower()
+    return t[: -len("_schedule")] if t.endswith("_schedule") else t
+
+
 def _resolve_row_key_index(headers, row_key_column, schedule_type):
     """Find the column index to use as _row_key value.
 
-    Priority: explicit --row-key-column > natural key by schedule type > first column.
+    Priority: explicit --row-key-column > natural key by schedule kind (door_schedule is door) > first column.
     """
+    schedule_type = schedule_kind(schedule_type)
     if row_key_column:
         for i, h in enumerate(headers):
             if h.strip().upper() == row_key_column.strip().upper():

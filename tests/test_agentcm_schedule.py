@@ -69,6 +69,28 @@ class Payload(unittest.TestCase):
         self.assertEqual(a.column_keys(["Hardware Set", "FIRE RATING", "NO.", "No"]), ["HARDWARE_SET", "FIRE_RATING", "NO", "NO_2"])
 
 
+class SameKey(unittest.TestCase):
+    def test_the_workbooks_row_key_and_the_payloads_identifier_agree_when_the_mark_is_not_first(self):
+        from openpyxl import load_workbook
+        with tempfile.TemporaryDirectory() as tmp:
+            tsv, data, out, xlsx = (Path(tmp) / n for n in ("A-601-1.tsv", "data.json", "p.json", "doors.xlsx"))
+            tsv.write_text("# A-601 DOOR SCHEDULE: a schedule at 0.1 0.06 0.44 0.3 (x y w h), from the sheet's text. schedule_id=none\n"
+                           "y\tx0.1\tx0.2\tx0.3\n0.10\tTYPE\tMARK\tSIZE\n0.12\tA\tD101\t3'-0\"\n0.14\tB\tD102\t3'-6\"\n", encoding="utf-8")
+            r = subprocess.run([sys.executable, str(SCRIPT), str(tsv), "--type", "door_schedule", "--data", str(data),
+                                "--payload", str(out), "--sheet-id", "s", "--row-entity-type", "door",
+                                "--source-method", "hybrid", "--confidence", "0.9"], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            r = subprocess.run([sys.executable, str(SCRIPTS / "schedule_to_xlsx.py"), "--data", str(data), "--type", "door_schedule",
+                                "--sheet", "A-601", "--output", str(xlsx)], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            ws = load_workbook(xlsx).worksheets[0]
+            row_keys = [ws.cell(row=i, column=1).value for i in range(5, 7)]
+            body = json.loads(out.read_text(encoding="utf-8"))
+        self.assertEqual(row_keys, ["D101", "D102"])
+        self.assertEqual([r["entityIdentifier"] for r in body["rows"]], ["D101", "D102"])
+        self.assertEqual(body["scheduleType"], "door")
+
+
 class Command(unittest.TestCase):
     def run_script(self, *args):
         return subprocess.run([sys.executable, str(SCRIPT), *args], capture_output=True,

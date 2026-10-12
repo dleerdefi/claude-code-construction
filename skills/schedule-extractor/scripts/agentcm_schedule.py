@@ -28,7 +28,7 @@ import re
 import sys
 from pathlib import Path
 
-from schedule_to_xlsx import _resolve_row_key_index
+from schedule_to_xlsx import _resolve_row_key_index, schedule_kind
 from shared import safe_output_path
 
 ROW_ENTITY_TYPES = ("room", "door", "window", "fixture", "equipment")  # AgentCM's RowEntityType
@@ -100,6 +100,7 @@ def column_keys(headers):
 
 def payload(table, sheet_id, schedule_type, row_entity_type, source_method, confidence, row_key_column=""):
     """The schedules/ingest payload, and the lines left out for having no row key."""
+    schedule_type = schedule_kind(schedule_type)
     if table["schedule_id"]:
         raise TableError(f"already ingested as {table['schedule_id']}: nothing to ingest (its workbook takes "
                          f"--schedule-id {table['schedule_id']})")
@@ -141,7 +142,7 @@ def main():
     a = ap.parse_args()
     if a.payload and not (a.sheet_id and a.row_entity_type and a.source_method and a.confidence is not None):
         ap.error("--payload needs --sheet-id, --row-entity-type, --source-method and --confidence")
-    stype = a.type.replace("_schedule", "")  # door_schedule, as Step 5 names it, is scheduleType door
+    stype = schedule_kind(a.type)  # the exporter's own rule: door_schedule, as Step 5 names it, is door
     try:
         table = read_table(a.table, a.header_row, a.header_rows)
         body, keyless = payload(table, a.sheet_id, stype, a.row_entity_type, a.source_method,
