@@ -58,10 +58,26 @@ class Answers(unittest.TestCase):
         self.assertEqual(self.stub.post(f"/projects/{P}/tag-detections/ingest", {"detections": []})[0], 400)
         self.assertEqual(self.stub.post(f"/projects/{P}/schedules/ingest", "not json")[0], 400)
 
-    def test_a_recorded_post_answer_is_used(self):
-        self.stub.responses[f"POST /projects/{P}/schedules/reconcile"] = {"rowsUpdated": 3, "errors": []}
-        self.assertEqual(self.stub.post(f"/projects/{P}/schedules/reconcile", {"scheduleId": "s1"}),
-                         (200, {"rowsUpdated": 3, "errors": []}))
+    def test_a_recorded_post_answers_its_own_request(self):
+        request = {"scheduleId": "s1", "sourceFile": "w.xlsx", "cellUpdates": []}
+        self.stub.responses[f"POST /projects/{P}/schedules/reconcile"] = {
+            "request": request, "response": {"cellsChanged": 0, "errors": []}}
+        self.assertEqual(self.stub.post(f"/projects/{P}/schedules/reconcile", request),
+                         (200, {"cellsChanged": 0, "errors": []}))
+        self.assertEqual(self.stub.post(f"/projects/{P}/schedules/reconcile", dict(request, cellUpdates=[{"x": 1}])),
+                         (200, {"cellsChanged": 0, "errors": []}))
+
+    def test_tag_ingest_answers_as_agentcm(self):
+        claimed = dict(DETECTION, tag_text="OFFICE 101", element_ids=["e1"])
+        status, body = self.stub.post(f"/projects/{P}/tag-detections/ingest",
+                                      {"sheet_id": SHEET, "detections": [DETECTION, claimed]})
+        self.assertEqual(status, 200)
+        self.assertEqual((body["suggestions_created"], body["skipped_duplicate"], body["sheet_id"]), (1, 1, SHEET))
+
+    def test_a_sheet_id_it_does_not_know_is_404(self):
+        status, body = self.stub.post(f"/projects/{P}/tag-detections/ingest",
+                                      {"sheet_id": "not-a-sheet", "detections": [DETECTION]})
+        self.assertEqual((status, body["error"]), (404, "Sheet not found in project"))
 
 
 def free_port():

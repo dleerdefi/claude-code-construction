@@ -9,7 +9,10 @@ the fixture was written, and records every request for the graders:
   claimed-elements also lists, as pending, every tag detection ingested during the run, so a
   second takeoff in one run finds the first one's tags waiting in review, as AgentCM would.
 - POST to the three write endpoints (schedules/ingest, schedules/reconcile, tag-detections/ingest):
-  the recorded answer when there is one, else 200. The payload is kept.
+  200. A recording "POST /projects/<id>/..." of {request, response} answers its own request with its
+  response. Otherwise tag ingest answers as AgentCM does (suggestions_created, skipped_duplicate: a
+  detection whose element_ids meet a claimed id is a duplicate), and a schedules write gets the
+  recorded response, or {"ok": true}. A sheet id the recording does not know is a 404, as in AgentCM.
 - Anything else: 404.
 
 Every request (method, path, query, body, status) goes to <workspace>/.eval-api/requests.jsonl.
@@ -90,24 +93,48 @@ class Stub:
             by_type[det.get("tag_type")] = by_type.get(det.get("tag_type"), 0) + 1
         return 200, body
 
+    def sheet_ids(self) -> set[str]:
+        """The sheets the recording knows (its claimed-elements keys); empty when it has none."""
+        return {m.group(2) for k in self.responses if (m := CLAIMED.match(k.split(" ", 1)[-1]))}
+
+    def claimed_ids(self, project_id: str, sheet_id: str) -> set[str]:
+        recorded = self.responses.get(f"GET /projects/{project_id}/sheets/{sheet_id}/claimed-elements") or {}
+        ids = {str(x) for x in recorded.get("claimed_element_ids") or []}
+        for det in self.ingested.get(sheet_id, []):
+            ids.update(str(x) for x in det.get("element_ids") or [])
+        return ids
+
     def post(self, path: str, payload: object) -> tuple[int, object]:
+        """A recorded {request, response} answers its own request exactly. Otherwise tag ingest answers as
+        AgentCM does (a detection whose element_ids meet a claimed id is a skipped duplicate), and a
+        schedules write gets the recorded answer's shape, or {"ok": true}."""
         if not WRITE_ENDPOINTS.match(path) or not self.known_project(path.split("/")[2]):
             return 404, {"error": "not found"}
         if not isinstance(payload, dict):
             return 400, {"error": "the body is not a JSON object"}
-        m = TAG_INGEST.match(path)
-        if m:
-            dets = payload.get("detections")
-            if not payload.get("sheet_id") or not isinstance(dets, list) or not dets:
-                return 400, {"error": "Missing required fields: sheet_id, detections (non-empty array)"}
-            with self.lock:
-                self.ingested.setdefault(str(payload["sheet_id"]), []).extend(d for d in dets if isinstance(d, dict))
         recorded = self.responses.get(f"POST {path}")
-        if recorded is not None:
-            return 200, recorded
-        if m:
-            return 200, {"created": len(payload["detections"]), "skipped": 0}
-        return 200, {"ok": True}
+        if isinstance(recorded, dict) and "request" in recorded and "response" in recorded:
+            if recorded["request"] == payload:
+                return 200, recorded["response"]
+            recorded = recorded["response"]
+        sheet = payload.get("sheet_id") or payload.get("sheetId")
+        if sheet and self.sheet_ids() and str(sheet) not in self.sheet_ids():
+            return 404, {"error": "Sheet not found in project"}
+        m = TAG_INGEST.match(path)
+        if not m:
+            return 200, recorded if recorded is not None else {"ok": True}
+        dets = payload.get("detections")
+        if not payload.get("sheet_id") or not isinstance(dets, list) or not dets:
+            return 400, {"error": "Missing required fields: sheet_id, detections (non-empty array)"}
+        sheet = str(sheet)
+        with self.lock:
+            claimed = self.claimed_ids(m.group(1), sheet)
+            new = [d for d in dets if isinstance(d, dict)
+                   and not any(str(x) in claimed for x in d.get("element_ids") or [])]
+            start = len(self.ingested.get(sheet, []))
+            self.ingested.setdefault(sheet, []).extend(new)
+        return 200, {"suggestions_created": len(new), "skipped_duplicate": len(dets) - len(new), "sheet_id": sheet,
+                     "suggestion_ids": [f"eval-stub-{sheet[:8]}-{start + i}" for i in range(1, len(new) + 1)]}
 
     def record(self, entry: dict) -> None:
         if not self.log_path:
