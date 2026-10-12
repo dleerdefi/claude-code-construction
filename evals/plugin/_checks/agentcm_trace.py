@@ -106,12 +106,42 @@ EXTRACTION = re.compile(r"rasterize_page|pdf_text\.py|split_drawing_set|split_sp
                         r"extract_text_region|pdfplumber|import fitz")
 
 
+def pages_of(text):
+    """{1, 3, 4, 5} from "1,3-5"."""
+    out = set()
+    for part in re.split(r"[,\s]+", text.strip()):
+        a, _, b = part.partition("-")
+        if a.isdigit():
+            out.update(range(int(a), int(b if b.isdigit() else a) + 1))
+    return out
+
+
 def check_no_own_extraction(read, drawings):
-    """Nothing AgentCM read is extracted again: no extraction command names a manual INDEX.md lists as read
-    (`read`) or a drawing PDF (`drawings`, looked at through crop.sh). A manual INDEX.md lists as not read is
-    spec-splitter's to split and extract, and so are the section PDFs it splits from it."""
-    bad = [(Path(f).name, c[:160]) for c in bash_commands() if EXTRACTION.search(c)
-           for f in read + drawings if Path(f).name in c]
+    """Nothing AgentCM read is extracted again. `read` maps each manual INDEX.md lists as read to its pages in no
+    section, which INDEX.md says to read in the PDF: rasterize_page.py on one of them, or pdf_text.py --pages among
+    them, passes; any other extraction naming the manual (pdf_text.py of the whole file, a section's page, another
+    tool) fails. A drawing PDF is never extracted: drawings are looked at through crop.sh. A manual INDEX.md lists
+    as not read is spec-splitter's to split and extract, and so are the section PDFs it splits from it."""
+    bad = []
+    for c in bash_commands():
+        for seg in re.split(r"&&|\|\||[;\n|]", c):
+            if not EXTRACTION.search(seg):
+                continue
+            bad += [(Path(f).name, seg.strip()[:160]) for f in drawings if Path(f).name in seg]
+            for f, allowed in read.items():
+                name = Path(f).name
+                if name not in seg:
+                    continue
+                if "rasterize_page" in seg:
+                    m = re.match(r"[\"']?\s+(\d+)\b", seg.split(name, 1)[1])
+                    named = {int(m.group(1))} if m else set()
+                elif "pdf_text" in seg:
+                    m = re.search(r"--pages[=\s]+[\"']?([\d,\s-]+)", seg)
+                    named = pages_of(m.group(1)) if m else set()
+                else:
+                    named = set()
+                if not named or not named <= set(allowed):
+                    bad.append((name, seg.strip()[:160]))
     finish(not bad, "nothing AgentCM read is extracted again", f"extraction of what AgentCM read: {bad[:4]}")
 
 

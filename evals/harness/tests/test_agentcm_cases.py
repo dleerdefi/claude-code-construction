@@ -101,6 +101,13 @@ class InlinePython(unittest.TestCase):
                     self.assertTrue(grade_tool_used(g, self.running(command)).passed)
 
 
+class OwnExtraction(unittest.TestCase):
+    def test_the_check_takes_the_read_manuals_pages_in_no_section_from_index_md(self):
+        # INDEX.md: "Specifications/Project Manual.pdf, pages in no section: 1"
+        check = (EVALS / "agentcm-mode-code-researcher" / "checks" / "no_own_extraction.py").read_text(encoding="utf-8")
+        self.assertIn("{'Specifications/Project Manual.pdf': [1]}", check)
+
+
 class HelperScripts(unittest.TestCase):
     def writing(self, path):
         return RunResult(case="t", run_index=1, workspace=Path("."),

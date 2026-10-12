@@ -94,14 +94,22 @@ class Checks(unittest.TestCase):
         self.addCleanup(os.environ.pop, "EVAL_TRACE", None)
 
     def test_no_own_extraction_of_what_agentcm_read(self):
-        read, drawings = ["Specifications/Project Manual.pdf"], ["drawings/A-101.pdf", "drawings/A-601.pdf"]
+        # the manual AgentCM read, with page 1 in no section (INDEX.md: read such pages in the PDF)
+        read, drawings = {"Specifications/Project Manual.pdf": [1]}, ["drawings/A-101.pdf", "drawings/A-601.pdf"]
         PY, TK = '"$PY"', '"${CLAUDE_PLUGIN_ROOT}/scripts/pdf'
-        # spec-splitter on the manual INDEX.md lists as not read, and on the sections it split from it; crop.sh
+        # spec-splitter on the manual INDEX.md lists as not read, and on the sections it split from it; crop.sh;
+        # the read manual's page in no section, as the 11:16 run 3 rasterized it, and through pdf_text --pages
         self.bash(f'{PY} {TK}/pdf_text.py" "Specifications/Scanned Volume.pdf" --summary',
                   f'{PY} {TK}/pdf_text.py" ".construction/skills/spec_text/09-30-00.pdf"',
-                  "sh .construction/crop.sh A-601 0.1 0.06 0.44 0.346")
+                  "sh .construction/crop.sh A-601 0.1 0.06 0.44 0.346",
+                  f'cd "/ws" && mkdir -p .construction/skills/code-researcher/pages && {PY} {TK}/rasterize_page.py" '
+                  '"Specifications/Project Manual.pdf" 1 --dpi 100 --output ".construction/skills/code-researcher/pages/manual_p1.png"; '
+                  'ls .construction/skills/code-researcher/pages',
+                  f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf" --pages 1')
         self.assertEqual(outcome(t.check_no_own_extraction, read, drawings)[0], 0)
-        for bad in (f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf"',
+        for bad in (f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf"; ls .construction/skills',  # the 10:38 run
+                    f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf" --pages 1-2',
+                    f'{PY} {TK}/rasterize_page.py" "Specifications/Project Manual.pdf" 2 --dpi 200',
                     f'{PY} {TK}/rasterize_page.py" "drawings/A-601.pdf" 1 --dpi 200'):
             self.bash(bad)
             code, out = outcome(t.check_no_own_extraction, read, drawings)
