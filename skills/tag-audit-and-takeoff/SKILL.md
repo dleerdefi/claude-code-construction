@@ -26,7 +26,7 @@ override user-approved groupings, or assume quantities without provenance.
 
 ## Step 0: Detect Operating Mode
 
-Check for AgentCM: `.construction/project.yaml` at the project root.
+Read `.construction/project.yaml` at the project root: present and readable means AgentCM mode (note its `contract_version`), absent means flat-file mode. A listing that shows the file does not decide it: read it.
 
 **AgentCM mode** (`.construction/project.yaml` exists):
 - Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`: which source wins, what a missing file or an empty search means, sheet ids, and how to record a correction of AgentCM's data (a missed tag goes through the ingest in Step 8)
