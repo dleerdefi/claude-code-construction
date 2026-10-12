@@ -642,6 +642,10 @@ COMMON = {
                       "No database query at all: no query.sh or query.ps1, no psql, password or query_command."),
     "no-stub-control": ("tool_used", 'tool: Bash\ninput_match: "__eval_stub__"\nmin: 0\nmax: 0', 1,
                         "The run never touches the eval stand-in's own controls."),
+    "no-inline-python": ("tool_used", "tool: Bash\ninput_match: " + r"""'(?:(?:python\\?"?|\$\{?\w+\}?\\?"?)\s+(?:-c\s*\\?["'']|-\s*<<)|\.py\s*<<|>\s*[^\s|;&]*\.py\b)'""" + "\nmin: 0\nmax: 0", 1,
+                         "No inline Python (`python -c`, `\"$PY\" -c`, Python fed on stdin as `python - <<EOF`) and no script "
+                         "written through a shell redirect or heredoc: the toolkit is the allowlisted scripts. (Matched "
+                         "against the JSON-encoded command, so a quote may carry a backslash.)"),
     "crops-through-crop-sh": ("tool_used", 'tool: Write\ninput_match: "\\\\.construction[\\\\\\\\/]+crops"\nmin: 0\nmax: 0', 1,
                               ".construction/crops/ is written only by crop.sh, never by the Write tool."),
 }

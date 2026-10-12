@@ -11,7 +11,7 @@ HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
 
 from cases import load_cases  # noqa: E402
-from graders import grade_regex  # noqa: E402
+from graders import grade_regex, grade_tool_used  # noqa: E402
 from runner import RunResult  # noqa: E402
 
 EVALS = HERE.parent / "plugin"
@@ -69,6 +69,36 @@ class PathGraders(unittest.TestCase):
                     with self.subTest(case=case, grader=g.name, sep=sep):
                         self.assertFalse(grade_regex(g, reading(path)).passed)
                 self.assertTrue(grade_regex(g, reading("/ws/README.md")).passed)
+
+
+class InlinePython(unittest.TestCase):
+    PY = '"C:/plugin/bin/construction-python"'
+
+    def graders(self):
+        return [(c.name, g) for c in load_cases(EVALS) if "agentcm-mode" in c.tags for g in c.graders
+                if g.name == "no-inline-python"]
+
+    def running(self, command):
+        return RunResult(case="t", run_index=1, workspace=Path("."),
+                         trace=[{"type": "tool_use", "name": "Bash", "input": {"command": command}}])
+
+    def test_every_case_has_it(self):
+        cases = {c.name for c in load_cases(EVALS) if "agentcm-mode" in c.tags}
+        self.assertEqual({name for name, _ in self.graders()}, cases)
+
+    def test_inline_python_fails_and_the_toolkit_passes(self):
+        inline = (f'cd "/ws"; {self.PY} -c "\nimport openpyxl\nwb=openpyxl.load_workbook(\'w.xlsx\')\n"',  # the 10:38 reconcile
+                  '"$PY" -c \'import fitz\'', f"{self.PY} - <<'EOF'\nimport openpyxl\nEOF", "cat > peek.py <<'EOF'\nEOF")
+        toolkit = (f'PYTHONUTF8=1 {self.PY} "C:/plugin/scripts/graph/write_finding.py" --skill s --type t --title "a -c b"',
+                   f'{self.PY} "C:/plugin/scripts/pdf/pdf_text.py" "Specifications/Scanned Volume.pdf"',
+                   "sh .construction/crop.sh A-601 0.1 0.06 0.44 0.346")
+        for case, g in self.graders():
+            for command in inline:
+                with self.subTest(case=case, command=command[:40]):
+                    self.assertFalse(grade_tool_used(g, self.running(command)).passed)
+            for command in toolkit:
+                with self.subTest(case=case, command=command[:40]):
+                    self.assertTrue(grade_tool_used(g, self.running(command)).passed)
 
 
 if __name__ == "__main__":
