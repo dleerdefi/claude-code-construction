@@ -72,7 +72,7 @@ If no template is provided, ask: "Do you have a standard subcontract template?" 
 
 ## Phase 2 — Structured Extraction, One Slot at a Time
 
-Run a separate extraction pass for each slot. Write extracted data to `scope_data.json` incrementally. Do not combine slots in a single read.
+Run a separate extraction pass for each slot. Write extracted data to `.construction/skills/subcontract-writer/scope_data.json` incrementally. Do not combine slots in a single read.
 
 ### Slot B Extraction (Bid Document) — Run First
 
@@ -346,7 +346,7 @@ After showing Group 3, ask: *"Any final changes? Once confirmed I'll write the W
 
 ## Phase 4 Output — Write JSON Files
 
-After all three groups are confirmed, write two files to the output directory:
+After all three groups are confirmed, write two files with the Write tool. They are working data: they go in `.construction/skills/subcontract-writer/`, never the project root (the subcontract .docx is the only deliverable):
 
 ### scope_data.json
 
@@ -420,8 +420,8 @@ All display values in blocks must be pre-formatted strings (e.g., `"$1,392,618.0
 Call the thin formatter:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/generate_subcontract_docx.py" \
-  --template template_data.json \
-  --scope scope_data.json \
+  --template .construction/skills/subcontract-writer/template_data.json \
+  --scope .construction/skills/subcontract-writer/scope_data.json \
   --output "Subcontract_[SubName]_[SCNumber].docx"
 ```
 

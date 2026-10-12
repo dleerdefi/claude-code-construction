@@ -167,9 +167,10 @@ submission. Flag for verification, never call it a bust.
 
 Build JSON per schema in `scripts/sample_input.json` with the Write tool
 (not a shell heredoc, which fails here on an apostrophe, and not a helper
-script), then run:
+script) as `.construction/skills/bid-evaluator/bid_evaluation.json`: it is
+working data, never in the project root. Then run:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py" input.json "Bid_Evaluation_{package}.xlsx"
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py" .construction/skills/bid-evaluator/bid_evaluation.json "Bid_Evaluation_{package}.xlsx"
 ```
 Run it from the project folder: the workbook is the deliverable and goes in the project root (or the folder the PE names), never under `.construction/`, which macOS and Linux hide.
 
