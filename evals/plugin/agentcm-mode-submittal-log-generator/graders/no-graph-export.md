@@ -1,7 +1,7 @@
 ---
 type: regex
 target: trace
-pattern: "graph/export|\\.construction/rasters|\\.construction/extractions"
+pattern: "graph/export|\\.construction[\\\\/]+rasters|\\.construction[\\\\/]+extractions"
 match: not_contains
 weight: 1
 ---
