@@ -11,7 +11,9 @@ The rules every skill follows when AgentCM manages the project folder. Written a
 
 Follow `.construction/CLAUDE.md` for where things are; it is authoritative about this folder, except its database section. Skills never run `query.sh` or `query.ps1`, whatever the guide offers: the files hold the same data (Which file answers what, below). Start at `.construction/INDEX.md`: every sheet (number, title, revision, discipline, how complete its text is, PDF and page, 1-based), every specification section with its text file, the schedules and legends, and how many rooms are known. Never re-do AgentCM's work: no splitting sheets, extracting specification text or rasterizing whole sheets.
 
-**Specification text** is in `.construction/specs/<section>.txt` (`08 71 00` is `08-71-00.txt`; each line starts with its page in the manual), one file per section INDEX.md lists under Specification sections. A manual INDEX.md lists under "Spec manuals not read" (a scan, or no SECTION headings) is the one exception: spec-splitter splits and extracts it, and its sections are read from `.construction/skills/spec_text/`.
+**Specification text** is in `.construction/specs/<section>.txt` (`08 71 00` is `08-71-00.txt`; each line starts with its page in the manual), one file per section INDEX.md lists under Specification sections. A section's text is never extracted again from the PDF. Two things are not in `specs/`:
+- **A read manual's pages in no section** (covers, a table of contents, an appendix). INDEX.md lists them under "Spec manuals read". Read those pages, and only those, in the PDF: `pdf_text.py --pages <n>`, or `rasterize_page.py` on that page.
+- **A manual INDEX.md lists under "Spec manuals not read"** (a scan, or no SECTION headings). spec-splitter splits and extracts it, and its sections are read from `.construction/skills/spec_text/`.
 
 ## Which source wins
 

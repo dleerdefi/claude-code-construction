@@ -209,7 +209,7 @@ research so the gap analysis has a firm baseline.
 
 For each spec section in scope:
 - Read the full section (all parts — General, Products, Execution)
-- In AgentCM mode, read `.construction/specs/<section>.txt` (Phase 1a): it is the section's text. Never run `pdf_text.py` or `rasterize_page.py` on a manual INDEX.md lists as read. A section whose text looks incomplete (a part missing, a "B." with no "A.") is reported as incomplete, citing the manual and page its lines give, and is not extracted again. A manual INDEX.md lists under "Spec manuals not read" is spec-splitter's: read its sections from `.construction/skills/spec_text/`.
+- In AgentCM mode, read `.construction/specs/<section>.txt` (Phase 1a): it is the section's text, and a section's pages are never extracted again. A section whose text looks incomplete (a part missing, a "B." with no "A.") is reported as incomplete, citing the manual and page its lines give. A read manual's pages in no section (a table of contents, a cover: INDEX.md lists them under "Spec manuals read") are read in the PDF, those pages only: `pdf_text.py --pages <n>` or `rasterize_page.py` on that page. A manual INDEX.md lists under "Spec manuals not read" is spec-splitter's: read its sections from `.construction/skills/spec_text/`.
 - In flat-file mode, dump the section's text layer; pages it marks VISION are scanned or image-heavy: rasterize them and read them with vision:
   ```bash
   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "{section.pdf}"
@@ -476,8 +476,8 @@ Never overwrite an existing gap report. Version output files (`_v2`, `_v3`) if a
 ## Allowed Scripts
 
 - `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`
-- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py` — flat-file mode: spec section and sheet text, with a TEXT/VISION verdict per page (Phase 2a). In AgentCM mode, never on a manual INDEX.md lists as read or on a drawing
-- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` and `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — flat-file mode: page images for vision, into `.construction/skills/code-researcher/pages/` (Phase 2a). In AgentCM mode drawings go through `crop.sh`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py` — flat-file mode: spec section and sheet text, with a TEXT/VISION verdict per page (Phase 2a). In AgentCM mode, only on a read manual's pages in no section (`--pages`), never on a section's pages or a drawing
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` and `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — flat-file mode: page images for vision, into `.construction/skills/code-researcher/pages/` (Phase 2a). In AgentCM mode, only a read manual's page in no section; drawings go through `crop.sh`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log a code gap the design team must answer to the Issue Registry (command and severity mapping in construction-guide)
