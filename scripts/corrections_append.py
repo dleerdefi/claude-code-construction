@@ -18,10 +18,15 @@ Each value is its own argument; the script checks them, turns tabs and line brea
 spaces, writes the header when the file is new, appends one line (UTF-8, no BOM, LF) and
 prints it. It never rewrites a line already there. A failed check writes nothing (exit 2).
 
+--once appends nothing when the file already has a line for the same sheet and kind whose box
+overlaps this one (either box's centre inside the other, no fixed tolerance: a tag seen only on
+the drawing has its box estimated by eye, a little differently each run); it prints
+"REPORTED EARLIER, line N" and that line (exit 0).
+
 Usage (from the project folder):
   corrections_append.py --sheet A-101 --x 0.41 --y 0.22 --w 0.08 --h 0.03 --kind room \\
       --crop ".construction/crops/A-101_0.41_0.22_0.08_0.03.png" \\
-      --agentcm "EXISTING DT WOMEN'S RESTROOM" --drawing "EXISTING WOMEN'S RESTROOM"
+      --agentcm "EXISTING DT WOMEN'S RESTROOM" --drawing "EXISTING WOMEN'S RESTROOM" [--once]
 """
 import argparse
 import math
@@ -94,6 +99,30 @@ def check(args, root):
     return [sheet, *box, kind, crop, agentcm, drawing]
 
 
+def reported(values, path):
+    """(line number, line) of a correction already in the file for the same sheet and kind whose box overlaps this
+    one (either box's centre inside the other), else None."""
+    if not path.is_file():
+        return None
+    sheet, kind, box = values[0], values[5], [float(v) for v in values[1:5]]
+
+    def centre_inside(a, b):
+        cx, cy = a[0] + a[2] / 2, a[1] + a[3] / 2
+        return b[0] <= cx <= b[0] + b[2] and b[1] <= cy <= b[1] + b[3]
+
+    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines()[1:], start=2):
+        cells = line.split("\t")
+        if len(cells) < len(COLUMNS) or cells[0] != sheet or cells[5] != kind:
+            continue
+        try:
+            other = [float(v) for v in cells[1:5]]
+        except ValueError:
+            continue
+        if centre_inside(box, other) or centre_inside(other, box):
+            return n, line
+    return None
+
+
 def append(values, path):
     if path.exists() and path.stat().st_size > 0:
         with open(path, encoding="utf-8") as f:
@@ -116,11 +145,18 @@ def main(argv=None):
     p = argparse.ArgumentParser(description="Append one correction of AgentCM's data to .construction/skills/corrections.tsv")
     for name in COLUMNS:
         p.add_argument(f"--{name}", required=True)
+    p.add_argument("--once", action="store_true",
+                   help="append nothing when the file already has this sheet and kind with an overlapping box")
     args = p.parse_args(argv)
     root = Path.cwd()
+    path = root / ".construction" / "skills" / "corrections.tsv"
     try:
         values = check(args, root)
-        line = append(values, root / ".construction" / "skills" / "corrections.tsv")
+        earlier = reported(values, path) if args.once else None
+        if earlier:
+            print(f"REPORTED EARLIER, line {earlier[0]}, nothing written: {earlier[1]}")
+            return 0
+        line = append(values, path)
     except Refused as e:
         print(f"REFUSED, nothing written: {e}")
         return 2

@@ -83,6 +83,34 @@ class CorrectionsAppend(unittest.TestCase):
         self.assertEqual(len(lines), 3)
         self.assertEqual([lines[1].split("\t")[0], lines[2].split("\t")[0]], ["A-101", "Arch-p12"])
 
+    def test_once_writes_one_line_for_two_runs_whose_boxes_are_3_percent_apart(self):
+        # a tag seen only on the drawing: its box is estimated by eye, so the second run's lands elsewhere
+        tag = with_arg(with_arg(GOOD, "kind", "tag"), "agentcm", "")
+        tag = with_arg(with_arg(tag, "drawing", "STAIR 2"), "x", "0.40")
+        first = self.run_script(tag + ["--once"])
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        written = self.tsv.read_bytes()
+        again = self.run_script(with_arg(with_arg(tag, "x", "0.43"), "y", "0.225") + ["--once"])  # 3% across, a little down
+        self.assertEqual(again.returncode, 0, again.stdout + again.stderr)
+        self.assertIn("REPORTED EARLIER, line 2", again.stdout)
+        self.assertEqual(self.tsv.read_bytes(), written, "nothing appended, the earlier line untouched")
+
+    def test_once_still_appends_another_tag_sheet_or_kind(self):
+        tag = with_arg(with_arg(GOOD, "kind", "tag"), "drawing", "STAIR 2")
+        self.assertEqual(self.run_script(tag + ["--once"]).returncode, 0)
+        for other in (with_arg(tag, "x", "0.80"),            # another tag on the sheet
+                      with_arg(tag, "sheet", "A-601"),       # the same box on another sheet
+                      with_arg(tag, "kind", "room")):        # a different correction there
+            r = self.run_script(other + ["--once"])
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertNotIn("REPORTED EARLIER", r.stdout)
+        self.assertEqual(len(self.tsv.read_text(encoding="utf-8").splitlines()), 5)
+
+    def test_without_once_both_lines_are_kept(self):
+        self.run_script(GOOD)
+        self.run_script(GOOD)
+        self.assertEqual(len(self.tsv.read_text(encoding="utf-8").splitlines()), 3)
+
     def test_refusals(self):
         self.assertRefused(with_arg(GOOD, "kind", "door"), "kind must be one of")
         self.assertRefused(with_arg(GOOD, "x", "1.4"), "x must be a number from 0 to 1")
