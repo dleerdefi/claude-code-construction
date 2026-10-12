@@ -115,6 +115,20 @@ class Checks(unittest.TestCase):
             self.run.requests(req("GET", unpromised), req("POST", "tag-detections/ingest", {"sheet_id": A101}))
             self.assertEqual(outcome(t.check_contract_requests)[0], 1, unpromised)
 
+    def test_schedule_ingest_takes_agentcms_value_lists(self):
+        a601 = t.sheet_ids()["A-601"]
+        body = {"sheetId": a601, "scheduleType": "door", "title": "DOOR SCHEDULE", "rowEntityType": "door",
+                "columns": [{"key": "MARK", "header": "MARK"}], "rows": [{"entityIdentifier": "D101", "cells": {"MARK": "D101"}}],
+                "sourceMethod": "hybrid", "confidence": 0.9}
+        self.run.requests(req("POST", "schedules/ingest", body))
+        self.assertEqual(outcome(t.check_schedule_ingest, "A-601")[0], 0)
+        for bad, words in ((dict(body, sourceMethod="agentcm_text"), "sourceMethod 'agentcm_text'"),  # the 10:38 run's
+                           (dict(body, rowEntityType="door_schedule"), "rowEntityType 'door_schedule'")):
+            self.run.requests(req("POST", "schedules/ingest", bad))
+            code, out = outcome(t.check_schedule_ingest, "A-601")
+            self.assertEqual(code, 1, bad)
+            self.assertIn(words, out)
+
     def test_reconcile_needs_the_rows_read_and_an_answer_without_errors(self):
         edit = {"scheduleId": "s1", "sourceFile": "w.xlsx",
                 "cellUpdates": [{"rowKey": "A", "columnKey": "GLAZING", "newValue": "TEMPERED (REV)"}]}

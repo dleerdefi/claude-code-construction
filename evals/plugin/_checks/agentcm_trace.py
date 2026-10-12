@@ -153,6 +153,9 @@ def tag_payload_problems(body, sheet):
 
 
 SCHEDULE_KEYS = ("sheetId", "scheduleType", "title", "rowEntityType", "columns", "rows", "sourceMethod", "confidence")
+# the values AgentCM's own schedule types allow (src/shared/scheduleTypes.ts at 04feab4)
+ROW_ENTITY_TYPES = ("room", "door", "window", "fixture", "equipment")
+SOURCE_METHODS = ("pdfplumber", "vision", "hybrid", "manual")
 
 
 def schedule_payload_problems(body, sheet):
@@ -161,6 +164,10 @@ def schedule_payload_problems(body, sheet):
     out = [f"no {k}" for k in SCHEDULE_KEYS if k not in body]
     if body.get("sheetId") != sheet_ids().get(sheet):
         out.append(f"sheetId {body.get('sheetId')}, not {sheet}'s")
+    if "rowEntityType" in body and body["rowEntityType"] not in ROW_ENTITY_TYPES:
+        out.append(f"rowEntityType {body['rowEntityType']!r}, not one of AgentCM's {ROW_ENTITY_TYPES}")
+    if "sourceMethod" in body and body["sourceMethod"] not in SOURCE_METHODS:
+        out.append(f"sourceMethod {body['sourceMethod']!r}, not one of AgentCM's {SOURCE_METHODS}")
     rows = body.get("rows")
     if not isinstance(rows, list) or not rows or not all(isinstance(r, dict) and r.get("entityIdentifier")
                                                          and isinstance(r.get("cells"), dict) for r in rows):
