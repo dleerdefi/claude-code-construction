@@ -103,7 +103,7 @@ A review fails most often because the right detail was never pulled. Build `trac
 2. **Elements.** Every element of the scope in the contract documents:
    - Use each tagged elevation, equipment item, mark, door number, fixture type or assembly.
    - Find them in plans, elevations, details and schedules.
-   - In AgentCM mode, query the database for tags and cross-references instead of reading sheets (read `query_command` from `.construction/database.yaml`; views in `.construction/db_schema.yaml`).
+   - In AgentCM mode, query the database for tags and cross-references instead of reading sheets: one read-only query per call through AgentCM's wrapper, `sh .construction/query.sh "SELECT ..."` (or `powershell -File .construction/query.ps1 "SELECT ..."`), filtered on `project_id` from `.construction/database.yaml`; the views are listed in `.construction/db_schema.yaml`. Read nothing else from `database.yaml`: the connection and `query_command` are not AgentCM's to promise.
    - For product data with no tagged elements, the elements are the products the spec requires.
 3. **Governing references per element** (`cd_refs`): every sheet, detail, section cut, schedule row and spec article that governs it. Follow every cut drawn on an elevation or plan. Record in `stated` what each one states about the element (sizes, models, ratings, heights, voltages, finishes, supports).
 4. **Changes.** Apply responded RFIs, ASIs and bulletins to the trace, citing them.

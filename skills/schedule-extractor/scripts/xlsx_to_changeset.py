@@ -113,8 +113,9 @@ def copy_field(value):
 def query_db_state(query_wrapper, schedule_id):
     """Query current schedule state from the database through AgentCM's query wrapper.
 
-    The wrapper (.construction/query.sh) runs one SQL statement as the read-only reader role,
-    with the password AgentCM wrote; COPY ... TO STDOUT gives tab-separated rows without psql flags.
+    The wrapper (.construction/query.sh) runs one SQL statement as the read-only reader role and
+    holds the connection itself, so this script reads nothing from database.yaml; COPY ... TO STDOUT
+    gives tab-separated rows without psql flags.
     """
     # Get schedule columns
     sql_columns = (
