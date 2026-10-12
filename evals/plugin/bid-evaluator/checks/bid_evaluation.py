@@ -24,9 +24,10 @@ def first_word(name: str) -> str:
 
 
 def main() -> int:
-    files = sorted(glob.glob(str(WORKSPACE / "bid_evaluation*.json")))
+    work = WORKSPACE / ".construction" / "skills" / "bid-evaluator"  # working data: the skill's own folder
+    files = sorted(glob.glob(str(work / "bid_evaluation*.json"))) or sorted(glob.glob(str(work / "*.json")))
     if not files:
-        print("no bid_evaluation*.json"); print("score: 0"); return 1
+        print("no evaluation JSON in .construction/skills/bid-evaluator/"); print("score: 0"); return 1
     data = json.loads(Path(files[-1]).read_text(encoding="utf-8"))
     bidders = {first_word(b.get("company_name", "")): b for b in data.get("bidders", [])}
     rec = data.get("recommendation", {}) or {}
