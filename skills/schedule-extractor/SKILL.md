@@ -97,13 +97,22 @@ Re-rasterize at higher DPI (300) for the cropped region to improve text clarity.
 
 ### Step 3: Extract Structured Data
 
-Use a **try → validate → fallback** approach:
+#### In AgentCM mode — the table AgentCM read
+
+A table INDEX.md lists under Schedules and legends is already read. Turn its file into the exporter's data with the reader, never with a converter of your own:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/agentcm_schedule.py" ".construction/schedules/<sheet>-<n>.tsv" \
+  --type door_schedule --data ".construction/skills/schedule-extractor/<sheet>-<n>.json"
+```
+It prints the header row it took and what it left out. A table read from the sheet's text has its title and header rows at the top: when it took the wrong row, give `--header-row <y>` (the line's position, as the file prints it) and `--header-rows <n>` for a header on several lines. Then verify the table against the drawing with `crop.sh` and the box on the file's comment line (Source B). Where the drawing shows a different value, correct that cell in the data JSON with the Edit tool, and record the correction as `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` says. Methods A to C below are for a table AgentCM did not find.
+
+Otherwise use a **try → validate → fallback** approach:
 
 #### Method A — pdfplumber table extraction (try first)
 
 Extract the page's tables with the shared script (its JSON holds `text` and `tables`; add `--bbox x1,y1,x2,y2` in PDF points to limit it to the schedule region):
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py" "{pdf_path}" {page} --output tables.json
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py" "{pdf_path}" {page} --output ".construction/skills/schedule-extractor/tables.json"
 ```
 If multiple tables are found, select the largest one (most rows with the most columns — schedules are wide). The first row of the selected table contains headers; subsequent rows are data. If no tables are found or results look garbled, fall back to vision (Method B). Do not write pdfplumber code of your own.
 
@@ -169,12 +178,14 @@ After extraction (by either method):
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/schedule_to_xlsx.py" \
-  --data schedule_data.json \
+  --data ".construction/skills/schedule-extractor/<sheet>-<n>.json" \
   --type door_schedule \
   --project "Project Name" \
   --sheet "A-0.01" \
   --output "Door_Schedule_A-0.01.xlsx"
 ```
+
+The data JSON is working data: write it (with the Write tool, or the reader in AgentCM mode) under `.construction/skills/schedule-extractor/`, never in the project root or a folder of your own. For a table AgentCM has already ingested (`schedule_id=<id>` on its file's comment line), add `--schedule-id <id> --sheet-id <the sheet's id>` so the workbook can come back through the round trip.
 
 The script creates a formatted Excel workbook with:
 - Header row with project info and source sheet
@@ -184,7 +195,12 @@ The script creates a formatted Excel workbook with:
 
 ### Step 6: Ingest to AgentCM (AgentCM mode)
 
-After Excel output, send the extracted data to AgentCM's schedule ingest, which stores it and links its rows to rooms. Write the payload (below) to `.construction/skills/schedule-extractor/outbox/schedules-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json` and send it as `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` says under Writing back; if AgentCM is closed, the payload waits there and the PE is told:
+After Excel output, send the extracted data to AgentCM's schedule ingest, which stores it and links its rows to rooms. The payload (below) goes in `.construction/skills/schedule-extractor/outbox/schedules-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json`:
+- **A table from `schedules/` not yet ingested** (`schedule_id=none`): the reader writes it. Run it again with `--payload <that path> --sheet-id <id> --row-entity-type <type> --source-method hybrid --confidence <0 to 1>` (`hybrid`: AgentCM's reading, checked by eye with `crop.sh`), and make any correction from Step 3 in the payload's cell too.
+- **A table already ingested** (`schedule_id=<id>`): nothing to ingest. The reader refuses, and the PE edits come back through the round trip below.
+- **A table read by Methods A to C:** write the payload with the Write tool. `sourceMethod` is one of `pdfplumber`, `vision`, `hybrid` or `manual`, and `rowEntityType` one of the types listed below.
+
+Send it as `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` says under Writing back; if AgentCM is closed, the payload waits there and the PE is told:
 
 ```bash
 # api_url and project_id from .construction/database.yaml
@@ -366,6 +382,7 @@ Never overwrite an existing schedule extraction. The export script uses `safe_ou
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py` — Method A table extraction (pdfplumber)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision extraction
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — crop schedule region from full sheet image
+- `scripts/agentcm_schedule.py` — AgentCM mode: a table from `.construction/schedules/` to the exporter's data and, for one not yet ingested, the ingest payload (Steps 3 and 6)
 - `scripts/schedule_to_xlsx.py` — Excel export with reconciliation anchors
 - `scripts/xlsx_to_changeset.py` — diff the edited Excel against AgentCM's stored rows (its rows endpoint) for reconciliation
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — record the extraction as a finding (Step 7)
