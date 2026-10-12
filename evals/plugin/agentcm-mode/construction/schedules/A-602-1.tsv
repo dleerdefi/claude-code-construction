@@ -1,4 +1,4 @@
-# A-602 WINDOW SCHEDULE: a window at 0.100 0.060 0.440 0.350 (x y w h), from the schedule ingested into AgentCM (15 rows): one line per row, cells by column under the drawing's column headers. 1 rows of the table's text match no row here (its header rows, or rows the extraction skipped): they are in the sheet's .rows.txt. schedule_id=741ea437-fe8c-4a4c-811a-2f0179f7378f
+# A-602 WINDOW SCHEDULE: a window at 0.100 0.060 0.440 0.350 (x y w h), from the schedule ingested into AgentCM (15 rows): one line per row, cells by column under the drawing's column headers. 1 rows of the table's text match no row here (its header rows, or rows the extraction skipped): they are in the sheet's .rows.txt. schedule_id=ac35b0bc-9b30-4046-bf47-53bf90f698c6
 row	MARK	WIDTH	HEIGHT	TYPE	GLAZING
 1	A	2'-0"	3'-0"	FIXED	TEMPERED
 2	B	3'-0"	4'-0"	CASEMENT	INSUL

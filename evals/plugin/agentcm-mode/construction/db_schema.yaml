@@ -6,7 +6,7 @@ tables:
   sheets:
     description: "All project sheets with metadata"
     key_columns: [id, sheet_number, discipline]
-    example_query: "SELECT sheet_number, sheet_title, discipline FROM sheets WHERE project_id = '00fffe4b-5221-40a7-a12c-d55a55497f7e' ORDER BY discipline, sheet_number"
+    example_query: "SELECT sheet_number, sheet_title, discipline FROM sheets WHERE project_id = '6ed57636-ec8a-424c-807f-669dbd68750c' ORDER BY discipline, sheet_number"
 
   graph_elements:
     description: "Door, element and equipment tags accepted in Group Review (rooms are in graph_room_tags and rooms, callouts in callout_edges, views in graph_views, grid lines in graph_grid_lines)"
@@ -18,7 +18,7 @@ tables:
     description: "Room entities with level assignments"
     key_columns: [id, number, name, level_id]
     note: "JOIN to levels table for level name. number is the room number, name is the room name."
-    example_query: "SELECT r.number, r.name, l.name AS level FROM rooms r LEFT JOIN levels l ON l.id = r.level_id WHERE r.project_id = '00fffe4b-5221-40a7-a12c-d55a55497f7e'"
+    example_query: "SELECT r.number, r.name, l.name AS level FROM rooms r LEFT JOIN levels l ON l.id = r.level_id WHERE r.project_id = '6ed57636-ec8a-424c-807f-669dbd68750c'"
 
   schedule_cells:
     description: "Schedule data at cell level (entity-attribute-value pattern)"
@@ -68,7 +68,7 @@ tables:
     note: "Coordinates are normalized 0-1 (top-left origin). Use for joins and spatial queries; to search the text, the sheet files are faster."
 
 views:
-  note: "Every view has project_id first: filter on project_id = '00fffe4b-5221-40a7-a12c-d55a55497f7e'; one database serves several projects."
+  note: "Every view has project_id first: filter on project_id = '6ed57636-ec8a-424c-807f-669dbd68750c'; one database serves several projects."
   v_room_profile: "All data for a room across sheets and schedules. Filter by project_id and room_number."
   v_sheet_contents: "All elements on a given sheet. Filter by project_id and sheet_number."
   v_schedule_pivot: "Schedule data in readable tabular form. Filter by project_id, schedule_type, row_key."
@@ -78,16 +78,16 @@ views:
 write_endpoints:
   schedule_ingest:
     method: POST
-    path: "http://localhost:3001/api/projects/00fffe4b-5221-40a7-a12c-d55a55497f7e/schedules/ingest"
+    path: "http://localhost:3001/api/projects/6ed57636-ec8a-424c-807f-669dbd68750c/schedules/ingest"
     description: "Ingest extracted schedule data from skill output"
   schedule_reconcile:
     method: POST
-    path: "http://localhost:3001/api/projects/00fffe4b-5221-40a7-a12c-d55a55497f7e/schedules/reconcile"
+    path: "http://localhost:3001/api/projects/6ed57636-ec8a-424c-807f-669dbd68750c/schedules/reconcile"
     description: "Apply Excel reconciliation changeset to DB"
   tag_detections_ingest:
     method: POST
-    path: "http://localhost:3001/api/projects/00fffe4b-5221-40a7-a12c-d55a55497f7e/tag-detections/ingest"
-    description: "Ingest tag-audit QTO detection results into graph_elements"
+    path: "http://localhost:3001/api/projects/6ed57636-ec8a-424c-807f-669dbd68750c/tag-detections/ingest"
+    description: "A skill's tag detections, each by its box on the sheet, as pending cards in AgentCM's review; each detection answered"
 
 static_files:
   start_here: ".construction/INDEX.md"
