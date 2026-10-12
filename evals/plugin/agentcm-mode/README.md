@@ -28,5 +28,5 @@ answers nothing else; every request goes to `.eval-api/requests.jsonl`, which th
 `submittal`) is skipped with "waiting for the contract fixture"; nothing is faked. The 0.6.0 gate runs
 `--tag agentcm-mode --no-skip`, so a waiting case fails it.
 
-**To update:** run the item-6 generator against AgentCM's fixture folder; it copies `.construction/`,
+**To update:** `bin/construction-python dev/make_agentcm_cases.py <AgentCM's fixture folder>`; it copies `.construction/`,
 the PDFs, `api-responses.json` and `FIXTURE_SOURCE`, and rewrites the cases' expected facts from it.
