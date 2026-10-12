@@ -70,6 +70,25 @@ class PathGraders(unittest.TestCase):
                         self.assertFalse(grade_regex(g, reading(path)).passed)
                 self.assertTrue(grade_regex(g, reading("/ws/README.md")).passed)
 
+    def test_they_see_every_tool_call_and_only_tool_calls(self):
+        def long_run(path, at):
+            trace = []
+            for i in range(40):  # 80 messages: the condensed trace keeps the first and last 12
+                trace.append({"type": "tool_use", "name": "Read", "input": {"file_path": path if i == at else f"/ws/notes-{i}.md"}})
+                trace.append({"type": "tool_result", "content": "x"})
+            return RunResult(case="t", run_index=1, workspace=Path("."), trace=trace)
+
+        for case, g in self.graders:
+            path = both_ways((READS | FORBIDS)[g.name])["windows"]
+            with self.subTest(case=case, grader=g.name):
+                self.assertEqual(grade_regex(g, long_run(path, 30)).passed, g.name in READS)  # seen at call 30
+            if g.name in READS:  # a path named in a tool's result, a reference file say, is not a read
+                said = RunResult(case="t", run_index=1, workspace=Path("."), trace=[
+                    {"type": "tool_use", "name": "Read", "input": {"file_path": "/plugin/reference/agentcm-mode.md"}},
+                    {"type": "tool_result", "content": path}])
+                with self.subTest(case=case, grader=g.name, where="result"):
+                    self.assertFalse(grade_regex(g, said).passed)
+
 
 class InlinePython(unittest.TestCase):
     PY = '"C:/plugin/bin/construction-python"'

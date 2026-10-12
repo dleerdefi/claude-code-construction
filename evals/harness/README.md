@@ -75,7 +75,7 @@ The harness implements the grader types the smoke cases use, with the same front
 | Type | Passes when |
 |---|---|
 | `file_exists` | A file created during the run matches `path` (a glob relative to the workspace); `exists: false` inverts |
-| `regex` | `pattern` is found in the target (`trace`, or `{source: file, path}`); `match: not_contains` or `count:N` |
+| `regex` | `pattern` is found in the target (`trace`; `tool_inputs`, every tool call's JSON-encoded input in full, for "did it read X" over a long run; or `{source: file, path}`); `match: not_contains` or `count:N` |
 | `tool_used` | Between `min` (default 1) and `max` calls to `tool` whose JSON input matches `input_match` |
 | `tool_order` | The first `before` call precedes the first `after` call |
 | `llm` | The judge model votes PASS on the grader body as rubric, over the transcript or the named text file |

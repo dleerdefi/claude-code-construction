@@ -71,6 +71,8 @@ def _target_text(run: RunResult, target) -> tuple[str | None, str]:
     """Resolve a grader target to text. Returns (text, description); text None when unreadable."""
     if target in (None, "trace"):
         return transcript(run), "trace"
+    if target == "tool_inputs":  # every tool call's input, whole: the trace keeps only its ends, each cut at 800
+        return "\n".join(json.dumps(e["input"], default=str) for e in run.tool_uses), "tool inputs"
     if isinstance(target, dict) and target.get("source") == "file":
         rel = str(target.get("path", ""))
         p = run.workspace / rel

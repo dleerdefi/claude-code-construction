@@ -1,6 +1,6 @@
 ---
 type: regex
-target: trace
+target: tool_inputs
 pattern: "\\.construction[\\\\/]+project\\.yaml"
 weight: 1
 ---

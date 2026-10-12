@@ -1,6 +1,6 @@
 ---
 type: regex
-target: trace
+target: tool_inputs
 pattern: "index[\\\\/]+sheet_index\\.yaml"
 weight: 1
 ---

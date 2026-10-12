@@ -1,6 +1,6 @@
 ---
 type: regex
-target: trace
+target: tool_inputs
 pattern: "graph/export|\\.construction[\\\\/]+rasters|\\.construction[\\\\/]+extractions"
 match: not_contains
 weight: 1

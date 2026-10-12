@@ -686,11 +686,11 @@ write("_checks/agentcm_trace.py", '''
 UNATTENDED = ("This is an unattended evaluation run in a construction project folder that AgentCM manages. "
               "Nobody can answer questions: make reasonable choices, do not wait for confirmation, and finish the task.")
 COMMON = {
-    "agentcm-mode": ("regex", 'target: trace\npattern: "\\\\.construction[\\\\\\\\/]+project\\\\.yaml"', 1,
+    "agentcm-mode": ("regex", 'target: tool_inputs\npattern: "\\\\.construction[\\\\\\\\/]+project\\\\.yaml"', 1,
                      "The run read .construction/project.yaml: it decided the mode from AgentCM's marker."),
-    "agentcm-files": ("regex", 'target: trace\npattern: "\\\\.construction[\\\\\\\\/]+(INDEX\\\\.md|sheets[\\\\\\\\/]+|schedules[\\\\\\\\/]+|tags\\\\.tsv|xrefs\\\\.tsv|specs[\\\\\\\\/]+|index[\\\\\\\\/]+sheet_index\\\\.yaml)"', 1,
+    "agentcm-files": ("regex", 'target: tool_inputs\npattern: "\\\\.construction[\\\\\\\\/]+(INDEX\\\\.md|sheets[\\\\\\\\/]+|schedules[\\\\\\\\/]+|tags\\\\.tsv|xrefs\\\\.tsv|specs[\\\\\\\\/]+|index[\\\\\\\\/]+sheet_index\\\\.yaml)"', 1,
                       "The run read AgentCM's files (INDEX.md, the sheet files, schedules, tags, xrefs, specs, the sheet index)."),
-    "no-graph-export": ("regex", 'target: trace\npattern: "graph/export|\\\\.construction[\\\\\\\\/]+rasters|\\\\.construction[\\\\\\\\/]+extractions"\nmatch: not_contains', 1,
+    "no-graph-export": ("regex", 'target: tool_inputs\npattern: "graph/export|\\\\.construction[\\\\\\\\/]+rasters|\\\\.construction[\\\\\\\\/]+extractions"\nmatch: not_contains', 1,
                         "Nothing outside the contract: no graph/export, rasters/ or extractions/."),
     "no-db-queries": ("tool_used", 'tool: Bash\ninput_match: "query\\\\.(sh|ps1)|\\\\bpsql\\\\b|PGPASSWORD|query_command"\nmin: 0\nmax: 0', 1,
                       "No database query at all: no query.sh or query.ps1, no psql, password or query_command."),
@@ -786,7 +786,7 @@ case("sheet-splitter", "/construction:sheet-splitter", "",
      graders={
          "no-split": ("file_exists", 'path: "sheets/**/*.pdf"\nexists: false', 2, "No sheet PDF is written."),
          "split-and-rename": ("regex", 'target: trace\npattern: "Split (&|and) Rename"', 2, "The run points the PE to Split & Rename in AgentCM."),
-         "reads-sheet-index": ("regex", 'target: trace\npattern: "index[\\\\\\\\/]+sheet_index\\\\.yaml"', 1, "It read AgentCM's sheet index to confirm the split."),
+         "reads-sheet-index": ("regex", 'target: tool_inputs\npattern: "index[\\\\\\\\/]+sheet_index\\\\.yaml"', 1, "It read AgentCM's sheet index to confirm the split."),
      })
 xref_text = "; ".join(f"{x[0]} ({x[4]} \"{x[-1]}\")" for x in XREF_A102)
 case("construction-guide", "/construction:construction-guide",
@@ -829,7 +829,7 @@ for name, cmd, prompt, needs, desc, extra in [
      "AgentCM closed: reads the governing sections from AgentCM's specs/ and the trace from tags.tsv and xrefs.tsv. Waits for a submittal against one of the fixture's sections.", ""),
 ]:
     case(name, cmd, prompt, needs=needs, desc=desc, extra_setup=extra,
-         graders={"reads-specs": ("regex", 'target: trace\npattern: "\\\\.construction[\\\\\\\\/]+specs[\\\\\\\\/]+"', 2, "The skill read the spec text from AgentCM's specs/, not its own extraction.")})
+         graders={"reads-specs": ("regex", 'target: tool_inputs\npattern: "\\\\.construction[\\\\\\\\/]+specs[\\\\\\\\/]+"', 2, "The skill read the spec text from AgentCM's specs/, not its own extraction.")})
 unread_names = [r[0] for r in UNREAD]
 case("spec-splitter", "/construction:spec-splitter", "",
      needs="specs unread-manual pdfs", own_extraction_ok=True,
