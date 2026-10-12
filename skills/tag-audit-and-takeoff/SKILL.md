@@ -39,7 +39,7 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
   from the top left of the sheet. Never rasterize whole sheets, and never ask
   for `rasters/` or `graph/export`: they are not part of AgentCM's contract.
 - OCR data queryable via `extracted_items` table in PostgreSQL
-- Write results back via API: `POST /api/projects/{id}/tag-detections/ingest`
+- Write results back via API: `POST {api_url}/projects/{project_id}/tag-detections/ingest`
 
 **Flat File mode** (no `.construction/project.yaml`):
 - Discover sheet images from CLAUDE.md or user-provided paths; rasterize sheet
@@ -66,7 +66,7 @@ Group Review gallery and support the full accept/reject/promote workflow.
 **REQUIRED: Tag type resolution.** Before using any `tag_type` value,
 you MUST resolve it against existing types:
 
-1. Query `GET /api/projects/{id}/group-review/available-types` to see
+1. Query `GET {api_url}/projects/{project_id}/group-review/available-types` to see
    all active tag types for this project
 2. Check if the user's requested type matches ANY existing type name
 3. Apply alias resolution — these names are synonyms of existing types:
