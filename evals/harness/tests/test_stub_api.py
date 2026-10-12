@@ -29,6 +29,7 @@ LINES = [  # an accepted room tag, a pending one, two free ones; two lines each
     "0.615\t0.311\t0.030\t0.010\tocr\t-\t-\t-\tp6\t-\t-\t103",
     "0.400\t0.600\t0.060\t0.008\tocr\t-\t-\t-\tp7\t-\t-\tTOILET",
     "0.415\t0.611\t0.030\t0.010\tocr\t-\t-\t-\tp8\t-\t-\t105",
+    "0.480\t0.602\t0.020\t0.008\tocr\t-\t-\t-\tp9\t-\t-\tWC",
 ]
 
 
@@ -93,20 +94,29 @@ class Answers(unittest.TestCase):
         _, again = self.ingest(det("101", 0.21, bounding_box=box(0.21, 0.309, 0.04, 0.014)))
         self.assertEqual(again["results"][0]["held_by"], accepted["held_by"])
 
-    def test_a_tag_the_recording_shows_rejected_stays_rejected(self):
-        toilet = det("TOILET 105", 0.395, bounding_box=box(0.395, 0.595))
+    def test_a_box_taking_exactly_a_rejected_cards_texts_as_its_type_is_rejected(self):
+        # the recording's rejected card: a room_tag labelled "105" over TOILET and 105 (the box 0.002 wider)
+        recorded = det("105", 0.398, bounding_box={"x": 0.398, "y": 0.598, "width": 0.064, "height": 0.025})
         responses = dict(RESPONSES, **{f"POST /projects/{P}/tag-detections/ingest": {
-            "request": {"sheet_id": SHEET, "detections": [toilet]},
-            "response": {"results": [{"index": 0, "tag_text": "TOILET 105", "tag_type": "room_tag", "outcome": "rejected",
+            "request": {"sheet_id": SHEET, "detections": [recorded]},
+            "response": {"results": [{"index": 0, "tag_text": "105", "tag_type": "room_tag", "outcome": "rejected",
                                       "rejected_by": {"suggestion_id": "card-r1"}, "new_type": False}]}}})
-        stub = stub_api.Stub(responses, None, self.ws)
-        _, body = self.ingest(det("Toilet  105", 0.397, bounding_box=box(0.397, 0.597)), stub=stub)
+
+        def answer(d):
+            _, body = self.ingest(d, stub=stub_api.Stub(responses, None, self.ws))  # a fresh AgentCM each time
+            return body
+
+        # another label over the same two texts: the label is never compared
+        body = answer(det("TOILET 105", 0.4, bounding_box=box(0.4, 0.6, 0.06, 0.021)))
         r = body["results"][0]
         self.assertEqual((r["outcome"], r["rejected_by"]), ("rejected", {"suggestion_id": "card-r1"}))
         self.assertEqual((body["suggestions_created"], body["skipped_duplicate"]), (0, 1))
-        # another tag over those texts is not the rejected one: a new card
-        _, other = self.ingest(det("TOILET 105A", 0.397, bounding_box=box(0.397, 0.597)), stub=stub)
-        self.assertEqual(other["results"][0]["outcome"], "created")
+        self.assertEqual(answer(dict(recorded, tag_type="qto_room_tag"))["results"][0]["outcome"], "rejected")
+        # the same texts as another type, one text fewer, one text more: each a new card
+        for other in (dict(recorded, tag_type="element_tag"),
+                      det("105", 0.41, bounding_box=box(0.41, 0.609, 0.04, 0.014)),
+                      det("TOILET 105 WC", 0.395, bounding_box=box(0.395, 0.595, 0.11, 0.03))):
+            self.assertEqual(answer(other)["results"][0]["outcome"], "created", other)
 
     def test_a_box_over_no_text_is_no_free_text(self):
         _, body = self.ingest(det("STAIR 2", 0.85))

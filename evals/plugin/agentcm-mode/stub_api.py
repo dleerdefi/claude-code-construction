@@ -17,8 +17,9 @@ contract 1, and records every request, with its answer, for the graders:
     by a card created earlier in this stub's life, so a takeoff run twice gets already_held for
     what the first run sent. Each entry carries new_type, true when the request registered a type
     outside contract 1's names. A rejected card is in no file: each detection the recorded tag
-    ingest answered `rejected` is one, and the same tag over the same free texts is answered
-    `rejected` again, with that card. Not AgentCM's code: the same rule, over the same files.
+    ingest answered `rejected` is one, holding the texts its box takes. A box that takes exactly
+    those texts, as the same type, is answered `rejected` with that card; tag_text is a label and
+    is never compared (D-249). Not AgentCM's code: the same rule, over the same files.
   - a schedules write gets the recorded response, or {"ok": true}.
   A sheet id that the workspace's .construction/index/sheet_index.yaml does not list is a 404, as in
   AgentCM; a malformed request is a 400 that names the detection.
@@ -80,8 +81,11 @@ def centre_inside(line: tuple, box: tuple) -> bool:
     return box[0] <= cx <= box[0] + box[2] and box[1] <= cy <= box[1] + box[3]
 
 
-def norm(text: object) -> str:
-    return " ".join(str(text or "").upper().split())
+def stored_type(name: object) -> str:
+    """The name AgentCM stores a type under: without a qto_ prefix, an alias as its canonical name."""
+    t = str(name).strip()
+    t = t[4:] if t.startswith("qto_") else t
+    return ALIASES.get(t, t)
 
 
 def near(a: tuple, b: tuple) -> bool:
@@ -114,8 +118,8 @@ class Stub:
 
     def recorded_rejections(self) -> dict[str, list[dict]]:
         """sheet id -> the cards the PE rejected, as AgentCM's recorded tag ingest shows them: each detection it
-        answered `rejected`, with its text and box. AgentCM keeps rejected cards out of the files, so the recording
-        is the only place the stand-in can learn of one."""
+        answered `rejected`, with its type and box (the texts the card holds are those its box takes). AgentCM
+        keeps rejected cards out of the files, so the recording is the only place the stand-in can learn of one."""
         out: dict[str, list[dict]] = {}
         for key, rec in self.responses.items():
             if not (key.startswith("POST ") and TAG_INGEST.match(key[5:]) and isinstance(rec, dict)):
@@ -129,7 +133,7 @@ class Stub:
                 b = box_of(dets[i])
                 if b:
                     out.setdefault(str(req.get("sheet_id")), []).append({
-                        "id": (r.get("rejected_by") or {}).get("suggestion_id"), "text": norm(dets[i].get("tag_text")),
+                        "id": (r.get("rejected_by") or {}).get("suggestion_id"), "type": stored_type(dets[i].get("tag_type")),
                         "box": b})
         return out
 
@@ -193,9 +197,7 @@ class Stub:
 
     def tag_type(self, name: object) -> tuple[str, bool]:
         """The name a type is stored under, and whether this request registered it (new_type)."""
-        t = str(name).strip()
-        t = t[4:] if t.startswith("qto_") else t
-        t = ALIASES.get(t, t)
+        t = stored_type(name)
         if t in CANONICAL:
             return t, False
         new = t not in self.registered
@@ -252,9 +254,11 @@ class Stub:
                     inside = [j for j, ln in enumerate(lines) if centre_inside(ln["box"], box_of(det))]
                     free = [j for j in inside if j not in held]
                     holding = held[inside[0]] if inside and not free else None
-                    # a rejected card holds no texts, but the same tag over the same texts stays rejected
-                    turned_down = next((r for r in self.rejected.get(sheet, []) if r["text"] == norm(det.get("tag_text"))
-                                        and any(centre_inside(lines[j]["box"], r["box"]) for j in free)), None)
+                    # a rejected card holds no texts, but one holding exactly what this box takes, as this type,
+                    # is the PE's earlier no; the label (tag_text) is never compared
+                    turned_down = next((r for r in self.rejected.get(sheet, []) if free and r["type"] == tag_type
+                                        and set(free) == {j for j, ln in enumerate(lines) if centre_inside(ln["box"], r["box"])}),
+                                       None)
                 if turned_down:
                     entry.update(outcome="rejected", rejected_by={"suggestion_id": turned_down["id"]})
                 elif free:
