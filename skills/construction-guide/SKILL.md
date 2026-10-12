@@ -23,7 +23,7 @@ You are a Project Engineer / Assistant Project Manager operating on construction
 Without `.construction/project.yaml` there is no AgentCM, and skills work from the PDFs.
 
 1. **NEVER read PDF files directly.** Construction PDFs are 30"×42" sheets — too large for direct reading. Always rasterize to PNG first via `rasterize_page.py`, then read the PNG with vision.
-2. Use Claude Code vision on rasterized PDF pages plus `pdfplumber` / `pymupdf` for text and annotation extraction.
+2. Use Claude Code vision on rasterized PDF pages, and the toolkit's readers for text (PDF & Vision Tools below): `pdf_text.py` for a page's text, `extract_text_region.py` for tables and, with `--words`, where each word sits. Never write Python of your own, `python -c` included: the readers are the toolkit.
 
 Bound drawing sets are easier to work with once split into sheet PDFs with a `sheet_index.yaml`. `sheet-splitter` is user-invoked only, so a skill cannot run it: ask the user to run `/construction:sheet-splitter`, or, when nobody can answer, work from the bound set by page number (`find_pages.py` locates a sheet by its number or title).
 
@@ -74,7 +74,7 @@ Find the sheet in `.construction/INDEX.md`, search its text in `.construction/sh
 
 **Following a detail callout**: With AgentCM → search `.construction/xrefs.tsv` as `.construction/CLAUDE.md` shows; `found` says whether the detail is on the target sheet. Without → read the detail bubble (number/sheet), find the target.
 
-**Reading a schedule on a sheet**: With AgentCM → `.construction/schedules/<sheet>-<n>.tsv`, listed in INDEX.md under Schedules and legends. For a structured workbook the user runs `/construction:schedule-extractor` (user-invoked only). Inside a skill without AgentCM, crop the schedule region and read it with vision, or extract the table with `pdfplumber` when the sheet has a text layer.
+**Reading a schedule on a sheet**: With AgentCM → `.construction/schedules/<sheet>-<n>.tsv`, listed in INDEX.md under Schedules and legends. For a structured workbook the user runs `/construction:schedule-extractor` (user-invoked only). Inside a skill without AgentCM, crop the schedule region and read it with vision; when the sheet has a text layer, `extract_text_region.py` extracts the table, and `--words --match` finds a row or a column header as fractions of the page, the box to crop and read.
 
 **Checking a note**: With AgentCM → the sheet's paragraphs in `.construction/sheets/<sheet>.txt`, then crop the note's box. Without → locate the note number, find the corresponding key note area.
 
@@ -201,13 +201,18 @@ A skill that can find AgentCM wrong lists `${CLAUDE_PLUGIN_ROOT}/scripts/correct
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --anchor bottom-right --width 2400 --height 1200 --output titleblock.png
 ```
 
-**Extract text with pdfplumber:**
-```python
-import pdfplumber
-with pdfplumber.open(pdf_path) as pdf:
-    text = pdf.pages[page_num].extract_text()
-    tables = pdf.pages[page_num].extract_tables()
+**Read a page's text** (and whether it has a text layer at all):
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "{pdf_path}" --pages {page}
 ```
+
+**Tables, and where a word sits:**
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py" "{pdf_path}" {page} --words --match "^220$"
+```
+Each word's `x y w h` are fractions of the page from the top left: crop that strip of the rasterized page with `crop_region.py --box x,y,x+w,y+h --normalized`, widened to the row or the column, or re-rasterize it sharper with `rasterize_page.py --crop` (the fractions times 100).
+
+These readers are the toolkit: never write Python of your own (`python -c`, a script through a heredoc), and keep intermediate images in the project folder, never `/tmp`.
 
 ## Where Skills Write
 
