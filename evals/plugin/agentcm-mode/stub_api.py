@@ -20,7 +20,11 @@ contract 1, and records every request, with its answer, for the graders:
     ingest answered `rejected` is one, holding the texts its box takes. A box that takes exactly
     those texts, as the same type, is answered `rejected` with that card; tag_text is a label and
     is never compared (D-249). Not AgentCM's code: the same rule, over the same files.
-  - a schedules write gets the recorded response, or {"ok": true}.
+  - a reconcile is answered from the schedule's stored rows (the recorded GET .../rows): a cell
+    update of a row key the schedule has changes a cell, one of a row key it lacks is an error,
+    in AgentCM's words; an unknown schedule is a 404. Never another request's recorded answer:
+    that would show a skill an error about a row it never named.
+  - a schedule ingest gets the recorded response, or {"ok": true}.
   A sheet id that the workspace's .construction/index/sheet_index.yaml does not list is a 404, as in
   AgentCM; a malformed request is a 400 that names the detection.
 - Anything else: 404.
@@ -219,10 +223,35 @@ class Stub:
             recorded = recorded["response"]
         if TAG_INGEST.match(path):
             return self.ingest(payload)
+        if path.endswith("/schedules/reconcile"):
+            return self.reconcile(path.split("/")[2], payload)
         sheet, sheets = payload.get("sheetId"), self.sheets()
         if sheet and sheets and str(sheet) not in sheets:
             return 404, {"error": "Sheet not found in project"}
         return 200, recorded if recorded is not None else {"ok": True}
+
+    def reconcile(self, project: str, payload: dict) -> tuple[int, object]:
+        """Answered from the schedule's stored rows (the recorded GET .../rows), never from another request's
+        recorded answer: a cell update of a row key the schedule has, to a value it doesn't hold, changes a cell;
+        one of a row key it lacks is an error, in the words AgentCM's recorded answer uses."""
+        sid = payload.get("scheduleId")
+        rows = self.responses.get(f"GET /projects/{project}/schedules/{sid}/rows")
+        if not sid or not isinstance(rows, list):
+            return 404, {"error": "Schedule not found"}
+        stored = {str(r.get("entityIdentifier")): r.get("data") or {} for r in rows if isinstance(r, dict)}
+        updated, changed, errors = set(), 0, []
+        for u in payload.get("cellUpdates") or []:
+            key = str(u.get("rowKey"))
+            if key not in stored:
+                errors.append(f"Row '{key}' not found for cell update")
+            elif stored[key].get(u.get("columnKey")) != u.get("newValue"):
+                updated.add(key)
+                changed += 1
+        deleted = [d for d in payload.get("rowDeletes") or [] if str((d or {}).get("rowKey")) in stored]
+        return 200, {"rowsUpdated": len(updated), "rowsAdded": len(payload.get("rowAdds") or []),
+                     "rowsSoftDeleted": len(deleted), "cellsChanged": changed, "conflictsCreated": 0,
+                     "columnsAdded": len(payload.get("columnAdds") or []),
+                     "columnsHidden": len(payload.get("columnHides") or []), "errors": errors}
 
     def ingest(self, payload: dict) -> tuple[int, object]:
         sheet, dets = payload.get("sheet_id"), payload.get("detections")

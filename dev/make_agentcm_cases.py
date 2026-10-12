@@ -134,7 +134,9 @@ write("agentcm-mode/README.md", f"""
     the stub off and expects the payload in `.construction/skills/<skill>/outbox/`.
 
     **The stub** answers GETs from `api-responses.json` (contract 1 promises one read, a schedule's rows),
-    keeps and answers the three write endpoints, and answers nothing else. A tag ingest is answered by
+    keeps and answers the three write endpoints, and answers nothing else. A reconcile is answered from
+    the schedule's stored rows (the recorded rows read), never from another request's recorded answer.
+    A tag ingest is answered by
     each detection's box over the workspace's sheet files, as D-249 has AgentCM do: `created`,
     `already_held` (with the holding card), `no_free_text`, or `rejected` for a tag the recorded ingest
     shows rejected. Every request, with a write's answer, goes to `.eval-api/requests.jsonl`, which the
@@ -531,15 +533,17 @@ write("_checks/agentcm_trace.py", '''
 
 
     def check_reconcile(schedule_id, row_key, column, value):
-        """One reconcile post for `schedule_id`, carrying sourceFile and the edited cell."""
+        """One reconcile post for `schedule_id`, carrying sourceFile and the edited cell, that AgentCM took: its
+        answer names no error (the stand-in answers from the stored rows, so an error means a row key it lacks)."""
         ps = posts("schedules/reconcile")
         ok = [r for r in ps if isinstance(r["body"], dict) and r["body"].get("scheduleId") == schedule_id
               and r["body"].get("sourceFile") and any(u.get("rowKey") == row_key and u.get("columnKey") == column
-                                                      and u.get("newValue") == value for u in r["body"].get("cellUpdates") or [])]
+                                                      and u.get("newValue") == value for u in r["body"].get("cellUpdates") or [])
+              and isinstance(r.get("response"), dict) and not r["response"].get("errors")]
         rows_read = [r for r in requests() if r["method"] == "GET" and r["path"].endswith(f"/schedules/{schedule_id}/rows")]
         finish(bool(ok) and bool(rows_read), f"rows read, then reconcile of {schedule_id} with {row_key}/{column} = {value!r}",
-               f"rows reads: {len(rows_read)}; reconciles: {len(ps)}, none with {row_key}/{column} = {value!r}: "
-               f"{[r['body'] for r in ps][:2]}")
+               f"rows reads: {len(rows_read)}; reconciles: {len(ps)}, none with {row_key}/{column} = {value!r} and "
+               f"no error: {[(r['body'], r.get('response')) for r in ps][:2]}")
 
 
     # -- AgentCM closed -------------------------------------------------------------------------------

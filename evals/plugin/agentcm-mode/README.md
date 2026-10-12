@@ -20,7 +20,9 @@ and list `http://127.0.0.1:47817/` in `allow_urls`, the one address curl may rea
 the stub off and expects the payload in `.construction/skills/<skill>/outbox/`.
 
 **The stub** answers GETs from `api-responses.json` (contract 1 promises one read, a schedule's rows),
-keeps and answers the three write endpoints, and answers nothing else. A tag ingest is answered by
+keeps and answers the three write endpoints, and answers nothing else. A reconcile is answered from
+the schedule's stored rows (the recorded rows read), never from another request's recorded answer.
+A tag ingest is answered by
 each detection's box over the workspace's sheet files, as D-249 has AgentCM do: `created`,
 `already_held` (with the holding card), `no_free_text`, or `rejected` for a tag the recorded ingest
 shows rejected. Every request, with a write's answer, goes to `.eval-api/requests.jsonl`, which the

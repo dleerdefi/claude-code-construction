@@ -115,6 +115,18 @@ class Checks(unittest.TestCase):
             self.run.requests(req("GET", unpromised), req("POST", "tag-detections/ingest", {"sheet_id": A101}))
             self.assertEqual(outcome(t.check_contract_requests)[0], 1, unpromised)
 
+    def test_reconcile_needs_the_rows_read_and_an_answer_without_errors(self):
+        edit = {"scheduleId": "s1", "sourceFile": "w.xlsx",
+                "cellUpdates": [{"rowKey": "A", "columnKey": "GLAZING", "newValue": "TEMPERED (REV)"}]}
+        took = {"cellsChanged": 1, "errors": []}
+        self.run.requests(req("GET", "schedules/s1/rows"), req("POST", "schedules/reconcile", edit, response=took))
+        self.assertEqual(outcome(t.check_reconcile, "s1", "A", "GLAZING", "TEMPERED (REV)")[0], 0)
+        refused = {"cellsChanged": 0, "errors": ["Row 'A' not found for cell update"]}
+        self.run.requests(req("GET", "schedules/s1/rows"), req("POST", "schedules/reconcile", edit, response=refused))
+        self.assertEqual(outcome(t.check_reconcile, "s1", "A", "GLAZING", "TEMPERED (REV)")[0], 1)
+        self.run.requests(req("POST", "schedules/reconcile", edit, response=took))  # the stored rows never read
+        self.assertEqual(outcome(t.check_reconcile, "s1", "A", "GLAZING", "TEMPERED (REV)")[0], 1)
+
     def test_outbox_when_agentcm_is_closed(self):
         self.run.file(".construction/skills/tag-audit-and-takeoff/outbox/tag-detections-ingest-A-101-20261012-050000.json",
                       {"sheet_id": A101, "detections": [DET]})

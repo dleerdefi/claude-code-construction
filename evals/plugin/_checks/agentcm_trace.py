@@ -187,15 +187,17 @@ def check_schedule_ingest(sheet):
 
 
 def check_reconcile(schedule_id, row_key, column, value):
-    """One reconcile post for `schedule_id`, carrying sourceFile and the edited cell."""
+    """One reconcile post for `schedule_id`, carrying sourceFile and the edited cell, that AgentCM took: its
+    answer names no error (the stand-in answers from the stored rows, so an error means a row key it lacks)."""
     ps = posts("schedules/reconcile")
     ok = [r for r in ps if isinstance(r["body"], dict) and r["body"].get("scheduleId") == schedule_id
           and r["body"].get("sourceFile") and any(u.get("rowKey") == row_key and u.get("columnKey") == column
-                                                  and u.get("newValue") == value for u in r["body"].get("cellUpdates") or [])]
+                                                  and u.get("newValue") == value for u in r["body"].get("cellUpdates") or [])
+          and isinstance(r.get("response"), dict) and not r["response"].get("errors")]
     rows_read = [r for r in requests() if r["method"] == "GET" and r["path"].endswith(f"/schedules/{schedule_id}/rows")]
     finish(bool(ok) and bool(rows_read), f"rows read, then reconcile of {schedule_id} with {row_key}/{column} = {value!r}",
-           f"rows reads: {len(rows_read)}; reconciles: {len(ps)}, none with {row_key}/{column} = {value!r}: "
-           f"{[r['body'] for r in ps][:2]}")
+           f"rows reads: {len(rows_read)}; reconciles: {len(ps)}, none with {row_key}/{column} = {value!r} and "
+           f"no error: {[(r['body'], r.get('response')) for r in ps][:2]}")
 
 
 # -- AgentCM closed -------------------------------------------------------------------------------

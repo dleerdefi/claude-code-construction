@@ -152,8 +152,27 @@ class Answers(unittest.TestCase):
             "request": request, "response": {"cellsChanged": 0, "errors": []}}
         self.assertEqual(self.stub.post(f"/projects/{P}/schedules/reconcile", request),
                          (200, {"cellsChanged": 0, "errors": []}))
-        self.assertEqual(self.stub.post(f"/projects/{P}/schedules/reconcile", dict(request, cellUpdates=[{"x": 1}])),
-                         (200, {"cellsChanged": 0, "errors": []}))
+
+    def test_a_reconcile_is_answered_from_the_stored_rows_never_another_requests_answer(self):
+        # the fixture recorded an answer about row W1; a request about another row must not get it
+        self.stub.responses[f"POST /projects/{P}/schedules/reconcile"] = {
+            "request": {"scheduleId": "s1", "cellUpdates": [{"rowKey": "W1"}]},
+            "response": {"cellsChanged": 0, "errors": ["Row 'W1' not found for cell update"]}}
+        self.stub.responses[f"GET /projects/{P}/schedules/s1/rows"][0]["data"] = {"GLAZING": "TEMPERED"}
+
+        def reconcile(**changes):
+            return self.stub.post(f"/projects/{P}/schedules/reconcile", {"scheduleId": "s1", "sourceFile": "w.xlsx", **changes})
+
+        status, body = reconcile(cellUpdates=[{"rowKey": "D0", "columnKey": "GLAZING", "newValue": "TEMPERED (REV)"}])
+        self.assertEqual((status, body["cellsChanged"], body["rowsUpdated"], body["errors"]), (200, 1, 1, []))
+        _, body = reconcile(cellUpdates=[{"rowKey": "D0", "columnKey": "GLAZING", "newValue": "TEMPERED"}])
+        self.assertEqual((body["cellsChanged"], body["errors"]), (0, []))  # the value it already holds
+        _, body = reconcile(cellUpdates=[{"rowKey": "W9", "columnKey": "GLAZING", "newValue": "x"}])
+        self.assertEqual((body["cellsChanged"], body["errors"]), (0, ["Row 'W9' not found for cell update"]))
+        _, body = reconcile(rowAdds=[{"rowKey": "D9"}], rowDeletes=[{"rowKey": "D1"}, {"rowKey": "nope"}],
+                            columnAdds=[{"key": "NOTE"}], columnHides=[{"key": "GLAZING"}])
+        self.assertEqual([body[k] for k in ("rowsAdded", "rowsSoftDeleted", "columnsAdded", "columnsHidden")], [1, 1, 1, 1])
+        self.assertEqual(self.stub.post(f"/projects/{P}/schedules/reconcile", {"scheduleId": "unknown"})[0], 404)
 
     def test_a_sheet_id_the_index_does_not_list_is_404(self):
         status, body = self.stub.post(f"/projects/{P}/tag-detections/ingest",
