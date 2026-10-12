@@ -50,6 +50,7 @@ class RunResult:
     trace: list[dict] = field(default_factory=list)
     guard_log: list[dict] = field(default_factory=list)
     created_files: list[str] = field(default_factory=list)
+    modified_files: list[str] = field(default_factory=list)  # existed before the run and changed during it
     elapsed_s: float = 0.0
     num_turns: int | None = None
     cost_usd: float | None = None
@@ -80,8 +81,14 @@ def find_bash() -> str:
     return found
 
 
-def snapshot(workspace: Path) -> set[str]:
-    return {p.relative_to(workspace).as_posix() for p in workspace.rglob("*") if p.is_file()}
+def snapshot(workspace: Path) -> dict[str, tuple[int, int]]:
+    """Every file under the workspace with its size and mtime, so created and modified files can be told apart."""
+    out = {}
+    for p in workspace.rglob("*"):
+        if p.is_file():
+            st = p.stat()
+            out[p.relative_to(workspace).as_posix()] = (st.st_size, st.st_mtime_ns)
+    return out
 
 
 def make_workspace(case: Case, run_index: int) -> Path:
@@ -198,7 +205,9 @@ async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> R
             result.is_error = True
             result.error = f"timed out after {case.timeout_seconds}s"
         finally:
-            result.created_files = sorted(snapshot(workspace) - before)
+            after = snapshot(workspace)
+            result.created_files = sorted(after.keys() - before.keys())
+            result.modified_files = sorted(k for k in after.keys() & before.keys() if after[k] != before[k])
     except ScaffoldSkipped as e:
         result.skipped = True
         result.error = str(e)

@@ -40,8 +40,9 @@ claude plugin validate --strict .claude-plugin/plugin.json   # Check manifest + 
 
 ### Script Allowlist
 - Skills must declare an exhaustive list of allowed scripts in their SKILL.md (a skill that runs no scripts says so, as project-setup does)
-- Skills must NOT create custom Python scripts during execution
+- Skills must NOT create custom Python scripts during execution, including inline `python -c`. The reason, stated once here: deliverables come only from the versioned exporters, so every run's output has the same shape and can be audited; working files stay inside the project; the skill's own JSON and YAML are written with the Write tool. When a run writes its own script, read it as a gap in the toolkit (a missing reader, a check an exporter should make) and fix the toolkit, not the rule. Shared readers: `scripts/pdf/pdf_text.py` (PDF text, TEXT/VISION per page), `scripts/docx_text.py` (Word), `scripts/pdf/extract_text_region.py` (pdfplumber tables)
 - All scripts live in the shared `scripts/` directory or per-skill `scripts/` subdirectories
+- Evals grade this: the bid cases fail on a `.py` written by the model, on `python -c`, or on a script written through a shell redirect or heredoc (`evals/plugin/<case>/graders/no-helper-scripts.md`, `no-inline-python.md`)
 
 ### Evals
 - Every skill has a case in `evals/plugin/<case>/`; the case conventions are in `evals/plugin/README.md` and the runner is `evals/harness/run.py` (`bin/construction-python evals/harness/run.py --tag smoke --runs 1`, see `evals/harness/README.md` and `docs/RUNNING_EVALS.md`)

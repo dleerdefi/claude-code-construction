@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from dataclasses import asdict
 from pathlib import Path
 
@@ -20,14 +21,35 @@ def write_trace(out_dir: Path, run: RunResult) -> Path:
     return d
 
 
+def write_created(out_dir: Path, run: RunResult) -> Path | None:
+    """Copy the files the run created or modified into <run dir>/workspace/, so file graders
+    and python checks can be re-run (--regrade) after the temp workspace is deleted. Returns
+    the folder, or None when the workspace is gone or nothing changed."""
+    files = list(run.created_files) + list(run.modified_files)
+    if not files or not run.workspace.exists():
+        return None
+    snap = out_dir / run.case / f"run-{run.run_index}" / "workspace"
+    if snap.resolve() == run.workspace.resolve():
+        return snap
+    for rel in files:
+        src = run.workspace / rel
+        if src.is_file():
+            dst = snap / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dst)
+    return snap if snap.exists() else None
+
+
 def write_run(out_dir: Path, run: RunResult, graders: list[GraderResult]) -> Path:
     """The graded result; written once, after grading, so nothing reads a placeholder score."""
     d = write_trace(out_dir, run)
+    write_created(out_dir, run)
     (d / "graders.json").write_text(json.dumps([asdict(g) for g in graders], indent=1), encoding="utf-8")
     (d / "run.json").write_text(json.dumps({
         "case": run.case, "run_index": run.run_index, "workspace": str(run.workspace), "score": score(graders),
         "elapsed_s": round(run.elapsed_s, 1), "num_turns": run.num_turns, "cost_usd": run.cost_usd,
         "subtype": run.subtype, "is_error": run.is_error, "error": run.error, "created_files": run.created_files,
+        "modified_files": run.modified_files,
         "guard_denials": [g for g in run.guard_log if not g["allow"]],
     }, indent=1, default=str), encoding="utf-8")
     return d

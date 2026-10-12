@@ -3,7 +3,8 @@
 Island Tile (B): silent omission of 09 65 13 and a stated total $4,200 above its line items.
 Palmetto (C): moisture testing excluded in a buried qualification; budget-only pricing.
 Sandbar (D): a smudged value on the scan; no addenda acknowledged.
-Mangrove (E): 15-day validity, no bond. Gulfshore (A) is clean and the lowest responsive bid.
+Mangrove (E): 15-day validity, no bond. Gulfshore (A) is clean and the lowest fully responsive bid;
+Sandbar (D) is the apparent low bidder and may be recommended conditionally (SKILL.md 2e).
 """
 import glob
 import json
@@ -37,6 +38,19 @@ def main() -> int:
     def silent_anywhere(key):
         return any(str(v).upper() == "SILENT" for v in (bidders.get(key, {}).get("coverage_map") or {}).values())
 
+    recommended = str(rec.get("recommended_bidder", "")).lower()
+    rec_text = json.dumps(rec, default=str).lower()
+    conditions = " ".join(str(c) for c in (rec.get("conditions") or [])).lower()
+    # Policy (SKILL.md 2e): the apparent low bidder may be recommended conditionally
+    # when every curable defect is a named award condition; Gulfshore, the clean
+    # bid, is always acceptable.
+    sandbar_cures = ("addend" in conditions) and any(
+        w in conditions for w in ("09 67 10", "smudg", "illegible", "unclear", "derived", "legible", "clean copy"))
+    recommended_ok = "gulfshore" in recommended or ("sandbar" in recommended and sandbar_cures)
+    # If a figure was derived for the smudged line it must be labelled as such, never presented as read.
+    sandbar_blob = blob("sandbar")
+    sandbar_derivation_ok = any(w in sandbar_blob + rec_text for w in ("derived", "confirm", "smudg", "illegible", "unclear"))
+
     checks = {
         "five bidders evaluated": len(bidders) == 5,
         "Island: a baseline item marked SILENT": silent_anywhere("island"),
@@ -47,7 +61,8 @@ def main() -> int:
         "Palmetto: budget pricing noted": "budget" in blob("palmetto"),
         "Palmetto: not the recommended bidder": "palmetto" not in str(rec.get("recommended_bidder", "")).lower(),
         "Island: not the recommended bidder": "island" not in str(rec.get("recommended_bidder", "")).lower(),
-        "Gulfshore recommended": "gulfshore" in str(rec.get("recommended_bidder", "")).lower(),
+        "recommendation: Gulfshore, or Sandbar conditional on both cures": recommended_ok,
+        "Sandbar: derived 09 67 10 figure labelled derived/confirm if used": sandbar_derivation_ok,
         "Sandbar: unclear scan value or missing addenda noted": any(w in blob("sandbar") for w in ("unclear", "illegible", "smudg", "addend")),
         "Mangrove: short validity or missing bond noted": any(w in blob("mangrove") for w in ("15 day", "15-day", "validity", "bond")),
         "PE attention items present": bool(rec.get("pe_attention_items")),

@@ -41,7 +41,7 @@ bin/construction-python evals/harness/run.py --tag large-pdf --runs 1  # a 366-p
 bin/construction-python evals/harness/run.py --runs 1                  # all 18 cases, about $45 on Sonnet
 ```
 
-Each run is a headless Claude Code session that is then graded; see the [harness README](../evals/harness/README.md) for options, requirements and how runs are confined, and the [eval suite README](../evals/plugin/README.md) for what every case checks and the suite's known issues. On Windows the harness needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`). The `real` cases are skipped, not failed, when the Sanibel PDFs have not been downloaded. Add `--judge-model sonnet` when running `submittal-review`; the default judge misreads its long findings table. A red case is not a regression until it fails again with `--runs 3`.
+Each run is a headless Claude Code session that is then graded; see the [harness README](../evals/harness/README.md) for options, requirements and how runs are confined, and the [eval suite README](../evals/plugin/README.md) for what every case checks and the suite's known issues. On Windows the harness needs the native Claude Code install (`irm https://claude.ai/install.ps1 | iex`). The `real` cases are skipped, not failed, when the Sanibel PDFs have not been downloaded. Add `--judge-model sonnet` when running `submittal-review`; the default judge misreads its long findings table. A red case is not a regression until it fails again with `--runs 3`. When you change a grader, check it against the last results folder first with `--regrade evals/results/<stamp>`, which re-grades the saved runs without running the agent.
 
 Alternatives:
 

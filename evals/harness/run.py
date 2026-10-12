@@ -5,11 +5,18 @@ Usage (from the plugin root):
   bin/construction-python evals/harness/run.py --tag smoke --runs 1
   bin/construction-python evals/harness/run.py --case sheet-splitter --keep
   bin/construction-python evals/harness/run.py --dry-run
+  bin/construction-python evals/harness/run.py --regrade evals/results/2026-10-04T23-51-00
 
 Reads the same cases as `claude plugin eval` (evals/plugin/<case>/). Results go
 to evals/results/<timestamp>/ (summary.md, summary.json, per-run traces). Exit
 code 0 when every case scores at or above --threshold, 1 otherwise, 2 on a
 harness error.
+
+--regrade re-grades the runs saved in a results folder with the current
+graders and writes a new results folder; the agent is not run, so a changed
+grader costs nothing to check. Graders that need the workspace keep their
+stored verdict when the workspace is gone; llm graders keep theirs unless
+--rejudge.
 """
 from __future__ import annotations
 
@@ -24,6 +31,7 @@ sys.path.insert(0, str(HERE))
 
 from cases import load_cases, select  # noqa: E402
 from graders import JudgeOptions, grade_run, score  # noqa: E402
+from regrade import load_saved_run, regrade_run  # noqa: E402
 from report import write_run, write_summary, write_trace  # noqa: E402
 from runner import RunOptions, cleanup, run_case  # noqa: E402
 
@@ -46,7 +54,63 @@ def parse_args(argv=None):
     p.add_argument("--keep", action="store_true", help="keep every workspace (failed runs are always kept)")
     p.add_argument("--output-dir", help="results folder (default: evals/results/<timestamp>)")
     p.add_argument("--dry-run", action="store_true", help="list the selected cases and graders, run nothing")
+    p.add_argument("--regrade", metavar="RESULTS_DIR", help="re-grade the runs saved in this results folder; run nothing")
+    p.add_argument("--rejudge", action="store_true", help="with --regrade: ask the judge again for llm graders")
     return p.parse_args(argv)
+
+
+async def regrade_async(args, cases) -> int:
+    src = Path(args.regrade)
+    if not src.is_dir():
+        print(f"{src} is not a results folder", file=sys.stderr)
+        return 2
+    stamp = time.strftime("%Y-%m-%dT%H-%M-%S")
+    out_dir = Path(args.output_dir) if args.output_dir else PLUGIN_ROOT / "evals" / "results" / f"{stamp}-regrade"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    judge = JudgeOptions(model=args.judge_model, votes=args.judge_votes)
+    by_name = {c.dir.name: c for c in cases}
+    summary = {"timestamp": stamp, "regraded_from": str(src), "model": "(regrade)", "judge_model": args.judge_model,
+               "threshold": args.threshold, "cases": [], "total_cost_usd": 0.0, "passed": 0, "skipped": 0, "total": 0}
+    for case_dir in sorted(p for p in src.iterdir() if p.is_dir() and p.name in by_name):
+        case = by_name[case_dir.name]
+        run_dirs = sorted((p for p in case_dir.iterdir() if p.is_dir() and (p / "run.json").exists()),
+                          key=lambda p: int(p.name.rsplit("-", 1)[-1]))
+        if not run_dirs:
+            continue
+        summary["total"] += 1
+        print(f"{case.dir.name} ({len(run_dirs)} saved run{'s' if len(run_dirs) != 1 else ''})")
+        run_scores, run_details, cost = [], [], 0.0
+        for run_dir in run_dirs:
+            run, stored, source = load_saved_run(run_dir, case.dir.name)
+            new_dir = write_trace(out_dir, run)
+            graders = await regrade_run(case, run, stored, judge, PLUGIN_ROOT, new_dir / "trace.jsonl", args.rejudge,
+                                        source)
+            write_run(out_dir, run, graders)
+            s = score(graders)
+            run_scores.append(s)
+            cost += run.cost_usd or 0.0
+            for g in graders:
+                print(f"      {'PASS' if g.passed else 'FAIL'} {g.name} ({g.type}): {g.detail[:160]}")
+            run_details.append({"run_index": run.run_index, "score": s, "num_turns": run.num_turns,
+                                "elapsed_s": round(run.elapsed_s), "cost_usd": run.cost_usd, "error": run.error,
+                                "graders": [g.__dict__ for g in graders],
+                                "guard_denials": [d for d in run.guard_log if not d["allow"]],
+                                "kept_workspace": str(run.workspace) if source == "workspace" else ""})
+        case_score = round(sum(run_scores) / len(run_scores), 4)
+        ok = case_score >= args.threshold
+        print(f"  score {case_score:.2f}  {'PASS' if ok else 'FAIL'}")
+        summary["cases"].append({"name": case.dir.name, "score": case_score, "runs": len(run_dirs), "cost_usd": cost,
+                                 "notes": ("pass" if ok else "below threshold") + f" (regraded from {src.name})",
+                                 "run_details": run_details})
+        summary["total_cost_usd"] += cost
+        summary["passed"] += ok
+    if not summary["total"]:
+        print(f"no saved runs in {src} match the selected cases", file=sys.stderr)
+        return 2
+    write_summary(out_dir, summary)
+    print(f"\n{summary['passed']}/{summary['total']} cases pass with the current graders (original agent cost "
+          f"${summary['total_cost_usd']:.2f}, nothing spent now) · report: {out_dir / 'summary.md'}")
+    return 0 if summary["passed"] == summary["total"] else 1
 
 
 async def main_async(args) -> int:
@@ -54,6 +118,8 @@ async def main_async(args) -> int:
     if not cases:
         print("no cases selected", file=sys.stderr)
         return 2
+    if args.regrade:
+        return await regrade_async(args, cases)
     if args.dry_run:
         for c in cases:
             print(f"{c.dir.name}: tags={c.tags} runs={args.runs or c.runs} max_turns={c.max_turns} "

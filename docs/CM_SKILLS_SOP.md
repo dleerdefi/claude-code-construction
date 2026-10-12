@@ -409,7 +409,7 @@ Steps load exactly one reference at a time, use it, and release it before the ne
 
 | Resource Type | Location | Example |
 |---|---|---|
-| **Shared scripts** | `scripts/pdf/`, `scripts/graph/` | `rasterize_page.py`, `crop_region.py`, `write_finding.py` |
+| **Shared scripts** | `scripts/pdf/`, `scripts/graph/`, `scripts/` | `rasterize_page.py`, `crop_region.py`, `pdf_text.py`, `extract_text_region.py`, `docx_text.py`, `write_finding.py`, `issue_manager.py` |
 | **Shared domain knowledge** | `reference/` | `csi_masterformat.yaml`, `drawing_conventions.md`, `common_abbreviations.yaml` |
 | **Per-skill scripts** | `{skill-name}/scripts/` | Canonical executable scripts for each skill |
 | **Per-skill references** | `{skill-name}/references/` | Data contracts, schemas, or domain knowledge specific to one skill |
