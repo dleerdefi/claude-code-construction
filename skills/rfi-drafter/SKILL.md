@@ -154,18 +154,18 @@ Present the draft RFI to the user in conversation. The user may:
 - **Reject** — issue isn't actually an issue
 - **Defer** — log it back to the issue registry for later
 
-**On export**, write the RFI data to a JSON file, then invoke:
+**On export**, write the RFI data with the Write tool to `.construction/skills/rfi-drafter/rfi_draft.json` (working data, never the project root), then invoke from the project folder; the .docx is the deliverable and goes in the project root (or the folder the PE names), never under `.construction/`:
 ```bash
 # Template mode (preferred — matches firm's format):
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/rfi_export.py" \
   --template "path/to/firm_rfi_form.docx" \
   --mapping .construction/skills/rfi-drafter/rfi_template_map.json \
-  --data rfi_draft.json \
+  --data .construction/skills/rfi-drafter/rfi_draft.json \
   --output RFI-026.docx
 
 # Generic mode (fallback — no template):
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/rfi_export.py" \
-  --data rfi_draft.json \
+  --data .construction/skills/rfi-drafter/rfi_draft.json \
   --output RFI-026.docx
 ```
 
