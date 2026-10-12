@@ -125,6 +125,7 @@ def check_no_own_extraction(read, drawings):
     bad = []
     for c in bash_commands():
         for seg in re.split(r"&&|\|\||[;\n|]", c):
+            seg = seg.replace("\\ ", " ")  # Project\ Manual.pdf is Project Manual.pdf
             if not EXTRACTION.search(seg):
                 continue
             bad += [(Path(f).name, seg.strip()[:160]) for f in drawings if Path(f).name in seg]

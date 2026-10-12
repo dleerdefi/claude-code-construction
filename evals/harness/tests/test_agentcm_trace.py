@@ -105,10 +105,12 @@ class Checks(unittest.TestCase):
                   f'cd "/ws" && mkdir -p .construction/skills/code-researcher/pages && {PY} {TK}/rasterize_page.py" '
                   '"Specifications/Project Manual.pdf" 1 --dpi 100 --output ".construction/skills/code-researcher/pages/manual_p1.png"; '
                   'ls .construction/skills/code-researcher/pages',
-                  f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf" --pages 1')
+                  f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf" --pages 1',
+                  f'{PY} {TK}/pdf_text.py" --pages 1 Specifications/Project\\ Manual.pdf')  # a shell-escaped space
         self.assertEqual(outcome(t.check_no_own_extraction, read, drawings)[0], 0)
         for bad in (f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf"; ls .construction/skills',  # the 10:38 run
                     f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf" --pages 1-2',
+                    f'{PY} {TK}/pdf_text.py" --pages 2 Specifications/Project\\ Manual.pdf',  # the 13:33 bid-evaluator run
                     f'{PY} {TK}/rasterize_page.py" "Specifications/Project Manual.pdf" 2 --dpi 200',
                     f'{PY} {TK}/rasterize_page.py" "drawings/A-601.pdf" 1 --dpi 200'):
             self.bash(bad)
