@@ -47,7 +47,7 @@ Skills read AgentCM's files, never its database. A skill that only reads works t
 - **Schedules, legends and keyed notes:** INDEX.md's Schedules and legends table, then the table's own `schedules/<sheet>-<n>.tsv`. Its comment line gives the table's box on the sheet and, for a schedule ingested into AgentCM, `schedule_id=<id>` (`schedule_id=none` for a table read from the text alone).
 - **Specification text:** `specs/<section>.txt` (above).
 
-From `.construction/database.yaml` read only `project_id` and `api_url`; nothing else in it is a skill's to use. AgentCM's API is read in three places only: tag-audit-and-takeoff's `GET {api_url}/projects/{project_id}/sheets/{sheet_id}/claimed-elements` and `.../group-review/available-types` before it writes, and schedule-extractor's `.../schedules/{schedule_id}/rows`, through `xlsx_to_changeset.py`, for the Excel round trip.
+From `.construction/database.yaml` read only `project_id` and `api_url`; nothing else in it is a skill's to use. AgentCM's API is read in one place only, the one read contract 1 promises: schedule-extractor's `GET {api_url}/projects/{project_id}/schedules/{schedule_id}/rows`, through `xlsx_to_changeset.py`, for the Excel round trip. Everything else, a takeoff's existing tags included, comes from the files.
 
 ## Writing back
 
@@ -56,10 +56,14 @@ From `.construction/database.yaml` read only `project_id` and `api_url`; nothing
 - A write names a sheet by its id: the `id` of the entry in `.construction/index/sheet_index.yaml` whose `sheet_number` matches. Never guess it from the number. If that file is missing or its entries have no `id` (an older sheet-splitter wrote a `pages:` list with `filename` and `page_index`), say so and stop.
 - A reconcile names its schedule by the `schedule_id` in the schedule file's comment line (or INDEX.md); a table with `schedule_id=none` was never ingested, so there is nothing to reconcile.
 - **Sending a write, and AgentCM closed.** Put the payload in `.construction/skills/<skill>/outbox/<endpoint>-<sheet>-<YYYYMMDD-HHMMSS>.json` (with the Write tool, or the script your skill names for it), then send that file: `curl -sS -X POST "{api_url}/projects/{project_id}/<endpoint>" -H "Content-Type: application/json" -d @<file> -w "\nHTTP %{http_code}\n"` (AgentCM's answer, then its status on the last line). The attempt is the check that AgentCM answers:
-  - HTTP 200 (any 2xx): AgentCM took it. Move the file to `.construction/skills/<skill>/sent/` and tell the PE what was sent.
+  - HTTP 200 (any 2xx): AgentCM took it. Move the file to `.construction/skills/<skill>/sent/` and tell the PE what was sent. A tag ingest's answer says what became of each detection (`results[]`, one `outcome` each): read and report every one, as tag-audit-and-takeoff does; a 200 alone is not success.
   - curl cannot connect (exit 7, "Failed to connect"): AgentCM is not running and nothing was sent. Leave the file in `outbox/`, finish the rest of the task from the files, and tell the PE to start AgentCM and rerun the write step, which sends what waits in `outbox/`.
   - Any other status: AgentCM refused it. Show the PE its answer and leave the file in `outbox/`.
 - A skill's own working data goes in `.construction/skills/<skill>/`.
+
+### Tag types
+
+A `tag_type` sent to AgentCM is one of contract 1's canonical names, and nothing else: `room_tag`, `door_tag`, `element_tag`, `simple_callout`, `multi_detail_callout`, `grid_label`, `view_label`, `note_block`, `schedule_block`, `schedule_zone`, `annotation`, `viewport_highlight`. Fixtures, devices and equipment are all `element_tag`; a skill's own grouping of them (plumbing fixtures, light fixtures) is its report's wording, never a type. Never invent a name: AgentCM registers an unknown one as a new kind and answers `new_type: true`, which means the skill has a bug. `.groups.tsv`'s `type` uses the same names; `tags.tsv`'s `kind` is another vocabulary (`room`, `door`, `grid`, ...), never a `tag_type`.
 
 ## When AgentCM is wrong
 

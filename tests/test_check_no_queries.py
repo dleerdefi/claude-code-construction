@@ -27,12 +27,15 @@ class NoQueries(unittest.TestCase):
             "reference/agentcm-mode.md": "Never read query_command.\n",
             "scripts/x.py": 'parser.add_argument("--query-wrapper")\n',
             "skills/c/scripts/y.sh": "psql -c 'select 1'\n",
+            "skills/d/SKILL.md": 'curl -sS "{api_url}/projects/{project_id}/sheets/{sheet_id}/claimed-elements"\n',
+            "skills/e/SKILL.md": "GET {api_url}/projects/{project_id}/group-review/available-types\n",
         }) as d:
             found = {(rel, hit) for rel, _, hit, _ in cnq.scan(Path(d))}
         self.assertEqual(found, {
             ("skills/a/SKILL.md", "query.sh"), ("skills/b/references/r.md", "query.ps1"),
             ("reference/agentcm-mode.md", "query_command"), ("scripts/x.py", "query-wrapper"),
-            ("skills/c/scripts/y.sh", "psql"),
+            ("skills/c/scripts/y.sh", "psql"), ("skills/d/SKILL.md", "claimed-elements"),
+            ("skills/e/SKILL.md", "available-types"),
         })
 
     def test_file_reads_and_unshipped_folders_pass(self):

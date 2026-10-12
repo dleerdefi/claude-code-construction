@@ -34,7 +34,9 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
   except its database section: never run `query.sh` or `query.ps1`, whatever
   the guide offers
 - Read `.construction/database.yaml` for `project_id` and `api_url`, nothing else in it
-- Every `{sheet_id}` below (the endpoints) is
+- Everything this skill reads comes from AgentCM's files, never its API, so it
+  runs the same with AgentCM closed; only the ingest (Step 8) needs AgentCM
+- The `{sheet_id}` in Step 8's payload is
   the `id` of the entry in `.construction/index/sheet_index.yaml` whose
   `sheet_number` is that sheet. Never guess it from the number. If that file is
   missing, or its entries have no `id` (an older sheet-splitter wrote a `pages:`
@@ -63,84 +65,60 @@ User provides: (1) tag type — e.g., "plumbing fixtures", "doors",
 (2) sheet scope — specific sheets, a discipline, or "all sheets".
 Confirm scope before proceeding.
 
-**Custom tag types:** If the user requests a tag type not in
-`references/tag-types.md` (e.g., "keynote legends", "fire dampers",
-"seismic bracing"), treat it as a custom type. Use it in the `tag_type`
-field at ingest — the server auto-registers unknown types in the
-`tag_types` table with default styling. The normalized name will be
-`qto_{type}` (e.g., `qto_keynote_legend`). Custom types appear in the
-Group Review gallery and support the full accept/reject/promote workflow.
+**REQUIRED: Tag type resolution (AgentCM mode).** The `tag_type` sent to
+AgentCM is one of contract 1's canonical names, listed in
+`${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (Tag types), and nothing
+else. Never invent one, and never send the takeoff's grouping as a type:
+- room tags → `room_tag`; door tags → `door_tag`
+- single-reference callouts (detail bubbles, section marks, interior
+  elevations; `detail_callout`, `section_callout`, `callout_single_ref`) →
+  `simple_callout`; multi-reference callouts (elevation markers with N/E/S/W
+  spokes; `multi_callout`, `callout_multi_ref`) → `multi_detail_callout`
+- fixtures, devices and equipment (plumbing fixtures, light fixtures,
+  diffusers, any other element tag) → `element_tag`
 
-**REQUIRED: Tag type resolution.** Before using any `tag_type` value,
-you MUST resolve it against existing types:
+Report to the user: "Resolved type: '{name}' (from '{user_input}')" and get
+confirmation. If the request fits none of these, or two, ask the user.
 
-1. Query `GET {api_url}/projects/{project_id}/group-review/available-types` to see
-   all active tag types for this project
-2. Check if the user's requested type matches ANY existing type name
-3. Apply alias resolution — these names are synonyms of existing types:
-   - `detail_callout`, `section_callout`, `interior_elevation`,
-     `callout_single_ref`, `single_ref_callout` → `simple_callout`
-   - `multi_callout`, `callout_multi_ref`, `multi_ref_callout`
-     → `multi_detail_callout`
-4. If the resolved type exists in available-types, USE THAT NAME
-5. Report to user: "Resolved type: '{resolved_name}' (matched from
-   '{user_input}')" — get confirmation before proceeding
-6. **If there is ANY ambiguity** about whether a requested tag type
-   maps to an existing type, **ASK THE USER** before proceeding.
-   Do not guess or invent a new type name.
-7. Only auto-register a truly new type if no existing type or alias
-   matches after checking both the available-types list and the alias
-   map above
-
-NEVER invent a new type name for concepts that already have canonical
-types. When in doubt, ask.
+**The takeoff's grouping comes from the files (AgentCM mode).** Plumbing
+fixtures, light fixtures and equipment are groups of the report, never types:
+a tag's code (`WC-1`, `L2`) belongs to the schedule whose key column holds it,
+`.construction/schedules/<sheet>-<n>.tsv` (INDEX.md's Schedules and legends
+table names each), and `.construction/tags.tsv` gives its `kind` (the lines
+starting with the code and a tab). Each line item's `group` is that schedule,
+named as INDEX.md names it, with its sheet; a code found in no schedule is
+grouped as `not in any schedule` and listed (`references/qto-output-format.md`).
+A takeoff of an `element_tag` group counts the codes of its schedule.
 
 ## Step 1.5: Check Existing Coverage [REQUIRED GATE] (AgentCM mode only)
 
 **HARD GATE — you MUST complete this step before proceeding to Step 2.**
 Do not skip this step.
 
-Before scanning sheets, read what's already tagged per sheet:
+Before scanning sheets, read what's already tagged per sheet, from AgentCM's
+files (never its API; the same whether AgentCM is open or closed):
+- **accepted:** the lines of `.construction/sheets/<sheet>.groups.tsv` whose
+  `type` is the resolved type (box `x y w h`, `text`), and the lines of
+  `.construction/tags.tsv` for that sheet with `accepted` in `how` and the
+  kind of that tag (`room` for room_tag, `door` for door_tag; for element_tag,
+  the codes in the takeoff's scope). A `tags.tsv` line is a point (`x y`): one
+  inside a `.groups.tsv` box of the type is that group, the same tag, whatever
+  its text's word order ("101 OFFICE" there is "OFFICE 101" in `.groups.tsv`)
+- **pending:** the lines of `.construction/sheets/<sheet>.tsv` with the
+  resolved type in `tag` and `pending` in `how`, grouped into tags as Step 5
+  groups ("STORAGE" over "202" is one tag)
+- **waiting:** the detections in the payloads in
+  `.construction/skills/tag-audit-and-takeoff/outbox/` (an earlier run's, saved
+  while AgentCM was closed): not yet in AgentCM
 
-```bash
-curl -sS "{api_url}/projects/{project_id}/sheets/{sheet_id}/claimed-elements" -w "\nHTTP %{http_code}\n"
-```
-
-Response:
-```json
-{
-  "claimed_element_ids": ["el_001", "el_002", ...],
-  "suggestion_count": 12,
-  "by_type": { "qto_room_tag": 8, "room_tag": 4 },
-  "existing_tags": [
-    { "id": "...", "proposedType": "qto_room_tag", "proposedText": "KITCHEN",
-      "status": "accepted", "constituentIds": [...], "combinedBbox": {...}, "confidence": 0.92 }
-  ]
-}
-```
-
-Keep the `existing_tags` of the resolved tag type (`proposedType`), each with
-its `status` (accepted or pending) and its box (`combinedBbox`).
-
-**If curl cannot connect (exit 7), AgentCM is closed.** Read the existing tags
-from its files instead and go on:
-- accepted: the lines of `.construction/sheets/<sheet>.groups.tsv` whose
-  `type` is the resolved type (box `x y w h`, `text`)
-- pending: the lines of `.construction/sheets/<sheet>.tsv` with that type in
-  `tag` and `pending` in `how`, grouped into tags as Step 5 groups
-
-Tell the PE the existing tags came from AgentCM's files, and that this run's
-new tags will wait in the outbox (Step 8). In both cases, the payloads in
-`.construction/skills/tag-audit-and-takeoff/outbox/` (an earlier run's, saved
-while AgentCM was closed) hold existing tags too: not yet in AgentCM.
-
-Report to user: "Sheet A-1.4: 12 tags already detected (8 accepted, 4 pending)."
+Report to user: "Sheet A-1.4: 12 tags already detected (8 accepted, 4 pending, 0 waiting)."
 
 **Reconciliation rules (the count, `references/qto-output-format.md`):**
-- **Confirmed** is the accepted existing tags, and only those.
+- **Confirmed** is the accepted tags, and only those: the accepted existing
+  tags, and a tag AgentCM answers is held by an accepted card (Step 8).
 - **To confirm** is every tag not yet accepted: the pending existing tags,
   the tags waiting in the outbox, and the tags this run finds that match none
-  of them.
+  of them. A tag the PE rejected in AgentCM is in neither (Step 8).
 - **One tag, once.** A tag found in this run is an existing tag when it is on
   the same sheet, its text matches (upper case, spaces collapsed) and one
   box's center falls inside the other box. Keep the existing tag, with its
@@ -150,14 +128,14 @@ Report to user: "Sheet A-1.4: 12 tags already detected (8 accepted, 4 pending)."
 - **EXCLUDE** from the neighborhood search (Steps 3-4) the lines an existing
   tag already holds: a line whose box's center falls inside an existing tag's
   box
-- The server also deduplicates at ingest: detections with element IDs
-  overlapping existing suggestions are skipped (safety net)
+- AgentCM checks again at ingest: texts a card already holds come back
+  `already_held` with that card, never as a second card (Step 8)
 
-**Run it twice, get the same numbers.** A second run finds the first run's new
-tags pending in AgentCM (or waiting in the outbox), matches its own sightings
-to them, sends nothing again, and reports the same confirmed, to confirm and
-possible total. Reconciliation avoids redundant detection *work*, not
-redundant *output*.
+**Run it twice, get the same numbers.** A second run matches its sightings to
+the first run's tags: pending in AgentCM's files once they are refreshed,
+waiting in the outbox, or, while the files have not caught up, through
+AgentCM's answer: a tag sent again comes back `already_held` with the first
+run's card and counts once. The same confirmed, to confirm and possible total.
 
 **Before proceeding to Step 2, report coverage and get confirmation:**
 "Existing coverage: {N} sheets have {M} accepted, {P} pending detections
@@ -257,8 +235,8 @@ with remaining {N} sheets?" Do not continue until confirmed.
 so the user can see exactly what was identified.
 
 **QTO markup must show ALL tagged items per sheet** — not just newly detected.
-Pull existing items from the Step 1.5 claimed-elements response (`existing_tags`)
-and include them in the markup alongside new detections. Use color to distinguish:
+Take the existing tags from Step 1.5 (accepted, pending and waiting, read from
+the files) and include them in the markup alongside new detections. Use color to distinguish:
 - `--color "green"` for accepted items (from previous detection/review)
 - `--color "blue"` for newly detected items (this session)
 - `--color "orange"` for pending review items
@@ -317,7 +295,7 @@ Before making ANY ingest API calls, present this summary to the user:
 - Total new detections to ingest: {N} (found in this run, matching no existing tag)
 - Total existing: {M} accepted, {P} pending, {W} waiting in the outbox
 - Resolved tag type: {type_name}
-- 3-5 sample detections (tag_text, confidence, element_ids count)
+- 3-5 sample detections (tag_text, confidence, box)
 - Any flagged items (low confidence, no OCR anchor, skipped sheets)
 
 "Ready to ingest {N} new detections as '{type_name}'? (Y/N)"
@@ -338,8 +316,42 @@ curl -sS -X POST "{api_url}/projects/{project_id}/tag-detections/ingest" \
   -w "\nHTTP %{http_code}\n"
 ```
 
-Each detection: `{ tag_text, tag_type, element_ids, bounding_box, confidence, view_type, room_id }`.
-`bounding_box` must be `{ x, y, width, height }` in normalized 0-1 coordinates.
+Each detection: `{ bounding_box, tag_text, tag_type, confidence, view_type, room_id }`.
+- `bounding_box`: `{ x, y, width, height }`, 0 to 1 from the sheet's top left:
+  the box around the tag's own lines in the sheet's `.tsv` (Steps 4-5), from
+  their smallest `x` and `y` to their largest `x + w` and `y + h`. AgentCM
+  takes the texts whose centres fall inside it and that no card holds.
+- `tag_type`: the canonical name resolved in Step 1. `view_type` and `room_id`
+  when known. Leave `element_ids` out: AgentCM goes by the box.
+- A tag with no line in the sheet's `.tsv` (vision only, Step 3) is not sent:
+  there is no text for a card to hold. It stays to confirm, with `ingest`
+  `not_sent` and its crop.
+
+**Read AgentCM's answer, every detection; never assume success.** HTTP 200
+means the request was well formed, not that each tag was taken. `results[]`
+holds one entry per detection, in order (`index` is its place in
+`detections`), each with one `outcome`:
+- `created`: a new pending card, `suggestion_id`. To confirm; the instance's
+  `detection_id` is that id, `ingest` `created`.
+- `already_held`: a card already holds those texts, `held_by`
+  `{suggestion_id, status}`. The tag is that card, counted once:
+  `detection_id` its id, `status` `accepted` when the card is accepted, else
+  `to_confirm`; `ingest` `already_held`. Never a second instance of it.
+- `rejected`: the PE already turned this tag down in AgentCM
+  (`rejected_by.suggestion_id`). Off the to-confirm list and out of the count:
+  `status` `rejected`, `detection_id` that card's id, `ingest` `rejected`. The
+  export lists it once under "Rejected in AgentCM"; never report it again, as
+  found, missed or to confirm.
+- `no_free_text`: no text's centre is inside the box, so the box was wrong.
+  Say so with the crop; the tag stays to confirm, `ingest` `no_free_text`.
+- `new_type: true` on any entry: a type outside contract 1's list was sent,
+  a bug in this skill. Say so: name the type, and tell the PE a new tag kind
+  was created in AgentCM by mistake.
+- HTTP 400 (its message names the detection's index) or 404 (an unknown
+  project or sheet): AgentCM refused the request and created nothing. Show the
+  PE its answer; the payload stays in `outbox/`.
+
+Report each sheet's outcomes: "A-101: 3 sent: 2 created, 1 already held (pending)."
 Results appear as highlighted overlays in AgentCM's canvas UI.
 
 In both modes, once the QTO JSON is saved (below), record a finding in `.construction/skills/tag-audit-and-takeoff/findings/`:
@@ -361,7 +373,9 @@ The Excel script is rigid and parses specific key names. Required keys:
 **What the count holds** (Step 1.5): every tag once. `accepted` instances are
 the confirmed count; every other tag is `to_confirm`, with its `source`
 (`pending_in_agentcm`, `waiting_in_outbox`, or `found_this_run` with `ingest`
-`sent` or `outbox`); derived instances are to confirm too. In flat-file mode
+`created`, `already_held`, `no_free_text`, `not_sent` or `outbox`), except a
+tag the PE rejected (`rejected`, in no number); derived instances are to
+confirm too. In flat-file mode
 nothing is accepted: every tag is `to_confirm`. The export computes the three
 numbers per item, prints them, and refuses a file that lists the same tag
 twice. Report the export's lines, never your own tally: per item, confirmed,

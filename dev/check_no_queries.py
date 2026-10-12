@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Fail when a skill, reference or script still reaches AgentCM's database.
+"""Fail when a skill, reference or script still reaches AgentCM's database, or reads its API beyond the rows.
 
 Skills read AgentCM's files and never query its database: no query.sh or query.ps1, no
-query_command from database.yaml, no query wrapper, no psql. Writes go through AgentCM's API.
+query_command from database.yaml, no query wrapper, no psql. Writes go through AgentCM's API,
+and its one promised read is a schedule's rows: claimed-elements and available-types are out of
+contract 1, so naming either fails too.
 This scans everything the plugin ships (skills/, reference/, scripts/, bin/) for those names,
 so a regression fails the commit gate (dev/gate). The one exception is the refusal itself,
 "never run `query.sh` or `query.ps1`": AgentCM's own guide offers query.sh, so the skills name it
@@ -17,7 +19,8 @@ from pathlib import Path
 
 SHIPPED = ("skills", "reference", "scripts", "bin")
 SUFFIXES = {".md", ".yaml", ".yml", ".json", ".py", ".sh", ".ps1", ".txt", ""}
-QUERY = re.compile(r"query\.(sh|ps1)\b|query_command|query[-_]wrapper|\bpsql\b", re.IGNORECASE)
+QUERY = re.compile(r"query\.(sh|ps1)\b|query_command|query[-_]wrapper|\bpsql\b|claimed[-_]elements|available[-_]types",
+                   re.IGNORECASE)
 REFUSAL = re.compile(r"\bnever run `query\.sh` or `query\.ps1`", re.IGNORECASE)
 
 
@@ -45,9 +48,9 @@ def main(argv=None):
     for rel, n, hit, line in findings:
         print(f"{rel}:{n}: names '{hit}'\n    {line.strip()[:200]}")
     if findings:
-        print(f"FAIL: {len(findings)} reference(s) to AgentCM's database; skills read its files instead")
+        print(f"FAIL: {len(findings)} reference(s) to AgentCM's database or unpromised reads; skills read its files instead")
         return 1
-    print("PASS: no skill, reference or script queries AgentCM's database")
+    print("PASS: no skill, reference or script queries AgentCM's database or reads its API beyond the rows")
     return 0
 
 

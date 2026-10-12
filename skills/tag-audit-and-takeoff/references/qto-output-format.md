@@ -34,10 +34,10 @@ Each instance has a `source`:
 
 | `source` | `status` | What it is |
 |---|---|---|
-| `accepted_in_agentcm` | `accepted` | An accepted tag: claimed-elements' `existing_tags` with status accepted, or a line of the sheet's `.groups.tsv` |
-| `pending_in_agentcm` | `to_confirm` | A tag waiting in AgentCM's review: `existing_tags` with status pending, or the sheet's `.tsv` lines of that type marked `pending` |
+| `accepted_in_agentcm` | `accepted` | An accepted tag in AgentCM's files: a line of the sheet's `.groups.tsv` of that type, or an accepted line of `tags.tsv` (a point; one inside a `.groups.tsv` box is that group) |
+| `pending_in_agentcm` | `to_confirm` | A tag waiting in AgentCM's review: the sheet's `.tsv` lines of that type marked `pending`, grouped into one tag |
 | `waiting_in_outbox` | `to_confirm` | A tag an earlier run saved in this skill's `outbox/` because AgentCM was closed |
-| `found_this_run` | `to_confirm` | A tag this run found that matches none of the above; its `ingest` says `sent` or `outbox` |
+| `found_this_run` | from AgentCM's answer | A tag this run found that matches none of the above. Its `ingest`: `created` (to confirm, `detection_id` the new card), `already_held` (the holding card's id; `accepted` or `to_confirm` as that card is), `rejected` (`rejected`, the card the PE turned down), `no_free_text` (to confirm; the box held no text), `not_sent` (to confirm; no text in the sheet file to send) or `outbox` (to confirm; AgentCM closed) |
 
 **One tag, once.** Two instances are the same tag when they are on the same sheet, their texts match (upper case, spaces collapsed) and one box's center falls inside the other box. Keep one: an existing tag wins over this run's sighting of it and keeps its `detection_id`. The export refuses a file that lists the same tag twice (exit 2, no workbook). Instances without a `bounding_box` (flat-file vision gives rough locations) are not compared.
 
@@ -96,7 +96,7 @@ readable output and the source for human-readable reports.
         },
         {
           "type": "element_instance",
-          "detection_id": "run-7",
+          "detection_id": "the suggestion_id AgentCM answered with",
           "sheet": "P1.01",
           "tag_text": "WC-1",
           "room": "103",
@@ -104,7 +104,7 @@ readable output and the source for human-readable reports.
           "bounding_box": {"x": 0.655, "y": 0.290, "width": 0.018, "height": 0.011},
           "status": "to_confirm",
           "source": "found_this_run",
-          "ingest": "sent",
+          "ingest": "created",
           "confidence": 0.81
         }
       ],
