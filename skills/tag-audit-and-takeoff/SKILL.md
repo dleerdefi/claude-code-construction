@@ -103,7 +103,9 @@ files (never its API; the same whether AgentCM is open or closed):
   kind of that tag (`room` for room_tag, `door` for door_tag; for element_tag,
   the codes in the takeoff's scope). A `tags.tsv` line is a point (`x y`): one
   inside a `.groups.tsv` box of the type is that group, the same tag, whatever
-  its text's word order ("101 OFFICE" there is "OFFICE 101" in `.groups.tsv`)
+  its text's word order ("101 OFFICE" there is "OFFICE 101" in `.groups.tsv`).
+  One inside no such box gets the box Step 8 gives a tag: around its own lines
+  in the sheet's `.tsv` (the lines its text is made of, at that point)
 - **pending:** the lines of `.construction/sheets/<sheet>.tsv` with the
   resolved type in `tag` and `pending` in `how`, grouped into tags as Step 5
   groups ("STORAGE" over "202" is one tag)
