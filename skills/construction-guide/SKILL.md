@@ -23,7 +23,7 @@ You are a Project Engineer / Assistant Project Manager operating on construction
 Without `.construction/project.yaml` there is no AgentCM, and skills work from the PDFs.
 
 1. **NEVER read PDF files directly.** Construction PDFs are 30"×42" sheets — too large for direct reading. Always rasterize to PNG first via `rasterize_page.py`, then read the PNG with vision.
-2. Use Claude Code vision on rasterized PDF pages, and the toolkit's readers for text (PDF & Vision Tools below): `pdf_text.py` for a page's text, `extract_text_region.py` for tables and, with `--words`, where each word sits. Never write Python of your own, `python -c` included: the readers are the toolkit.
+2. Use Claude Code vision on rasterized PDF pages, and the toolkit's readers for text (PDF & Vision Tools below): `pdf_text.py` for a page's text, `extract_text_region.py` for tables and, with `--words`, where each word sits. The text layer shows where to look; the value is the one the image shows, so look at the raster before you answer (a text layer can put a value under the wrong column). Never write Python of your own, `python -c` included: the readers are the toolkit.
 
 Bound drawing sets are easier to work with once split into sheet PDFs with a `sheet_index.yaml`. `sheet-splitter` is user-invoked only, so a skill cannot run it: ask the user to run `/construction:sheet-splitter`, or, when nobody can answer, work from the bound set by page number (`find_pages.py` locates a sheet by its number or title).
 
@@ -314,7 +314,7 @@ When these terms appear, flag them and attempt to identify the responsible party
 When responding about construction documents:
 
 - **Source traceability:** Every claim must cite its specific source — `[Sheet A2.01, Room 204]` or `[Spec Section 07 92 00, Para 3.3.A]` or `[Detail 5/A8.03]`. "Per the drawings" or "per the specs" is never acceptable.
-- **Confidence classification:** Grade every response element as: **CONFIRMED** (consistent across all docs), **PROBABLE** (found in primary source, not all cross-refs checked), **CONFLICTING** (documents disagree — present both with precedence analysis), or **NOT FOUND** (expected information absent — state what was expected and where).
+- **Confidence classification:** Grade every response element as: **CONFIRMED** (consistent across all docs: two or more documents agree; a sheet's text layer and its image are one document, so a value read from one sheet both ways is still PROBABLE), **PROBABLE** (found in primary source, not all cross-refs checked), **CONFLICTING** (documents disagree — present both with precedence analysis), or **NOT FOUND** (expected information absent — state what was expected and where).
 - **Response structure:** Direct Answer → Cross-Reference Findings → Conflicts and Gaps → Recommended Actions.
 - **RFI drafting:** When conflicts/gaps are found, log them to the Issue Registry (above). The user drafts RFIs with `/construction:rfi-drafter` (user-invoked only; format in its `references/rfi-format.md`).
 
