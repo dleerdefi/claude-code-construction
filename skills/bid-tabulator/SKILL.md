@@ -57,8 +57,9 @@ first; the script marks each page TEXT or VISION (fewer than 50 characters):
 Read TEXT pages from the dump. Rasterize each VISION page (scanned bids show
 VISION on every page) and read it with vision:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "BID.pdf" 1 --dpi 200 --output bid_page.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "BID.pdf" 1 --dpi 200 --output ".construction/skills/bid-tabulator/pages/{bid_slug}_p1.png"
 ```
+Page images are working data: keep them in `.construction/skills/bid-tabulator/pages/`, never elsewhere under `.construction/` (the rest of that folder is AgentCM's).
 Do not write your own extraction code (no `python -c`, no helper script); the
 two scripts above are the whole reading toolkit for this skill.
 
