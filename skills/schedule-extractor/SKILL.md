@@ -64,7 +64,7 @@ Schedules appear on specific sheet types:
 
 If no index or graph is available:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 150 --output full_sheet.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 150 --output ".construction/skills/schedule-extractor/pages/full_sheet.png"
 ```
 
 Use vision on the full sheet image: "Identify any tabular schedules on this drawing sheet. Report the approximate bounding box (top-left x,y and bottom-right x,y) as fractions of the image width and height between 0 and 1, the schedule type, and the column headers visible."
@@ -79,10 +79,10 @@ Crop the identified region with padding. The box is the 0–1 fractions from
 Step 1, so `--normalized` is required; without it the script reads the values
 as pixels and returns an empty crop:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" full_sheet.png \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" ".construction/skills/schedule-extractor/pages/full_sheet.png" \
   --box {x1},{y1},{x2},{y2} --normalized \
   --padding 20 \
-  --output schedule_crop.png
+  --output ".construction/skills/schedule-extractor/pages/schedule_crop.png"
 ```
 
 Re-rasterize at higher DPI (300) for the cropped region to improve text clarity.
@@ -92,7 +92,7 @@ Re-rasterize at higher DPI (300) for the cropped region to improve text clarity.
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} \
   --dpi 300 \
   --crop {x1_pct},{y1_pct},{x2_pct},{y2_pct} \
-  --output schedule_hires.png
+  --output ".construction/skills/schedule-extractor/pages/schedule_hires.png"
 ```
 
 ### Step 3: Extract Structured Data
@@ -143,7 +143,7 @@ When pdfplumber fails (common with complex layouts, merged cells, non-standard t
 
 1. **Rasterize** the sheet at 150 DPI for overview:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 150 --output full_sheet.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 150 --output ".construction/skills/schedule-extractor/pages/full_sheet.png"
 ```
 
 2. **Use vision** on the full sheet image to read the schedule directly:
@@ -152,7 +152,7 @@ When pdfplumber fails (common with complex layouts, merged cells, non-standard t
 
 3. For dense schedules with small text, **re-rasterize at 300 DPI** and crop to just the schedule region:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 300 --output schedule_hires.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 300 --output ".construction/skills/schedule-extractor/pages/schedule_hires.png"
 ```
 
 #### Method C — Hybrid (for maximum accuracy)
