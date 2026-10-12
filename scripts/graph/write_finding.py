@@ -60,6 +60,11 @@ def write_finding(finding_type, title, data=None, source_sheet=None, source_shee
 
 
 if __name__ == "__main__":
+    for stream in (sys.stdout, sys.stderr):  # a Windows pipe is cp1252: the arrow below would raise
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
     parser = argparse.ArgumentParser(description="Write a finding to .construction/skills/<skill>/findings/")
     parser.add_argument("--skill", required=True, help="The skill writing it: its folder name, e.g. bid-tabulator")
     parser.add_argument("--type", required=True, help="Finding type")

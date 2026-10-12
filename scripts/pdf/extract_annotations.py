@@ -55,6 +55,11 @@ def extract_annotations(pdf_path, output=None):
         print(out)
 
 if __name__ == "__main__":
+    for stream in (sys.stdout, sys.stderr):  # a Windows pipe is cp1252: the arrow below would raise
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
     parser = argparse.ArgumentParser(description="Extract PDF annotations")
     parser.add_argument("pdf", help="Path to PDF")
     parser.add_argument("--output", "-o", help="Output JSON file")

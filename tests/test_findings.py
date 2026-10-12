@@ -38,6 +38,16 @@ class Findings(unittest.TestCase):
         entry = json.loads((self.project / ".construction" / files[0]).read_text(encoding="utf-8"))
         self.assertEqual((entry["skill"], entry["type"], entry["data"]), ("bid-tabulator", "bid_tabulation", {"bids": 5}))
 
+    def test_a_cp1252_console_gets_ok_and_one_finding(self):
+        # a Windows pipe: the confirmation's arrow used to raise after the file was written, so the run read
+        # ERROR (exit 2), retried and wrote the finding twice
+        r = subprocess.run([sys.executable, str(WRITE), "--skill", "code-researcher", "--type", "code_gap_analysis",
+                            "--title", "08 11 13 — 2 gaps"], cwd=self.project, capture_output=True,
+                           env=dict(os.environ, PYTHONIOENCODING="cp1252"))
+        self.assertEqual(r.returncode, 0, (r.stdout + r.stderr).decode("utf-8", "replace"))
+        self.assertTrue(r.stdout.decode("utf-8").startswith("OK: Finding written"))
+        self.assertEqual(len(construction_files(self.project)), 1)
+
     def test_agentcm_finding_goes_to_the_same_place_not_agent_findings(self):
         (self.project / ".construction").mkdir()
         (self.project / ".construction" / "project.yaml").write_text("project:\n  name: x\n", encoding="utf-8")

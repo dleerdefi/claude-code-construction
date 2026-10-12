@@ -37,6 +37,11 @@ def analyze(pdf_path, page_num=1, output="title_block.png", dpi=200):
     print(f"OK: Title block → {output} ({pix.width}x{pix.height}px)")
 
 if __name__ == "__main__":
+    for stream in (sys.stdout, sys.stderr):  # a Windows pipe is cp1252: the arrow below would raise
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
     parser = argparse.ArgumentParser(description="Extract title block region from drawing")
     parser.add_argument("pdf", help="Path to PDF")
     parser.add_argument("--page", type=int, default=1, help="Page number (1-based)")
