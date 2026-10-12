@@ -49,8 +49,8 @@ past experience with bidders.
 **Complete before analyzing any bids.**
 
 ### Mode Detection
-Check for AgentCM: `.construction/project.yaml` at the project root.
-- **AgentCM mode**: Read each spec section from `.construction/specs/<section>.txt` (`09 65 13` is `09-65-13.txt`; each line starts with its page), listed in `.construction/INDEX.md`. Only for a manual INDEX.md lists under "Spec manuals not read", read spec-splitter's `.construction/skills/spec_text/` instead. Use sheet index from `.construction/index/sheet_index.yaml` for drawing identification. Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`: which source wins, what a missing file or an empty search means, which file answers what, drawings through `crop.sh`, sheet ids, and how to record a correction of AgentCM's data.
+Read `.construction/project.yaml` at the project root: present and readable means AgentCM mode (note its `contract_version`), absent means flat-file mode. A listing that shows the file does not decide it: read it.
+- **AgentCM mode**: Read each spec section from `.construction/specs/<section>.txt` (`09 65 13` is `09-65-13.txt`; each line starts with its page), listed in `.construction/INDEX.md`: it is the section's text, and a section's pages are never extracted again from the PDF. A read manual's pages in no section (INDEX.md lists them) are read in the PDF, those pages only. Only for a manual INDEX.md lists under "Spec manuals not read", read spec-splitter's `.construction/skills/spec_text/` instead. Use sheet index from `.construction/index/sheet_index.yaml` for drawing identification. Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`: which source wins, what a missing file or an empty search means, which file answers what, drawings through `crop.sh`, sheet ids, and how to record a correction of AgentCM's data.
 - **Flat File mode**: Discover spec PDFs via `CLAUDE.md` paths or directory search (`Specifications/`, `Specification Sections/`). Read drawing sheets directly from PDF.
 
 ### 1a. Spec Review
@@ -169,8 +169,9 @@ Build JSON per schema in `scripts/sample_input.json` with the Write tool
 (not a shell heredoc, which fails here on an apostrophe, and not a helper
 script), then run:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py" input.json output.xlsx
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py" input.json "Bid_Evaluation_{package}.xlsx"
 ```
+Run it from the project folder: the workbook is the deliverable and goes in the project root (or the folder the PE names), never under `.construction/`, which macOS and Linux hide.
 
 The script produces 5 sheets: Bid Comparison, Price Summary,
 Exclusion Detail, Qualification Summary, Recommendation.
@@ -196,7 +197,7 @@ Record the evaluation as a finding in `.construction/skills/bid-evaluator/findin
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
   --skill "bid-evaluator" --type "bid_evaluation_complete" \
   --title "Bid evaluation: {scope} — {N} bidders, recommended {company}" \
-  --output-file "{output.xlsx}" \
+  --output-file "Bid_Evaluation_{package}.xlsx" \
   --data '{"scope": "...", "bidder_count": N, "recommended": "...", "adjusted_amount": ..., "pe_attention_items": [...]}'
 ```
 
