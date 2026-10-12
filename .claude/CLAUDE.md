@@ -22,6 +22,8 @@ dev/link                 # Or symlink ~/.claude/skills/construction here (macOS/
 dev/unlink               # Remove that symlink
 claude plugin validate --strict .claude-plugin/plugin.json   # Check manifest + skills
 bin/construction-python -m unittest discover -s tests        # Unit tests for the toolkit's scripts
+bash dev/gate && git commit ...   # The commit gate: validate, both unit-test suites, VERSION = plugin.json,
+                                  # no writes under .construction/ outside skills/; stops at the first failure
 ```
 
 ### Key Rules
