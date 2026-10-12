@@ -135,7 +135,7 @@ class SeenNotInAgentCM(Export):
             inst("to_confirm", "CLASSROOM 103", 0.50, sheet="A-102", source="accepted_in_agentcm",
                  reason="this sheet's file is behind or edited"),
             inst("seen", "STAIR 2", 0.70, source="found_this_run", ingest="no_free_text", crop=crop,
-                 corrections="reported 2026-10-12")]))
+                 corrections="reported earlier, line 2")]))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("TOTAL: confirmed 1, to confirm 2, seen not in AgentCM 1, possible 4", r.stdout)
         self.assertIn("Seen on the drawing, not in AgentCM: 1", r.stdout)
@@ -147,7 +147,7 @@ class SeenNotInAgentCM(Export):
         self.assertEqual(summary[header + 1][3:8], [1, 2, 1, 4, 0])
         listed = [[c.value for c in row] for row in wb["Seen, not in AgentCM"].iter_rows()]
         self.assertTrue(any("draw the tag's text" in str(row[0]) for row in listed))
-        self.assertIn(["STAIR 2", "RT", "A-101", None, "0.700 0.300 0.060 0.020", crop, "reported 2026-10-12"],
+        self.assertIn(["STAIR 2", "RT", "A-101", None, "0.700 0.300 0.060 0.020", crop, "reported earlier, line 2"],
                       [row[:7] for row in listed])
         to_confirm = [[c.value for c in row] for row in wb["To Confirm in AgentCM"].iter_rows()]
         self.assertNotIn("STAIR 2", [row[0] for row in to_confirm])
