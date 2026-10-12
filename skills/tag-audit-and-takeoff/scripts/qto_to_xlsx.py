@@ -282,7 +282,7 @@ def build_detail_sheet(ws, data):
                 det.get("room", ""),
                 det.get("provenance", det.get("type", "")),
                 det.get("confidence", 0),
-                det.get("status", "pending"),
+                det.get("status", "new"),
                 det.get("detection_id", ""),
                 ", ".join(det.get("element_ids", [])) if det.get("element_ids") else "",
             ]
@@ -309,7 +309,7 @@ def build_detail_sheet(ws, data):
                 der.get("target_room", ""),
                 f"from {der.get('source_detail', '')} ({der.get('derivation_method', '')})",
                 "",
-                der.get("status", "pending"),
+                der.get("status", "new"),
                 der.get("derived_id", ""),
                 "",
             ]
@@ -447,6 +447,36 @@ def build_completeness_sheet(ws, data, project_name, scope_name):
     )
 
 
+def pending_in_count(data):
+    """Items marked pending inside line_items: they belong in pending_review, never in the count."""
+    found = []
+    for item in data.get("line_items", []):
+        for det in item.get("instance_details", []) + item.get("derived_details", []):
+            if str(det.get("status", "")).lower() == "pending":
+                found.append(f"{item.get('designation') or item.get('element', '?')}: "
+                             f"{det.get('detection_id') or det.get('derived_id') or det.get('sheet', '?')}")
+    return found
+
+
+def build_pending_sheet(ws, data):
+    """Items still waiting in AgentCM's review: listed for the PE, not counted."""
+    ws.title = "To Confirm in AgentCM"
+    columns = [("Tag Text", 22), ("Tag Type", 18), ("Sheet", 10), ("Room", 10),
+               ("Detection ID", 38), ("Status", 12), ("Note", 50)]
+    write_title_row(ws, "Pending in AgentCM's review: confirm there; not in the QTO count", len(columns))
+    apply_header(ws, columns, row=2)
+    pending = data.get("pending_review", [])
+    if not pending:
+        ws.cell(row=3, column=1, value="No pending items.")
+        return
+    for i, p in enumerate(pending):
+        row = 3 + i
+        values = [p.get("tag_text", ""), p.get("tag_type", ""), p.get("sheet", ""), p.get("room", ""),
+                  p.get("detection_id", ""), p.get("status", "pending"), p.get("note", "")]
+        for col, v in enumerate(values, start=1):
+            style_body_cell(ws.cell(row=row, column=col, value=v), i)
+
+
 # ── Main ───────────────────────────────────────────────────────────
 
 def main():
@@ -474,6 +504,13 @@ def main():
         print(f"  Found keys: {list(data.keys())}", file=sys.stderr)
         print(f"  See references/qto-output-format.md for required schema.", file=sys.stderr)
 
+    pending = pending_in_count(data)
+    if pending:
+        print(f"ERROR: {len(pending)} item(s) marked pending are inside line_items, so inside the count: "
+              f"{pending[:5]}. Move them to pending_review (references/qto-output-format.md); "
+              f"no workbook written.", file=sys.stderr)
+        sys.exit(2)
+
     project_name = args.project or data.get("project", {}).get("name", "Unknown Project")
     scope_name = args.scope or data.get("scope", {}).get("tag_type", "Tags")
 
@@ -484,6 +521,7 @@ def main():
     build_detail_sheet(wb.create_sheet(), data)
     build_typedef_sheet(wb.create_sheet(), data)
     build_completeness_sheet(wb.create_sheet(), data, project_name, scope_name)
+    build_pending_sheet(wb.create_sheet(), data)
 
     # Save
     out = safe_output_path(args.output)

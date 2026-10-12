@@ -16,6 +16,11 @@
 | `type_definitions_applied` | array | yes | Excel type defs sheet |
 | `completeness` | object | yes | Excel completeness sheet |
 | `issues` | array | no | Excel completeness warnings |
+| `pending_review` | array | AgentCM mode | Excel "To Confirm in AgentCM" sheet; never counted |
+
+## What the count holds
+
+`line_items` and `totals` count accepted items and this session's new detections; each `instance_details[]` / `derived_details[]` entry has `status` `accepted` (confirmed in AgentCM's review; older files say `approved`) or `new` (detected in this session: ingested as a pending card in AgentCM mode, vision-only in flat-file mode). Items AgentCM's review still holds as pending (claimed-elements' `existing_tags` with status pending) go in `pending_review`, one entry each: `{ "tag_text", "tag_type", "sheet", "room", "detection_id", "status": "pending", "note" }`. They are listed for the PE to confirm in AgentCM and are never part of `line_items` or `totals`: the export refuses a `pending` item inside `line_items` (exit 2, no workbook) and lists `pending_review` on its own sheet.
 
 ## Summary Report Structure
 
@@ -64,7 +69,7 @@ readable output and the source for human-readable reports.
           "detection_id": "uuid",
           "sheet": "P1.01",
           "room": "101",
-          "status": "approved",
+          "status": "accepted",
           "approved_at": "ISO 8601"
         }
       ],
@@ -79,7 +84,7 @@ readable output and the source for human-readable reports.
           "target_sheet": "P1.02",
           "derivation_method": "room_type_match",
           "deduplicated": false,
-          "status": "approved"
+          "status": "accepted"
         }
       ]
     }
@@ -149,3 +154,4 @@ If the user requests an Excel output, produce a workbook with:
 - Sheet 2: Instance detail (one row per detection)
 - Sheet 3: Derived detail (one row per derivation)
 - Sheet 4: Type definitions applied
+- Sheet 5: To Confirm in AgentCM (`pending_review`, not counted)
