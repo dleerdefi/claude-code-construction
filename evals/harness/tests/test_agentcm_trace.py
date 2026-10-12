@@ -184,6 +184,23 @@ class Checks(unittest.TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn("already held: False", out)
 
+    def test_takeoff_twice_a_seen_tag_is_reported_once_in_corrections(self):
+        listed = qto(["accepted", "to_confirm"])
+        listed["line_items"][0]["instance_details"].append(
+            {"sheet": "A-101", "tag_text": "STAIR 2", "status": "seen", "crop": "c.png", "bounding_box": dict(BOX, x=0.80)})
+        self.run.file(self.Q + "room_tag_1.json", listed)
+        self.run.file(self.Q + "room_tag_2.json", listed)
+        self.run.requests(ingest("created"), ingest("already_held", dets=[dict(DET, bounding_box=dict(BOX, x=0.405))]))
+        corr = self.run.ws / ".construction" / "skills" / "corrections.tsv"
+        head = "sheet\tx\ty\tw\th\tkind\tcrop\tagentcm\tdrawing\n"
+        line = "A-101\t{x}\t0.3\t0.06\t0.02\ttag\tc.png\t\tSTAIR 2\n"
+        for body, code in ((head + line.format(x=0.80), 0),                              # reported once
+                           (head + line.format(x=0.80) + line.format(x=0.83), 1),        # twice: boxes 3% apart
+                           (head, 1)):                                                   # never reported
+            corr.write_text(body, encoding="utf-8")
+            got, out = outcome(t.check_takeoff_twice, accepted=1, pending=1)
+            self.assertEqual(got, code, out)
+
     def test_takeoff_twice_a_rejected_tag_is_listed_once_in_each_run(self):
         stair = dict(DET, tag_text="STAIR 2", bounding_box=dict(BOX, x=0.8))
         listed = qto(["accepted", "to_confirm"])

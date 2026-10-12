@@ -58,14 +58,14 @@ class ThreeNumbers(Export):
                                   inst("to_confirm", "CLASSROOM 103", 0.60, source="found_this_run", ingest="sent")],
                                  derived))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertIn("RT Room tag: confirmed 1, to confirm 3, possible 4", r.stdout)
-        self.assertIn("TOTAL: confirmed 1, to confirm 3, possible 4", r.stdout)
+        self.assertIn("RT Room tag: confirmed 1, to confirm 3, seen not in AgentCM 0, possible 4", r.stdout)
+        self.assertIn("TOTAL: confirmed 1, to confirm 3, seen not in AgentCM 0, possible 4", r.stdout)
         self.assertIn("not a ceiling", r.stdout)
         wb = load_workbook(out)
         summary = [[c.value for c in row] for row in wb["QTO Summary"].iter_rows()]
         header = next(i for i, row in enumerate(summary) if row[1] == "Element")
-        self.assertEqual(summary[header][3:7], ["Confirmed", "To Confirm", "Possible Total", "Of Which Derived"])
-        self.assertEqual(summary[header + 1][3:7], [1, 3, 4, 1])
+        self.assertEqual(summary[header][3:8], ["Confirmed", "To Confirm", "Seen, Not in AgentCM", "Possible Total", "Of Which Derived"])
+        self.assertEqual(summary[header + 1][3:8], [1, 3, 0, 4, 1])
         self.assertNotIn("By schedule:", r.stdout)
         listed = [[c.value for c in row] for row in wb["To Confirm in AgentCM"].iter_rows()]
         sources = [row[4] for row in listed if row[4] in ("pending_in_agentcm", "found_this_run", "derived")]
@@ -87,8 +87,8 @@ class ThreeNumbers(Export):
         lines = r.stdout.splitlines()
         at = lines.index("By schedule:")
         self.assertEqual(lines[at + 1:at + 3], [
-            "  PLUMBING FIXTURE SCHEDULE (P-601): confirmed 1, to confirm 2, possible 3",
-            "  not in any schedule: confirmed 0, to confirm 2, possible 2 (XF-9, ZZ-1)"])
+            "  PLUMBING FIXTURE SCHEDULE (P-601): confirmed 1, to confirm 2, seen not in AgentCM 0, possible 3",
+            "  not in any schedule: confirmed 0, to confirm 2, seen not in AgentCM 0, possible 2 (XF-9, ZZ-1)"])
         summary = [[c.value for c in row] for row in load_workbook(out)["QTO Summary"].iter_rows()]
         self.assertIn(["not in any schedule", "Unknown", "ZZ-1"], [row[:3] for row in summary])
 
@@ -96,12 +96,12 @@ class ThreeNumbers(Export):
         r, _ = self.export(qto([inst("approved", "OFFICE 101", 0.20), inst("new", "STORAGE 102", 0.40),
                                 inst("pending", "CLASSROOM 103", 0.60)]))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertIn("confirmed 1, to confirm 2, possible 3", r.stdout)
+        self.assertIn("confirmed 1, to confirm 2, seen not in AgentCM 0, possible 3", r.stdout)
 
     def test_flat_file_mode_confirms_nothing_and_says_why(self):
         r, out = self.export(qto([inst("to_confirm", "101", 0.20), inst("to_confirm", "102", 0.40)], mode="flat_file"))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertIn("confirmed 0, to confirm 2, possible 2", r.stdout)
+        self.assertIn("confirmed 0, to confirm 2, seen not in AgentCM 0, possible 2", r.stdout)
         self.assertIn("No review step in this project", r.stdout)
 
     def test_an_empty_list_says_so(self):
@@ -117,7 +117,7 @@ class ThreeNumbers(Export):
                                   inst("rejected", "STAIR 2", 0.60, source="found_this_run", ingest="rejected",
                                        detection_id="card-9")]))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertIn("TOTAL: confirmed 1, to confirm 1, possible 2", r.stdout)
+        self.assertIn("TOTAL: confirmed 1, to confirm 1, seen not in AgentCM 0, possible 2", r.stdout)
         self.assertIn("Rejected in AgentCM, not counted: 1", r.stdout)
         self.assertEqual(r.stdout.count("STAIR 2"), 1)
         wb = load_workbook(out)
@@ -126,7 +126,46 @@ class ThreeNumbers(Export):
         self.assertNotIn("STAIR 2", [c.value for c in wb["To Confirm in AgentCM"]["A"]])
 
 
+class SeenNotInAgentCM(Export):
+    def test_four_groups_seen_is_in_the_possible_total_only_and_listed_with_its_crop(self):
+        crop = ".construction/crops/A-101-0.700-0.300-0.060-0.020.png"
+        r, out = self.export(qto([
+            inst("accepted", "OFFICE 101", 0.20, source="accepted_in_agentcm"),
+            inst("to_confirm", "STORAGE 102", 0.40, source="found_this_run", ingest="created"),
+            inst("to_confirm", "CLASSROOM 103", 0.50, sheet="A-102", source="accepted_in_agentcm",
+                 reason="this sheet's file is behind or edited"),
+            inst("seen", "STAIR 2", 0.70, source="found_this_run", ingest="no_free_text", crop=crop,
+                 corrections="reported 2026-10-12")]))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("TOTAL: confirmed 1, to confirm 2, seen not in AgentCM 1, possible 4", r.stdout)
+        self.assertIn("Seen on the drawing, not in AgentCM: 1", r.stdout)
+        self.assertIn(crop, r.stdout)
+        self.assertIn("draw the tag's text on the sheet's canvas and tag it", r.stdout)
+        wb = load_workbook(out)
+        summary = [[c.value for c in row] for row in wb["QTO Summary"].iter_rows()]
+        header = next(i for i, row in enumerate(summary) if row[1] == "Element")
+        self.assertEqual(summary[header + 1][3:8], [1, 2, 1, 4, 0])
+        listed = [[c.value for c in row] for row in wb["Seen, not in AgentCM"].iter_rows()]
+        self.assertTrue(any("draw the tag's text" in str(row[0]) for row in listed))
+        self.assertIn(["STAIR 2", "RT", "A-101", None, "0.700 0.300 0.060 0.020", crop, "reported 2026-10-12"],
+                      [row[:7] for row in listed])
+        to_confirm = [[c.value for c in row] for row in wb["To Confirm in AgentCM"].iter_rows()]
+        self.assertNotIn("STAIR 2", [row[0] for row in to_confirm])
+        self.assertIn("this sheet's file is behind or edited",
+                      [row[7] for row in to_confirm if row[0] == "CLASSROOM 103"])
+
+    def test_nothing_seen_says_so(self):
+        r, out = self.export(qto([inst("accepted", "OFFICE 101", 0.20)]))
+        self.assertIn("Nothing seen that AgentCM lacks.", [c.value for c in load_workbook(out)["Seen, not in AgentCM"]["A"]])
+        self.assertNotRegex(r.stdout, r"Seen on the drawing, not in AgentCM: \d")
+
+
 class Refusals(Export):
+    def test_a_seen_tag_without_its_crop_is_refused(self):
+        r, out = self.export(qto([inst("seen", "STAIR 2", 0.70, ingest="no_free_text")]))
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("it needs its crop", r.stderr)
+
     def refused(self, data, words):
         r, out = self.export(data)
         self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
@@ -156,7 +195,7 @@ class Refusals(Export):
                      "pending_review is retired")
 
     def test_an_unknown_status_is_refused(self):
-        self.refused(qto([inst("maybe", "OFFICE 101", 0.2)]), "use accepted, to_confirm or rejected")
+        self.refused(qto([inst("maybe", "OFFICE 101", 0.2)]), "use accepted, to_confirm, seen or rejected")
 
     def test_a_rejected_tag_listed_again_is_refused(self):
         self.refused(qto([inst("rejected", "STAIR 2", 0.4, source="found_this_run", ingest="rejected"),

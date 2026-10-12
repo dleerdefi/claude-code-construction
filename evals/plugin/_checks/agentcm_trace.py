@@ -272,8 +272,8 @@ def answered(endpoint):
 
 
 def check_takeoff_twice(accepted, pending):
-    """Two QTO JSONs with the same confirmed, to confirm and possible total per item; confirmed is the
-    accepted tags (`accepted`), to confirm holds at least the pending ones. A tag sent again (the files
+    """Two QTO JSONs with the same numbers per item (confirmed, to confirm, seen not in AgentCM, possible
+    total); confirmed is the accepted tags (`accepted`), to confirm holds at least the pending ones. A tag sent again (the files
     do not refresh here) came back already_held, never as a second card; a tag AgentCM answered rejected
     is in each QTO once, as rejected, in no number."""
     sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
@@ -286,9 +286,9 @@ def check_takeoff_twice(accepted, pending):
         data = json.loads(f.read_text(encoding="utf-8"))
         datas.append(data)
         per_item, total = q.all_counts(data)
-        runs.append(({q.label(i): c[:1] + c[1:2] + c[3:] for i, c in per_item}, (total[0], total[1], total[3])))
+        runs.append(({q.label(i): c for i, c in per_item}, total))  # every number the export prints
     same = runs[0] == runs[1]
-    conf, todo, _ = runs[1][1]
+    conf, todo = runs[1][1][0], runs[1][1][1]
 
     def one_tag(a, b):
         ba, bb = q.box_of(a[1]), q.box_of(b[1])
@@ -311,9 +311,29 @@ def check_takeoff_twice(accepted, pending):
                      if d.get("sheet") == sheet and q.norm_text(d.get("tag_text")) == text]
             if [q.status_of(d) for d in found] != ["rejected"]:
                 not_listed_once.append(f"run {k}: {text} on {sheet} as {[d.get('status') for d in found]}")
-    ok = same and conf == accepted and todo >= pending and resent and not second_card and not not_listed_once
-    finish(ok, f"both takeoffs: confirmed {conf}, to confirm {todo}; a tag sent again was already held; "
-               f"rejected listed once: {sorted(t for _, t in turned_down)}",
+    # a tag seen on the drawing, not in AgentCM: one corrections.tsv line (kind tag, an overlapping box) after
+    # both runs, never two
+    corr = WORKSPACE / ".construction" / "skills" / "corrections.tsv"
+    lines = [l.split("\t") for l in corr.read_text(encoding="utf-8").splitlines()[1:]] if corr.is_file() else []
+
+    def reported(sheet, box):
+        out = 0
+        for c in lines:
+            try:
+                other = tuple(float(v) for v in c[1:5])
+            except ValueError:
+                continue
+            out += len(c) > 5 and c[0] == sheet and c[5] == "tag" and (q.center_inside(box, other)
+                                                                       or q.center_inside(other, box))
+        return out
+    seen_tags = [(d.get("sheet"), d.get("tag_text"), q.box_of(d)) for item in datas[-1].get("line_items", [])
+                 for d in item.get("instance_details", []) if q.status_of(d) == "seen"]
+    not_once = [f"{text} on {sheet}: {reported(sheet, box) if box else 'no box'}" for sheet, text, box in seen_tags
+                if not box or reported(sheet, box) != 1]
+    ok = (same and conf == accepted and todo >= pending and resent and not second_card and not not_listed_once
+          and not not_once)
+    finish(ok, f"both takeoffs: confirmed {conf}, to confirm {todo}, seen not in AgentCM {runs[1][1][2]}; a tag sent "
+               f"again was already held; rejected listed once: {sorted(t for _, t in turned_down)}",
            f"runs {runs}; expected confirmed {accepted}, to confirm >= {pending}; a first-run tag sent again and "
            f"already held: {resent}; second cards: {second_card[:3]}; rejected not listed once as rejected: "
-           f"{not_listed_once[:3]}")
+           f"{not_listed_once[:3]}; seen tags without exactly one corrections line: {not_once[:3]}")

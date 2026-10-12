@@ -112,15 +112,25 @@ files (never its API; the same whether AgentCM is open or closed):
 - **waiting:** the detections in the payloads in
   `.construction/skills/tag-audit-and-takeoff/outbox/` (an earlier run's, saved
   while AgentCM was closed): not yet in AgentCM
+- **behind:** the sheets `.construction/pending.tsv` lists, when it exists
+  (read its columns by their header names; `sheet` names the sheet): their
+  files are behind or were edited outside AgentCM. Every tag on such a sheet is
+  to confirm, `reason` "this sheet's file is behind or edited", never
+  confirmed, even when its file says accepted
 
 Report to user: "Sheet A-1.4: 12 tags already detected (8 accepted, 4 pending, 0 waiting)."
 
 **Reconciliation rules (the count, `references/qto-output-format.md`):**
 - **Confirmed** is the accepted tags, and only those: the accepted existing
-  tags, and a tag AgentCM answers is held by an accepted card (Step 8).
-- **To confirm** is every tag not yet accepted: the pending existing tags,
-  the tags waiting in the outbox, and the tags this run finds that match none
-  of them. A tag the PE rejected in AgentCM is in neither (Step 8).
+  tags, and a tag AgentCM answers is held by an accepted card (Step 8), on a
+  sheet `pending.tsv` doesn't list.
+- **To confirm in AgentCM** is every tag with a card not yet accepted, or on
+  its way to one: the pending existing tags, the tags waiting in the outbox,
+  the tags this run sends that become cards, and the tags on a sheet that is
+  behind. A tag the PE rejected in AgentCM is in no group (Step 8).
+- **Seen on the drawing, not in AgentCM** is every tag the drawing shows that
+  the sheet's `.tsv` has no text for (Step 8): no card, so nothing to accept.
+- **Possible total** is all three.
 - **One tag, once.** A tag found in this run is an existing tag when it is on
   the same sheet, its text matches (upper case, spaces collapsed) and one
   box's center falls inside the other box. Keep the existing tag, with its
@@ -326,8 +336,8 @@ Each detection: `{ bounding_box, tag_text, tag_type, confidence, view_type, room
 - `tag_type`: the canonical name resolved in Step 1. `view_type` and `room_id`
   when known. Leave `element_ids` out: AgentCM goes by the box.
 - A tag with no line in the sheet's `.tsv` (vision only, Step 3) is not sent:
-  there is no text for a card to hold. It stays to confirm, with `ingest`
-  `not_sent` and its crop.
+  there is no text for a card to hold. It is seen on the drawing, not in
+  AgentCM (below), `ingest` `not_sent`.
 
 **Read AgentCM's answer, every detection; never assume success.** HTTP 200
 means the request was well formed, not that each tag was taken. `results[]`
@@ -345,7 +355,10 @@ holds one entry per detection, in order (`index` is its place in
   export lists it once under "Rejected in AgentCM"; never report it again, as
   found, missed or to confirm.
 - `no_free_text`: no text's centre is inside the box, so the box was wrong.
-  Say so with the crop; the tag stays to confirm, `ingest` `no_free_text`.
+  Look at the sheet's `.tsv` around the crop: if the tag's text has lines
+  there, redraw the box around them and send that detection once more; its
+  answer is the outcome. No text at all in that area: the tag is seen on the
+  drawing, not in AgentCM (below), `ingest` `no_free_text`.
 - `new_type: true` on any entry: a type outside contract 1's list was sent,
   a bug in this skill. Say so: name the type, and tell the PE a new tag kind
   was created in AgentCM by mistake.
@@ -353,7 +366,20 @@ holds one entry per detection, in order (`index` is its place in
   project or sheet): AgentCM refused the request and created nothing. Show the
   PE its answer; the payload stays in `outbox/`.
 
-Report each sheet's outcomes: "A-101: 3 sent: 2 created, 1 already held (pending)."
+**Seen on the drawing, not in AgentCM** (the drawing shows the tag; AgentCM
+has no text for it): `status` `seen`, `bounding_box` estimated from the crop,
+`crop` the PNG `crop.sh` printed. Not to confirm: no card exists, so nobody
+can accept it in AgentCM; it is in the possible total. Report it once in
+corrections.tsv, which says nothing when the same tag is already there:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py" --once \
+  --sheet <sheet> --x <x> --y <y> --w <w> --h <h> --kind tag --crop "<crop>" --agentcm "" --drawing "<tag text>"
+```
+`corrections` is `appended`, or `reported earlier, line N` when it prints
+REPORTED EARLIER. To clear one, the PE draws its text on AgentCM's canvas and
+tags it; the next run finds it pending or accepted.
+
+Report each sheet's outcomes: "A-101: 3 sent: 2 created, 1 already held (pending); 1 seen, not in AgentCM."
 Results appear as highlighted overlays in AgentCM's canvas UI.
 
 In both modes, once the QTO JSON is saved (below), record a finding in `.construction/skills/tag-audit-and-takeoff/findings/`:
@@ -363,25 +389,26 @@ In both modes, once the QTO JSON is saved (below), record a finding in `.constru
   --skill "tag-audit-and-takeoff" --type "qto_{tag_type}" \
   --title "QTO: {tag_type_display} — {confirmed} confirmed, {possible} possible across {N} sheets" \
   --output-file "{qto_json_path}" \
-  --data '{"tag_type": "...", "confirmed": ..., "to_confirm": ..., "possible_total": ..., "sheets": [...], "ingested": ...}'
+  --data '{"tag_type": "...", "confirmed": ..., "to_confirm": ..., "seen_not_in_agentcm": ..., "possible_total": ..., "sheets": [...], "ingested": ...}'
 ```
 
 **CRITICAL — use the EXACT schema from `references/qto-output-format.md`.**
 The Excel script is rigid and parses specific key names. Required keys:
 - `line_items[]` (NOT `qto_lines`) — one entry per unique element/designation
-- Each line item has `instance_details[]` with `detection_id`, `sheet`, `tag_text`, `room`, `bounding_box`, `status` (`accepted`, `to_confirm` or `rejected`), `source`, `confidence`
+- Each line item has `instance_details[]` with `detection_id`, `sheet`, `tag_text`, `room`, `bounding_box`, `status` (`accepted`, `to_confirm`, `seen` or `rejected`), `source`, `confidence`; `reason` on a tag of a sheet that is behind; `crop` and `corrections` on a `seen` tag
 - `scope{}` with `mode` (`agentcm` or `flat_file`), `completeness{}`, `issues[]`
 
-**What the count holds** (Step 1.5): every tag once. `accepted` instances are
-the confirmed count; every other tag is `to_confirm`, with its `source`
-(`pending_in_agentcm`, `waiting_in_outbox`, or `found_this_run` with `ingest`
-`created`, `already_held`, `no_free_text`, `not_sent` or `outbox`), except a
-tag the PE rejected (`rejected`, in no number); derived instances are to
-confirm too. In flat-file mode
-nothing is accepted: every tag is `to_confirm`. The export computes the three
-numbers per item, prints them, and refuses a file that lists the same tag
-twice. Report the export's lines, never your own tally: per item, confirmed,
-to confirm and the possible total, and the caveat in its words.
+**What the count holds** (Step 1.5): every tag once, in one of four groups.
+`accepted` instances are the confirmed count; a tag with a card not yet
+accepted, waiting in the outbox or on a sheet that is behind is `to_confirm`,
+with its `source` (`pending_in_agentcm`, `waiting_in_outbox`, or
+`found_this_run` with `ingest` `created`, `already_held` or `outbox`); a tag
+AgentCM has no text for is `seen`; a tag the PE rejected is `rejected`, in no
+number; derived instances are to confirm too. In flat-file mode nothing is
+accepted: every tag is `to_confirm`. The export computes the numbers per item
+(confirmed, to confirm, seen not in AgentCM, possible total), prints them, and
+refuses a file that lists the same tag twice or a `seen` tag without its crop.
+Report the export's lines, never your own tally, and the caveat in its words.
 
 **Both modes:** Save the QTO JSON (working data) to
 `.construction/skills/tag-audit-and-takeoff/qto/{tag_type}_{timestamp}.json` and the
@@ -439,4 +466,4 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 - `scripts/qto_to_xlsx.py` — QTO Excel export (6-sheet workbook; computes and prints confirmed, to confirm and possible total, and lists rejected tags apart; refuses a tag listed twice)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log schedule/drawing count mismatches to the Issue Registry (command and severity mapping in construction-guide)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — record the QTO as a finding (Step 8)
-- `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data other than a missed tag (`reference/agentcm-mode.md`)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data other than a missed tag (`reference/agentcm-mode.md`), and, with `--once`, a tag seen on the drawing that AgentCM has no text for (Step 8)

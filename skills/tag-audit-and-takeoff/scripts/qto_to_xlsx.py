@@ -5,23 +5,25 @@ Claude Code calls this with structured JSON data matching the QTO output
 format from references/qto-output-format.md. This script does not make
 any judgment calls — it counts and formats the data identically every time.
 
-The count: per line item, confirmed (instances accepted in AgentCM's review),
-to confirm (every instance not yet accepted, plus every derived instance not
-deduplicated) and the possible total (the two together). The script computes
-the three numbers from the instances itself, prints one line per item, and
-refuses a file that lists the same tag twice (same text, one box's center
-inside the other, on one sheet) or still carries the retired pending_review key. A tag the PE
-rejected in AgentCM (status rejected) is in no number: it is listed once, apart. When line items
-name their group (the schedule whose key column holds the code), it prints the three numbers per
-group too, "not in any schedule" last with its codes.
+The count: per line item, confirmed (instances accepted in AgentCM's review), to confirm
+(instances waiting there as pending cards or in the outbox, or on a sheet whose file is behind,
+plus every derived instance not deduplicated), seen on the drawing, not in AgentCM (status seen:
+the drawing shows the tag and AgentCM has no text for it, so it has no card; each with its crop)
+and the possible total (all three). The script computes the numbers from the instances itself,
+prints one line per item, and refuses a file that lists the same tag twice (same text, one box's
+center inside the other, on one sheet), a seen tag without its crop, or the retired pending_review
+key. A tag the PE rejected in AgentCM (status rejected) is in no number: it is listed once, apart.
+When line items name their group (the schedule whose key column holds the code), it prints the
+numbers per group too, "not in any schedule" last with its codes.
 
 Input:  JSON file with project{}, scope{}, line_items[], etc.
-Output: Formatted .xlsx workbook with six sheets:
-  - QTO Summary: one row per line item with the three numbers and confidence
+Output: Formatted .xlsx workbook with seven sheets:
+  - QTO Summary: one row per line item with the four numbers and confidence
   - Instance Detail: every detection record with full provenance
   - Type Definitions: type defs applied and their room targets
   - Completeness: coverage metrics, gap sheets, and issues
-  - To Confirm in AgentCM: every instance not yet accepted
+  - To Confirm in AgentCM: every instance not yet accepted, with its reason
+  - Seen, not in AgentCM: every tag AgentCM has no text for, its box and crop, and how to clear it
   - Rejected in AgentCM: every instance the PE already turned down there, not counted
 
 Usage:
@@ -103,11 +105,18 @@ CONFIDENCE_STYLES = {
 ACCEPTED = {"accepted", "approved"}             # approved: older files
 TO_CONFIRM = {"to_confirm", "new", "pending"}   # new, pending: older files
 REJECTED = {"rejected"}                         # the PE turned it down in AgentCM: never counted
+SEEN = {"seen", "image_only"}                   # on the drawing, no text in AgentCM: no card to accept
 
 CAVEAT_AGENTCM = (
-    "Confirmed: tags accepted in AgentCM's review. To confirm: every tag not yet accepted, found in this "
-    "run or waiting from an earlier one, and every count derived from a type definition. Possible total: "
-    "confirmed plus to confirm, what has been seen so far, not a ceiling."
+    "Confirmed: tags accepted in AgentCM's review. To confirm: tags waiting in AgentCM's review as pending "
+    "cards (made this run or earlier) or in the outbox, tags on a sheet whose file is behind or edited, and "
+    "every count derived from a type definition. Seen on the drawing, not in AgentCM: tags the drawing shows "
+    "that AgentCM has no text for, so no card; each with its crop. Possible total: all three, what has been "
+    "seen so far, not a ceiling."
+)
+CLEAR_SEEN = (
+    "To clear one: in AgentCM, draw the tag's text on the sheet's canvas and tag it. On the next run it shows "
+    "as pending or accepted. Each is also in .construction/skills/corrections.tsv (kind tag), once."
 )
 CAVEAT_FLAT = (
     "No review step in this project (no AgentCM): every tag found is to confirm on the drawings, so none "
@@ -120,12 +129,14 @@ def caveat(data):
 
 
 def status_of(det):
-    """accepted, to_confirm or rejected; None for anything else."""
+    """accepted, to_confirm, seen or rejected; None for anything else."""
     s = str(det.get("status", "")).strip().lower()
     if s in ACCEPTED:
         return "accepted"
     if s in TO_CONFIRM:
         return "to_confirm"
+    if s in SEEN:
+        return "seen"
     if s in REJECTED:
         return "rejected"
     return None
@@ -136,17 +147,23 @@ def label(item):
 
 
 def counts(item):
-    """(confirmed, to confirm, of which derived, possible total) for one line item."""
+    """(confirmed, to confirm, seen not in AgentCM, of which derived, possible total) for one line item."""
     statuses = [status_of(d) for d in item.get("instance_details", [])]
     derived = sum(1 for d in item.get("derived_details", []) if not d.get("deduplicated"))
     confirmed = statuses.count("accepted")
     to_confirm = statuses.count("to_confirm") + derived
-    return confirmed, to_confirm, derived, confirmed + to_confirm
+    seen = statuses.count("seen")
+    return confirmed, to_confirm, seen, derived, confirmed + to_confirm + seen
+
+
+def numbers(c):
+    """The line the export prints for a count: the four groups."""
+    return f"confirmed {c[0]}, to confirm {c[1]}, seen not in AgentCM {c[2]}, possible {c[4]}"
 
 
 def all_counts(data):
     per_item = [(item, counts(item)) for item in data.get("line_items", [])]
-    total = tuple(sum(c[i] for _, c in per_item) for i in range(4))
+    total = tuple(sum(c[i] for _, c in per_item) for i in range(5))
     return per_item, total
 
 
@@ -154,7 +171,7 @@ NOT_IN_SCHEDULE = "not in any schedule"
 
 
 def groups(data):
-    """[(group, (confirmed, to confirm, of which derived, possible), designations)] in the order the groups first
+    """[(group, (confirmed, to confirm, seen, of which derived, possible), designations)] in the order the groups first
     appear, "not in any schedule" last; empty when no line item names its group. A group is the schedule whose
     key column holds the item's code, as the skill read it from the files: the report's wording, nothing more."""
     per_item, _ = all_counts(data)
@@ -166,7 +183,7 @@ def groups(data):
         g = NOT_IN_SCHEDULE if g.lower() == NOT_IN_SCHEDULE else g
         if g not in sums:
             order.append(g)
-            sums[g], codes[g] = (0, 0, 0, 0), []
+            sums[g], codes[g] = (0, 0, 0, 0, 0), []
         sums[g] = tuple(a + b for a, b in zip(sums[g], c))
         codes[g].append(str(item.get("designation", "")).strip() or label(item))
     order.sort(key=lambda g: g == NOT_IN_SCHEDULE)
@@ -175,8 +192,17 @@ def groups(data):
 
 def rejected(data):
     """(line item, instance) for every tag the PE rejected in AgentCM."""
+    return with_status(data, "rejected")
+
+
+def seen(data):
+    """(line item, instance) for every tag on the drawing that AgentCM has no text for."""
+    return with_status(data, "seen")
+
+
+def with_status(data, status):
     return [(item, det) for item in data.get("line_items", []) for det in item.get("instance_details", [])
-            if status_of(det) == "rejected"]
+            if status_of(det) == status]
 
 
 def norm_text(text):
@@ -202,7 +228,7 @@ def center_inside(a, b):
 
 def problems(data):
     """Everything that stops the export, as messages: an unknown status, a malformed box, a tag listed twice,
-    the retired pending_review key."""
+    a seen tag without its crop, the retired pending_review key."""
     found = []
     if "pending_review" in data:
         found.append("pending_review is retired: a tag pending in AgentCM's review goes in line_items with "
@@ -212,7 +238,9 @@ def problems(data):
         for det in item.get("instance_details", []):
             where = f"{label(item)}: {det.get('detection_id') or det.get('tag_text') or '?'} on {det.get('sheet', '?')}"
             if status_of(det) is None:
-                found.append(f"{where} has status {det.get('status')!r}: use accepted, to_confirm or rejected")
+                found.append(f"{where} has status {det.get('status')!r}: use accepted, to_confirm, seen or rejected")
+            elif status_of(det) == "seen" and not str(det.get("crop", "")).strip():
+                found.append(f"{where} is seen on the drawing, not in AgentCM: it needs its crop")
             try:
                 box = box_of(det)
             except ValueError as e:
@@ -239,6 +267,7 @@ SUMMARY_COLUMNS = [
     ("Designation",      14),
     ("Confirmed",        12),
     ("To Confirm",       12),
+    ("Seen, Not in AgentCM", 14),
     ("Possible Total",   14),
     ("Of Which Derived", 14),
     ("Avg Confidence",   14),
@@ -281,6 +310,18 @@ TO_CONFIRM_COLUMNS = [
     ("Source",       20),
     ("Ingest",       12),
     ("Detection ID", 38),
+    ("Reason",       34),
+    ("Note",         50),
+]
+
+SEEN_COLUMNS = [
+    ("Tag Text",     22),
+    ("Designation",  14),
+    ("Sheet",        10),
+    ("Room",         10),
+    ("Box (x y w h)", 24),
+    ("Crop",         44),
+    ("Corrections",  24),
     ("Note",         50),
 ]
 
@@ -367,13 +408,14 @@ def write_note_row(ws, text, col_count, row):
 def build_summary_sheet(ws, data, project_name, scope_name):
     """Build the QTO Summary sheet."""
     ws.title = "QTO Summary"
-    per_item, (t_conf, t_todo, t_derived, t_possible) = all_counts(data)
+    per_item, (t_conf, t_todo, t_seen, t_derived, t_possible) = all_counts(data)
 
     row = write_title_row(ws, f"QTO Summary — {project_name} — {scope_name}", len(SUMMARY_COLUMNS))
 
     ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=len(SUMMARY_COLUMNS))
     cell = ws.cell(row=row, column=1,
-                   value=f"Confirmed: {t_conf}  |  To Confirm: {t_todo}  |  Possible Total: {t_possible}")
+                   value=f"Confirmed: {t_conf}  |  To Confirm: {t_todo}  |  Seen, Not in AgentCM: {t_seen}  |  "
+                         f"Possible Total: {t_possible}")
     cell.font = SUBTITLE_FONT
     cell.fill = SUBTITLE_FILL
     cell.alignment = Alignment(horizontal="left", vertical="center")
@@ -384,7 +426,7 @@ def build_summary_sheet(ws, data, project_name, scope_name):
     apply_header(ws, SUMMARY_COLUMNS, row=row)
     row += 1
 
-    for item, (confirmed, to_confirm, derived, possible) in per_item:
+    for item, (confirmed, to_confirm, seen_n, derived, possible) in per_item:
         details = item.get("instance_details", [])
         confs = [d.get("confidence", 0) for d in details if isinstance(d.get("confidence"), (int, float))]
         avg_conf = sum(confs) / len(confs) if confs else 0.0
@@ -392,22 +434,22 @@ def build_summary_sheet(ws, data, project_name, scope_name):
         notes = f"{dedup} derived dedup'd (direct takes precedence)" if dedup else ""
 
         group = str(item.get("group", "")).strip() or (NOT_IN_SCHEDULE if groups(data) else "")
-        values = [group, item.get("element", ""), item.get("designation", ""), confirmed, to_confirm, possible,
+        values = [group, item.get("element", ""), item.get("designation", ""), confirmed, to_confirm, seen_n, possible,
                   derived, avg_conf, notes]
         for col_idx, val in enumerate(values, 1):
             cell = ws.cell(row=row, column=col_idx, value=val)
             style_body_cell(cell, row)
-            if col_idx in (4, 5, 6, 7):
+            if col_idx in (4, 5, 6, 7, 8):
                 cell.number_format = "#,##0"
                 cell.alignment = RIGHT_ALIGN
-            elif col_idx == 8:
+            elif col_idx == 9:
                 cell.number_format = "0.00"
                 cell.alignment = CENTER_ALIGN
                 style_confidence_cell(cell, val)
         row += 1
 
     ws.cell(row=row, column=1, value="TOTAL").font = Font(name="Arial", bold=True, size=10)
-    for col_idx, val in [(4, t_conf), (5, t_todo), (6, t_possible), (7, t_derived)]:
+    for col_idx, val in [(4, t_conf), (5, t_todo), (6, t_seen), (7, t_possible), (8, t_derived)]:
         cell = ws.cell(row=row, column=col_idx, value=val)
         cell.font = Font(name="Arial", bold=True, size=10)
         cell.border = THIN_BORDER
@@ -522,7 +564,7 @@ def build_completeness_sheet(ws, data, project_name, scope_name):
 
     scope = data.get("scope", {})
     comp = data.get("completeness", {})
-    _, (t_conf, t_todo, t_derived, t_possible) = all_counts(data)
+    _, (t_conf, t_todo, t_seen, t_derived, t_possible) = all_counts(data)
 
     metrics = [
         ("Tag Type", scope.get("tag_type", "")),
@@ -534,6 +576,7 @@ def build_completeness_sheet(ws, data, project_name, scope_name):
         ("Confirmed", str(t_conf)),
         ("To Confirm", str(t_todo)),
         ("Of Which Derived", str(t_derived)),
+        ("Seen, Not in AgentCM", str(t_seen)),
         ("Possible Total", str(t_possible)),
         ("", ""),
         ("Schedule Reference", comp.get("schedule_reference", "N/A")),
@@ -608,7 +651,8 @@ def build_to_confirm_sheet(ws, data):
             if status_of(det) != "to_confirm":
                 continue
             values = [det.get("tag_text", ""), item.get("designation", ""), det.get("sheet", ""), det.get("room", ""),
-                      det.get("source", ""), det.get("ingest", ""), det.get("detection_id", ""), det.get("note", "")]
+                      det.get("source", ""), det.get("ingest", ""), det.get("detection_id", ""), det.get("reason", ""),
+                      det.get("note", "")]
             for col, v in enumerate(values, start=1):
                 style_body_cell(ws.cell(row=row, column=col, value=v), row)
             row += 1
@@ -616,13 +660,34 @@ def build_to_confirm_sheet(ws, data):
             if der.get("deduplicated"):
                 continue
             values = [item.get("element", ""), item.get("designation", ""), der.get("target_sheet", ""),
-                      der.get("target_room", ""), "derived", "", der.get("derived_id", ""),
+                      der.get("target_room", ""), "derived", "", der.get("derived_id", ""), "derived from a type definition",
                       f"from {der.get('source_detail', '')} ({der.get('derivation_method', '')})"]
             for col, v in enumerate(values, start=1):
                 style_body_cell(ws.cell(row=row, column=col, value=v), row)
             row += 1
     if row == first:
         ws.cell(row=row, column=1, value="Nothing to confirm.")
+
+
+def build_seen_sheet(ws, data):
+    """Every tag the drawing shows that AgentCM has no text for: no card, so nothing to accept until it is drawn."""
+    ws.title = "Seen, not in AgentCM"
+    row = write_title_row(ws, "Seen on the drawing, not in AgentCM: no card to confirm (inside the possible total)",
+                          len(SEEN_COLUMNS))
+    row = write_note_row(ws, CLEAR_SEEN, len(SEEN_COLUMNS), row)
+    apply_header(ws, SEEN_COLUMNS, row=row)
+    row += 1
+    first = row
+    for item, det in seen(data):
+        b = det.get("bounding_box") or {}
+        box = " ".join(f"{float(b[k]):.3f}" for k in ("x", "y", "width", "height")) if b else ""
+        values = [det.get("tag_text", ""), item.get("designation", ""), det.get("sheet", ""), det.get("room", ""), box,
+                  det.get("crop", ""), det.get("corrections", ""), det.get("note", "")]
+        for col, v in enumerate(values, start=1):
+            style_body_cell(ws.cell(row=row, column=col, value=v), row)
+        row += 1
+    if row == first:
+        ws.cell(row=row, column=1, value="Nothing seen that AgentCM lacks.")
 
 
 def build_rejected_sheet(ws, data):
@@ -689,24 +754,32 @@ def main():
     build_typedef_sheet(wb.create_sheet(), data)
     build_completeness_sheet(wb.create_sheet(), data, project_name, scope_name)
     build_to_confirm_sheet(wb.create_sheet(), data)
+    build_seen_sheet(wb.create_sheet(), data)
     build_rejected_sheet(wb.create_sheet(), data)
 
     # Save
     out = safe_output_path(args.output)
     wb.save(str(out))
 
-    # The three numbers, as the skill reports them
-    per_item, (t_conf, t_todo, _, t_possible) = all_counts(data)
-    for item, (confirmed, to_confirm, _, possible) in per_item:
-        print(f"{label(item)}: confirmed {confirmed}, to confirm {to_confirm}, possible {possible}")
-    print(f"TOTAL: confirmed {t_conf}, to confirm {t_todo}, possible {t_possible}")
+    # The four numbers, as the skill reports them
+    per_item, total = all_counts(data)
+    for item, c in per_item:
+        print(f"{label(item)}: {numbers(c)}")
+    print(f"TOTAL: {numbers(total)}")
     by_group = groups(data)
     if by_group:
         print("By schedule:")
-        for g, (confirmed, to_confirm, _, possible), codes in by_group:
+        for g, c, codes in by_group:
             listed = f" ({', '.join(codes)})" if g == NOT_IN_SCHEDULE else ""
-            print(f"  {g}: confirmed {confirmed}, to confirm {to_confirm}, possible {possible}{listed}")
+            print(f"  {g}: {numbers(c)}{listed}")
     print(caveat(data))
+    on_drawing = seen(data)
+    if on_drawing:
+        print(f"Seen on the drawing, not in AgentCM: {len(on_drawing)}")
+        for item, det in on_drawing:
+            print(f"  {det.get('tag_text') or label(item)} on {det.get('sheet', '?')}: {det.get('crop', '')}"
+                  + (f" ({det['corrections']})" if det.get("corrections") else ""))
+        print(f"  {CLEAR_SEEN}")
     turned_down = rejected(data)
     if turned_down:
         print(f"Rejected in AgentCM, not counted: {len(turned_down)}")
