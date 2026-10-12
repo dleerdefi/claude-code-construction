@@ -45,6 +45,8 @@ class Case:
     graders: list[Grader]
     checks: list[Check] = field(default_factory=list)
     budget_usd: float | None = None  # harness.yaml `budget_usd`, overriding the CLI default for this case
+    allow_urls: list[str] = field(default_factory=list)  # harness.yaml `allow_urls`: addresses curl may reach
+    teardown: Path | None = None  # harness.yaml `teardown`: a script run in the workspace after the session
 
     @property
     def tags(self) -> list[str]:
@@ -97,7 +99,7 @@ def load_case(case_dir: Path) -> Case:
     for g in sorted((case_dir / "graders").glob("*.md")) if (case_dir / "graders").is_dir() else []:
         gmeta, body = split_frontmatter(g.read_text(encoding="utf-8"))
         graders.append(Grader(name=g.stem, type=str(gmeta.get("type", "")), fields=gmeta, body=body))
-    checks, budget = [], None
+    checks, budget, allow_urls, teardown = [], None, [], None
     harness_yaml = case_dir / "harness.yaml"
     if harness_yaml.exists():
         hcfg = yaml.safe_load(harness_yaml.read_text(encoding="utf-8")) or {}
@@ -105,8 +107,11 @@ def load_case(case_dir: Path) -> Case:
             checks.append(Check(name=str(c.get("name") or Path(c["script"]).stem), script=case_dir / c["script"],
                                 weight=float(c.get("weight", 1))))
         budget = float(hcfg["budget_usd"]) if hcfg.get("budget_usd") else None
+        allow_urls = [str(u) for u in hcfg.get("allow_urls") or []]
+        teardown = case_dir / hcfg["teardown"] if hcfg.get("teardown") else None
     return Case(name=str(meta.get("name") or case_dir.name), dir=case_dir, prompt=prompt, meta=meta,
-                scaffold=scaffold, add_dirs=add_dirs, graders=graders, checks=checks, budget_usd=budget)
+                scaffold=scaffold, add_dirs=add_dirs, graders=graders, checks=checks, budget_usd=budget,
+                allow_urls=allow_urls, teardown=teardown)
 
 
 def load_cases(eval_dir: Path) -> list[Case]:

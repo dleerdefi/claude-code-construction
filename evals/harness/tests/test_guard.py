@@ -83,6 +83,44 @@ class ShellCommands(unittest.TestCase):
         self.assertNotIn("out.txt", paths)
 
 
+STUB = Policy(workspace=WS, plugin_root=PLUGIN, allow_urls=("http://127.0.0.1:47817/",))
+API = "http://127.0.0.1:47817/api/projects/p1"
+
+
+class AllowedUrls(unittest.TestCase):
+    def allowed(self, cmd, policy=STUB):
+        return decide("Bash", {"command": cmd}, policy).allow
+
+    def test_curl_to_the_stub_is_allowed(self):
+        self.assertTrue(self.allowed(f'curl -sS --fail-with-body "{API}/sheets/s1/claimed-elements"'))
+        self.assertTrue(self.allowed(
+            f'curl -sS --fail-with-body -X POST "{API}/tag-detections/ingest" -H "Content-Type: application/json" '
+            f'-d @".construction/skills/tag-audit-and-takeoff/outbox/tag-detections-ingest-A-101-20261012-040000.json"'))
+
+    def test_only_in_a_case_that_lists_the_address(self):
+        self.assertFalse(self.allowed(f'curl -sS "{API}/sheets/s1/claimed-elements"', POLICY))
+
+    def test_any_other_address_is_denied(self):
+        self.assertFalse(self.allowed("curl -sS https://example.com/x"))
+        self.assertFalse(self.allowed(f'curl -sS "{API}/x" https://example.com/y'))
+        self.assertFalse(self.allowed("curl -sS http://127.0.0.1:47818/api/x"))
+        self.assertFalse(self.allowed("curl -sS http://127.0.0.1:47817.example.com/api/x"))
+        self.assertFalse(self.allowed("curl --version"))
+
+    def test_options_that_send_it_elsewhere_are_denied(self):
+        self.assertFalse(self.allowed(f'curl -x http://proxy.test:8080 "{API}/x"'))
+        self.assertFalse(self.allowed(f'curl -sSx proxy.test "{API}/x"'))
+        self.assertFalse(self.allowed(f'curl -K urls.txt "{API}/x"'))
+        self.assertFalse(self.allowed(f'curl --connect-to ::example.com: "{API}/x"'))
+
+    def test_other_network_commands_stay_denied(self):
+        self.assertFalse(self.allowed(f'curl "{API}/x" && wget "{API}/y"'))
+        self.assertFalse(self.allowed('psql -c "select 1"'))
+
+    def test_an_address_is_not_a_path(self):
+        self.assertEqual(shell_paths(f'curl "{API}/x" -o out.json && echo {API}/y'), [])
+
+
 class FileWrites(unittest.TestCase):
     def test_write_inside_workspace_is_allowed(self):
         self.assertTrue(decide("Write", {"file_path": os.path.join(WS, "sheets", "sheet_index.yaml")}, POLICY).allow)

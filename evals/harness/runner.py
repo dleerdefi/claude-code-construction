@@ -117,6 +117,20 @@ def run_scaffold(case: Case, workspace: Path) -> str:
     return out
 
 
+def run_teardown(case: Case, workspace: Path) -> str:
+    """Run the case's teardown script (harness.yaml `teardown`) in the workspace after the session, e.g. to stop
+    a stand-in server its setup started. Never raises: what it printed, or why it failed, goes in the trace."""
+    if not case.teardown:
+        return ""
+    try:
+        env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1")
+        proc = subprocess.run([find_bash(), case.teardown.as_posix()], cwd=workspace, env=env,
+                              capture_output=True, text=True, timeout=SCAFFOLD_TIMEOUT)
+        return f"exit {proc.returncode}: {(proc.stdout + proc.stderr).strip()}"
+    except Exception as e:  # a teardown failure is reported, never fatal to the run
+        return f"teardown failed: {type(e).__name__}: {e}"
+
+
 def _block_summary(block) -> dict | None:
     if isinstance(block, TextBlock):
         return {"type": "assistant_text", "text": block.text}
@@ -131,7 +145,7 @@ def _block_summary(block) -> dict | None:
 
 async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunResult) -> None:
     policy = Policy(workspace=str(workspace), plugin_root=str(opts.plugin_root),
-                    extra_roots=tuple(str(d) for d in case.add_dirs))
+                    extra_roots=tuple(str(d) for d in case.add_dirs), allow_urls=tuple(case.allow_urls))
 
     async def guard_hook(input_data, tool_use_id, context):
         name = input_data.get("tool_name", "")
@@ -195,19 +209,24 @@ async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> R
     result = RunResult(case=case.name, run_index=run_index, workspace=workspace)
     t0 = time.time()
     try:
-        scaffold_out = run_scaffold(case, workspace)
-        if scaffold_out:
-            result.trace.append({"type": "scaffold", "output": scaffold_out[:TOOL_RESULT_LIMIT]})
-        before = snapshot(workspace)
         try:
-            await asyncio.wait_for(_session(case, workspace, opts, result), timeout=case.timeout_seconds)
-        except asyncio.TimeoutError:
-            result.is_error = True
-            result.error = f"timed out after {case.timeout_seconds}s"
+            scaffold_out = run_scaffold(case, workspace)
+            if scaffold_out:
+                result.trace.append({"type": "scaffold", "output": scaffold_out[:TOOL_RESULT_LIMIT]})
+            before = snapshot(workspace)
+            try:
+                await asyncio.wait_for(_session(case, workspace, opts, result), timeout=case.timeout_seconds)
+            except asyncio.TimeoutError:
+                result.is_error = True
+                result.error = f"timed out after {case.timeout_seconds}s"
+            finally:
+                after = snapshot(workspace)
+                result.created_files = sorted(after.keys() - before.keys())
+                result.modified_files = sorted(k for k in after.keys() & before.keys() if after[k] != before[k])
         finally:
-            after = snapshot(workspace)
-            result.created_files = sorted(after.keys() - before.keys())
-            result.modified_files = sorted(k for k in after.keys() & before.keys() if after[k] != before[k])
+            teardown_out = run_teardown(case, workspace)
+            if teardown_out:
+                result.trace.append({"type": "teardown", "output": teardown_out[:TOOL_RESULT_LIMIT]})
     except ScaffoldSkipped as e:
         result.skipped = True
         result.error = str(e)

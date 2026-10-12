@@ -50,7 +50,8 @@ Each run is a real agent session and costs real money: between $0.15 and $6 per 
 2. A headless session with only this plugin loaded (none of your own settings, plugins, hooks or MCP servers), the case's `allowed_tools` pre-approved, `WebFetch`, `WebSearch` and `PowerShell` disallowed (so Windows runs behave like macOS and Linux), `max_turns` and `timeout_seconds` from the case, and the spend cap.
 3. The prompt is the case's `prompt.md` body, usually `/construction:<skill>`.
 4. Every Bash, Write and Edit call passes through the guard (below).
-5. Graders run over the workspace and the trace.
+5. The case's `teardown` script, if its `harness.yaml` names one, runs in the workspace (to stop a server its `setup.sh` started); its output goes in the trace and a failure never fails the run.
+6. Graders run over the workspace and the trace.
 
 ## The guard
 
@@ -60,6 +61,8 @@ Native Windows has no OS sandbox, so the harness confines runs by policy instead
 - shell commands that name paths outside the workspace, the plugin, the toolkit's venv, the system temp dir, or system directories;
 - network, download and install commands (`curl`, `wget`, `ssh`, `psql`, `pip install`, `npm install`, `git push`, `Invoke-WebRequest`, and so on);
 - recursive deletes above the workspace.
+
+A case may let `curl`, and only `curl`, reach listed addresses: `allow_urls` in its `harness.yaml` (`allow_urls: ["http://127.0.0.1:47817/"]` for the agentcm-mode cases' stand-in for AgentCM's API). Every address in the command must start with one of them, and options that would send the request elsewhere (`-x`/`--proxy`, `-K`/`--config`, `--connect-to`, `--resolve`, `--next`) are still denied. Addresses are not read as paths.
 
 Denied calls are logged in `guard_log.json` and reported in `summary.md`. This is policy confinement, not an OS sandbox: a determined agent could still find a way around it, so run the harness only on the plugin you trust. On macOS and Linux, `--sandbox auto` adds the OS sandbox on top.
 
