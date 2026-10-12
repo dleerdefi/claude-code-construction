@@ -56,6 +56,8 @@ def parse_args(argv=None):
     p.add_argument("--dry-run", action="store_true", help="list the selected cases and graders, run nothing")
     p.add_argument("--regrade", metavar="RESULTS_DIR", help="re-grade the runs saved in this results folder; run nothing")
     p.add_argument("--rejudge", action="store_true", help="with --regrade: ask the judge again for llm graders")
+    p.add_argument("--no-skip", action="store_true",
+                   help="a case whose setup skips it (missing inputs) fails the run; by default skips are shown, not failed")
     p.add_argument("--check-negatives", action="store_true",
                    help="judge each selected case's negatives/*.md with its llm grader; run nothing")
     return p.parse_args(argv)
@@ -195,9 +197,22 @@ async def main_async(args) -> int:
                                  "notes": notes, "run_details": run_details})
         summary["total_cost_usd"] += cost
         summary["passed"] += ok
+    summary["no_skip"] = args.no_skip
     write_summary(out_dir, summary)
-    print(f"\n{summary['passed']}/{summary['total']} cases passed · total ${summary['total_cost_usd']:.2f} · report: {out_dir / 'summary.md'}")
-    return 0 if summary["passed"] == summary["total"] else 1
+    ran = summary["total"] - summary["skipped"]
+    print(f"\n{summary['passed']}/{ran} cases passed · {summary['skipped']} skipped · total ${summary['total_cost_usd']:.2f}"
+          f" · report: {out_dir / 'summary.md'}")
+    if args.no_skip and summary["skipped"]:
+        print(f"FAIL: {summary['skipped']} case(s) skipped, and --no-skip counts a skipped case as a failure")
+    return exit_code(summary, args.no_skip)
+
+
+def exit_code(summary: dict, no_skip: bool) -> int:
+    """0 when every case that ran passed; a skipped case fails only under --no-skip."""
+    ran = summary["total"] - summary.get("skipped", 0)
+    if no_skip and summary.get("skipped", 0):
+        return 1
+    return 0 if summary["passed"] == ran else 1
 
 
 def main() -> int:

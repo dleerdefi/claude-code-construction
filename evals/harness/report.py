@@ -64,7 +64,8 @@ def write_summary(out_dir: Path, summary: dict) -> None:
         lines.append(f"| {c['name']} | {c['score']:.2f} | {c['runs']} | ${c['cost_usd']:.2f} | {c['notes']} |")
     ran = summary["total"] - summary.get("skipped", 0)
     lines += ["", f"Total cost: ${summary['total_cost_usd']:.2f} · {summary['passed']}/{ran} cases at or above threshold"
-              + (f" · {summary['skipped']} skipped" if summary.get("skipped") else ""), ""]
+              + f" · {summary.get('skipped', 0)} skipped"
+              + (" (--no-skip: a skipped case fails this run)" if summary.get("no_skip") else ""), ""]
     for c in summary["cases"]:
         lines.append(f"## {c['name']}")
         for r in c["run_details"]:

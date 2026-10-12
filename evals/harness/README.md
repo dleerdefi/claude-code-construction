@@ -36,6 +36,8 @@ Each run is a real agent session and costs real money: between $0.15 and $6 per 
 
 **Negative examples.** A case may keep known-wrong material beside an `llm` grader in `negatives/*.md` (frontmatter `grader: <name>`, `expect: FAIL`, an optional `note:`; the body is the material). `bin/construction-python evals/harness/run.py --check-negatives [--case GLOB] [--judge-votes 3]` judges each with its grader's rubric and exits 1 when a verdict differs, so a rubric edit that lets a wrong answer pass shows before a run is spent (construction-guide keeps an answer that grades single-source values CONFIRMED).
 
+**Skipped cases.** A case whose `setup.sh` exits 3 (its inputs are missing: the Sanibel downloads, or a fixture that lacks what the case needs) is reported as skipped and, by default, does not fail the run, so contributors without the downloads still get a result; the last line and `summary.md` give the skipped count. With `--no-skip` any skipped case fails the run. A gate that counts on every case running (0.6.0's: `--tag agentcm-mode --no-skip`) uses it.
+
 ## Requirements
 
 - The toolkit's Python environment (`bin/construction-python` builds it; the harness needs `claude-agent-sdk` from `requirements.txt`).
