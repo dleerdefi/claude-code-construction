@@ -1,5 +1,5 @@
 # A-101 FLOOR PLAN
-# drawings/seed-3f8567b1.pdf, page 1. Text: complete. One paragraph per line in reading order: paragraph, x, y (0 to 1 from the top left), text; a long one goes on in lines without a position. Each line of text with its box: A-101.tsv
+# drawings/A-101.pdf, page 1. Text: complete. One paragraph per line in reading order: paragraph, x, y (0 to 1 from the top left), text; a long one goes on in lines without a position. Each line of text with its box: A-101.tsv
 p1	0.050	0.060	GENERAL NOTES
 p2	0.200	0.300	OFFICE
 p3	0.215	0.311	101

@@ -1,5 +1,5 @@
 # A-601 DOOR SCHEDULE
-# drawings/seed-d3e26f2a.pdf, page 1. Text: complete. One paragraph per line in reading order: paragraph, x, y (0 to 1 from the top left), text; a long one goes on in lines without a position. Each line of text with its box: A-601.tsv
+# drawings/A-601.pdf, page 1. Text: complete. One paragraph per line in reading order: paragraph, x, y (0 to 1 from the top left), text; a long one goes on in lines without a position. Each line of text with its box: A-601.tsv
 p1	0.100	0.060	DOOR SCHEDULE
 p2	0.100	0.100	MARK
 p3	0.100	0.120	D101

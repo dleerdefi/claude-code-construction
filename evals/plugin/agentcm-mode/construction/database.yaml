@@ -5,8 +5,9 @@ connection:
   host: "stub.invalid"
   database: "agentcm_fixture"
   user: "agentcm_reader"
-project_id: "c21df354-1723-44a1-a412-38b85ae781dd"
+project_id: "00fffe4b-5221-40a7-a12c-d55a55497f7e"
 query_wrappers:
   bash: ".construction/query.sh"
   powershell: ".construction/query.ps1"
-api_url: "http://stub.invalid/api"
+# The evals answer api_url from api-responses.json, beside .construction/
+api_url: "http://127.0.0.1:47817/api"

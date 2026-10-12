@@ -1,4 +1,4 @@
-# A-601 DOOR SCHEDULE: a schedule at 0.100 0.060 0.440 0.346 (x y w h), from the sheet's text: one line per row of text, its position y, then the cells by column; the table's own header rows come first.
+# A-601 DOOR SCHEDULE: a schedule at 0.100 0.060 0.440 0.346 (x y w h), from the sheet's text: one line per row of text, its position y, then the cells by column; the table's own header rows come first. schedule_id=none
 y	x0.100	x0.200	x0.300	x0.400	x0.500
 0.060		DOOR SCHEDULE
 0.100	MARK	SIZE	DOOR	FRAME	HDWR

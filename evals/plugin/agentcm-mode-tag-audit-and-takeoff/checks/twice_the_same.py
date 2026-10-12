@@ -5,4 +5,4 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "_checks"))
 import agentcm_trace as t
 
-t.check_takeoff_twice(accepted=0, pending=0)
+t.check_takeoff_twice(accepted=1, pending=1)

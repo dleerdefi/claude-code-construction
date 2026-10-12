@@ -1,5 +1,5 @@
 # A-102 FLOOR PLAN
-# drawings/seed-f08d9749.pdf, page 1. Text: complete. One paragraph per line in reading order: paragraph, x, y (0 to 1 from the top left), text; a long one goes on in lines without a position. Each line of text with its box: A-102.tsv
+# drawings/A-102.pdf, page 1. Text: complete. One paragraph per line in reading order: paragraph, x, y (0 to 1 from the top left), text; a long one goes on in lines without a position. Each line of text with its box: A-102.tsv
 # Views: a heading per view, its id, title, scale and area (x, y, w, h), then its paragraphs; the area is drawn by a person or estimated from where the labels are. Paragraphs in no view come last.
 ## view 5: ENLARGED OFFICE PLAN (0.700, 0.030, 0.270, 0.870; text, area estimated)
 p14	0.700	0.750	OFFICE
