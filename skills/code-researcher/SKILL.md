@@ -209,11 +209,20 @@ research so the gap analysis has a firm baseline.
 
 For each spec section in scope:
 - Read the full section (all parts — General, Products, Execution)
-- Use pdfplumber for text-layer PDFs; use vision for scanned or image-heavy pages
+- In AgentCM mode, read `.construction/specs/<section>.txt` (Phase 1a). Otherwise dump the section's text layer; pages it marks VISION are scanned or image-heavy: rasterize them and read them with vision:
+  ```bash
+  "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "{section.pdf}"
+  "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{section.pdf}" {page} --dpi 200 --output ".construction/skills/code-researcher/pages/{section}_p{page}.png"
+  ```
 
 For drawing sheets:
 - Read title block, notes, schedules, and details relevant to the scope
-- Use vision for plan sheets; extract text from schedules if text-layer
+- In AgentCM mode, search the sheet's text in `.construction/sheets/` and look at a box with `crop.sh` (`reference/agentcm-mode.md`). Otherwise rasterize the sheet (`{page}` is 1-based; a split sheet PDF has one page) and read it with vision; a schedule with a text layer can be read from `pdf_text.py`'s dump, and a region cropped with `crop_region.py`:
+  ```bash
+  "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{sheet.pdf}" {page} --dpi 200 --output ".construction/skills/code-researcher/pages/{sheet}.png"
+  "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" ".construction/skills/code-researcher/pages/{sheet}.png" --box {x1},{y1},{x2},{y2} --normalized --output ".construction/skills/code-researcher/pages/{sheet}_detail.png"
+  ```
+- Page images and text dumps are working data: keep them in `.construction/skills/code-researcher/pages/`, never elsewhere under `.construction/` and never in `/tmp`. Do not write your own extraction code (no `python -c`, no helper script): these scripts are the reading toolkit for this skill.
 
 For referenced standards within spec sections:
 - Note every standard cited (ASTM, ANSI, NFPA, UL, SMACNA, etc.) with its
@@ -466,6 +475,8 @@ Never overwrite an existing gap report. Version output files (`_v2`, `_v3`) if a
 ## Allowed Scripts
 
 - `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py` — spec section and sheet text, with a TEXT/VISION verdict per page (Phase 2a)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` and `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — page images for vision, into `.construction/skills/code-researcher/pages/` (Phase 2a)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log a code gap the design team must answer to the Issue Registry (command and severity mapping in construction-guide)
