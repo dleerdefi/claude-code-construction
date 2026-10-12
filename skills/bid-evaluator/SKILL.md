@@ -50,7 +50,7 @@ past experience with bidders.
 
 ### Mode Detection
 Check for AgentCM: `.construction/project.yaml` at the project root.
-- **AgentCM mode**: Read each spec section from `.construction/specs/<section>.txt` (`09 65 13` is `09-65-13.txt`; each line starts with its page), listed in `.construction/INDEX.md`. Only for a manual INDEX.md lists under "Spec manuals not read", read spec-splitter's `.construction/skills/spec_text/` instead. Use sheet index from `.construction/index/sheet_index.yaml` for drawing identification.
+- **AgentCM mode**: Read each spec section from `.construction/specs/<section>.txt` (`09 65 13` is `09-65-13.txt`; each line starts with its page), listed in `.construction/INDEX.md`. Only for a manual INDEX.md lists under "Spec manuals not read", read spec-splitter's `.construction/skills/spec_text/` instead. Use sheet index from `.construction/index/sheet_index.yaml` for drawing identification. Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`: which source wins, what a missing file or an empty search means, queries, drawings through `crop.sh`, sheet ids, and how to record a correction of AgentCM's data.
 - **Flat File mode**: Discover spec PDFs via `CLAUDE.md` paths or directory search (`Specifications/`, `Specification Sections/`). Read drawing sheets directly from PDF.
 
 ### 1a. Spec Review
@@ -243,6 +243,7 @@ Never overwrite an existing bid evaluation. The export script uses `safe_output_
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — drawing sheets and VISION pages
 - `${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)
 
 No other code: no `python -c`, no helper script. If the toolkit lacks something
 you need, say so in the handoff.

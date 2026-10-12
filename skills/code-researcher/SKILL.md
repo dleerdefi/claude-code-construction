@@ -95,7 +95,7 @@ Phase 5 — Report
 
 Collect minimum required project parameters. Check in this order:
 
-**AgentCM project files (if `.construction/project.yaml` exists):**
+**AgentCM project files (if `.construction/project.yaml` exists):** follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (which source wins, missing files, queries, drawings through `crop.sh`, corrections of AgentCM's data).
 - `.construction/project.yaml` — location, occupancy, construction type
 - `.construction/index/sheet_index.yaml` — drawing set composition
 - `.construction/specs/<section>.txt` — each spec section's text (`01 10 00` is `01-10-00.txt`), listed in `.construction/INDEX.md`; only for a manual INDEX.md lists under "Spec manuals not read", spec-splitter's `.construction/skills/spec_text/`
@@ -464,4 +464,5 @@ Never overwrite an existing gap report. Version output files (`_v2`, `_v3`) if a
 
 - `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log a code gap the design team must answer to the Issue Registry (command and severity mapping in construction-guide)

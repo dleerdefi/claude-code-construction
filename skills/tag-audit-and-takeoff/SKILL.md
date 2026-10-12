@@ -29,6 +29,7 @@ override user-approved groupings, or assume quantities without provenance.
 Check for AgentCM: `.construction/project.yaml` at the project root.
 
 **AgentCM mode** (`.construction/project.yaml` exists):
+- Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`: which source wins, what a missing file or an empty search means, sheet ids, and how to record a correction of AgentCM's data (a missed tag goes through the ingest in Step 8)
 - Read `.construction/CLAUDE.md` for project context
 - Read `.construction/database.yaml` for `project_id` and `api_url`; run each query with `sh .construction/query.sh "SQL"`
 - Every `{sheet_id}` below (the endpoints and the `extracted_items` queries) is
@@ -382,3 +383,4 @@ coverage. Gaps on sheets: [list]." No schedule → report raw counts.
 - `scripts/qto_to_xlsx.py` — QTO Excel export (4-sheet workbook)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log schedule/drawing count mismatches to the Issue Registry (command and severity mapping in construction-guide)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — record the QTO as a finding (Step 8)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data other than a missed tag (`reference/agentcm-mode.md`)

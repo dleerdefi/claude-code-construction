@@ -84,6 +84,7 @@ This skill reads from `.construction/skills/spec_text/*.txt` files provisioned b
 1. Read `.construction/INDEX.md`. The queue is every section under `## Specification sections`; read each from its Agent file, `.construction/specs/<section>.txt` (`08 71 00` is `08-71-00.txt`; each line starts with its page in the manual, which gives the page for citations). These files carry no quality rating.
 2. If INDEX.md lists manuals under `## Spec manuals not read`, their sections are spec-splitter's: use Branch A or B below for those manuals only, and add their sections to the queue from `.construction/skills/spec_text/manifest.json`. Never invoke spec-splitter for a manual AgentCM has read.
 3. If INDEX.md is missing, say that AgentCM has not written its index for this folder, and stop.
+4. Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (which source wins, missing files).
 
 **Flat-file mode** (no `.construction/project.yaml`): Branch A or B.
 

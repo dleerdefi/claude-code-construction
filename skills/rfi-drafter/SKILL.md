@@ -113,7 +113,9 @@ fractions of the page.
 
 If AgentCM data is available (`.construction/project.yaml` exists), query the
 database for cross-references to the affected area. See
-`references/research-checklist.md` for the queries.
+`references/research-checklist.md` for the queries, and follow
+`${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (which source wins, missing files,
+drawings through `crop.sh`, corrections of AgentCM's data).
 
 If research reveals the issue is already resolved (by addendum, ASI,
 or existing RFI response), inform the user — no RFI needed.
@@ -266,4 +268,5 @@ Managed via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`.
 - `${CLAUDE_PLUGIN_ROOT}/scripts/rfi/generate_rfi_pdf.py` — generate RFI PDF output
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize a drawing PDF page for issue context
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — crop a region from a rasterized sheet for issue context
+- `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)
 

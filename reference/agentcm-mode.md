@@ -49,3 +49,10 @@ powershell -File .construction/crop.ps1 <sheet> <x> <y> <w> <h>
 - AgentCM's data changes only through its write endpoints, `{api_url}/projects/{project_id}/...`: `schedules/ingest`, `schedules/reconcile`, `tag-detections/ingest`. Tell the PE what you sent; AgentCM refreshes the files it affects.
 - A write names a sheet by its id: the `id` of the entry in `.construction/index/sheet_index.yaml` whose `sheet_number` matches. Never guess it from the number. If that file is missing or its entries have no `id` (an older sheet-splitter wrote a `pages:` list with `filename` and `page_index`), say so and stop.
 - A skill's own working data goes in `.construction/skills/<skill>/`.
+
+## When AgentCM is wrong
+
+Never edit `.construction/` to fix it. Use the document's value in the task at hand and say so, with the crop as evidence: "AgentCM's index has room N141 as EXISTING DT WOMEN'S RESTROOM; the drawing shows EXISTING WOMEN'S RESTROOM (crop); I used the drawing's." Then send the correction back for the PE to confirm, never into accepted data:
+
+- **A missed tag or callout:** `POST {api_url}/projects/{project_id}/tag-detections/ingest`, as tag-audit-and-takeoff sends it. It waits as a pending card in AgentCM's review.
+- **Anything else on a sheet** (a wrong text, a room name, a wrong zone): one line in `.construction/skills/corrections.tsv`, appended only with the plugin's `scripts/corrections_append.py`, run through the plugin's Python as your skill's script list gives it. Never write the file any other way. Its arguments: `--sheet` (the sheet's number as INDEX.md names it), `--x --y --w --h` (the box from the sheet files, the numbers `crop.sh` took), `--kind` (text, room, tag, callout, zone, view, sheet or other), `--crop` (the PNG `crop.sh` printed), `--agentcm` (AgentCM's value) and `--drawing` (the drawing's value). It refuses a value it cannot check, says why, and writes nothing.

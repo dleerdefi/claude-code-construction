@@ -32,6 +32,7 @@ The procedure is the same for every CSI division. Your knowledge of the trade su
 | `rasterize_page.py`, `crop_region.py`, `extract_text_region.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/` | Read submittal and drawing pages |
 | `issue_manager.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/` | Log design-team questions as issues for `rfi-drafter` |
 | `write_finding.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/graph/` | A finding in `.construction/skills/submittal-review/findings/` (both modes) |
+| `corrections_append.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/` | AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`) |
 
 Run every script through `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python"`. Double-quote every path. Do not write custom scripts: write the JSON files below directly and let the permitted scripts read them.
 
@@ -70,7 +71,7 @@ prior.json            resubmittals only: what happened to each prior finding
 
 ### 1. Intake
 
-1. **Mode.** `.construction/project.yaml` present → AgentCM mode; otherwise flat file.
+1. **Mode.** `.construction/project.yaml` present → AgentCM mode; otherwise flat file. In AgentCM mode, follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`: which source wins, what a missing file or an empty search means, queries, drawings through `crop.sh`, and how to record a correction of AgentCM's data.
 2. **Submittal.** Locate the package file(s). Read the cover or transmittal for:
    - submittal number, revision and title;
    - subcontractor;

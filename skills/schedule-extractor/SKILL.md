@@ -42,7 +42,7 @@ For dedicated schedule sheets, the entire page is the extraction target — no n
 
 #### Source B — AgentCM database query (supplementary)
 
-If `.construction/database.yaml` exists, query known schedules through AgentCM's wrapper:
+In AgentCM mode (`.construction/project.yaml` exists; follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`), query known schedules through AgentCM's wrapper:
 ```bash
 # project_id is in .construction/database.yaml
 sh .construction/query.sh "SELECT id, schedule_type, title, sheet_id, bounding_region FROM schedules WHERE project_id = '{PROJECT_ID}'"
@@ -164,7 +164,7 @@ After extraction (by either method):
 - **Merged cell cleanup**: Expand merged header cells (e.g., "WALLS" spanning A/B/C/D sub-columns)
 - **Normalize dimensions**: `3' - 0"` → `3'-0"` (remove spaces around dashes)
 - **Flag revisions**: Note any cells within revision clouds or delta markers
-- **Cross-reference with database**: If `.construction/database.yaml` exists, verify room numbers via `sh .construction/query.sh "SELECT number FROM rooms WHERE project_id = '{PROJECT_ID}' AND number = '{room_number}'"` and door numbers via `sh .construction/query.sh "SELECT ge.tag_number FROM graph_elements ge JOIN sheets s ON s.id = ge.sheet_id WHERE s.project_id = '{PROJECT_ID}' AND ge.element_type = 'door' AND ge.tag_number = '{door_mark}'"`
+- **Cross-reference with database**: In AgentCM mode, verify room numbers via `sh .construction/query.sh "SELECT number FROM rooms WHERE project_id = '{PROJECT_ID}' AND number = '{room_number}'"` and door numbers via `sh .construction/query.sh "SELECT ge.tag_number FROM graph_elements ge JOIN sheets s ON s.id = ge.sheet_id WHERE s.project_id = '{PROJECT_ID}' AND ge.element_type = 'door' AND ge.tag_number = '{door_mark}'"`
 
 ### Step 5: Output to Excel
 
@@ -365,3 +365,4 @@ Never overwrite an existing schedule extraction. The export script uses `safe_ou
 - `scripts/schedule_to_xlsx.py` — Excel export with reconciliation anchors
 - `scripts/xlsx_to_changeset.py` — diff edited Excel against DB for reconciliation
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — record the extraction as a finding (Step 7)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)
