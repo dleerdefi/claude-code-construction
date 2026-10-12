@@ -1,0 +1,12 @@
+checks:
+  - name: agentcm-mode-writes
+    script: ../_checks/agentcm_mode_writes.py
+    weight: 1
+  - name: reconcile
+    script: checks/reconcile.py
+    weight: 3
+  - name: contract-requests
+    script: checks/contract_requests.py
+    weight: 1
+allow_urls: ["http://127.0.0.1:47817/"]
+teardown: ../agentcm-mode/teardown.sh

@@ -68,6 +68,7 @@ Each skill against AgentCM's own contract fixture (`agentcm-mode/`, written by A
 | `agentcm-mode-spec-splitter` | closed | Splits only the manual INDEX.md lists as not read |
 | `agentcm-mode-tag-audit-and-takeoff` | running | The takeoff twice in one session: the same confirmed, to confirm and possible total, confirmed = the accepted tags, coverage read again, no tag sent twice; ingest payloads and sheet ids as the contract says |
 | `agentcm-mode-schedule-extractor` | running | The ingest names A-601 by its id, with the contract's payload |
+| `agentcm-mode-schedule-extractor-reconcile` | running | The Excel round trip: setup exports the ingested schedule with the plugin's exporter and edits one cell (`agentcm-mode/make_edited_schedule.py`); the run reads the stored rows from the rows endpoint and reconciles exactly that cell, with `sourceFile` |
 | `agentcm-mode-tag-audit-and-takeoff-offline`, `-schedule-extractor-offline` | closed | Nothing reaches an API; the payload waits in the outbox; the PE is asked to start AgentCM |
 | `agentcm-mode-bid-evaluator`, `-subcontract-writer`, `-submittal-review` | closed | Spec text from `specs/` (waiting: the fixture has no sections matching the BP-09 bids, and no submittal) |
 
