@@ -672,16 +672,15 @@ def case(name, skill_cmd, prompt, needs="", graders=None, checks=None, extra_set
         write(f"{d}/graders/{gname}.md", f"---\ntype: {gtype}\n{fields}\nweight: {weight}\n---\n{body}\n")
     harness = "checks:\n  - name: agentcm-mode-writes\n    script: ../_checks/agentcm_mode_writes.py\n    weight: 1\n"
     for cname, (body, weight) in (checks or {}).items():
-        write(f"{d}/checks/{cname.replace('-', '_')}.py", f'''
-            #!/usr/bin/env python3
-            """{cname}: graded from the trace and the requests the stand-in API received."""
-            import sys
-            from pathlib import Path
-            sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "_checks"))
-            import agentcm_trace as t
-
-            {body}
-        ''')
+        # the head at column 0, like a multi-line body: indenting it under the body's first line only left the
+        # rest of a multi-line body unindented, and nothing to dedent (IndentationError)
+        write(f"{d}/checks/{cname.replace('-', '_')}.py",
+              "#!/usr/bin/env python3\n"
+              f'"""{cname}: graded from the trace and the requests the stand-in API received."""\n'
+              "import sys\nfrom pathlib import Path\n"
+              'sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "_checks"))\n'
+              "import agentcm_trace as t\n\n"
+              + textwrap.dedent(body).strip("\n") + "\n")
         harness += f"  - name: {cname}\n    script: checks/{cname.replace('-', '_')}.py\n    weight: {weight}\n"
     if api or offline_write:
         harness += f'allow_urls: ["{STUB}"]\n'
