@@ -1,0 +1,5 @@
+checks:
+  - name: agentcm-mode-writes
+    script: ../_checks/agentcm_mode_writes.py
+    weight: 1
+teardown: ../agentcm-mode/teardown.sh

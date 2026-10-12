@@ -1,0 +1,9 @@
+checks:
+  - name: agentcm-mode-writes
+    script: ../_checks/agentcm_mode_writes.py
+    weight: 1
+  - name: outbox
+    script: checks/outbox.py
+    weight: 3
+allow_urls: ["http://127.0.0.1:47817/"]
+teardown: ../agentcm-mode/teardown.sh

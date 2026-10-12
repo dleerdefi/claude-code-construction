@@ -56,6 +56,23 @@ The three skills that need bids or contracts run on generated fixtures in `_fixt
 | `bid-evaluator` | From the tabulated JSON: the silent omission marked SILENT, the math error flagged not corrected, the buried exclusion scored, budget pricing not awardable, the clean low bid recommended, five workbook tabs |
 | `subcontract-writer` | From the awarded bid and the template: parties and sum from the bid, `sole negligence` fixed and flagged, stale example parties dropped, no placeholders left, spec sections and bid exclusions carried in |
 
+### AgentCM mode (`--tag agentcm-mode`)
+
+Each skill against AgentCM's own contract fixture (`agentcm-mode/`, written by AgentCM's `scripts/writeContractFixture.ts`; its README explains the layout, the stand-in API and how to refresh it). Read-only skills run with AgentCM closed: nothing answers at `api_url` and `query.sh` fails. The writing skills run once against `agentcm-mode/stub_api.py`, which serves AgentCM's recorded answers and logs every request, and once with AgentCM closed, where the payload must wait in the skill's outbox. Every case grades that the skill read `project.yaml` and AgentCM's files, never queried the database or asked for `graph/export`, wrote nothing under `.construction/` outside `skills/` and `crops/` (against a baseline setup records), and, where it looks at a drawing, called `crop.sh` on the right sheet with a box from the sheet files. Harness only: the cases need the stand-in API, `allow_urls` and `teardown` (`claude plugin eval` has none of them).
+
+| Case | AgentCM | Checks |
+|---|---|---|
+| `agentcm-mode-project-setup`, `-sheet-splitter` | closed | The orientation from INDEX.md, no CLAUDE.md block; no split, Split & Rename named |
+| `agentcm-mode-construction-guide`, `-pe-review`, `-rfi-drafter` | closed | Answers from the files; `crop.sh` on the cited line (D103, D101) or the reviewed sheets |
+| `agentcm-mode-bid-tabulator`, `-submittal-log-generator`, `-code-researcher` | closed | Working data under `.construction/skills/`; spec text from `specs/` |
+| `agentcm-mode-spec-splitter` | closed | Splits only the manual INDEX.md lists as not read |
+| `agentcm-mode-tag-audit-and-takeoff` | running | The takeoff twice in one session: the same confirmed, to confirm and possible total, confirmed = the accepted tags, coverage read again, no tag sent twice; ingest payloads and sheet ids as the contract says |
+| `agentcm-mode-schedule-extractor` | running | The ingest names A-601 by its id, with the contract's payload |
+| `agentcm-mode-tag-audit-and-takeoff-offline`, `-schedule-extractor-offline` | closed | Nothing reaches an API; the payload waits in the outbox; the PE is asked to start AgentCM |
+| `agentcm-mode-bid-evaluator`, `-subcontract-writer`, `-submittal-review` | closed | Spec text from `specs/` (waiting: the fixture has no sections matching the BP-09 bids, and no submittal) |
+
+A case whose fixture lacks what it needs (the PDFs, the recorded answers, an ingested schedule) is skipped with "waiting for the contract fixture"; the 0.6.0 merge gate runs `--tag agentcm-mode --no-skip`, which fails on any skip.
+
 Through the harness on Sonnet, one run of every case costs about $45 (smoke $9, real $21, synthetic $13, plus about $4 for the large-pdf case); single cases range from under $1 (spec-splitter) to about $6 (subcontract-writer). Note that `claude plugin eval` has no skip convention: without the downloads, the `real` cases fail there rather than skip.
 
 ## Known issues

@@ -1,0 +1,6 @@
+# Section 09 30 00 - TILING
+# Specifications/Project Manual.pdf, pages 3 to 3. Each line starts with its page in the manual; the headers and footers every page repeats are left out.
+pg3	SECTION 09 30 00 - TILING
+pg3	PART 1 GENERAL
+pg3	A. Porcelain tile.
+pg3	END OF SECTION
