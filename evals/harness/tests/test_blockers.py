@@ -81,6 +81,12 @@ class Originals(unittest.TestCase):
         self.assertTrue(result.passed)
         self.assertIn("not recorded", result.detail)
 
+    def test_a_regrade_judges_against_the_folder_the_run_worked_in(self):
+        trace = [{"type": "tool_use", "name": "Bash", "input": {"command": f'cp a.png "{WS}/out/a.png"'}}]
+        r = run(trace=trace)
+        r.ran_in, r.workspace = Path(WS), Path("/results/case/run-1/workspace")  # the saved copy
+        self.assertTrue(by_name(grade_blockers(r))["writes-inside-project"].passed)
+
     def test_a_write_outside_is_a_blocker(self):
         trace = [{"type": "tool_use", "name": "Bash", "input": {"command": "cp a.png /tmp/a.png"}}]
         self.assertFalse(by_name(grade_blockers(run(trace=trace)))["writes-inside-project"].passed)

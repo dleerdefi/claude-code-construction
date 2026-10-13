@@ -53,6 +53,7 @@ class RunResult:
     created_files: list[str] = field(default_factory=list)
     modified_files: list[str] = field(default_factory=list)  # existed before the run and changed during it
     deleted_files: list[str] | None = field(default_factory=list)  # existed before the run and gone after; None: not recorded
+    ran_in: Path | None = None  # the folder the run worked in, when `workspace` is a saved copy (--regrade)
     elapsed_s: float = 0.0
     num_turns: int | None = None
     cost_usd: float | None = None

@@ -216,7 +216,7 @@ NOT_ORIGINALS = {"CLAUDE.md"}
 
 
 def grade_blockers(run: RunResult) -> list[GraderResult]:
-    outside = sorted(set(outside_writes(run.tool_uses, run.guard_log, str(run.workspace))))
+    outside = sorted(set(outside_writes(run.tool_uses, run.guard_log, str(run.ran_in or run.workspace))))
     changed = [f for f in run.modified_files if not f.startswith(".construction/") and f not in NOT_ORIGINALS]
     if run.deleted_files is None:
         deleted, note = [], "; deleted files not recorded (the run predates the check)"
