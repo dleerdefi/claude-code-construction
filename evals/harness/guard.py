@@ -10,8 +10,10 @@ runner wraps it in a PreToolUse hook.
 """
 from __future__ import annotations
 
+import json
 import os
 import re
+import shlex
 import sys
 import tempfile
 from dataclasses import dataclass
@@ -168,3 +170,161 @@ def decide(tool_name: str, tool_input: dict, policy: Policy) -> Decision:
         return Decision(True)
 
     return Decision(True)
+
+
+# --- after the run: writes outside the project folder ----------------------------------------------
+# The guard lets shell commands touch the temp dir and the plugin (the toolkit needs them), so a skill
+# that writes a page image to /tmp is not stopped. These find such writes in the trace afterwards.
+
+_REDIRECT = re.compile(r"(?<![<>])(?:\d|&)?>>?\s*(\"[^\"]*\"|'[^']*'|[^\s;&|<>()]+)")
+_OUTPUT_OPTION = re.compile(r"(?:^|\s)(?:--output-dir|--output|--annotations|-o)(?:\s+|=)(\"[^\"]*\"|'[^']*'|[^\s;&|<>()]+)")
+_ASSIGNMENT = re.compile(r"^([A-Za-z_]\w*)=(.*)$", re.DOTALL)
+_VAR = re.compile(r"\$\{(\w+)\}|\$(\w+)|%(\w+)%")
+_TEMP_VARS = {"TMP", "TEMP", "TMPDIR"}
+WRITE_COMMANDS = {"mkdir", "touch", "rm", "rmdir", "tee"}  # every operand is written
+LAST_OPERAND = {"cp", "mv"}  # the destination
+READ_ONLY = {"grep", "egrep", "fgrep", "rg", "head", "tail", "cut", "awk", "tr", "wc", "ls", "cat", "find", "jq", "uniq"}
+
+
+def _unquote(s: str) -> str:
+    return s[1:-1] if len(s) >= 2 and s[0] == s[-1] and s[0] in "\"'" else s
+
+
+def _segments(command: str) -> list[tuple[str, str]]:
+    """The command's simple commands, split at ; && || | and newlines outside quotes. Each comes with a
+    mask of the same length whose quoted characters are blanked, so a `>` inside a string is not a redirect."""
+    out, seg, mask = [], [], []
+    quote, i = "", 0
+    while i < len(command):
+        c = command[i]
+        if quote:
+            seg.append(c); mask.append(" " if c != quote else c)
+            if c == "\\" and quote == '"' and i + 1 < len(command):
+                seg.append(command[i + 1]); mask.append(" "); i += 1
+            elif c == quote:
+                quote = ""
+        elif c in "\"'":
+            quote = c; seg.append(c); mask.append(c)
+        elif c == "\\" and i + 1 < len(command):
+            seg += [c, command[i + 1]]; mask += [" ", " "]; i += 1
+        elif c in ";|\n" or (c == "&" and command[i + 1:i + 2] == "&"):
+            out.append(("".join(seg), "".join(mask))); seg, mask = [], []
+            if command[i + 1:i + 2] in ("&", "|") and c in "&|":
+                i += 1
+        else:
+            seg.append(c); mask.append(c)
+        i += 1
+    out.append(("".join(seg), "".join(mask)))
+    return [(s, m) for s, m in out if s.strip()]
+
+
+def _words(segment: str) -> list[str]:
+    try:
+        return shlex.split(segment, posix=True)
+    except ValueError:
+        return segment.split()
+
+
+def _expand(word: str, variables: dict[str, str]) -> str | None:
+    """The word with known variables put in; None when it names one we cannot know (the target is then unknown)."""
+    unknown = False
+
+    def sub(m):
+        nonlocal unknown
+        name = m.group(1) or m.group(2) or m.group(3)
+        if name.upper() in _TEMP_VARS:
+            return tempfile.gettempdir()
+        if name in ("HOME", "USERPROFILE"):
+            return str(Path.home())
+        if name in variables:
+            return variables[name]
+        unknown = True
+        return ""
+
+    out = _VAR.sub(sub, word)
+    return None if unknown else out
+
+
+def _absolute(p: str) -> bool:
+    return p.startswith(("/", "~", "\\")) or bool(re.match(r"^[A-Za-z]:", p))
+
+
+def shell_write_targets(command: str, workspace: str) -> list[str]:
+    """Paths a shell command writes (redirects, -o/--output, mkdir, touch, rm, tee, cp/mv destinations,
+    sed -i) that lie outside the workspace. Relative paths follow the command's own cd; a path behind a
+    variable the command never sets is skipped rather than guessed."""
+    ws = normalize(workspace)
+    cwd: str | None = ws
+    variables: dict[str, str] = {}
+    outside: list[str] = []
+    body = _HEREDOC.sub(" ", command)
+
+    def check(raw: str) -> None:
+        word = _expand(_unquote(raw.strip()), variables)
+        if not word or word.startswith("&") or word == "-":
+            return
+        if _absolute(word):
+            target = normalize(word)
+        elif cwd is None:
+            return
+        else:
+            target = normalize(cwd + "/" + word)
+        if target.lower().startswith("/dev/") or target.lower() in ("/dev/null", "nul"):
+            return
+        if not _is_under(target, ws):
+            outside.append(target)
+
+    for seg, mask in _segments(body):
+        redirects = list(_REDIRECT.finditer(mask))
+        for m in redirects:
+            check(seg[m.start(1):m.end(1)])
+        bare = seg
+        for m in reversed(redirects):
+            bare = bare[:m.start()] + " " + bare[m.end():]
+        words = _words(bare.strip())
+        first = next((w for w in words if not _ASSIGNMENT.match(w)), "")
+        if os.path.basename(first) not in READ_ONLY:  # grep -o is not an output file
+            for m in _OUTPUT_OPTION.finditer(mask):
+                check(seg[m.start(1):m.end(1)])
+        while words and _ASSIGNMENT.match(words[0]):
+            name, value = _ASSIGNMENT.match(words[0]).groups()
+            expanded = _expand(value, variables)
+            if expanded is not None:
+                variables[name] = expanded
+            else:
+                variables.pop(name, None)
+            words = words[1:]
+        if not words:
+            continue
+        cmd, args = os.path.basename(words[0]), words[1:]
+        operands = [a for a in args if not a.startswith("-")]
+        if cmd == "cd":
+            target = _expand(operands[0], variables) if operands else str(Path.home())
+            if target is None:
+                cwd = None
+            elif _absolute(target):
+                cwd = normalize(target)
+            elif cwd is not None:
+                cwd = normalize(cwd + "/" + target)
+        elif cmd in WRITE_COMMANDS:
+            for a in operands:
+                check(a)
+        elif cmd in LAST_OPERAND and len(operands) >= 2:
+            check(operands[-1])
+        elif cmd == "sed" and any(a == "-i" or a.startswith("-i") for a in args) and operands:
+            check(operands[-1])
+    return outside
+
+
+def outside_writes(tool_uses: list[dict], guard_log: list[dict], workspace: str) -> list[str]:
+    """Every shell write outside the workspace in a run, skipping the calls the guard refused (they never ran).
+    The Write tools need no check here: the guard refuses any of them outside the workspace."""
+    refused = {json.dumps(g.get("input"), sort_keys=True, default=str) for g in guard_log if not g.get("allow", True)}
+    found: list[str] = []
+    for e in tool_uses:
+        if e.get("name") != "Bash":
+            continue
+        if json.dumps(e.get("input"), sort_keys=True, default=str) in refused:
+            continue
+        found += shell_write_targets(str((e.get("input") or {}).get("command", "")), workspace)
+    return found

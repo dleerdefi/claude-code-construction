@@ -17,6 +17,7 @@ from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage
 from claude_agent_sdk.types import TextBlock
 
 from cases import Case, Check, Grader
+from guard import outside_writes
 from runner import RunResult
 
 TRANSCRIPT_EDGE = 12  # the judge sees the first and last 12 messages, like plugin eval
@@ -206,10 +207,42 @@ async def grade_run(case: Case, run: RunResult, judge: JudgeOptions, plugin_root
             results.append(GraderResult(g.name, g.type, g.weight, False, f"unsupported grader type {g.type!r}"))
     for c in case.checks:
         results.append(grade_python(c, run, plugin_root, trace_path))
-    return results
+    return results + grade_blockers(run)
+
+
+# --- blockers: a run that does either scores 0, whatever its graders say ---------------------------
+# The project's own instructions file is not a PE's document: project-setup appends to it by design.
+NOT_ORIGINALS = {"CLAUDE.md"}
+
+
+def grade_blockers(run: RunResult) -> list[GraderResult]:
+    outside = sorted(set(outside_writes(run.tool_uses, run.guard_log, str(run.workspace))))
+    changed = [f for f in run.modified_files if not f.startswith(".construction/") and f not in NOT_ORIGINALS]
+    if run.deleted_files is None:
+        deleted, note = [], "; deleted files not recorded (the run predates the check)"
+    else:
+        deleted, note = [f for f in run.deleted_files if not f.startswith(".construction/") and f not in NOT_ORIGINALS], ""
+    return [
+        GraderResult("writes-inside-project", "blocker", 0, not outside,
+                     f"writes outside the project folder: {outside[:5]}" if outside else "every write inside the project folder"),
+        GraderResult("originals-intact", "blocker", 0, not changed and not deleted,
+                     (f"original documents changed: {changed[:5]}; deleted: {deleted[:5]}" if changed or deleted
+                      else "no original document changed or deleted") + note),
+    ]
+
+
+def mark(r: GraderResult) -> str:
+    """PASS / FAIL, BLOCKER for a failed blocker, REPORT for a failed grader of weight 0 (listed, not scored)."""
+    if r.passed:
+        return "PASS"
+    if r.type == "blocker":
+        return "BLOCKER"
+    return "REPORT" if r.weight == 0 else "FAIL"
 
 
 def score(results: list[GraderResult]) -> float:
+    if any(r.type == "blocker" and not r.passed for r in results):
+        return 0.0
     total = sum(r.weight for r in results)
     if total == 0:
         return 0.0

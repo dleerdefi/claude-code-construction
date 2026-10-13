@@ -30,7 +30,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from cases import load_cases, select  # noqa: E402
-from graders import JudgeOptions, grade_run, score  # noqa: E402
+from graders import JudgeOptions, grade_run, mark, score  # noqa: E402
 from regrade import load_saved_run, regrade_run  # noqa: E402
 from report import write_run, write_summary, write_trace  # noqa: E402
 from runner import RunOptions, cleanup, find_bash, run_case  # noqa: E402
@@ -109,7 +109,7 @@ async def regrade_async(args, cases) -> int:
             run_scores.append(s)
             cost += run.cost_usd or 0.0
             for g in graders:
-                print(f"      {'PASS' if g.passed else 'FAIL'} {g.name} ({g.type}): {g.detail[:160]}")
+                print(f"      {mark(g)} {g.name} ({g.type}): {g.detail[:160]}")
             run_details.append({"run_index": run.run_index, "score": s, "num_turns": run.num_turns,
                                 "elapsed_s": round(run.elapsed_s), "cost_usd": run.cost_usd, "error": run.error,
                                 "graders": [g.__dict__ for g in graders],
@@ -187,7 +187,7 @@ async def main_async(args) -> int:
             run_scores.append(s)
             cost += run.cost_usd or 0.0
             for g in graders:
-                print(f"      {'PASS' if g.passed else 'FAIL'} {g.name} ({g.type}): {g.detail[:160]}")
+                print(f"      {mark(g)} {g.name} ({g.type}): {g.detail[:160]}")
             run_details.append({"run_index": i, "score": s, "num_turns": run.num_turns, "elapsed_s": round(run.elapsed_s),
                                 "cost_usd": run.cost_usd, "error": run.error, "graders": [g.__dict__ for g in graders],
                                 "guard_denials": [d for d in run.guard_log if not d["allow"]],

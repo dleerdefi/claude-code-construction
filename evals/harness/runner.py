@@ -52,6 +52,7 @@ class RunResult:
     guard_log: list[dict] = field(default_factory=list)
     created_files: list[str] = field(default_factory=list)
     modified_files: list[str] = field(default_factory=list)  # existed before the run and changed during it
+    deleted_files: list[str] | None = field(default_factory=list)  # existed before the run and gone after; None: not recorded
     elapsed_s: float = 0.0
     num_turns: int | None = None
     cost_usd: float | None = None
@@ -230,6 +231,7 @@ async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> R
                 after = snapshot(workspace)
                 result.created_files = sorted(after.keys() - before.keys())
                 result.modified_files = sorted(k for k in after.keys() & before.keys() if after[k] != before[k])
+                result.deleted_files = sorted(before.keys() - after.keys())
         finally:
             teardown_out = run_teardown(case, workspace)
             if teardown_out:

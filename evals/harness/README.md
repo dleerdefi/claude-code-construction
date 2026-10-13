@@ -88,3 +88,9 @@ Plus one harness-only type, kept outside the files plugin eval reads so the case
 | `python` | `harness.yaml` in the case folder: `checks: [{name, script: checks/x.py, weight}]` | The script exits 0 (it may print `score: 0.0-1.0` for partial credit). It runs with `construction-python` in the workspace, with `EVAL_WORKSPACE`, `EVAL_CASE_DIR` and `EVAL_TRACE` in the environment, and can open xlsx and docx deliverables with the toolkit's libraries |
 
 A run's score is the weighted fraction of passing graders. The judge refuses binary files, as plugin eval's does; grade those with a `python` check.
+
+- **Report-only graders.** A grader with `weight: 0` is evaluated and listed but never scored. `summary.md` marks a failed one `REPORT`, not `FAIL`.
+- **Blockers.** Every run, in every case, is also graded on two blockers. A run that trips either scores 0, whatever its graders say; `summary.md` marks it `BLOCKER`.
+  - `writes-inside-project` fails when a shell command writes outside the workspace. The guard lets commands use the temp dir and the plugin, so a page image sent to `/tmp` is not stopped; this finds it afterwards in the trace. It reads redirects, `-o`/`--output`/`--output-dir`, `mkdir`, `touch`, `rm`, `tee`, `cp`/`mv` destinations and `sed -i`, follows the command's own `cd` and variables, and skips heredoc bodies, quoted text and calls the guard refused (`guard.outside_writes`).
+  - `originals-intact` fails when a file that was in the workspace before the run, outside `.construction/`, is changed or deleted. The project's `CLAUDE.md` is exempt: project-setup appends to it by design. Runs saved before 2026-10-13 did not record deleted files, and their result says so.
+- **Runs passed.** `summary.md` counts the runs that met the threshold per case (the "passes in at least 2 of 3 runs" bar).
