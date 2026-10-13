@@ -37,5 +37,5 @@ Rules:
 - Cite both sides of every finding: requirement source (sheet/detail, schedule row, spec article, RFI, ASI) and submittal file and page.
 - Never invent a sheet, detail, article or code section. If you cannot find the requirement, the finding is NOT FOUND against the contract documents (owner: design_team).
 - "By others" without a named party is a finding.
-- Do not write any other files and do not create scripts.
+- Do not write any other files and do not create scripts. Write both files with the Write tool (Edit to change one), never a shell loop, heredoc or `sed -i`, and never check them with inline Python.
 - Reply with one line only: elements reviewed, findings by severity, references unavailable, questions raised. Your files are the result.

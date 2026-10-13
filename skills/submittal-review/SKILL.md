@@ -30,11 +30,12 @@ The procedure is the same for every CSI division. Your knowledge of the trade su
 | `export_submittal_review.py` | `${CLAUDE_SKILL_DIR}/scripts/` | Build the Excel review, suggested disposition and markup items |
 | `annotate_pdf.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/` | Write review clouds and notes onto a copy of the submittal |
 | `rasterize_page.py`, `crop_region.py`, `extract_text_region.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/` | Read submittal and drawing pages |
+| `pdf_text.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/` | Text of a submittal file; of a spec page AgentCM did not read, with `--pages` |
 | `issue_manager.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/` | Log design-team questions as issues for `rfi-drafter` |
 | `write_finding.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/graph/` | A finding in `.construction/skills/submittal-review/findings/` (both modes) |
 | `corrections_append.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/` | AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`) |
 
-Run every script through `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python"`. Double-quote every path. Do not write custom scripts: write the JSON files below directly and let the permitted scripts read them.
+Run every script through `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python"`. Double-quote every path. Do not write custom scripts or inline Python. Write every file in the review folder with the Write tool, and change one with the Edit tool. Never use a shell loop, heredoc, `echo >` or `sed -i`, even for fifteen elements that look alike. Check the files with `check_review.py --review-dir`, which names a file that is not valid JSON with its line and column, never with Python of your own.
 
 Load the `construction-guide` skill before reading any project document. Never read construction PDFs directly: rasterize pages first.
 
@@ -79,7 +80,7 @@ prior.json            resubmittals only: what happened to each prior finding
    - submittal types, using `submittal-log-generator`'s labels (Shop Drawings, Product Data, Samples, Design Data, Test Reports, Certificates, Delegated Design, ...).
 3. **Resubmittal.** If the revision is above zero or the user names a prior review, find the prior review directory. Every prior finding must be accounted for in `prior.json` (Step 6).
 4. **Prerequisites.**
-   - **Spec text.** In AgentCM mode, read each section from `.construction/specs/<section>.txt` (`08 71 00` is `08-71-00.txt`; each line starts with its page), listed in `.construction/INDEX.md`: it is the section's text, and a section's pages are never extracted again from the PDF. A read manual's pages in no section (INDEX.md lists them) are read in the PDF, those pages only. Only for a manual INDEX.md lists under "Spec manuals not read" is it in `.construction/skills/spec_text/`. Otherwise the text must exist in `.construction/skills/spec_text/`. When text spec-splitter provides is missing, invoke the `construction:spec-splitter` skill (Skill tool) yourself.
+   - **Spec text.** In AgentCM mode, read each section from `.construction/specs/<section>.txt` (`08 71 00` is `08-71-00.txt`; each line starts with its page), listed in `.construction/INDEX.md`: it is the section's text, and a section's pages are never extracted again from the PDF. A read manual's pages in no section (INDEX.md lists them) are read in the PDF, those pages only (`pdf_text.py --pages`). Never run `pdf_text.py` or `rasterize_page.py` on a section's pages: not to check them, not in a page range and not in a whole-manual dump. Only for a manual INDEX.md lists under "Spec manuals not read" is it in `.construction/skills/spec_text/`. Otherwise the text must exist in `.construction/skills/spec_text/`. When text spec-splitter provides is missing, invoke the `construction:spec-splitter` skill (Skill tool) yourself.
    - **Drawing sheets** should be split and indexed (`sheet_index.yaml`, or AgentCM's index). `sheet-splitter` is user-invoked only, so you cannot run it from here: ask the user to run `/construction:sheet-splitter` and resume. If nobody can answer (unattended run), continue with the bound drawing set, locate sheets with `find_pages.py`, and add a `notes` entry in `state.yaml` saying the drawings were not split.
 5. **Project facts.** Read `.construction/skills/project_context.yaml`:
    - **Facility types** (`building.facility_types`): if missing, infer them from the cover sheet and code analysis, and confirm them at the checkpoint.
