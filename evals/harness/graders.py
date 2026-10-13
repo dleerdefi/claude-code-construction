@@ -216,8 +216,35 @@ async def grade_run(case: Case, run: RunResult, judge: JudgeOptions, plugin_root
 NOT_ORIGINALS = {"project-setup": {"CLAUDE.md"}}
 
 
+def _mentions(run: RunResult, name: str) -> list[str]:
+    """Where the run names a file: in its commands (tool inputs), its output (tool results, its own text), both or neither."""
+    base = name.replace("\\", "/").rsplit("/", 1)[-1]
+    commands = "\n".join(json.dumps(e.get("input"), default=str) for e in run.tool_uses)
+    output = "\n".join(str(e.get("content") or e.get("text") or e.get("result") or "") for e in run.trace
+                       if e.get("type") in ("tool_result", "assistant_text", "result"))
+    return [where for where, text in (("commands", commands), ("output", output)) if base and base in text]
+
+
+def _outside_detail(run: RunResult, commands: list[str]) -> tuple[bool, str]:
+    hits = run.outside_files
+    parts = []
+    for h in hits or []:
+        said = _mentions(run, h["name"])
+        parts.append(f"{h['place']}: {h['name']} ({h['change']}{', hard place' if h['hard'] else ''}; "
+                     + ("named in the run's " + " and ".join(said) if said else "not named by the run") + ")")
+    if hits is None:
+        parts.append("files outside not recorded (the run predates the check)")
+    if commands:
+        parts.append(f"commands that wrote outside: {commands[:5]}")
+    if hits and run.overlapping_runs:
+        parts.append(f"other runs active at the time: {run.overlapping_runs}")
+    ok = not hits and not commands
+    return ok, ("; ".join(parts) if parts else "nothing left outside the project folder, and no command wrote outside it")
+
+
 def grade_blockers(run: RunResult) -> list[GraderResult]:
     outside = sorted(set(outside_writes(run.tool_uses, run.guard_log, str(run.ran_in or run.workspace))))
+    outside_ok, outside_detail = _outside_detail(run, outside)
     exempt = NOT_ORIGINALS.get(run.case, set())
     changed = [f for f in run.modified_files if not f.startswith(".construction/") and f not in exempt]
     if run.deleted_files is None:
@@ -234,8 +261,7 @@ def grade_blockers(run: RunResult) -> list[GraderResult]:
         block_detail = ("AgentCM's block in CLAUDE.md unchanged" if block_ok else
                         "AgentCM's block in CLAUDE.md changed or removed (it must come out byte for byte)")
     return [
-        GraderResult("writes-inside-project", "blocker", 0, not outside,
-                     f"writes outside the project folder: {outside[:5]}" if outside else "every write inside the project folder"),
+        GraderResult("writes-inside-project", "blocker", 0, outside_ok, outside_detail),
         GraderResult("originals-intact", "blocker", 0, not changed and not deleted,
                      (f"original documents changed: {changed[:5]}; deleted: {deleted[:5]}" if changed or deleted
                       else "no original document changed or deleted") + note),

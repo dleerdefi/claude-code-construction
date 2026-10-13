@@ -24,6 +24,7 @@ from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions, HookMatcher,
                               SystemMessage, UserMessage, query)
 from claude_agent_sdk.types import TextBlock, ToolResultBlock, ToolUseBlock
 
+import leftovers
 from cases import Case
 from guard import GUARDED_TOOLS, Policy, decide
 from poppler import TAG as AGENTCM_TAG, case_env
@@ -57,6 +58,8 @@ class RunResult:
     deleted_files: list[str] | None = field(default_factory=list)  # existed before the run and gone after; None: not recorded
     ran_in: Path | None = None  # the folder the run worked in, when `workspace` is a saved copy (--regrade)
     agentcm_block: dict | None = None  # sha256 of AgentCM's block in CLAUDE.md, {before, after}; None: not recorded
+    outside_files: list[dict] | None = None  # what the run left outside its folder (leftovers.py); None: not recorded
+    overlapping_runs: list[str] = field(default_factory=list)  # other harness runs active during the session
     elapsed_s: float = 0.0
     num_turns: int | None = None
     cost_usd: float | None = None
@@ -123,17 +126,22 @@ class ScaffoldSkipped(Exception):
     """The scaffold reported that this case cannot run here (exit 3), e.g. missing downloads."""
 
 
-def extra_env(case: Case) -> dict:
-    """What a case adds to its environment: for an agentcm-mode case, the harness run's AGENTCM_POPPLER_BIN, first on
-    PATH (poppler.py); the folder is never written into a file."""
-    return case_env() if AGENTCM_TAG in case.tags else {}
+def extra_env(case: Case, workspace: Path | None = None) -> dict:
+    """What a case adds to its environment: TMP, TEMP and TMPDIR pointing at the run's own temp folder (leftovers.py),
+    and for an agentcm-mode case the harness run's AGENTCM_POPPLER_BIN, first on PATH (poppler.py); the folder is
+    never written into a file."""
+    env = case_env() if AGENTCM_TAG in case.tags else {}
+    if workspace is not None:
+        tmp = str(leftovers.run_temp_for(workspace))
+        env.update(TMP=tmp, TEMP=tmp, TMPDIR=tmp)
+    return env
 
 
 def run_scaffold(case: Case, workspace: Path) -> str:
     """Run the case's setup.sh in the workspace. Returns captured output; raises on failure."""
     if not case.scaffold:
         return ""
-    env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1", **extra_env(case))
+    env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1", **extra_env(case, workspace))
     proc = subprocess.run([find_bash(), case.scaffold.as_posix()], cwd=workspace, env=env,
                           capture_output=True, text=True, timeout=SCAFFOLD_TIMEOUT)
     out = (proc.stdout + proc.stderr).strip()
@@ -150,7 +158,7 @@ def run_teardown(case: Case, workspace: Path) -> str:
     if not case.teardown:
         return ""
     try:
-        env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1", **extra_env(case))
+        env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1", **extra_env(case, workspace))
         proc = subprocess.run([find_bash(), case.teardown.as_posix()], cwd=workspace, env=env,
                               capture_output=True, text=True, timeout=SCAFFOLD_TIMEOUT)
         return f"exit {proc.returncode}: {(proc.stdout + proc.stderr).strip()}"
@@ -203,7 +211,7 @@ async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunRes
         max_buffer_size=MAX_MESSAGE_BYTES,
         model=opts.model,
         add_dirs=[str(d) for d in case.add_dirs],
-        env={"CONSTRUCTION_SKILLS_NO_BOOTSTRAP": "1", **extra_env(case)},
+        env={"CONSTRUCTION_SKILLS_NO_BOOTSTRAP": "1", **extra_env(case, workspace)},
         sandbox={"enabled": True} if opts.sandbox == "auto" and sys.platform != "win32" else None,
         stderr=lambda line: result.trace.append({"type": "stderr", "line": line}),
     )
@@ -233,8 +241,11 @@ async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunRes
 
 async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> RunResult:
     workspace = make_workspace(case, run_index)
+    run_tmp = leftovers.run_temp_for(workspace)
+    run_tmp.mkdir(parents=True, exist_ok=True)
     result = RunResult(case=case.name, run_index=run_index, workspace=workspace)
     t0 = time.time()
+    leftovers.register("start", case.name, run_index, workspace)
     try:
         try:
             scaffold_out = run_scaffold(case, workspace)
@@ -242,6 +253,8 @@ async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> R
                 result.trace.append({"type": "scaffold", "output": scaffold_out[:TOOL_RESULT_LIMIT]})
             before = snapshot(workspace)
             block_before = agentcm_block_sha(workspace)
+            where = leftovers.places(workspace, run_tmp)
+            outside_before, s0 = leftovers.snapshot(where), time.time()
             try:
                 await asyncio.wait_for(_session(case, workspace, opts, result), timeout=case.timeout_seconds)
             except asyncio.TimeoutError:
@@ -253,6 +266,9 @@ async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> R
                 result.modified_files = sorted(k for k in after.keys() & before.keys() if after[k] != before[k])
                 result.deleted_files = sorted(before.keys() - after.keys())
                 result.agentcm_block = {"before": block_before, "after": agentcm_block_sha(workspace)}
+                result.outside_files = leftovers.diff(where, outside_before, leftovers.snapshot(where),
+                                                      own={workspace.name, run_tmp.name})
+                result.overlapping_runs = leftovers.overlapping(workspace, s0, time.time())
         finally:
             teardown_out = run_teardown(case, workspace)
             if teardown_out:
@@ -261,9 +277,11 @@ async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> R
         result.skipped = True
         result.error = str(e)
         shutil.rmtree(workspace, ignore_errors=True)
+        shutil.rmtree(run_tmp, ignore_errors=True)
     except Exception as e:  # scaffold or transport failure: the run is an error, not a crash
         result.is_error = True
         result.error = f"{type(e).__name__}: {e}"
+    leftovers.register("end", case.name, run_index, workspace)
     result.elapsed_s = time.time() - t0
     if result.skipped:
         log(f"    run {run_index}: SKIPPED: {result.error}")
@@ -278,3 +296,4 @@ def cleanup(result: RunResult, failed: bool, keep: bool) -> None:
     if keep or failed:
         return
     shutil.rmtree(result.workspace, ignore_errors=True)
+    shutil.rmtree(leftovers.run_temp_for(result.workspace), ignore_errors=True)
