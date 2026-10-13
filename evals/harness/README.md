@@ -89,7 +89,7 @@ Plus one harness-only type, kept outside the files plugin eval reads so the case
 
 A run's score is the weighted fraction of passing graders. The judge refuses binary files, as plugin eval's does; grade those with a `python` check.
 
-- **Report-only graders.** A grader with `weight: 0` is evaluated and listed but never scored. `summary.md` marks a failed one `REPORT`, not `FAIL`.
+- **Report-only graders.** A grader with `weight: 0` is evaluated and listed but never scored. `summary.md` marks a failed one `REPORT`, not `FAIL`. The regular (no-AgentCM) cases carry `no-inline-python` and `no-helper-scripts` this way, except the three bid cases, where they have scored since 0.5.x. Their failures are the baseline for the mode refactor.
 - **Blockers.** Every run, in every case, is also graded on two blockers. A run that trips either scores 0, whatever its graders say; `summary.md` marks it `BLOCKER`.
   - `writes-inside-project` fails when a shell command writes outside the workspace. The guard lets commands use the temp dir and the plugin, so a page image sent to `/tmp` is not stopped; this finds it afterwards in the trace. It reads redirects, `-o`/`--output`/`--output-dir`, `mkdir`, `touch`, `rm`, `tee`, `cp`/`mv` destinations and `sed -i`, follows the command's own `cd` and variables, and skips heredoc bodies, quoted text and calls the guard refused (`guard.outside_writes`).
   - `originals-intact` fails when a file that was in the workspace before the run, outside `.construction/`, is changed or deleted. The project's `CLAUDE.md` is exempt: project-setup appends to it by design. Runs saved before 2026-10-13 did not record deleted files, and their result says so.
