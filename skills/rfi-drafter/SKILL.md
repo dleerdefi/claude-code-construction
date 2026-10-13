@@ -104,9 +104,12 @@ Read the sheet by rasterizing it and cropping to the conflict zone (the
 `${CLAUDE_PLUGIN_ROOT}` paths below are substituted only here in SKILL.md,
 not in the reference files):
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf}" {page} --dpi 200 --output page.png
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --box x1,y1,x2,y2 --normalized --output conflict_area.png
+mkdir -p ".construction/skills/rfi-drafter/pages"
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf}" {page} --dpi 200 --output ".construction/skills/rfi-drafter/pages/page.png"
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" ".construction/skills/rfi-drafter/pages/page.png" --box x1,y1,x2,y2 --normalized --output ".construction/skills/rfi-drafter/pages/conflict_area.png"
 ```
+Page images are working data: run these from the project folder and keep them under `.construction/skills/rfi-drafter/pages/`, never in the project root, never in `/tmp` or any other folder outside the project.
+
 `{page}` is 1-based: `1` for a split sheet PDF, `page_index + 1` for a page in a
 bound set (sheet_index.yaml counts `page_index` from 0). The box is 0–1
 fractions of the page.
