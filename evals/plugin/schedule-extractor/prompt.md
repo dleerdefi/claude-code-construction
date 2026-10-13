@@ -11,4 +11,4 @@ append_system_prompt: "This is an unattended evaluation run in a construction pr
 
 /construction:schedule-extractor
 
-Extract the door schedule from sheet A500 ("01 - Drawings/A500 - DOOR SCHEDULE, DOOR AND FRAME TYPES.pdf", page 1) to Excel. Save the intermediate data as `schedule_data.json` and the workbook as `Door_Schedule_A500.xlsx`, both in the project root. Keep the schedule's own column names (the header has two rows: group names such as DOOR PANEL LEAF over WIDTH, HEIGHT, TYPE, MATERIAL) and one row per door.
+Extract the door schedule from sheet A500 ("01 - Drawings/A500 - DOOR SCHEDULE, DOOR AND FRAME TYPES.pdf", page 1) to Excel. Save the workbook as `Door_Schedule_A500.xlsx` in the project root. Keep the schedule's own column names (the header has two rows: group names such as DOOR PANEL LEAF over WIDTH, HEIGHT, TYPE, MATERIAL) and one row per door.

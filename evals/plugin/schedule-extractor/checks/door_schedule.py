@@ -60,6 +60,7 @@ def main() -> int:
     found = {norm(r[num_i]): r for r in rows if r[num_i] is not None}
     present = [d for d in truth if norm(d) in found]
     recall = len(present) / len(truth)
+    ends = [d for d in (next(iter(truth)), list(truth)[-1]) if d not in present]  # the first and last door, always
     checks, ok = 0, 0
     mismatches = []
     for d in present:
@@ -79,8 +80,10 @@ def main() -> int:
     print(f"doors found: {len(present)}/{len(truth)} (recall {recall:.2f}); cell accuracy {ok}/{checks} ({accuracy:.2f}) over {[c for c, i in col_i.items() if i is not None]}")
     for m in mismatches:
         print("  " + m)
+    if ends:
+        print(f"missing the schedule's first or last door: {ends}")
     print(f"score: {score}")
-    return 0 if recall >= 0.95 and accuracy >= 0.95 else 1
+    return 0 if recall >= 0.95 and accuracy >= 0.95 and not ends else 1
 
 
 if __name__ == "__main__":

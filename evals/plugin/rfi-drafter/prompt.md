@@ -15,4 +15,4 @@ Draft RFI-001 about door 220. Addendum 01 ("04 - Addenda") revises door 220 on s
 
 Use the firm's RFI template "16 - Templates/RFI Template - Example Builders.docx"; its field mapping is already stored at ".construction/skills/rfi-drafter/rfi_template_map.json". From: Example Builders, Inc. (Project Engineer). To: Schenkel Shultz Architecture. Date: today. Response needed within 10 working days; the affected work is door frame procurement.
 
-Write the RFI data to "rfi_001.json" and the exported document to "RFI-001.docx", both in the project root. Also add this discrepancy to the issue registry and mark it escalated to RFI-001.
+Export the document as "RFI-001.docx" in the project root. Also add this discrepancy to the issue registry and mark it escalated to RFI-001.
