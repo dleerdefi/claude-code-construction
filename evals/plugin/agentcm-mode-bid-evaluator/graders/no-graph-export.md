@@ -1,7 +1,7 @@
 ---
 type: regex
 target: tool_inputs
-pattern: "graph/export|\\.construction[\\\\/]+rasters|\\.construction[\\\\/]+extractions"
+pattern: 'graph/export|\.construction[\\/]+(?:rasters|extractions)|\bcd\s+[^&;|]*?\.construction[\\/]*\\?[\"'']?\s*(?:&&|;|\\n).*?(?:[\s\"''=]|\./)(?:rasters|extractions)'
 match: not_contains
 weight: 1
 ---

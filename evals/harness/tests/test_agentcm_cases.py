@@ -62,6 +62,27 @@ class PathGraders(unittest.TestCase):
                 with self.subTest(case=case, grader=g.name, sep="nothing read"):
                     self.assertFalse(grade_regex(g, reading("/ws/README.md")).passed)
 
+    def test_a_read_after_cd_into_construction_counts(self):
+        def bash(cmd):
+            return RunResult(case="t", run_index=1, workspace=Path("."),
+                             trace=[{"type": "tool_use", "name": "Bash", "input": {"command": cmd}}])
+
+        for case, g in self.graders:
+            parts = (READS | FORBIDS)[g.name]
+            if parts[0] != ".construction":
+                continue
+            rel = "/".join(parts[1:])
+            for how, cmd in {"quoted, &&": f'cd "C:/ws/.construction" && cat {rel}',
+                             "windows, ;": f'cd "C:\\ws\\.construction"; cat "{rel}"',
+                             "next line": f"cd .construction\nhead -5 ./{rel}"}.items():
+                with self.subTest(case=case, grader=g.name, how=how):
+                    self.assertEqual(grade_regex(g, bash(cmd)).passed, g.name in READS)
+            for how, cmd in {"no cd": f"cat docs/{rel}",
+                             "another folder": f'cd "C:/ws/project" && cat {rel}',
+                             "a path that only ends so": f'cd .construction && cat "$P/reference/{rel}"'}.items():
+                with self.subTest(case=case, grader=g.name, how=how):
+                    self.assertEqual(grade_regex(g, bash(cmd)).passed, g.name not in READS)
+
     def test_a_forbidden_path_fails_with_either_separator(self):
         for case, g in self.graders:
             if g.name in FORBIDS:
