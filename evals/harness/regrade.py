@@ -41,6 +41,7 @@ def load_saved_run(run_dir: Path, case_name: str) -> tuple[RunResult, dict[str, 
                     workspace=workspace, trace=trace, guard_log=guard_log,
                     created_files=list(meta.get("created_files", [])), modified_files=list(meta.get("modified_files", [])),
                     deleted_files=meta.get("deleted_files"), ran_in=Path(meta["workspace"]),
+                    agentcm_block=meta.get("agentcm_block"),
                     elapsed_s=float(meta.get("elapsed_s", 0.0)),
                     num_turns=meta.get("num_turns"), cost_usd=meta.get("cost_usd"), subtype=meta.get("subtype", ""),
                     is_error=bool(meta.get("is_error")), error=meta.get("error") or "")

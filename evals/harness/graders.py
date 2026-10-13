@@ -211,23 +211,35 @@ async def grade_run(case: Case, run: RunResult, judge: JudgeOptions, plugin_root
 
 
 # --- blockers: a run that does either scores 0, whatever its graders say ---------------------------
-# The project's own instructions file is not a PE's document: project-setup appends to it by design.
-NOT_ORIGINALS = {"CLAUDE.md"}
+# Writing the project's CLAUDE.md is project-setup's job (David): exempt in that case only, any other skill
+# changing it counts.
+NOT_ORIGINALS = {"project-setup": {"CLAUDE.md"}}
 
 
 def grade_blockers(run: RunResult) -> list[GraderResult]:
     outside = sorted(set(outside_writes(run.tool_uses, run.guard_log, str(run.ran_in or run.workspace))))
-    changed = [f for f in run.modified_files if not f.startswith(".construction/") and f not in NOT_ORIGINALS]
+    exempt = NOT_ORIGINALS.get(run.case, set())
+    changed = [f for f in run.modified_files if not f.startswith(".construction/") and f not in exempt]
     if run.deleted_files is None:
         deleted, note = [], "; deleted files not recorded (the run predates the check)"
     else:
-        deleted, note = [f for f in run.deleted_files if not f.startswith(".construction/") and f not in NOT_ORIGINALS], ""
+        deleted, note = [f for f in run.deleted_files if not f.startswith(".construction/") and f not in exempt], ""
+    block = run.agentcm_block
+    if block is None:
+        block_ok, block_detail = True, "AgentCM's block in CLAUDE.md not recorded (the run predates the check)"
+    elif block.get("before") is None:
+        block_ok, block_detail = True, "no AgentCM block in CLAUDE.md before the run"
+    else:
+        block_ok = block.get("after") == block["before"]
+        block_detail = ("AgentCM's block in CLAUDE.md unchanged" if block_ok else
+                        "AgentCM's block in CLAUDE.md changed or removed (it must come out byte for byte)")
     return [
         GraderResult("writes-inside-project", "blocker", 0, not outside,
                      f"writes outside the project folder: {outside[:5]}" if outside else "every write inside the project folder"),
         GraderResult("originals-intact", "blocker", 0, not changed and not deleted,
                      (f"original documents changed: {changed[:5]}; deleted: {deleted[:5]}" if changed or deleted
                       else "no original document changed or deleted") + note),
+        GraderResult("agentcm-block-intact", "blocker", 0, block_ok, block_detail),
     ]
 
 

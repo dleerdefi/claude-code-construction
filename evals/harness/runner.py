@@ -8,8 +8,10 @@ refuses npm's claude.cmd shim.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -54,6 +56,7 @@ class RunResult:
     modified_files: list[str] = field(default_factory=list)  # existed before the run and changed during it
     deleted_files: list[str] | None = field(default_factory=list)  # existed before the run and gone after; None: not recorded
     ran_in: Path | None = None  # the folder the run worked in, when `workspace` is a saved copy (--regrade)
+    agentcm_block: dict | None = None  # sha256 of AgentCM's block in CLAUDE.md, {before, after}; None: not recorded
     elapsed_s: float = 0.0
     num_turns: int | None = None
     cost_usd: float | None = None
@@ -82,6 +85,21 @@ def find_bash() -> str:
     if not found:
         raise RuntimeError("bash not found; install Git for Windows or a system bash")
     return found
+
+
+# AgentCM's block in the project's CLAUDE.md (AgentCM's src/server/services/projectPointer.ts): from its start
+# marker's line to its end marker's. It must come out of every run byte for byte.
+AGENTCM_BLOCK = re.compile(r"^<!-- AgentCM: start[^\n]*\n[\s\S]*?^<!-- AgentCM: end[^\n]*?(?=\r?\n|$)", re.MULTILINE)
+
+
+def agentcm_block_sha(workspace: Path) -> str | None:
+    """The sha256 of AgentCM's block in the project's CLAUDE.md, byte for byte; None when there is none."""
+    try:
+        text = (workspace / "CLAUDE.md").read_bytes().decode("utf-8", errors="surrogateescape")
+    except OSError:
+        return None
+    m = AGENTCM_BLOCK.search(text)
+    return hashlib.sha256(m.group(0).encode("utf-8", errors="surrogateescape")).hexdigest() if m else None
 
 
 def snapshot(workspace: Path) -> dict[str, tuple[int, int]]:
@@ -223,6 +241,7 @@ async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> R
             if scaffold_out:
                 result.trace.append({"type": "scaffold", "output": scaffold_out[:TOOL_RESULT_LIMIT]})
             before = snapshot(workspace)
+            block_before = agentcm_block_sha(workspace)
             try:
                 await asyncio.wait_for(_session(case, workspace, opts, result), timeout=case.timeout_seconds)
             except asyncio.TimeoutError:
@@ -233,6 +252,7 @@ async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> R
                 result.created_files = sorted(after.keys() - before.keys())
                 result.modified_files = sorted(k for k in after.keys() & before.keys() if after[k] != before[k])
                 result.deleted_files = sorted(before.keys() - after.keys())
+                result.agentcm_block = {"before": block_before, "after": agentcm_block_sha(workspace)}
         finally:
             teardown_out = run_teardown(case, workspace)
             if teardown_out:

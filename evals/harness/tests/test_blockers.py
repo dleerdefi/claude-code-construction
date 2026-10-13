@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from graders import GraderResult, grade_blockers, mark, score  # noqa: E402
 from guard import normalize, outside_writes, shell_write_targets  # noqa: E402
-from runner import RunResult  # noqa: E402
+from runner import RunResult, agentcm_block_sha  # noqa: E402
 
 # the workspace lives under the temp dir, as the harness makes it: the temp dir itself is still outside
 WS = os.path.join(tempfile.gettempdir(), "construction-eval", "case-r1")
@@ -58,8 +58,8 @@ class WritesOutside(unittest.TestCase):
         self.assertEqual(outside_writes(uses, [{"tool": "Bash", "allow": True, "input": cmd}], WS), [normalize("/tmp/a.png")])
 
 
-def run(modified=(), deleted=(), trace=()):
-    return RunResult(case="t", run_index=1, workspace=Path(WS), trace=list(trace),
+def run(modified=(), deleted=(), trace=(), case="t", block=None):
+    return RunResult(case=case, run_index=1, workspace=Path(WS), trace=list(trace), agentcm_block=block,
                      modified_files=list(modified), deleted_files=None if deleted is None else list(deleted))
 
 
@@ -72,9 +72,15 @@ class Originals(unittest.TestCase):
         for r in (run(modified=["01 - Drawings/A500.pdf"]), run(deleted=["02 - Specifications/09 30 00.pdf"])):
             self.assertFalse(by_name(grade_blockers(r))["originals-intact"].passed)
 
-    def test_working_data_and_the_projects_claude_md_are_not_originals(self):
-        r = run(modified=[".construction/skills/x/state.yaml", "CLAUDE.md"], deleted=[".construction/skills/x/tmp.json"])
+    def test_working_data_is_not_an_original(self):
+        r = run(modified=[".construction/skills/x/state.yaml"], deleted=[".construction/skills/x/tmp.json"])
         self.assertTrue(by_name(grade_blockers(r))["originals-intact"].passed)
+
+    def test_claude_md_is_exempt_only_where_writing_it_is_the_skills_job(self):
+        self.assertTrue(by_name(grade_blockers(run(modified=["CLAUDE.md"], case="project-setup")))["originals-intact"].passed)
+        for case in ("rfi-drafter", "agentcm-mode-project-setup"):
+            with self.subTest(case=case):
+                self.assertFalse(by_name(grade_blockers(run(modified=["CLAUDE.md"], case=case)))["originals-intact"].passed)
 
     def test_a_run_from_before_the_check_says_deletions_were_not_recorded(self):
         result = by_name(grade_blockers(run(deleted=None)))["originals-intact"]
@@ -92,11 +98,42 @@ class Originals(unittest.TestCase):
         self.assertFalse(by_name(grade_blockers(run(trace=trace)))["writes-inside-project"].passed)
 
 
+class AgentcmBlock(unittest.TestCase):
+    """AgentCM's block in the project's CLAUDE.md comes out of every run byte for byte, even in project-setup's case."""
+    BLOCK = ("<!-- AgentCM: start (written by AgentCM; edit outside this block) -->\n"
+             "@.construction/CLAUDE.md\n<!-- AgentCM: end -->")
+
+    def sha(self, text):
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "CLAUDE.md").write_bytes(text.encode("utf-8"))
+            return agentcm_block_sha(Path(d))
+
+    def test_the_block_is_found_and_text_outside_it_is_free(self):
+        before = self.sha("# Project\n\n" + self.BLOCK + "\n")
+        self.assertIsNotNone(before)
+        self.assertEqual(before, self.sha("# Project\n\nNotes a skill added.\n\n" + self.BLOCK + "\n\nMore notes.\n"))
+        self.assertIsNone(self.sha("# Project, no block\n"))
+
+    def test_a_changed_or_removed_block_is_a_blocker(self):
+        before = self.sha(self.BLOCK + "\n")
+        for after_text in (self.BLOCK.replace("@.construction", "@ .construction") + "\n", "# block removed\n",
+                           self.BLOCK.replace("\n", "\r\n") + "\r\n"):  # line ends count: byte for byte
+            with self.subTest(after=after_text[:30]):
+                r = run(case="project-setup", block={"before": before, "after": self.sha(after_text)})
+                self.assertFalse(by_name(grade_blockers(r))["agentcm-block-intact"].passed)
+        same = run(block={"before": before, "after": before})
+        self.assertTrue(by_name(grade_blockers(same))["agentcm-block-intact"].passed)
+
+    def test_no_block_or_not_recorded_passes_and_says_so(self):
+        self.assertIn("no AgentCM block", by_name(grade_blockers(run(block={"before": None, "after": None})))["agentcm-block-intact"].detail)
+        self.assertIn("not recorded", by_name(grade_blockers(run(block=None)))["agentcm-block-intact"].detail)
+
+
 class Scoring(unittest.TestCase):
     def test_a_blocker_scores_the_run_zero(self):
         results = [GraderResult("deliverable", "file_exists", 1, True)] + grade_blockers(run(modified=["A.pdf"]))
         self.assertEqual(score(results), 0.0)
-        self.assertEqual(mark(results[-1]), "BLOCKER")
+        self.assertEqual(mark(by_name(results)["originals-intact"]), "BLOCKER")
 
     def test_a_report_only_grader_is_listed_not_scored(self):
         report = GraderResult("no-inline-python", "tool_used", 0, False)
