@@ -54,7 +54,7 @@ Before reading any document substantively, assign each uploaded file to its slot
 |------|------|--------|-----------------|
 | A | Template | Subcontract PDF/DOCX | Article structure, boilerplate language, required sections |
 | B | Awarded bid | Subcontractor bid PDF | **Contract sum, quantities, unit rates, inclusions, exclusions, VE alternates** |
-| C | Specifications | Spec section PDFs | Scope descriptions, submittal requirements, warranty clauses, installer qualifications |
+| C | Specifications | Spec section PDFs; in AgentCM mode `.construction/specs/<section>.txt` | Scope descriptions, submittal requirements, warranty clauses, installer qualifications |
 | D | Drawings | Finish schedule, floor plans | Room codes, area takeoffs, scope boundaries |
 
 **Slot B is mandatory.** If missing, stop and output:
@@ -125,7 +125,9 @@ For each article, determine:
 
 ### Slot C Extraction (Specifications)
 
-For each specification section listed in the bid scope, read the PDF and extract Part 1 requirements. One extraction block per section.
+For each specification section listed in the bid scope, read its text and extract Part 1 requirements. One extraction block per section. Where the text comes from depends on the mode:
+- **AgentCM mode:** `.construction/specs/<section>.txt` is the section's text. Never run `pdf_text.py` or `rasterize_page.py` on that section's pages: not to check them, and not as part of a page range. A read manual's pages in no section (INDEX.md lists them) are read in the PDF, those pages only (`--pages`).
+- **Flat-file mode:** dump the section PDF with `pdf_text.py`, as for the bid.
 
 Extract per spec section:
 - **§1.3 / §1.4 — Submittal requirements:** shop drawings, product data, samples, certifications, LEED docs
