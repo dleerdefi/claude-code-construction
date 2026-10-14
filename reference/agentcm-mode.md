@@ -44,6 +44,8 @@ powershell -File .construction/crop.ps1 <sheet> <x> <y> <w> <h>
 
 `<sheet>` is the sheet's number as INDEX.md names it (its file name in `sheets/`); the box is the one the sheet files give, 0 to 1 from the top left of the sheet (a view's heading gives its area, a `.tsv` line its own box). The script prints the PNG's path: read that PNG. A box too large to read sharply is refused (exit 2): crop a smaller one. Never ask for `rasters/`, `graph/export`, `extractions/` or `exports/`: they are not in the contract.
 
+**What the drawing adds sits beside the text, not inside its box.** A callout bubble, a leader, a keynote, a revision cloud or delta, or a tag drawn as linework has no line of its own in the sheet files, and may say something the text does not (a bubble reading 6 beside a note citing 5). So check what a line of text refers to by cropping its box with room around it, about the box's own size again on each side, and widen toward the symbols it seems to point at. A whole sheet in one crop is too small to read a symbol: crop where the text points, a view or a quadrant at a time.
+
 ## Which file answers what
 
 Skills read AgentCM's files, never its database. A skill that only reads works the same with AgentCM closed.
