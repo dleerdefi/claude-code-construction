@@ -446,8 +446,19 @@ write("_checks/agentcm_trace.py", '''
 
     # -- crop.sh ------------------------------------------------------------------------------------
     def crops():
-        """(sheet, x, y, w, h) for every crop.sh / crop.ps1 call."""
-        return [(m.group(1), *(float(v) for v in m.groups()[1:])) for cmd in bash_commands() for m in CROP.finditer(cmd)]
+        """(sheet, x, y, w, h) for every crop.sh / crop.ps1 call: from its command, and from the PNG it left in
+        .construction/crops/ (crop.sh names it <sheet>_<x>_<y>_<w>_<h>.png), so a crop made in a shell loop, its box
+        in a variable, counts too."""
+        out = [(m.group(1), *(float(v) for v in m.groups()[1:])) for cmd in bash_commands() for m in CROP.finditer(cmd)]
+        for png in sorted((WORKSPACE / ".construction" / "crops").glob("*.png")):
+            parts = png.stem.rsplit("_", 4)
+            try:
+                c = (parts[0], *(float(v) for v in parts[1:]))
+            except (ValueError, IndexError):
+                continue
+            if len(parts) == 5 and c not in out:
+                out.append(c)
+        return out
 
 
     def sheet_lines(sheet):
@@ -835,7 +846,8 @@ COMMON = {
     "no-helper-scripts": ("tool_used", "tool: Write\ninput_match: '\\.py\"'\nmin: 0\nmax: 0", 1,
                           "No Python file is written by the model: its JSON goes through the Write tool and its deliverables "
                           "through the allowlisted scripts."),
-    "crops-through-crop-sh": ("tool_used", 'tool: Write\ninput_match: "\\\\.construction[\\\\\\\\/]+crops"\nmin: 0\nmax: 0', 1,
+    # the file the Write tool writes, not its content: a QTO JSON names each crop's path, and is no write to crops/
+    "crops-through-crop-sh": ("tool_used", "tool: Write\ninput_match: '" + r'"file_path": "[^"]*\.construction[\\/]+crops' + "'\nmin: 0\nmax: 0", 1,
                               ".construction/crops/ is written only by crop.sh, never by the Write tool."),
 }
 

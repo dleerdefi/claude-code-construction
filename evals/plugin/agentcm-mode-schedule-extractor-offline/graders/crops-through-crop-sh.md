@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Write
-input_match: "\\.construction[\\\\/]+crops"
+input_match: '"file_path": "[^"]*\.construction[\\/]+crops'
 min: 0
 max: 0
 weight: 1

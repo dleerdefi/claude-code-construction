@@ -61,8 +61,19 @@ def project_id():
 
 # -- crop.sh ------------------------------------------------------------------------------------
 def crops():
-    """(sheet, x, y, w, h) for every crop.sh / crop.ps1 call."""
-    return [(m.group(1), *(float(v) for v in m.groups()[1:])) for cmd in bash_commands() for m in CROP.finditer(cmd)]
+    """(sheet, x, y, w, h) for every crop.sh / crop.ps1 call: from its command, and from the PNG it left in
+    .construction/crops/ (crop.sh names it <sheet>_<x>_<y>_<w>_<h>.png), so a crop made in a shell loop, its box
+    in a variable, counts too."""
+    out = [(m.group(1), *(float(v) for v in m.groups()[1:])) for cmd in bash_commands() for m in CROP.finditer(cmd)]
+    for png in sorted((WORKSPACE / ".construction" / "crops").glob("*.png")):
+        parts = png.stem.rsplit("_", 4)
+        try:
+            c = (parts[0], *(float(v) for v in parts[1:]))
+        except (ValueError, IndexError):
+            continue
+        if len(parts) == 5 and c not in out:
+            out.append(c)
+    return out
 
 
 def sheet_lines(sheet):

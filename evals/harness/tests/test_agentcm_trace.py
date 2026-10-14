@@ -260,6 +260,18 @@ class Checks(unittest.TestCase):
             self.bash(command)
             self.assertEqual(outcome(t.check_crop_on_mark, "A-101", box, "a101-stair-107")[0], code, command)
 
+    def test_a_crop_made_in_a_shell_loop_counts_by_the_png_it_left(self):
+        box = (0.797, 0.297, 0.066, 0.027)
+        # the 16:06 offline tag-audit run: quarter tiles in a loop, each box in variables
+        self.bash('cd .construction; for y in 0 0.25 0.5 0.75; do for x in 0 0.25 0.5 0.75; do sh crop.sh A-101 $x $y 0.25 0.25; done; done')
+        self.assertEqual(outcome(t.check_crop_on_mark, "A-101", box, "a101-stair-107")[0], 1)  # nothing to read in the command
+        crops = self.run.ws / ".construction" / "crops"
+        crops.mkdir(parents=True)
+        (crops / "A-101_0.75_0.25_0.25_0.25.png").write_bytes(b"\x89PNG")
+        (crops / "A-101_0_0_0.25_0.25.png").write_bytes(b"\x89PNG")
+        self.assertEqual(outcome(t.check_crop_on_mark, "A-101", box, "a101-stair-107")[0], 0)
+        self.assertIn(("A-101", 0.75, 0.25, 0.25, 0.25), t.crops())
+
     def test_a_word_document_says_the_crop_fact(self):
         import docx
         rfi = Path(__file__).resolve().parents[2] / "plugin" / "agentcm-mode-rfi-drafter" / "checks" / "crop_fact.py"

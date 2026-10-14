@@ -1,6 +1,7 @@
 """The generated agentcm-mode cases grade what they claim: every check compiles, and the path graders see a
 file read whichever separator the path has (Windows runs read `.construction\\specs\\...`, JSON-escaped in
 the trace)."""
+import json
 import py_compile
 import sys
 import tempfile
@@ -166,6 +167,24 @@ class HelperScripts(unittest.TestCase):
             with self.subTest(case=case):
                 self.assertFalse(grade_tool_used(g, self.writing("C:\\ws\\work\\mk.py")).passed)
                 self.assertTrue(grade_tool_used(g, self.writing("C:\\ws\\.construction\\skills\\s\\A-601-1.json")).passed)
+
+
+class CropsThroughCropSh(unittest.TestCase):
+    def writing(self, path, content="x"):
+        return RunResult(case="t", run_index=1, workspace=Path("."),
+                         trace=[{"type": "tool_use", "name": "Write", "input": {"file_path": path, "content": content}}])
+
+    def test_a_write_into_crops_fails_and_a_file_naming_a_crop_does_not(self):
+        graders = [(c.name, g) for c in load_cases(EVALS) if "agentcm-mode" in c.tags for g in c.graders
+                   if g.name == "crops-through-crop-sh"]
+        self.assertTrue(graders)
+        qto = json.dumps({"instance_details": [{"crop": ".construction/crops/A-101_0.75_0.25_0.25_0.25.png"}]})
+        for case, g in graders:
+            with self.subTest(case=case):
+                for path in ("C:\\ws\\.construction\\crops\\A-101.png", "/ws/.construction/crops/A-101.png"):
+                    self.assertFalse(grade_tool_used(g, self.writing(path)).passed, path)
+                # the 16:06 offline tag-audit run: its QTO JSON names each crop it read
+                self.assertTrue(grade_tool_used(g, self.writing("C:\\ws\\.construction\\skills\\t\\qto\\q.json", qto)).passed)
 
 
 if __name__ == "__main__":
