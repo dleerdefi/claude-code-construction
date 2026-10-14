@@ -182,6 +182,12 @@ split it in four and crop those. Keep each PNG with its box: a point at pixel
 (px, py) in a crop of box (x, y, w, h) sized W × H pixels is at sheet position
 (x + px / W × w, y + py / H × h).
 
+The views or quadrants cover the whole sheet. Never crop only around the tags
+the sheet's text names: a tag drawn as linework, with no text layer, has no
+line in the sheet files, and only these boxes show it. It is a seen tag
+(Step 8). In the 2026-10-14 runs, crops around the text-known room tags
+missed STAIR 107, drawn as outlines at the sheet's right edge.
+
 Vision must classify each tag's view: FLOOR PLAN, ENLARGED PLAN,
 DETAIL, SECTION, or ELEVATION. This determines record type in Step 5.
 Classification signals are in `references/tag-types.md`.
@@ -316,6 +322,10 @@ Do NOT POST to the ingest endpoint until the user explicitly confirms.
 Ingesting without confirmation is a blocking violation of this skill.
 The server enforces a maximum of 100 detections per request — batch
 your ingest calls per sheet.
+
+Write the payloads and the QTO JSON with the Write tool, never with a script,
+`python -`, a heredoc or a file in `/tmp`: `qto_to_xlsx.py` checks the QTO
+JSON, and AgentCM checks each detection.
 
 **AgentCM mode:** write each sheet's payload, `{"sheet_id": "{sheet_id}", "detections": [...]}`,
 to `.construction/skills/tag-audit-and-takeoff/outbox/tag-detections-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json`
