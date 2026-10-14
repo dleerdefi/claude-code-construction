@@ -22,18 +22,23 @@ def write(rel, text):
 
 
 # ---- the fixture, copied as it is -----------------------------------------------------------------
-for sub in ("construction", "project"):
+# Harness data stays beside the project, never in it: drawn-marks.json holds the answers the crop-fact graders check,
+# stub/ the eval stand-ins for crop.sh and crop.ps1 (the cases that never look at a drawing put them in place).
+HARNESS_FILES = ("FIXTURE_SOURCE", "api-responses.json", "drawn-marks.json")
+for sub in ("construction", "project", "stub"):
     if (A / sub).exists():
         shutil.rmtree(A / sub)
-for name in ("FIXTURE_SOURCE", "api-responses.json"):
+for name in HARNESS_FILES:
     if (A / name).exists():
         (A / name).unlink()
 shutil.copytree(FIX / ".construction", A / "construction")
 for entry in sorted(FIX.iterdir()):
     if entry.name == ".construction":
         continue
-    if entry.name in ("FIXTURE_SOURCE", "api-responses.json"):
+    if entry.name in HARNESS_FILES:
         shutil.copy2(entry, A / entry.name)
+    elif entry.name == "stub":
+        shutil.copytree(entry, A / "stub")
     elif entry.is_dir():
         shutil.copytree(entry, A / "project" / entry.name)
     else:
@@ -78,6 +83,13 @@ def no_section_pages():
 
 READ_MANUALS = {m: no_section_pages().get(m, []) for m in sorted({r[4] for r in SECTIONS})}
 DRAWINGS = sorted(f"drawings/{f.name}" for f in (A / "project" / "drawings").glob("*.pdf"))
+# What the seed drawings show and AgentCM's files do not (drawn-marks.json): id -> (sheet, (x, y, w, h))
+MARKS = {m["id"]: (m["sheet"], tuple(float(m["box"][k]) for k in ("x", "y", "w", "h")))
+         for m in json.loads((A / "drawn-marks.json").read_text(encoding="utf-8"))} if (A / "drawn-marks.json").exists() else {}
+# Cases whose skill is never told to look at a drawing keep the eval stand-in for crop.sh (one fixed image); every
+# other case crops the seed PDFs with AgentCM's real crop.sh (David).
+CROP_STUB = {"bid-tabulator", "project-setup", "sheet-splitter", "spec-splitter", "subcontract-writer",
+             "submittal-log-generator", "schedule-extractor-reconcile"}
 ROOMS = re.search(r"^Rooms known: (\d+)", INDEX, re.M)
 door = next((l.split("\t") for l in (C / "schedules" / "A-601-1.tsv").read_text(encoding="utf-8").splitlines()
              if "\tD103\t" in l), None)
@@ -138,8 +150,10 @@ write("agentcm-mode/README.md", f"""
     | Here | In the workspace | What it is |
     |---|---|---|
     | `construction/` | `.construction/` | AgentCM's files (stored without the dot: the repository ignores `.construction/`) |
-    | `project/` | the project folder | The PDFs INDEX.md names (drawings, specification manuals) |
+    | `project/` | the project folder | The PDFs INDEX.md names (drawings, specification manuals), and the project's own `CLAUDE.md`: a PE's line, then AgentCM's pointer block, which every run must leave byte for byte |
     | `api-responses.json` | | AgentCM's recorded answers, which `stub_api.py` serves at the fixture's `api_url` |
+    | `drawn-marks.json` | | What the seed drawings show and AgentCM's files do not (a revision cloud, a keynote leader, a callout bubble, a room tag drawn as outlines), with each mark's box: the crop-fact graders' answers, so never in the project folder |
+    | `stub/` | `.construction/crop.sh`, `crop.ps1` (`--crop-stub`) | The eval stand-ins for the crop scripts (one fixed image), for the cases whose skill never looks at a drawing; every other case crops the seed PDFs with AgentCM's real `crop.sh` (`AGENTCM_POPPLER_BIN`) |
     | `setup-fixture.sh` | | Each case's setup: copies the fixture, makes `query.sh` fail, records a baseline, starts or stops the stub |
     | `stub_api.py`, `teardown.sh` | | The stand-in for AgentCM's API, and its stop |
     | `baseline.py` | `.eval-api/fixture-baseline.json` | The fixture's files as setup left them, for the writes check |
@@ -173,15 +187,21 @@ write("agentcm-mode/README.md", f"""
 write("agentcm-mode/setup-fixture.sh", r"""
     #!/usr/bin/env bash
     # Copy AgentCM's contract fixture into the eval workspace, with AgentCM closed unless --api.
-    # Usage: setup-fixture.sh [--api] [needs...]
+    # Usage: setup-fixture.sh [--api] [--crop-stub] [needs...]
+    #   --crop-stub: the eval stand-in for crop.sh and crop.ps1 (one fixed image), for a case that never looks at a
+    #   drawing; otherwise AgentCM's real crop scripts render the seed PDFs (AGENTCM_POPPLER_BIN)
     #   needs: specs unread-manual groups pending pdfs api api-url schedule-id flooring-specs submittal
     # A need the fixture does not meet exits 3: the harness reports the case as skipped.
     set -euo pipefail
     HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     PY="$HERE/../../../bin/construction-python"
     SRC="$HERE/construction"
-    start_api=0
-    if [ "${1:-}" = "--api" ]; then start_api=1; shift; set -- api "$@"; fi
+    start_api=0; crop_stub=0
+    while [ "${1:-}" = "--api" ] || [ "${1:-}" = "--crop-stub" ]; do
+      if [ "$1" = "--api" ]; then start_api=1; else crop_stub=1; fi
+      shift
+    done
+    if [ "$start_api" = 1 ]; then set -- api "$@"; fi
     missing=()
     for need in "$@"; do
       case "$need" in
@@ -205,6 +225,7 @@ write("agentcm-mode/setup-fixture.sh", r"""
     mkdir -p .construction
     cp -R "$SRC/." .construction/
     if [ -d "$HERE/project" ]; then cp -R "$HERE/project/." .; fi
+    if [ "$crop_stub" = 1 ]; then cp "$HERE/stub/crop.sh" "$HERE/stub/crop.ps1" .construction/; fi
     # AgentCM closed: its database does not answer (skills never query it anyway).
     printf '#!/bin/sh\necho "AgentCM is not running: its database does not answer" >&2\nexit 1\n' > .construction/query.sh
     printf 'Write-Error "AgentCM is not running: its database does not answer"\nexit 1\n' > .construction/query.ps1
@@ -776,8 +797,9 @@ def case(name, skill_cmd, prompt, needs="", graders=None, checks=None, extra_set
         {prompt}
     """)
     write(f"{d}/case.yaml", 'schema_version: "1.1"\ncontext:\n  scaffold_script: setup.sh\n')
-    flag = "--api " if api else ""
-    mode = "AgentCM running (the stand-in API)" if api else "AgentCM closed"
+    flag = ("--api " if api else "") + ("--crop-stub " if name in CROP_STUB else "")
+    mode = ("AgentCM running (the stand-in API)" if api else "AgentCM closed") + (
+        ", crop.sh the eval stand-in" if name in CROP_STUB else ", AgentCM's real crop.sh")
     write(f"{d}/setup.sh", f"""
         #!/usr/bin/env bash
         # AgentCM's contract fixture in the workspace, {mode}{' (needs: ' + needs + ')' if needs else ''}.

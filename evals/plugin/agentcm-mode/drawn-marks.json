@@ -1,0 +1,58 @@
+[
+  {
+    "id": "a601-d103-revision-1",
+    "sheet": "A-601",
+    "box": {
+      "x": 0.095,
+      "y": 0.146,
+      "w": 0.475,
+      "h": 0.032
+    },
+    "shows": "A revision cloud around door D103's row of the door schedule, with a revision delta reading 1 to its right: D103 was revised in revision 1.",
+    "cases": [
+      "construction-guide"
+    ]
+  },
+  {
+    "id": "a601-d101-keynote-7",
+    "sheet": "A-601",
+    "box": {
+      "x": 0.495,
+      "y": 0.097,
+      "w": 0.1,
+      "h": 0.032
+    },
+    "shows": "A leader from door D101's HDWR cell to a hexagon keynote reading 7: keynote 7 applies to D101's hardware.",
+    "cases": [
+      "rfi-drafter"
+    ]
+  },
+  {
+    "id": "a101-callout-6-a102",
+    "sheet": "A-101",
+    "box": {
+      "x": 0.045,
+      "y": 0.812,
+      "w": 0.168,
+      "h": 0.062
+    },
+    "shows": "Beside the note SEE 5/A-102, a detail callout bubble reading 6 over A-102, with a short leader toward STORAGE 102: the bubble says 6/A-102 where the note says 5/A-102, and A-102 has no detail 6.",
+    "cases": [
+      "pe-review"
+    ]
+  },
+  {
+    "id": "a101-stair-107",
+    "sheet": "A-101",
+    "box": {
+      "x": 0.797,
+      "y": 0.297,
+      "w": 0.066,
+      "h": 0.027
+    },
+    "shows": "A room tag reading STAIR over 107, laid out as the sheet's other room tags, its label drawn as outlines with no text layer: a room seen on the drawing that AgentCM does not hold.",
+    "cases": [
+      "tag-audit"
+    ]
+  }
+]

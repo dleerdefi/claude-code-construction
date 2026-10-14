@@ -7,8 +7,10 @@ need to run against it:
 | Here | In the workspace | What it is |
 |---|---|---|
 | `construction/` | `.construction/` | AgentCM's files (stored without the dot: the repository ignores `.construction/`) |
-| `project/` | the project folder | The PDFs INDEX.md names (drawings, specification manuals) |
+| `project/` | the project folder | The PDFs INDEX.md names (drawings, specification manuals), and the project's own `CLAUDE.md`: a PE's line, then AgentCM's pointer block, which every run must leave byte for byte |
 | `api-responses.json` | | AgentCM's recorded answers, which `stub_api.py` serves at the fixture's `api_url` |
+| `drawn-marks.json` | | What the seed drawings show and AgentCM's files do not (a revision cloud, a keynote leader, a callout bubble, a room tag drawn as outlines), with each mark's box: the crop-fact graders' answers, so never in the project folder |
+| `stub/` | `.construction/crop.sh`, `crop.ps1` (`--crop-stub`) | The eval stand-ins for the crop scripts (one fixed image), for the cases whose skill never looks at a drawing; every other case crops the seed PDFs with AgentCM's real `crop.sh` (`AGENTCM_POPPLER_BIN`) |
 | `setup-fixture.sh` | | Each case's setup: copies the fixture, makes `query.sh` fail, records a baseline, starts or stops the stub |
 | `stub_api.py`, `teardown.sh` | | The stand-in for AgentCM's API, and its stop |
 | `baseline.py` | `.eval-api/fixture-baseline.json` | The fixture's files as setup left them, for the writes check |

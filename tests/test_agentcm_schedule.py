@@ -17,6 +17,8 @@ sys.path.insert(0, str(SCRIPTS))
 import agentcm_schedule as a  # noqa: E402
 
 TEXT, INGESTED = TABLES / "A-601-1.tsv", TABLES / "A-602-1.tsv"
+# the ingested table's id, as the fixture's own comment line gives it (it changes with each fixture AgentCM writes)
+INGESTED_ID = INGESTED.read_text(encoding="utf-8").splitlines()[0].rsplit("schedule_id=", 1)[1].strip()
 CONTRACT = ("sheetId", "scheduleType", "title", "rowEntityType", "columns", "rows", "sourceMethod", "confidence")
 
 
@@ -32,7 +34,8 @@ class ReadTable(unittest.TestCase):
 
     def test_an_ingested_table_keeps_the_drawings_headers_and_its_id(self):
         t = a.read_table(INGESTED)
-        self.assertEqual(t["schedule_id"], "ac35b0bc-9b30-4046-bf47-53bf90f698c6")
+        self.assertRegex(INGESTED_ID, r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+        self.assertEqual(t["schedule_id"], INGESTED_ID)
         self.assertEqual(t["headers"], ["MARK", "WIDTH", "HEIGHT", "TYPE", "GLAZING"])
         self.assertEqual(t["rows"][0], ["A", "2'-0\"", "3'-0\"", "FIXED", "TEMPERED"])
 
@@ -63,7 +66,7 @@ class Payload(unittest.TestCase):
     def test_an_ingested_table_is_not_ingested_again(self):
         with self.assertRaises(a.TableError) as e:
             a.payload(a.read_table(INGESTED), "sheet-id", "window", "window", "hybrid", 0.9)
-        self.assertIn("--schedule-id ac35b0bc", str(e.exception))
+        self.assertIn(f"--schedule-id {INGESTED_ID[:8]}", str(e.exception))
 
     def test_column_keys_are_upper_case_and_unique(self):
         self.assertEqual(a.column_keys(["Hardware Set", "FIRE RATING", "NO.", "No"]), ["HARDWARE_SET", "FIRE_RATING", "NO", "NO_2"])

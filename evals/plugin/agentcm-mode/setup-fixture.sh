@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 # Copy AgentCM's contract fixture into the eval workspace, with AgentCM closed unless --api.
-# Usage: setup-fixture.sh [--api] [needs...]
+# Usage: setup-fixture.sh [--api] [--crop-stub] [needs...]
+#   --crop-stub: the eval stand-in for crop.sh and crop.ps1 (one fixed image), for a case that never looks at a
+#   drawing; otherwise AgentCM's real crop scripts render the seed PDFs (AGENTCM_POPPLER_BIN)
 #   needs: specs unread-manual groups pending pdfs api api-url schedule-id flooring-specs submittal
 # A need the fixture does not meet exits 3: the harness reports the case as skipped.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY="$HERE/../../../bin/construction-python"
 SRC="$HERE/construction"
-start_api=0
-if [ "${1:-}" = "--api" ]; then start_api=1; shift; set -- api "$@"; fi
+start_api=0; crop_stub=0
+while [ "${1:-}" = "--api" ] || [ "${1:-}" = "--crop-stub" ]; do
+  if [ "$1" = "--api" ]; then start_api=1; else crop_stub=1; fi
+  shift
+done
+if [ "$start_api" = 1 ]; then set -- api "$@"; fi
 missing=()
 for need in "$@"; do
   case "$need" in
@@ -32,6 +38,7 @@ fi
 mkdir -p .construction
 cp -R "$SRC/." .construction/
 if [ -d "$HERE/project" ]; then cp -R "$HERE/project/." .; fi
+if [ "$crop_stub" = 1 ]; then cp "$HERE/stub/crop.sh" "$HERE/stub/crop.ps1" .construction/; fi
 # AgentCM closed: its database does not answer (skills never query it anyway).
 printf '#!/bin/sh\necho "AgentCM is not running: its database does not answer" >&2\nexit 1\n' > .construction/query.sh
 printf 'Write-Error "AgentCM is not running: its database does not answer"\nexit 1\n' > .construction/query.ps1

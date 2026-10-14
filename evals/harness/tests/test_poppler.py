@@ -52,7 +52,7 @@ class Preflight(unittest.TestCase):
         sheets.mkdir(parents=True)
         (sheets / "A-101.tsv").write_text("x\ty\tw\th\ttext\n0.050\t0.060\t0.120\t0.014\tGENERAL NOTES\n", encoding="utf-8")
         for name in ("crop.sh", "crop.ps1"):  # the eval stub: writes one fixed PNG and prints its path
-            shutil.copy(FIXTURE / "construction" / name, self.fixture / "construction" / name)
+            shutil.copy(FIXTURE / "stub" / name, self.fixture / "construction" / name)
         self.bin = self.root / "bin"
         self.bin.mkdir()
         self.bash = find_bash()
