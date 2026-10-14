@@ -429,7 +429,10 @@ def start(responses: Path, workspace: Path, port: int, lifetime: float, wait: fl
             "--workspace", str(workspace.resolve()), "--port", str(port), "--lifetime", str(lifetime)]
     kwargs: dict = {"stdin": subprocess.DEVNULL, "stderr": subprocess.STDOUT, "close_fds": True}
     if os.name == "nt":
-        kwargs["creationflags"] = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+        # No console window, its own process group, and it outlives the setup that starts it. Not DETACHED_PROCESS:
+        # the venv's python.exe is a launcher, and started detached its interpreter hung without serving
+        # (2026-10-14; the base interpreter detached, or the launcher with CREATE_NO_WINDOW, start fine).
+        kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
     else:
         kwargs["start_new_session"] = True
     with (log_dir / "stub.log").open("ab") as log:
