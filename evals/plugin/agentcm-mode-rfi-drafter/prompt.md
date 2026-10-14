@@ -11,4 +11,4 @@ append_system_prompt: "This is an unattended evaluation run in a construction pr
 
 /construction:rfi-drafter
 
-Draft an RFI asking the architect to confirm the hardware for door D101: the A-601 door schedule gives its size but the hardware column needs confirming. Research it in the project documents first and look at the schedule on the drawing.
+Draft an RFI asking the architect to confirm the hardware for door D101: the A-601 door schedule gives its size but the hardware column needs confirming. Research it in the project documents first and look at the schedule on the drawing. Nobody can review the draft: when the skill would ask you to approve it, treat it as approved and export the RFI.

@@ -954,7 +954,9 @@ case("pe-review", "/construction:pe-review",
                             "note's 5/A-102. It cites the drawing (the crop) for the bubble.")},
      checks={"crop-mark": (f"t.check_crop_on_mark({mark('a101-callout-6-a102')})", 2)})
 case("rfi-drafter", "/construction:rfi-drafter",
-     "Draft an RFI asking the architect to confirm the hardware for door D101: the A-601 door schedule gives its size but the hardware column needs confirming. Research it in the project documents first and look at the schedule on the drawing.",
+     "Draft an RFI asking the architect to confirm the hardware for door D101: the A-601 door schedule gives its size but the hardware column needs confirming. Research it in the project documents first and look at the schedule on the drawing. "
+     # as the regular rfi-drafter case says it: two of three chunk-1 runs (2026-10-14) stopped at the skill's draft review
+     "Nobody can review the draft: when the skill would ask you to approve it, treat it as approved and export the RFI.",
      desc="AgentCM closed: researches through AgentCM's files and AgentCM's real crop.sh, where D101's hardware points to a keynote the files do not hold, and writes the RFI outside .construction/.",
      graders={"docx": ("file_exists", 'path: "**/RFI-*.docx"', 2, "The RFI is written as a Word document in the project folder.")},
      checks={"crop-mark": (f"t.check_crop_on_mark({mark('a601-d101-keynote-7')})", 2),
