@@ -959,7 +959,9 @@ case("construction-guide", "/construction:construction-guide",
 case("pe-review", "/construction:pe-review",
      "Review sheets A-101 and A-102 of this project for coordination problems and anything missing. Look at the drawings where the text points.",
      desc="AgentCM closed: reviews from AgentCM's files and looks at the drawings through AgentCM's real crop.sh, where A-101 shows a callout bubble the files do not.",
-     graders={"review": ("llm", "", 2, "The review works from AgentCM's sheet files for A-101 and A-102, names at least one concrete item on those sheets (a room, the detail 5 reference, a note), cites the sheet for each, and does not claim anything is absent from the project because a search of AgentCM's index found nothing."),
+     # the absence rule as reference/agentcm-mode.md states it: judges read the earlier wording as forbidding any
+     # finding that something is missing, even one that named its basis (2026-10-14 chunk 2)
+     graders={"review": ("llm", "", 2, "The review works from AgentCM's sheet files for A-101 and A-102, names at least one concrete item on those sheets (a room, the detail 5 reference, a note), and cites the sheet for each. A finding that something is missing is fine when it gives its basis: a crop that shows the area, or 'not found in AgentCM's index', which says nothing about whether the thing exists. The review fails only if it states as fact that something does not exist in the project (for example 'there are no door tags on A-102') when its only basis is a search of AgentCM's files that found nothing."),
               "crop-fact": ("llm", "", 2,
                             "The review reports the callout bubble 6/A-102 drawn on A-101 (beside the note SEE 5/A-102, toward "
                             "STORAGE 102) as a coordination problem: A-102 has no detail 6, or the bubble disagrees with the "
