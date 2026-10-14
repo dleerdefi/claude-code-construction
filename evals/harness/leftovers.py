@@ -219,8 +219,29 @@ def register(event: str, case: str, run_index: int, workspace: Path) -> None:
         pass
 
 
+def pid_alive(pid: int) -> bool:
+    """Whether a process with this id is still running."""
+    if os.name == "nt":
+        import ctypes
+        handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, int(pid))  # PROCESS_QUERY_LIMITED_INFORMATION
+        if not handle:
+            return False
+        code = ctypes.c_ulong()
+        ok = ctypes.windll.kernel32.GetExitCodeProcess(handle, ctypes.byref(code))
+        ctypes.windll.kernel32.CloseHandle(handle)
+        return bool(ok) and code.value == 259  # STILL_ACTIVE
+    try:
+        os.kill(int(pid), 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
 def overlapping(workspace: Path, t0: float, t1: float, registry: Path | None = None) -> list[str]:
-    """The other runs whose span touched [t0, t1], from the registry: "case run-N (pid P)"."""
+    """The other runs whose span touched [t0, t1], from the registry: "case run-N (pid P)". A run with no end is
+    active only while its harness process lives: one stopped mid-run (a memory stop) never wrote its end."""
     spans: dict[str, dict] = {}
     try:
         lines = (registry or REGISTRY).read_text(encoding="utf-8").splitlines()
@@ -237,6 +258,8 @@ def overlapping(workspace: Path, t0: float, t1: float, registry: Path | None = N
     own = os.path.normcase(os.path.normpath(str(workspace)))
     for ws, s in spans.items():
         if os.path.normcase(os.path.normpath(ws)) == own or s["start"] is None:
+            continue
+        if s["end"] is None and not pid_alive(s["pid"]):
             continue
         end = s["end"] if s["end"] is not None else time.time()
         if s["start"] <= t1 and end >= t0:

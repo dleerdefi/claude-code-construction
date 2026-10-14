@@ -184,6 +184,16 @@ class ActiveRuns(unittest.TestCase):
             reg.write_text("\n".join(json.dumps(x) for x in lines))
             self.assertEqual(leftovers.overlapping(Path("/w/a"), 100, 150, reg), ["b run-2 (pid 2)"])
 
+    def test_a_run_stopped_without_an_end_counts_only_while_its_process_lives(self):
+        with tempfile.TemporaryDirectory() as d:
+            reg = Path(d) / "eval-runs.jsonl"
+            dead = subprocess.run([sys.executable, "-c", "import os; print(os.getpid())"], capture_output=True, text=True)
+            lines = [{"event": "start", "t": 100, "pid": int(dead.stdout), "case": "killed", "run": 3, "workspace": "/w/k"},
+                     {"event": "start", "t": 100, "pid": os.getpid(), "case": "live", "run": 1, "workspace": "/w/l"}]
+            reg.write_text("\n".join(json.dumps(x) for x in lines))
+            self.assertEqual(leftovers.overlapping(Path("/w/a"), 200, 300, reg), [f"live run-1 (pid {os.getpid()})"])
+            self.assertTrue(leftovers.pid_alive(os.getpid()))
+
 
 def run(outside, trace=(), overlapping=()):
     return RunResult(case="t", run_index=1, workspace=Path("/ws"), trace=list(trace), outside_files=outside,
