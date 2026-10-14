@@ -486,6 +486,63 @@ write("_checks/agentcm_trace.py", '''
                f"no crop.sh call on {sheets} with a box on a line of the sheet files; crops made: {cs[:6]}")
 
 
+    def check_crop_on_mark(sheet, box, name):
+        """A crop of `sheet` whose box overlaps a mark drawn on it (drawn-marks.json): something the drawing shows and
+        AgentCM's files do not, so only a look at the drawing finds it."""
+        cs = crops()
+        hits = [c for c in cs if c[0] == sheet and overlaps(c[1:], box)]
+        finish(bool(hits), f"crop.sh {hits[0] if hits else ''} covers the mark {name} on {sheet}",
+               f"no crop.sh call on {sheet} covers the mark {name} {box}; crops made: {cs[:6]}")
+
+
+    def check_docx_says(pattern, regex, what):
+        """A Word document the run wrote (`pattern`, a glob from the project root) says `what` (`regex`)."""
+        import docx
+        texts = {}
+        for f in sorted(WORKSPACE.glob(pattern)):
+            d = docx.Document(str(f))
+            parts = [p.text for p in d.paragraphs] + [c.text for t in d.tables for r in t.rows for c in r.cells]
+            texts[f.name] = "\\n".join(parts)
+        hit = [n for n, t in texts.items() if re.search(regex, t)]
+        finish(bool(hit), f"{what} in {hit[0] if hit else ''}", f"{what} not in {sorted(texts) or 'any document'}")
+
+
+    # -- a tag seen on the drawing, not in AgentCM ------------------------------------------------------
+    def corrections_count(sheet, box):
+        """corrections.tsv lines on `sheet` of kind tag whose box and `box` hold each other's centre."""
+        sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
+        import qto_to_xlsx as q
+        corr = WORKSPACE / ".construction" / "skills" / "corrections.tsv"
+        n = 0
+        for c in ([l.split("\\t") for l in corr.read_text(encoding="utf-8").splitlines()[1:]] if corr.is_file() else []):
+            try:
+                other = tuple(float(v) for v in c[1:5])
+            except ValueError:
+                continue
+            n += len(c) > 5 and c[0] == sheet and c[5] == "tag" and (q.center_inside(box, other) or q.center_inside(other, box))
+        return n
+
+
+    def seen_at(data, sheet, box):
+        """A QTO instance with status seen on `sheet` whose box overlaps `box`."""
+        sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
+        import qto_to_xlsx as q
+        return any(q.status_of(d) == "seen" and d.get("sheet") == sheet and q.box_of(d) and overlaps(q.box_of(d), box)
+                   for item in data.get("line_items", []) for d in item.get("instance_details", []))
+
+
+    def check_seen_reported(marks):
+        """Each of `marks` ((sheet, box, name): a tag drawn with no text, which AgentCM cannot hold) is in the latest
+        QTO JSON as seen on the drawing, and reported once in corrections.tsv."""
+        files = sorted((WORKSPACE / ".construction" / "skills" / "tag-audit-and-takeoff" / "qto").glob("*.json"))
+        if not files:
+            finish(False, "", "no QTO JSON")
+        data = json.loads(files[-1].read_text(encoding="utf-8"))
+        bad = [f"{name}: seen {seen_at(data, sheet, box)}, corrections lines {corrections_count(sheet, box)}"
+               for sheet, box, name in marks if not seen_at(data, sheet, box) or corrections_count(sheet, box) != 1]
+        finish(not bad, f"seen on the drawing, not in AgentCM, and reported once: {[m[2] for m in marks]}", "; ".join(bad))
+
+
     # -- own extraction -------------------------------------------------------------------------------
     EXTRACTION = re.compile(r"rasterize_page|pdf_text\\.py|split_drawing_set|split_spec_manual|extract_spec_text|find_pages|"
                             r"extract_text_region|pdfplumber|import fitz")
@@ -670,9 +727,10 @@ write("_checks/agentcm_trace.py", '''
         return out
 
 
-    def check_takeoff_twice(accepted, pending):
+    def check_takeoff_twice(accepted, pending, seen_marks=()):
         """Two QTO JSONs with the same numbers per item (confirmed, to confirm, seen not in AgentCM, possible
-        total); confirmed is the accepted tags (`accepted`), to confirm holds at least the pending ones. A tag sent again (the files
+        total); confirmed is the accepted tags (`accepted`), to confirm holds at least the pending ones; each of
+        `seen_marks` ((sheet, box, name): a tag drawn with no text) is seen in both, with one corrections.tsv line. A tag sent again (the files
         do not refresh here) came back already_held, never as a second card; a tag AgentCM answered rejected
         is in each QTO once, as rejected, in no number."""
         sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
@@ -729,13 +787,19 @@ write("_checks/agentcm_trace.py", '''
                      for d in item.get("instance_details", []) if q.status_of(d) == "seen"]
         not_once = [f"{text} on {sheet}: {reported(sheet, box) if box else 'no box'}" for sheet, text, box in seen_tags
                     if not box or reported(sheet, box) != 1]
+        missing_seen = [f"run {k}: {name}" for k, data in enumerate(datas, start=1) for sheet, box, name in seen_marks
+                        if not seen_at(data, sheet, box)]
+        unreported = [f"{name}: {corrections_count(sheet, box)} lines" for sheet, box, name in seen_marks
+                      if corrections_count(sheet, box) != 1]
         ok = (same and conf == accepted and todo >= pending and resent and not second_card and not not_listed_once
-              and not not_once)
+              and not not_once and not missing_seen and not unreported)
         finish(ok, f"both takeoffs: confirmed {conf}, to confirm {todo}, seen not in AgentCM {runs[1][1][2]}; a tag sent "
-                   f"again was already held; rejected listed once: {sorted(t for _, t in turned_down)}",
+                   f"again was already held; rejected listed once: {sorted(t for _, t in turned_down)}; seen and "
+                   f"reported once: {[m[2] for m in seen_marks]}",
                f"runs {runs}; expected confirmed {accepted}, to confirm >= {pending}; a first-run tag sent again and "
                f"already held: {resent}; second cards: {second_card[:3]}; rejected not listed once as rejected: "
-               f"{not_listed_once[:3]}; seen tags without exactly one corrections line: {not_once[:3]}")
+               f"{not_listed_once[:3]}; seen tags without exactly one corrections line: {not_once[:3]}; drawn tags not "
+               f"seen: {missing_seen}; not reported once: {unreported}")
 ''')
 
 # ---- cases ----------------------------------------------------------------------------------------
@@ -859,25 +923,44 @@ case("sheet-splitter", "/construction:sheet-splitter", "",
          "reads-sheet-index": ("regex", tool_inputs_pattern(under_construction(r"index[\\/]+sheet_index\.yaml")), 1, "It read AgentCM's sheet index to confirm the split."),
      })
 xref_text = "; ".join(f"{x[0]} ({x[4]} \"{x[-1]}\")" for x in XREF_A102)
+def mark(mark_id):
+    """A drawn mark as the checks' arguments: "sheet", (x, y, w, h), "id"."""
+    sheet, box = MARKS[mark_id]
+    return f'"{sheet}", {box!r}, "{mark_id}"'
+
+
+# Each case that looks at a drawing has one fact only its crop shows (drawn-marks.json): its crop must cover the mark,
+# and its answer must use what the mark says.
 case("construction-guide", "/construction:construction-guide",
      "From this project's documents: what size is door D103 on the A-601 door schedule, and what refers to sheet A-102? "
-     "Look at the drawing to confirm the door's size. Cite where each answer comes from.",
-     desc="AgentCM closed: answers from AgentCM's files and checks the drawing through crop.sh with a box from the sheet files.",
+     "Look at the drawing to confirm the door's size, and report anything the drawing shows at that row that the text "
+     "does not. Cite where each answer comes from.",
+     desc="AgentCM closed: answers from AgentCM's files, and looks at D103's row through AgentCM's real crop.sh, where the drawing shows what the files do not.",
      graders={"answer": ("llm", "", 3,
                          f"The answer gives door D103's size as {D103_SIZE} from the A-601 door schedule, and names what refers to A-102 "
                          f"({xref_text}), each with its source in AgentCM's files. A search that finds nothing is reported as not found in "
-                         "AgentCM's index, never as proof that something does not exist.")},
-     checks={"crop-box": ('t.check_crop_covers("A-601", "D103")', 2)})
+                         "AgentCM's index, never as proof that something does not exist."),
+              "crop-fact": ("llm", "", 2,
+                            "The answer reports that door D103's row on the A-601 door schedule is clouded as a revision, marked with "
+                            "revision delta 1, and says this was seen on the drawing (it is not in AgentCM's text files).")},
+     checks={"crop-mark": (f"t.check_crop_on_mark({mark('a601-d103-revision-1')})", 2)})
 case("pe-review", "/construction:pe-review",
      "Review sheets A-101 and A-102 of this project for coordination problems and anything missing. Look at the drawings where the text points.",
-     desc="AgentCM closed: reviews from AgentCM's files and looks at the drawings through crop.sh.",
-     graders={"review": ("llm", "", 2, "The review works from AgentCM's sheet files for A-101 and A-102, names at least one concrete item on those sheets (a room, the detail 5 reference, a note), cites the sheet for each, and does not claim anything is absent from the project because a search of AgentCM's index found nothing.")},
-     checks={"crop-box": ('t.check_crop_from_sheet_files(["A-101", "A-102"])', 2)})
+     desc="AgentCM closed: reviews from AgentCM's files and looks at the drawings through AgentCM's real crop.sh, where A-101 shows a callout bubble the files do not.",
+     graders={"review": ("llm", "", 2, "The review works from AgentCM's sheet files for A-101 and A-102, names at least one concrete item on those sheets (a room, the detail 5 reference, a note), cites the sheet for each, and does not claim anything is absent from the project because a search of AgentCM's index found nothing."),
+              "crop-fact": ("llm", "", 2,
+                            "The review reports the callout bubble 6/A-102 drawn on A-101 (beside the note SEE 5/A-102, toward "
+                            "STORAGE 102) as a coordination problem: A-102 has no detail 6, or the bubble disagrees with the "
+                            "note's 5/A-102. It cites the drawing (the crop) for the bubble.")},
+     checks={"crop-mark": (f"t.check_crop_on_mark({mark('a101-callout-6-a102')})", 2)})
 case("rfi-drafter", "/construction:rfi-drafter",
      "Draft an RFI asking the architect to confirm the hardware for door D101: the A-601 door schedule gives its size but the hardware column needs confirming. Research it in the project documents first and look at the schedule on the drawing.",
-     desc="AgentCM closed: researches through AgentCM's files and crop.sh, and writes the RFI outside .construction/.",
+     desc="AgentCM closed: researches through AgentCM's files and AgentCM's real crop.sh, where D101's hardware points to a keynote the files do not hold, and writes the RFI outside .construction/.",
      graders={"docx": ("file_exists", 'path: "**/RFI-*.docx"', 2, "The RFI is written as a Word document in the project folder.")},
-     checks={"crop-box": ('t.check_crop_covers("A-601", "D101")', 2)})
+     checks={"crop-mark": (f"t.check_crop_on_mark({mark('a601-d101-keynote-7')})", 2),
+             "crop-fact": ('t.check_docx_says("**/RFI-*.docx", '
+                           r'r"(?i)\bkey\s*-?\s*note\s*(?:no\.?\s*|number\s*|#\s*)?7\b|hexagon\w*\s+(?:keynote\s+|tag\s+|symbol\s+|mark\s+)?7\b", '
+                           '"keynote 7, which D101\'s hardware cell points to on A-601")', 2)})
 case("bid-tabulator", "/construction:bid-tabulator",
      "Tabulate the five BP-09 Flooring bids in 03 - Subcontractor Bids/BP-09 Flooring/ into a bid comparison workbook named Bid_Tabulation_BP-09.xlsx in the project root.",
      desc="AgentCM closed: takes the project name from project.yaml and keeps its working data under .construction/skills/.",
@@ -936,10 +1019,12 @@ case("tag-audit-and-takeoff", "/construction:tag-audit-and-takeoff",
      desc="AgentCM running: a takeoff twice gives the same numbers, confirmed = accepted tags only; a tag sent again is already held, a rejected one is listed once, a tag AgentCM has no text for is seen, not in AgentCM, and reported once.",
      graders={"four-groups": ("llm", "", 2, "The final message reports, for each takeoff, confirmed, to confirm, seen on the drawing but not in AgentCM, and the possible total, with the caveat that confirmed holds only tags accepted in AgentCM's review and the rest wait there or have no card yet; the two takeoffs report the same numbers. A takeoff with nothing seen outside AgentCM may give that group as 0 or say there is none."),
               "outcomes": ("llm", "", 1, "The final message reports what AgentCM answered for the tags it sent (how many were created, already held or rejected), taken from AgentCM's answer, not assumed from the request succeeding. A box that held no text was redrawn from the sheet's text and sent once more, or, with no text there at all, the tag is reported as seen on the drawing, not in AgentCM, with its crop. If AgentCM answered that the PE rejected a tag, that tag is listed apart and not counted; a run with no rejected tag passes this on the rest.")},
-     checks={"twice-the-same": (f"t.check_takeoff_twice(accepted={ROOM_ACCEPTED}, pending={ROOM_PENDING})", 3),
+     checks={"twice-the-same": (f"t.check_takeoff_twice(accepted={ROOM_ACCEPTED}, pending={ROOM_PENDING}, "
+                                f"seen_marks=[({mark('a101-stair-107')})])", 3),
              "contract-requests": ("t.check_contract_requests()", 1),
              "tag-ingest": ('t.check_tag_ingest(["A-101", "A-102"])', 2),
-             "crop-box": ('t.check_crop_from_sheet_files(["A-101", "A-102"])', 1)})
+             "crop-box": ('t.check_crop_from_sheet_files(["A-101", "A-102"])', 1),
+             "crop-mark": (f"t.check_crop_on_mark({mark('a101-stair-107')})", 1)})
 case("schedule-extractor", "/construction:schedule-extractor",
      "Extract the door schedule on A-601 into Excel and ingest it into AgentCM.",
      needs="pdfs", api=True, own_extraction_ok=True,
@@ -965,10 +1050,12 @@ OUTBOX_MSG = ("llm", "", 2, "The final message says AgentCM was not running, tha
 case("tag-audit-and-takeoff-offline", "/construction:tag-audit-and-takeoff",
      "Do a quantity takeoff of the room tags on sheet A-101 and save its QTO JSON and workbook. Ingest new detections without asking; nobody can confirm.",
      needs="groups pending pdfs api-url", offline_write=True,
-     desc="AgentCM closed: the takeoff runs from the files and the tag ingest waits in the outbox.",
+     desc="AgentCM closed: the takeoff runs from the files and the tag ingest waits in the outbox; STAIR 107, drawn with no text, is seen on the drawing, not in AgentCM, and reported once.",
      graders={"tells-the-pe": OUTBOX_MSG,
               "workbook": ("file_exists", 'path: "QTO_*.xlsx"', 1, "The QTO workbook is still produced.")},
-     checks={"outbox": ('t.check_outbox("tag-audit-and-takeoff", "tag", "A-101")', 3)})
+     checks={"outbox": ('t.check_outbox("tag-audit-and-takeoff", "tag", "A-101")', 3),
+             "seen-reported": (f"t.check_seen_reported([({mark('a101-stair-107')})])", 2),
+             "crop-mark": (f"t.check_crop_on_mark({mark('a101-stair-107')})", 1)})
 case("schedule-extractor-offline", "/construction:schedule-extractor",
      "Extract the door schedule on A-601 into Excel and ingest it into AgentCM.",
      needs="pdfs api-url", offline_write=True, own_extraction_ok=True,

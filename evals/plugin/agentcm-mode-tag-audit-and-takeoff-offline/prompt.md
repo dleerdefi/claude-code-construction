@@ -1,6 +1,6 @@
 ---
 name: agentcm-mode-tag-audit-and-takeoff-offline
-description: "AgentCM closed: the takeoff runs from the files and the tag ingest waits in the outbox."
+description: "AgentCM closed: the takeoff runs from the files and the tag ingest waits in the outbox; STAIR 107, drawn with no text, is seen on the drawing, not in AgentCM, and reported once."
 tags: [agentcm-mode, tag-audit-and-takeoff]
 runs: 1
 max_turns: 80

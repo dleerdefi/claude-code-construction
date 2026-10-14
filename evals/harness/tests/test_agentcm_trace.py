@@ -217,6 +217,68 @@ class Checks(unittest.TestCase):
             got, out = outcome(t.check_takeoff_twice, accepted=1, pending=1)
             self.assertEqual(got, code, out)
 
+    def test_takeoff_twice_a_drawn_tag_with_no_text_is_seen_and_reported_once(self):
+        stair, mark = dict(BOX, x=0.80), ("A-101", (0.797, 0.297, 0.066, 0.027), "a101-stair-107")
+        listed = qto(["accepted", "to_confirm"])
+        listed["line_items"][0]["instance_details"].append(
+            {"sheet": "A-101", "tag_text": "STAIR 107", "status": "seen", "crop": "c.png", "bounding_box": stair})
+        self.run.file(self.Q + "room_tag_1.json", listed)
+        self.run.file(self.Q + "room_tag_2.json", listed)
+        self.run.requests(ingest("created"), ingest("already_held", dets=[dict(DET, bounding_box=dict(BOX, x=0.405))]))
+        corr = self.run.ws / ".construction" / "skills" / "corrections.tsv"
+        corr.write_text("sheet\tx\ty\tw\th\tkind\tcrop\tagentcm\tdrawing\nA-101\t0.80\t0.3\t0.06\t0.02\ttag\tc.png\t\tSTAIR 107\n",
+                        encoding="utf-8")
+        got, out = outcome(t.check_takeoff_twice, accepted=1, pending=1, seen_marks=[mark])
+        self.assertEqual(got, 0, out)
+        unseen = qto(["accepted", "to_confirm"])  # a takeoff that never saw it
+        self.run.file(self.Q + "room_tag_2.json", unseen)
+        got, out = outcome(t.check_takeoff_twice, accepted=1, pending=1, seen_marks=[mark])
+        self.assertEqual(got, 1, out)
+        self.assertIn("drawn tags not seen: ['run 2: a101-stair-107']", out)
+
+    def test_seen_reported_offline(self):
+        mark = ("A-101", (0.797, 0.297, 0.066, 0.027), "a101-stair-107")
+        listed = qto(["accepted"])
+        listed["line_items"][0]["instance_details"].append(
+            {"sheet": "A-101", "tag_text": "STAIR 107", "status": "seen", "crop": "c.png", "bounding_box": dict(BOX, x=0.80)})
+        self.run.file(self.Q + "room_tag_1.json", listed)
+        corr = self.run.ws / ".construction" / "skills" / "corrections.tsv"
+        head, line = "sheet\tx\ty\tw\th\tkind\tcrop\tagentcm\tdrawing\n", "A-101\t0.80\t0.3\t0.06\t0.02\ttag\tc.png\t\tSTAIR 107\n"
+        for body, code in ((head + line, 0), (head + line + line, 1), (head, 1)):
+            corr.write_text(body, encoding="utf-8")
+            self.assertEqual(outcome(t.check_seen_reported, [mark])[0], code, body)
+        self.run.file(self.Q + "room_tag_1.json", qto(["accepted", "to_confirm"]))  # counted as to confirm, not seen
+        corr.write_text(head + line, encoding="utf-8")
+        self.assertEqual(outcome(t.check_seen_reported, [mark])[0], 1)
+
+    def test_crop_on_a_drawn_mark(self):
+        box = (0.797, 0.297, 0.066, 0.027)
+        for command, code in (("sh .construction/crop.sh A-101 0.78 0.28 0.10 0.06", 0),
+                              ('powershell -File .construction/crop.ps1 "A-101" 0.79 0.29 0.08 0.04', 0),
+                              ("sh .construction/crop.sh A-101 0.05 0.06 0.12 0.02", 1),  # elsewhere on the sheet
+                              ("sh .construction/crop.sh A-102 0.78 0.28 0.10 0.06", 1)):  # another sheet
+            self.bash(command)
+            self.assertEqual(outcome(t.check_crop_on_mark, "A-101", box, "a101-stair-107")[0], code, command)
+
+    def test_a_word_document_says_the_crop_fact(self):
+        import docx
+        rfi = Path(__file__).resolve().parents[2] / "plugin" / "agentcm-mode-rfi-drafter" / "checks" / "crop_fact.py"
+        import ast
+        import re
+        literal = re.search(r'check_docx_says\("[^"]*", (r"[^"]*")', rfi.read_text(encoding="utf-8")).group(1)
+        regex = ast.literal_eval(literal)  # the rfi-drafter case's own pattern
+        for text, code in (("Door D101: the HDWR cell points to Keynote 7 on A-601.", 0),
+                           ("A leader runs from hardware set 10 to hexagon keynote 7.", 0),
+                           ("See key note #7.", 0),
+                           ("Keynote 17 applies.", 1),
+                           ("Please confirm hardware set 10.", 1)):
+            d = docx.Document()
+            d.add_paragraph(text)
+            d.save(str(self.run.ws / "RFI-001.docx"))
+            self.assertEqual(outcome(t.check_docx_says, "**/RFI-*.docx", regex, "keynote 7")[0], code, text)
+        (self.run.ws / "RFI-001.docx").unlink()
+        self.assertEqual(outcome(t.check_docx_says, "**/RFI-*.docx", regex, "keynote 7")[0], 1)
+
     def test_takeoff_twice_a_rejected_tag_is_listed_once_in_each_run(self):
         stair = dict(DET, tag_text="STAIR 2", bounding_box=dict(BOX, x=0.8))
         listed = qto(["accepted", "to_confirm"])

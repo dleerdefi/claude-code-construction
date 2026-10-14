@@ -1,6 +1,6 @@
 ---
 name: agentcm-mode-rfi-drafter
-description: "AgentCM closed: researches through AgentCM's files and crop.sh, and writes the RFI outside .construction/."
+description: "AgentCM closed: researches through AgentCM's files and AgentCM's real crop.sh, where D101's hardware points to a keynote the files do not hold, and writes the RFI outside .construction/."
 tags: [agentcm-mode, rfi-drafter]
 runs: 1
 max_turns: 80

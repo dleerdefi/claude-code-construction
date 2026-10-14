@@ -101,6 +101,63 @@ def check_crop_from_sheet_files(sheets):
            f"no crop.sh call on {sheets} with a box on a line of the sheet files; crops made: {cs[:6]}")
 
 
+def check_crop_on_mark(sheet, box, name):
+    """A crop of `sheet` whose box overlaps a mark drawn on it (drawn-marks.json): something the drawing shows and
+    AgentCM's files do not, so only a look at the drawing finds it."""
+    cs = crops()
+    hits = [c for c in cs if c[0] == sheet and overlaps(c[1:], box)]
+    finish(bool(hits), f"crop.sh {hits[0] if hits else ''} covers the mark {name} on {sheet}",
+           f"no crop.sh call on {sheet} covers the mark {name} {box}; crops made: {cs[:6]}")
+
+
+def check_docx_says(pattern, regex, what):
+    """A Word document the run wrote (`pattern`, a glob from the project root) says `what` (`regex`)."""
+    import docx
+    texts = {}
+    for f in sorted(WORKSPACE.glob(pattern)):
+        d = docx.Document(str(f))
+        parts = [p.text for p in d.paragraphs] + [c.text for t in d.tables for r in t.rows for c in r.cells]
+        texts[f.name] = "\n".join(parts)
+    hit = [n for n, t in texts.items() if re.search(regex, t)]
+    finish(bool(hit), f"{what} in {hit[0] if hit else ''}", f"{what} not in {sorted(texts) or 'any document'}")
+
+
+# -- a tag seen on the drawing, not in AgentCM ------------------------------------------------------
+def corrections_count(sheet, box):
+    """corrections.tsv lines on `sheet` of kind tag whose box and `box` hold each other's centre."""
+    sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
+    import qto_to_xlsx as q
+    corr = WORKSPACE / ".construction" / "skills" / "corrections.tsv"
+    n = 0
+    for c in ([l.split("\t") for l in corr.read_text(encoding="utf-8").splitlines()[1:]] if corr.is_file() else []):
+        try:
+            other = tuple(float(v) for v in c[1:5])
+        except ValueError:
+            continue
+        n += len(c) > 5 and c[0] == sheet and c[5] == "tag" and (q.center_inside(box, other) or q.center_inside(other, box))
+    return n
+
+
+def seen_at(data, sheet, box):
+    """A QTO instance with status seen on `sheet` whose box overlaps `box`."""
+    sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
+    import qto_to_xlsx as q
+    return any(q.status_of(d) == "seen" and d.get("sheet") == sheet and q.box_of(d) and overlaps(q.box_of(d), box)
+               for item in data.get("line_items", []) for d in item.get("instance_details", []))
+
+
+def check_seen_reported(marks):
+    """Each of `marks` ((sheet, box, name): a tag drawn with no text, which AgentCM cannot hold) is in the latest
+    QTO JSON as seen on the drawing, and reported once in corrections.tsv."""
+    files = sorted((WORKSPACE / ".construction" / "skills" / "tag-audit-and-takeoff" / "qto").glob("*.json"))
+    if not files:
+        finish(False, "", "no QTO JSON")
+    data = json.loads(files[-1].read_text(encoding="utf-8"))
+    bad = [f"{name}: seen {seen_at(data, sheet, box)}, corrections lines {corrections_count(sheet, box)}"
+           for sheet, box, name in marks if not seen_at(data, sheet, box) or corrections_count(sheet, box) != 1]
+    finish(not bad, f"seen on the drawing, not in AgentCM, and reported once: {[m[2] for m in marks]}", "; ".join(bad))
+
+
 # -- own extraction -------------------------------------------------------------------------------
 EXTRACTION = re.compile(r"rasterize_page|pdf_text\.py|split_drawing_set|split_spec_manual|extract_spec_text|find_pages|"
                         r"extract_text_region|pdfplumber|import fitz")
@@ -285,9 +342,10 @@ def answered(endpoint):
     return out
 
 
-def check_takeoff_twice(accepted, pending):
+def check_takeoff_twice(accepted, pending, seen_marks=()):
     """Two QTO JSONs with the same numbers per item (confirmed, to confirm, seen not in AgentCM, possible
-    total); confirmed is the accepted tags (`accepted`), to confirm holds at least the pending ones. A tag sent again (the files
+    total); confirmed is the accepted tags (`accepted`), to confirm holds at least the pending ones; each of
+    `seen_marks` ((sheet, box, name): a tag drawn with no text) is seen in both, with one corrections.tsv line. A tag sent again (the files
     do not refresh here) came back already_held, never as a second card; a tag AgentCM answered rejected
     is in each QTO once, as rejected, in no number."""
     sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
@@ -344,10 +402,16 @@ def check_takeoff_twice(accepted, pending):
                  for d in item.get("instance_details", []) if q.status_of(d) == "seen"]
     not_once = [f"{text} on {sheet}: {reported(sheet, box) if box else 'no box'}" for sheet, text, box in seen_tags
                 if not box or reported(sheet, box) != 1]
+    missing_seen = [f"run {k}: {name}" for k, data in enumerate(datas, start=1) for sheet, box, name in seen_marks
+                    if not seen_at(data, sheet, box)]
+    unreported = [f"{name}: {corrections_count(sheet, box)} lines" for sheet, box, name in seen_marks
+                  if corrections_count(sheet, box) != 1]
     ok = (same and conf == accepted and todo >= pending and resent and not second_card and not not_listed_once
-          and not not_once)
+          and not not_once and not missing_seen and not unreported)
     finish(ok, f"both takeoffs: confirmed {conf}, to confirm {todo}, seen not in AgentCM {runs[1][1][2]}; a tag sent "
-               f"again was already held; rejected listed once: {sorted(t for _, t in turned_down)}",
+               f"again was already held; rejected listed once: {sorted(t for _, t in turned_down)}; seen and "
+               f"reported once: {[m[2] for m in seen_marks]}",
            f"runs {runs}; expected confirmed {accepted}, to confirm >= {pending}; a first-run tag sent again and "
            f"already held: {resent}; second cards: {second_card[:3]}; rejected not listed once as rejected: "
-           f"{not_listed_once[:3]}; seen tags without exactly one corrections line: {not_once[:3]}")
+           f"{not_listed_once[:3]}; seen tags without exactly one corrections line: {not_once[:3]}; drawn tags not "
+           f"seen: {missing_seen}; not reported once: {unreported}")

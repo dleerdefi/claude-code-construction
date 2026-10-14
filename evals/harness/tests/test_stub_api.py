@@ -123,6 +123,26 @@ class Answers(unittest.TestCase):
         self.assertEqual(body["results"][0]["outcome"], "no_free_text")
         self.assertEqual(body["suggestions_created"], 0)
 
+    def test_the_fixtures_stair_drawn_with_no_text_is_no_free_text(self):
+        """drawn-marks.json's STAIR 107 on A-101 is outlines with no text line: a run that sends its box anyway hears
+        no_free_text, which tag-audit turns into seen on the drawing, not in AgentCM."""
+        import shutil
+        import yaml
+        fixture = Path(stub_api.__file__).resolve().parent
+        b = next(m for m in json.loads((fixture / "drawn-marks.json").read_text(encoding="utf-8"))
+                 if m["id"] == "a101-stair-107")["box"]
+        with tempfile.TemporaryDirectory() as d:
+            ws = Path(d)
+            shutil.copytree(fixture / "construction", ws / ".construction")
+            stub = stub_api.Stub(json.loads((fixture / "api-responses.json").read_text(encoding="utf-8")), None, ws)
+            project = yaml.safe_load((ws / ".construction" / "database.yaml").read_text(encoding="utf-8"))["project_id"]
+            sheets = yaml.safe_load((ws / ".construction" / "index" / "sheet_index.yaml").read_text(encoding="utf-8"))["sheets"]
+            sheet_id = next(s["id"] for s in sheets if str(s["sheet_number"]) == "A-101")
+            status, body = stub.post(f"/projects/{project}/tag-detections/ingest", {"sheet_id": sheet_id, "detections": [
+                {"tag_text": "STAIR 107", "tag_type": "room_tag", "confidence": 0.7,
+                 "bounding_box": {"x": b["x"], "y": b["y"], "width": b["w"], "height": b["h"]}}]})
+        self.assertEqual((status, body["results"][0]["outcome"]), (200, "no_free_text"), body)
+
     def test_a_type_outside_contract_1_is_registered_once_and_flagged(self):
         _, body = self.ingest(det("CLASSROOM 103", 0.595, tag_type="qto_room_tag"),
                               det("X", 0.85, tag_type="plumbing_fixture"), det("Y", 0.86, tag_type="plumbing_fixture"),

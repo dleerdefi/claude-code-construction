@@ -1,6 +1,6 @@
 ---
 name: agentcm-mode-pe-review
-description: "AgentCM closed: reviews from AgentCM's files and looks at the drawings through crop.sh."
+description: "AgentCM closed: reviews from AgentCM's files and looks at the drawings through AgentCM's real crop.sh, where A-101 shows a callout bubble the files do not."
 tags: [agentcm-mode, pe-review]
 runs: 1
 max_turns: 80

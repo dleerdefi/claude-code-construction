@@ -20,5 +20,8 @@ checks:
   - name: crop-box
     script: checks/crop_box.py
     weight: 1
+  - name: crop-mark
+    script: checks/crop_mark.py
+    weight: 1
 allow_urls: ["http://127.0.0.1:47817/"]
 teardown: ../agentcm-mode/teardown.sh

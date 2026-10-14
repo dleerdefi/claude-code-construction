@@ -8,7 +8,7 @@ checks:
   - name: no-own-extraction
     script: checks/no_own_extraction.py
     weight: 1
-  - name: crop-box
-    script: checks/crop_box.py
+  - name: crop-mark
+    script: checks/crop_mark.py
     weight: 2
 teardown: ../agentcm-mode/teardown.sh
