@@ -266,8 +266,9 @@ async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> R
                 result.modified_files = sorted(k for k in after.keys() & before.keys() if after[k] != before[k])
                 result.deleted_files = sorted(before.keys() - after.keys())
                 result.agentcm_block = {"before": block_before, "after": agentcm_block_sha(workspace)}
-                result.outside_files = leftovers.diff(where, outside_before, leftovers.snapshot(where),
-                                                      own={workspace.name, run_tmp.name})
+                result.outside_files = (leftovers.diff(where, outside_before, leftovers.snapshot(where),
+                                                       own={workspace.name, run_tmp.name})
+                                        + leftovers.changed_since(leftovers.user_folders(), s0 - leftovers.CLOCK_SLACK))
                 result.overlapping_runs = leftovers.overlapping(workspace, s0, time.time())
         finally:
             teardown_out = run_teardown(case, workspace)

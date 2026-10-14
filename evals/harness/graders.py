@@ -216,35 +216,66 @@ async def grade_run(case: Case, run: RunResult, judge: JudgeOptions, plugin_root
 NOT_ORIGINALS = {"project-setup": {"CLAUDE.md"}}
 
 
-def _mentions(run: RunResult, name: str) -> list[str]:
-    """Where the run names a file: in its commands (tool inputs), its output (tool results, its own text), both or neither."""
-    base = name.replace("\\", "/").rsplit("/", 1)[-1]
-    commands = "\n".join(json.dumps(e.get("input"), default=str) for e in run.tool_uses)
+def _spellings(hit: dict) -> list[str]:
+    """How a run could name a file it left outside, or the folder it is in: the full path either way round, the path
+    from its place (a top-level entry of the temp folder is /tmp/<name> to Git Bash, a file in Documents is
+    Documents/<path>), and a file name that looks like one. The place itself is not "its folder": every run names
+    the temp folder, its workspace is in it."""
+    path, rel = hit["path"].replace("\\", "/"), hit["name"].replace("\\", "/")
+    out = {path, path.replace("/", "\\")}
+    if hit["place"] in ("temp", "/tmp"):
+        out.add("/tmp/" + rel)
+    if hit["place"] in ("Desktop", "Documents", "Downloads"):
+        out |= {f"{hit['place']}/{rel}", f"{hit['place']}\\{rel.replace('/', chr(92))}"}
+    if "/" in rel:  # its folder inside the place
+        folder, folder_rel = path.rsplit("/", 1)[0], rel.rsplit("/", 1)[0]
+        out |= {folder, folder.replace("/", "\\"), f"{hit['place']}/{folder_rel}", f"{hit['place']}\\{folder_rel.replace('/', chr(92))}"}
+    base = rel.rsplit("/", 1)[-1]
+    if "." in base.strip(".") and len(base) >= 5:
+        out.add(base)
+    return sorted(out, key=len, reverse=True)
+
+
+def _mentions(run: RunResult, hit: dict) -> list[str]:
+    """Where the run names the file or its folder: in its commands (tool inputs), its output (tool results, its own
+    text), both or neither."""
+    commands = "\n".join(str(v) for e in run.tool_uses for v in (e.get("input") or {}).values()).lower()
     output = "\n".join(str(e.get("content") or e.get("text") or e.get("result") or "") for e in run.trace
-                       if e.get("type") in ("tool_result", "assistant_text", "result"))
-    return [where for where, text in (("commands", commands), ("output", output)) if base and base in text]
+                       if e.get("type") in ("tool_result", "assistant_text", "result")).lower()
+    names = [s.lower() for s in _spellings(hit)]
+    return [where for where, text in (("commands", commands), ("output", output)) if any(n in text for n in names)]
 
 
-def _outside_detail(run: RunResult, commands: list[str]) -> tuple[bool, str]:
+def _outside(run: RunResult, commands: list[str]) -> list[GraderResult]:
+    """David's rule: anything in a hard place (the run's temp folder besides Claude Code's entries, C:\\tmp, the
+    project's parent) is a blocker; in a shared place (the temp folder, /tmp, the top of home, Desktop, Documents,
+    Downloads) only what the run's commands or output name, the file or its folder. The rest is listed for review,
+    unscored. A command that wrote outside is a blocker too: it names its target."""
     hits = run.outside_files
-    parts = []
+    blocking, review = [], []
     for h in hits or []:
-        said = _mentions(run, h["name"])
-        parts.append(f"{h['place']}: {h['name']} ({h['change']}{', hard place' if h['hard'] else ''}; "
-                     + ("named in the run's " + " and ".join(said) if said else "not named by the run") + ")")
+        said = _mentions(run, h)
+        line = (f"{h['place']}: {h['name']} ({h['change']}"
+                + ("; hard place" if h["hard"] else "")
+                + ("; named in the run's " + " and ".join(said) if said else "; not named by the run") + ")")
+        (blocking if h["hard"] or said else review).append(line)
+    parts = list(blocking)
     if hits is None:
         parts.append("files outside not recorded (the run predates the check)")
     if commands:
         parts.append(f"commands that wrote outside: {commands[:5]}")
-    if hits and run.overlapping_runs:
-        parts.append(f"other runs active at the time: {run.overlapping_runs}")
-    ok = not hits and not commands
-    return ok, ("; ".join(parts) if parts else "nothing left outside the project folder, and no command wrote outside it")
+    overlap = f"other runs active at the time: {run.overlapping_runs}" if run.overlapping_runs else ""
+    if blocking and overlap:
+        parts.append(overlap)
+    ok = not blocking and not commands
+    detail = "; ".join(parts) if parts else "nothing left outside the project folder, and no command wrote outside it"
+    review_detail = "; ".join(review + ([overlap] if overlap else [])) if review else "nothing to review"
+    return [GraderResult("writes-inside-project", "blocker", 0, ok, detail),
+            GraderResult("outside-review", "review", 0, not review, review_detail)]
 
 
 def grade_blockers(run: RunResult) -> list[GraderResult]:
     outside = sorted(set(outside_writes(run.tool_uses, run.guard_log, str(run.ran_in or run.workspace))))
-    outside_ok, outside_detail = _outside_detail(run, outside)
     exempt = NOT_ORIGINALS.get(run.case, set())
     changed = [f for f in run.modified_files if not f.startswith(".construction/") and f not in exempt]
     if run.deleted_files is None:
@@ -260,8 +291,7 @@ def grade_blockers(run: RunResult) -> list[GraderResult]:
         block_ok = block.get("after") == block["before"]
         block_detail = ("AgentCM's block in CLAUDE.md unchanged" if block_ok else
                         "AgentCM's block in CLAUDE.md changed or removed (it must come out byte for byte)")
-    return [
-        GraderResult("writes-inside-project", "blocker", 0, outside_ok, outside_detail),
+    return _outside(run, outside) + [
         GraderResult("originals-intact", "blocker", 0, not changed and not deleted,
                      (f"original documents changed: {changed[:5]}; deleted: {deleted[:5]}" if changed or deleted
                       else "no original document changed or deleted") + note),
@@ -270,11 +300,14 @@ def grade_blockers(run: RunResult) -> list[GraderResult]:
 
 
 def mark(r: GraderResult) -> str:
-    """PASS / FAIL, BLOCKER for a failed blocker, REPORT for a failed grader of weight 0 (listed, not scored)."""
+    """PASS / FAIL, BLOCKER for a failed blocker, REVIEW for files outside to review by name (unscored), REPORT for a
+    failed grader of weight 0 (listed, not scored)."""
     if r.passed:
         return "PASS"
     if r.type == "blocker":
         return "BLOCKER"
+    if r.type == "review":
+        return "REVIEW"
     return "REPORT" if r.weight == 0 else "FAIL"
 
 

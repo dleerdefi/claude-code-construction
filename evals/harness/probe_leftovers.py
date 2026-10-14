@@ -7,7 +7,8 @@ and removes everything it planted.
 
 Planted, each from a shell command the way a run would issue it (the command check in guard.py sees none of the
 Python ones): Python writing into Git Bash's /tmp and into C:\\tmp, Python writing through tempfile (the run's temp
-folder), and a shell redirect into /tmp. Exit 0 when every plant is caught and the idle interval is clean.
+folder), Python writing inside an existing folder of Documents, and a shell redirect into /tmp. Exit 0 when every
+plant is caught and the idle interval is clean.
 """
 import argparse
 import os
@@ -49,12 +50,19 @@ def main() -> int:
                                     f"{name}-tf.json"),
         "shell redirect into /tmp": (f"echo x > /tmp/{name}-sh.txt", f"{name}-sh.txt"),
     }
+    docs = dict(leftovers.user_folders()).get("Documents")
+    existing = next((d for d in sorted(docs.iterdir()) if d.is_dir() and not d.name.startswith(".")), None) if docs else None
+    doc_plant = existing / f"{name}-doc.png" if existing else None
+    if doc_plant:
+        plants["python inside an existing Documents folder"] = (
+            f"{py} -c \"open(r'{doc_plant}', 'wb').write(b'x')\"", f"{existing.name}/{doc_plant.name}")
     ok = True
     try:
-        before = leftovers.snapshot(where)
+        before, t0 = leftovers.snapshot(where), time.time() - leftovers.CLOCK_SLACK
         for label, (command, _) in plants.items():
             subprocess.run([find_bash(), "-c", command], cwd=ws, env=env, check=True, capture_output=True, timeout=60)
-        hits = leftovers.diff(where, before, leftovers.snapshot(where), own={ws.name, run_tmp.name})
+        hits = (leftovers.diff(where, before, leftovers.snapshot(where), own={ws.name, run_tmp.name})
+                + leftovers.changed_since(leftovers.user_folders(), t0))
         for label, (command, file) in plants.items():
             found = [h for h in hits if h["name"] == file]
             seen_by_commands = bool(shell_write_targets(command, str(ws)))
@@ -62,18 +70,19 @@ def main() -> int:
                   + (f"{found[0]['place']} {found[0]['path']}" if found else file)
                   + f" (command check: {'sees it' if seen_by_commands else 'misses it'})")
             ok &= bool(found)
-        others = [h for h in hits if not h["name"].startswith(name) and h["name"] != "tmp"]
+        others = [h for h in hits if name not in h["name"] and h["name"] != "tmp"]
         if others:
             print("also new or changed during the plants:", [(h["place"], h["name"]) for h in others])
         print(f"idle control: {args.idle:.0f} s with nothing running in the probe ...", flush=True)
-        before = leftovers.snapshot(where)
+        before, t0 = leftovers.snapshot(where), time.time()
         time.sleep(args.idle)
-        idle = leftovers.diff(where, before, leftovers.snapshot(where), own={ws.name, run_tmp.name})
+        idle = (leftovers.diff(where, before, leftovers.snapshot(where), own={ws.name, run_tmp.name})
+                + leftovers.changed_since(leftovers.user_folders(), t0))
         print("idle control: clean" if not idle else f"idle control: NOT clean: {[(h['place'], h['name'], h['change']) for h in idle]}")
         ok &= not idle
     finally:
         for p in (Path(tempfile.gettempdir()) / f"{name}-py.png", Path(tempfile.gettempdir()) / f"{name}-sh.txt",
-                  Path("C:/tmp") / f"{name}-c.png"):
+                  Path("C:/tmp") / f"{name}-c.png", *([doc_plant] if doc_plant else [])):
             p.unlink(missing_ok=True)
         if not c_tmp_existed and Path("C:/tmp").is_dir() and not any(Path("C:/tmp").iterdir()):
             Path("C:/tmp").rmdir()

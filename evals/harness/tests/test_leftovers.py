@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import leftovers  # noqa: E402
-from graders import grade_blockers  # noqa: E402
+from graders import GraderResult, grade_blockers, mark, score  # noqa: E402
 from guard import shell_write_targets  # noqa: E402
 from runner import RunResult, find_bash  # noqa: E402
 
@@ -111,6 +111,59 @@ class PlantedPythonWrite(unittest.TestCase):
         self.assertEqual(self.m.hits(before), [])
 
 
+class UserFolders(unittest.TestCase):
+    """Desktop, Documents and Downloads are walked whole: a file saved inside a folder that already exists counts."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.m = Machine(Path(self.tmp.name))
+        self.docs = self.m.home / "Documents"
+        (self.docs / "Existing Project").mkdir(parents=True)
+        old = self.docs / "Existing Project" / "plan.pdf"
+        old.write_bytes(b"%PDF")
+        past = time.time() - 3600
+        os.utime(old, (past, past))
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_a_python_write_inside_an_existing_folder_is_caught_and_the_command_check_misses_it(self):
+        target = (self.docs / "Existing Project" / "x.png").as_posix()
+        command = py(f"open('{target}', 'wb').write(b'x')")
+        self.assertEqual(shell_write_targets(command, str(self.m.ws)), [])
+        t0 = self.start()
+        self.assertEqual(leftovers.changed_since([("Documents", self.docs)], t0), [])  # the old file is not a hit
+        self.m.shell(command)
+        hits = leftovers.changed_since([("Documents", self.docs)], t0)
+        self.assertEqual([(h["place"], h["name"]) for h in hits], [("Documents", "Existing Project/x.png")])
+        self.assertEqual(self.m.hits(self.m.before()), [])  # the top-level listing alone would not have seen it
+
+    def start(self):
+        """The session's start, with room on both sides: the fixture's files are older (os.utime cannot move a
+        Windows creation time back), the run's files newer, past the file clock's coarse ticks."""
+        time.sleep(0.1)
+        t0 = time.time()
+        time.sleep(0.1)
+        return t0
+
+    def test_a_changed_file_counts_and_listed_noise_does_not(self):
+        t0 = self.start()
+        self.m.shell(py(f"open('{(self.docs / 'Existing Project' / 'plan.pdf').as_posix()}', 'ab').write(b'1')"))
+        (self.docs / "sync.tmp").write_text("x")
+        noise = [("Documents", leftovers.re.compile(r"^sync\.tmp$"), "a test pattern")]
+        saved, leftovers.USER_NOISE[:] = list(leftovers.USER_NOISE), noise
+        try:
+            names = [h["name"] for h in leftovers.changed_since([("Documents", self.docs)], t0)]
+        finally:
+            leftovers.USER_NOISE[:] = saved
+        self.assertEqual(names, ["Existing Project/plan.pdf"])
+
+    def test_the_folders_are_found_under_home(self):
+        (self.m.home / "Desktop").mkdir()
+        (self.m.home / "Documents").mkdir(exist_ok=True)
+        self.assertEqual([label for label, _ in leftovers.user_folders(home=self.m.home)], ["Desktop", "Documents"])
+
+
 class ActiveRuns(unittest.TestCase):
     def test_runs_that_overlap_are_named(self):
         with tempfile.TemporaryDirectory() as d:
@@ -129,26 +182,51 @@ def run(outside, trace=(), overlapping=()):
                      overlapping_runs=list(overlapping))
 
 
-def hit(name, place="temp", hard=False):
-    return {"place": place, "name": name, "path": f"/x/{name}", "change": "new", "hard": hard, "dir": False}
+def hit(name, place="temp", hard=False, root="C:/Users/u/AppData/Local/Temp"):
+    return {"place": place, "name": name, "path": f"{root}/{name}", "change": "new", "hard": hard, "dir": False}
 
 
 class Reports(unittest.TestCase):
-    def blocker(self, r):
-        return next(g for g in grade_blockers(r) if g.name == "writes-inside-project")
+    """Hard places block; a shared place blocks only when the run names the file or its folder, else it is reviewed."""
 
-    def test_a_hit_is_a_blocker_and_says_whether_the_run_named_it(self):
+    def results(self, r):
+        return {g.name: g for g in grade_blockers(r)}
+
+    def test_hard_places_block_named_shared_files_block_the_rest_is_reviewed(self):
         trace = [{"type": "tool_use", "name": "Bash", "input": {"command": "python -c \"open('/tmp/page.png','wb')\""}},
                  {"type": "tool_result", "content": "saved scratch.json"}]
-        g = self.blocker(run([hit("page.png"), hit("scratch.json", "run temp", True), hit("other.tmp")], trace))
-        self.assertFalse(g.passed)
-        self.assertIn("temp: page.png (new; named in the run's commands)", g.detail)
-        self.assertIn("run temp: scratch.json (new, hard place; named in the run's output)", g.detail)
-        self.assertIn("temp: other.tmp (new; not named by the run)", g.detail)
+        r = run([hit("page.png"), hit("scratch.json", "run temp", True, "C:/eval/case-r1-tmp"),
+                 hit("tmp3k2j9x1a"), hit("cache.bin", "C:/tmp", True, "C:/tmp")], trace)
+        g = self.results(r)
+        self.assertFalse(g["writes-inside-project"].passed)
+        self.assertIn("temp: page.png (new; named in the run's commands)", g["writes-inside-project"].detail)
+        self.assertIn("run temp: scratch.json (new; hard place; named in the run's output)", g["writes-inside-project"].detail)
+        self.assertIn("C:/tmp: cache.bin (new; hard place; not named by the run)", g["writes-inside-project"].detail)
+        self.assertNotIn("tmp3k2j9x1a", g["writes-inside-project"].detail)
+        self.assertEqual(mark(g["outside-review"]), "REVIEW")
+        self.assertIn("temp: tmp3k2j9x1a (new; not named by the run)", g["outside-review"].detail)
+
+    def test_an_unnamed_shared_file_is_reviewed_not_scored(self):
+        g = self.results(run([hit("tmp3k2j9x1a"), hit("Report.docx", "Documents", root="C:/Users/u/Documents")]))
+        self.assertTrue(g["writes-inside-project"].passed)
+        self.assertFalse(g["outside-review"].passed)
+        self.assertEqual(score([GraderResult("deliverable", "file_exists", 1, True)] + list(g.values())), 1.0)
+
+    def test_naming_the_folder_counts(self):
+        trace = [{"type": "tool_use", "name": "Bash",
+                  "input": {"command": 'cd "C:/Users/u/Documents/Existing Project" && python make.py'}}]
+        g = self.results(run([hit("Existing Project/x", "Documents", root="C:/Users/u/Documents")], trace))
+        self.assertFalse(g["writes-inside-project"].passed)
+        # the temp folder itself is not "its folder": every run names it, the workspace is inside
+        trace = [{"type": "tool_use", "name": "Bash", "input": {"command": 'cd "C:/Users/u/AppData/Local/Temp/construction-eval/case-r1"'}}]
+        self.assertTrue(self.results(run([hit("tmp3k2j9x1a")], trace))["writes-inside-project"].passed)
 
     def test_it_names_the_runs_active_at_the_same_time(self):
         self.assertIn("other runs active at the time: ['b run-2 (pid 2)']",
-                      self.blocker(run([hit("x.png")], overlapping=["b run-2 (pid 2)"])).detail)
+                      self.results(run([hit("tmp3k2j9x1a")], overlapping=["b run-2 (pid 2)"]))["outside-review"].detail)
+
+    def blocker(self, r):
+        return self.results(r)["writes-inside-project"]
 
     def test_the_command_check_is_the_second_signal(self):
         trace = [{"type": "tool_use", "name": "Bash", "input": {"command": "cp a.png /tmp/a.png"}}]
