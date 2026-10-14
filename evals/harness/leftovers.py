@@ -27,25 +27,33 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-# Names that change at the top of a shared place with nothing running: (place, pattern, reason). Only patterns
-# measured in an idle baseline belong here (evals/harness/README.md, "Outside writes").
-SHARED_NOISE = [
-    ("temp", re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.tmp$", re.I),
-     "GUID-named .tmp files a Windows program creates and deletes about once a minute "
-     "(idle baselines 2026-10-13: 3 new in 150 s; 11 new and 4 gone in 600 s, 16:53-17:03)"),
-    ("temp", re.compile(r"^unleash-.*codeium.*\.json$", re.I),
-     "the Codeium editor extension's feature-flag cache, rewritten while idle (baselines 2026-10-13, 150 s and 600 s)"),
-    ("home", re.compile(r"^\.claude\.json$"),
-     "Claude Code's own settings file, rewritten by every Claude Code session (baselines 2026-10-13, 150 s and 600 s)"),
-    ("home", re.compile(r"^ntuser\.dat\.log\d$", re.I),
-     "Windows' log of the user's registry hive, rewritten while idle (baselines 2026-10-13, 150 s and 600 s)"),
-]
+# Names that change in a shared place with nothing running on this machine: (place, pattern, reason), place one of
+# temp, home, Desktop, Documents, Downloads. They are this machine's file names, so they live on the machine, never in
+# the repository: one JSON object per line in NOISE_FILE ({"place", "pattern", "reason"}). Only names an idle baseline
+# showed changing belong there, each with that baseline (README, "Outside writes"; probe_leftovers.py --idle prints
+# what changed). Without the file nothing is left out.
+NOISE_FILE = Path.home() / ".construction-skills" / "eval-noise.jsonl"
+
+
+def load_noise(path: Path = NOISE_FILE) -> list[tuple[str, re.Pattern, str]]:
+    out = []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return out
+    for line in lines:
+        if line.strip():
+            e = json.loads(line)
+            out.append((e["place"], re.compile(e["pattern"], re.I), e["reason"]))
+    return out
+
+
+SHARED_NOISE = load_noise()
 
 # Claude Code's own entries in a temp folder: the run's (its session gets the run's TEMP, and Claude Code passes its
 # environment to every command) and the shared one. Anything else in the run's temp folder is a hard hit. (David,
-# 2026-10-13; the names are confirmed from the idle control run, evals/plugin/_control-idle.)
-CLAUDE_CODE_OWN = (re.compile(r"^claude(-[^/]*)?(/|$)"),
-                   "Claude Code's own working files (claude/ and claude-*), as in this session's Temp/claude/")
+# 2026-10-13; confirmed by name from the idle control run, evals/plugin/control-idle: claude/<project>/<session>/tasks.)
+CLAUDE_CODE_OWN = (re.compile(r"^claude(-[^/]*)?(/|$)"), "Claude Code's own working files (claude/ and claude-*)")
 
 # Start and end of every harness run, so a hit in a shared place can name every run that was active then.
 REGISTRY = Path.home() / ".construction-skills" / "eval-runs.jsonl"
@@ -148,9 +156,6 @@ def diff(where: list[Place], before: dict, after: dict, own: set[str] = frozense
 # carry a time a little before it. Seconds to look back.
 CLOCK_SLACK = 2.0
 
-# Paths below a user folder that change with nothing running: (folder, pattern on the path, reason).
-USER_NOISE: list[tuple[str, re.Pattern, str]] = []  # none: nothing below them changed in the 600 s idle baseline of 2026-10-13
-
 _SHELL_FOLDERS = {"Desktop": "Desktop", "Documents": "Personal", "Downloads": "{374DE290-123F-4565-9164-39C4925E467B}"}
 
 
@@ -174,7 +179,7 @@ def user_folders(home: Path | None = None) -> list[tuple[str, Path]]:
 
 
 def changed_since(folders: list[tuple[str, Path]], t0: float) -> list[dict]:
-    """Every file below the folders created or changed at or after t0, unless USER_NOISE says why it changes."""
+    """Every file below the folders created or changed at or after t0, unless the machine's noise list says why it changes."""
     hits = []
     for label, root in folders:
         stack = [str(root)]
@@ -193,7 +198,7 @@ def changed_since(folders: list[tuple[str, Path]], t0: float) -> list[dict]:
                         if max(st.st_mtime, st.st_ctime) < t0:
                             continue
                         rel = Path(e.path).relative_to(root).as_posix()
-                        if any(where == label and rx.search(rel) for where, rx, _ in USER_NOISE):
+                        if any(where == label and rx.search(rel) for where, rx, _ in SHARED_NOISE):
                             continue
                         hits.append({"place": label, "name": rel, "path": e.path, "change": "new or changed",
                                      "hard": False, "dir": False})

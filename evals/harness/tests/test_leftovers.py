@@ -28,7 +28,7 @@ class Machine:
         self.temp, self.home, self.c_tmp = root / "Temp", root / "home", root / "c_tmp"
         for d in (self.ws, self.run_tmp, self.temp, self.home, self.c_tmp):
             d.mkdir(parents=True)
-        (self.home / ".claude.json").write_text("{}")
+        (self.home / ".editor-state.json").write_text("{}")
         (self.home / ".cache").mkdir()
         self.where = leftovers.places(self.ws, self.run_tmp, system_temp=self.temp, home=self.home, c_tmp=self.c_tmp)
 
@@ -84,16 +84,24 @@ class PlantedPythonWrite(unittest.TestCase):
         self.assertEqual(got, {("home", "notes.txt", "changed"), ("temp", "w", "new")})
 
     def test_the_measured_noise_is_left_out_of_shared_places_only(self):
-        before = self.m.before()
-        guid = "0bb32162-768f-4f56-a7b3-88ab95039d43.tmp"
-        (self.m.temp / guid).write_text("x")
-        (self.m.home / ".claude.json").write_text('{"changed": true}')
-        (self.m.parent / guid).write_text("x")  # the same name in a hard place is a hit
-        (self.m.temp / ".claude.json").write_text("x")  # a home pattern does not cover the temp folder
-        got = {(h["place"], h["name"]) for h in self.m.hits(before)}
-        self.assertEqual(got, {("project parent", guid), ("temp", ".claude.json")})
-        for _, rx, why in leftovers.SHARED_NOISE:
-            self.assertIn("baseline", why)  # every pattern says where it was measured
+        guid = "00000000-0000-4000-8000-000000000000.tmp"
+        with tempfile.TemporaryDirectory() as d:  # the machine's list is read from a file outside the repository
+            noise_file = Path(d) / "eval-noise.jsonl"
+            noise_file.write_text(json.dumps({"place": "temp", "pattern": r"^[0-9a-f-]{36}\.tmp$", "reason": "test baseline"}) + "\n"
+                                  + json.dumps({"place": "home", "pattern": r"^\.editor-state\.json$", "reason": "test baseline"}) + "\n")
+            noise = leftovers.load_noise(noise_file)
+        saved, leftovers.SHARED_NOISE[:] = list(leftovers.SHARED_NOISE), noise
+        try:
+            before = self.m.before()
+            (self.m.temp / guid).write_text("x")
+            (self.m.home / ".editor-state.json").write_text('{"changed": true}')
+            (self.m.parent / guid).write_text("x")  # the same name in a hard place is a hit
+            (self.m.temp / ".editor-state.json").write_text("x")  # a home pattern does not cover the temp folder
+            got = {(h["place"], h["name"]) for h in self.m.hits(before)}
+        finally:
+            leftovers.SHARED_NOISE[:] = saved
+        self.assertEqual(got, {("project parent", guid), ("temp", ".editor-state.json")})
+        self.assertEqual(leftovers.load_noise(Path(self.tmp.name) / "missing.jsonl"), [])  # no file: nothing left out
 
     def test_claude_codes_own_entries_in_the_run_temp_folder_and_nothing_else(self):
         before = self.m.before()
@@ -151,11 +159,11 @@ class UserFolders(unittest.TestCase):
         self.m.shell(py(f"open('{(self.docs / 'Existing Project' / 'plan.pdf').as_posix()}', 'ab').write(b'1')"))
         (self.docs / "sync.tmp").write_text("x")
         noise = [("Documents", leftovers.re.compile(r"^sync\.tmp$"), "a test pattern")]
-        saved, leftovers.USER_NOISE[:] = list(leftovers.USER_NOISE), noise
+        saved, leftovers.SHARED_NOISE[:] = list(leftovers.SHARED_NOISE), noise
         try:
             names = [h["name"] for h in leftovers.changed_since([("Documents", self.docs)], t0)]
         finally:
-            leftovers.USER_NOISE[:] = saved
+            leftovers.SHARED_NOISE[:] = saved
         self.assertEqual(names, ["Existing Project/plan.pdf"])
 
     def test_the_folders_are_found_under_home(self):

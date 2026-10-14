@@ -7,8 +7,9 @@ and removes everything it planted.
 
 Planted, each from a shell command the way a run would issue it (the command check in guard.py sees none of the
 Python ones): Python writing into Git Bash's /tmp and into C:\\tmp, Python writing through tempfile (the run's temp
-folder), Python writing inside an existing folder of Documents, and a shell redirect into /tmp. Exit 0 when every
-plant is caught and the idle interval is clean.
+folder), Python writing inside a folder that already exists (Documents/construction-eval-probe/nested/, which the
+probe makes first and removes; it never writes into the user's own folders), and a shell redirect into /tmp. Exit 0
+when every plant is caught and the idle interval is clean.
 """
 import argparse
 import os
@@ -50,12 +51,21 @@ def main() -> int:
                                     f"{name}-tf.json"),
         "shell redirect into /tmp": (f"echo x > /tmp/{name}-sh.txt", f"{name}-sh.txt"),
     }
+    # Never into the user's own folders: the probe makes Documents/construction-eval-probe/nested/ before the
+    # "run" starts, writes inside it as a run would write inside a folder that already exists, and removes it.
     docs = dict(leftovers.user_folders()).get("Documents")
-    existing = next((d for d in sorted(docs.iterdir()) if d.is_dir() and not d.name.startswith(".")), None) if docs else None
-    doc_plant = existing / f"{name}-doc.png" if existing else None
-    if doc_plant:
-        plants["python inside an existing Documents folder"] = (
-            f"{py} -c \"open(r'{doc_plant}', 'wb').write(b'x')\"", f"{existing.name}/{doc_plant.name}")
+    probe_dir = docs / "construction-eval-probe" if docs else None
+    if probe_dir is not None and probe_dir.exists():
+        print(f"{probe_dir} already exists: remove it (a probe left it) and run again; the probe writes only into a folder it made")
+        shutil.rmtree(ws, ignore_errors=True)
+        shutil.rmtree(run_tmp, ignore_errors=True)
+        return 2
+    doc_plant = None
+    if probe_dir is not None:
+        (probe_dir / "nested").mkdir(parents=True)
+        doc_plant = probe_dir / "nested" / f"{name}-doc.png"
+        plants["python inside a folder that already exists (Documents/construction-eval-probe/nested)"] = (
+            f"{py} -c \"open(r'{doc_plant}', 'wb').write(b'x')\"", f"construction-eval-probe/nested/{doc_plant.name}")
     ok = True
     try:
         before, t0 = leftovers.snapshot(where), time.time() - leftovers.CLOCK_SLACK
@@ -82,8 +92,10 @@ def main() -> int:
         ok &= not idle
     finally:
         for p in (Path(tempfile.gettempdir()) / f"{name}-py.png", Path(tempfile.gettempdir()) / f"{name}-sh.txt",
-                  Path("C:/tmp") / f"{name}-c.png", *([doc_plant] if doc_plant else [])):
+                  Path("C:/tmp") / f"{name}-c.png"):
             p.unlink(missing_ok=True)
+        if probe_dir is not None:
+            shutil.rmtree(probe_dir, ignore_errors=True)
         if not c_tmp_existed and Path("C:/tmp").is_dir() and not any(Path("C:/tmp").iterdir()):
             Path("C:/tmp").rmdir()
         shutil.rmtree(ws, ignore_errors=True)
