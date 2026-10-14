@@ -26,7 +26,13 @@ AgentCM's data comes ahead of anything a skill could extract itself; the documen
 
 ## When a file is missing, or a search finds nothing
 
-- A file the contract promises is missing (`sheets/A-501.tsv`, say): AgentCM has not processed it. Tell the PE and stop that part of the work; do not fall back to your own extraction. Sheets listed in `.construction/pending.tsv` are waiting for a refresh: check it before trusting their files.
+- A file the contract promises is missing (`sheets/A-501.tsv`, say): AgentCM has not processed it. Tell the PE and stop that part of the work; do not fall back to your own extraction.
+- `.construction/pending.tsv`, when it exists, lists what AgentCM is behind on. Read its columns by their header names: `sheet`, `since`, `state`, `file`, `reason`.
+  - `queued`: the sheet's files will show its edits within seconds.
+  - `failed`: a refresh did not complete; `reason` says why.
+  - `edited`: the file was changed outside AgentCM, which no longer refreshes it, so its content may be stale or wrong.
+
+  Check it before trusting a sheet's files. No file means every file is current.
 - A search of `tags.tsv`, `xrefs.tsv` or a `.groups.tsv` that finds nothing proves nothing: they hold only what was accepted or found in the text. Say "not found in AgentCM's index", never "does not exist".
 
 ## Looking at a drawing

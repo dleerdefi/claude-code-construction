@@ -43,7 +43,7 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
    - **Specification sections**: how many, by division; and every manual under "Spec manuals not read", with its reason (`/construction:spec-splitter` splits and extracts those, and only those)
    - **Schedules and legends**: how many, by kind
    - **Rooms**: how many are known and how they were found, as INDEX.md states it
-3. If `.construction/pending.tsv` exists, list the sheets it names (queued for a refresh, or failed with a reason): their files may be out of date until AgentCM catches up.
+3. If `.construction/pending.tsv` exists, list what it names, reading its columns by their header names: sheets queued for a refresh, sheets whose refresh failed (with the reason), and files edited outside AgentCM (`edited`, the file in `file`), which AgentCM no longer refreshes. Their content may be out of date or wrong.
 
 Then stop. In AgentCM mode this skill inventories no files, recommends no splitting and does not touch CLAUDE.md.
 

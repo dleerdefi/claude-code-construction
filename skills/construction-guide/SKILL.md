@@ -117,7 +117,7 @@ Construction documents form a dense web of references. When resolving cross-refe
 When first opening a construction project or when asked "what's in this project":
 
 ### AgentCM Fast Path
-If AgentCM is present, read `.construction/INDEX.md`: the sheets by discipline, the specification sections, the schedules and legends, and how many rooms are known. Check `.construction/pending.tsv` for sheets still waiting for a refresh. `.construction/index/file_manifest.yaml` classifies every other file in the folder (submittals, RFIs, correspondence). Present the summary immediately.
+If AgentCM is present, read `.construction/INDEX.md`: the sheets by discipline, the specification sections, the schedules and legends, and how many rooms are known. Check `.construction/pending.tsv`: the sheets AgentCM is behind on (`queued`, `failed`) and the files edited outside it (`edited`), whose content may be stale (`reference/agentcm-mode.md`). `.construction/index/file_manifest.yaml` classifies every other file in the folder (submittals, RFIs, correspondence). Present the summary immediately.
 
 ### No AgentCM
 1. Scan the project directory for PDFs, specs, drawings
