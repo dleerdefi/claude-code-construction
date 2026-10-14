@@ -114,8 +114,9 @@ Page images are working data: run these from the project folder and keep them un
 bound set (sheet_index.yaml counts `page_index` from 0). The box is 0–1
 fractions of the page.
 
-If AgentCM data is available (`.construction/project.yaml` exists), read its
-files for cross-references to the affected area. See
+First read `.construction/project.yaml`: present and readable means AgentCM
+manages the folder. A listing that shows the file does not decide it: read it.
+In AgentCM mode, read its files for cross-references to the affected area. See
 `references/research-checklist.md` for which files, and follow
 `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (which source wins, missing files,
 drawings through `crop.sh`, corrections of AgentCM's data).
