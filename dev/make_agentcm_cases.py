@@ -915,17 +915,20 @@ def case(name, skill_cmd, prompt, needs="", graders=None, checks=None, extra_set
 
 
 # Read-only skills, AgentCM closed --------------------------------------------------------------------
-sched_list = "; ".join(f"{r[0]} ({r[3]})" for r in SCHEDULES)
+# the schedules by sheet and kind: judges read file paths listed here as required (2026-10-14 chunk 3)
+sched_list = "; ".join(f"{r[1]} {r[3].lower()}" for r in SCHEDULES)
 case("project-setup", "/construction:project-setup", "",
      desc="AgentCM closed: reports AgentCM's orientation from INDEX.md and changes nothing.",
      graders={
          "no-claude-md": ("file_exists", 'path: "CLAUDE.md"\nexists: false', 2, "The skill writes no CLAUDE.md block in an AgentCM project."),
          "orientation": ("llm", "", 3,
                          f"The final message reports AgentCM's orientation from INDEX.md: {len(SHEETS)} drawing sheets ({', '.join(SHEETS)}), "
-                         f"{len(SCHEDULES)} schedule(s) or legend(s) ({sched_list}), {len(SECTIONS)} specification section(s)"
+                         f"{len(SCHEDULES)} schedule(s) or legend(s) ({sched_list}; their file names are not needed), {len(SECTIONS)} specification section(s)"
                          + (f", {len(UNREAD)} manual(s) AgentCM could not read" if UNREAD else "")
                          + (f", {ROOMS.group(1)} room(s) known" if ROOMS else "")
-                         + ", and contract version 1. It does not recommend splitting drawings or specs and does not inventory the project's files."),
+                         + ", and contract version 1. It does not recommend splitting the drawings or the manuals AgentCM read, and does "
+                         "not inventory the project's files. Naming spec-splitter as the skill for a manual AgentCM could not read, "
+                         "as project-setup's own Step 1 does, is not such a recommendation."),
      })
 case("sheet-splitter", "/construction:sheet-splitter", "",
      desc="AgentCM closed: splits nothing and points to Split & Rename.",
