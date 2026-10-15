@@ -81,10 +81,12 @@ After splitting, read each page to identify sheet numbers and titles:
 
 Use PDF bookmarks and the title-block text layer only as candidates — they are often abbreviated or stale (e.g. a bookmark "Site Grading Plan" on a sheet printed "Proposed Site Plan"). The printed title block wins. Read the title block by vision whenever there is no candidate, the candidate disagrees with the title-block text, or the sheet number carries a suffix (e.g. `C9.04H`, `K-1.1`).
 
-1. Rasterize the title block region of each page:
+1. Rasterize the title block region of each page, from the project folder:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "page_NNN.pdf" 1 --dpi 200 --output tb.png
+mkdir -p ".construction/skills/sheet-splitter/pages"
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{sheets_dir}/page_NNN.pdf" 1 --dpi 200 --output ".construction/skills/sheet-splitter/pages/tb_NNN.png"
 ```
+Title-block images are working data: keep them under `.construction/skills/sheet-splitter/pages/`. Never put them in the sheets folder, where the PE's split sheets are, and never in `/tmp` or any other folder outside the project.
 
 2. Use vision on the rasterized title block: "Read the title block on this construction drawing. What is the sheet number and sheet title?"
 
