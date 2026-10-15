@@ -35,7 +35,7 @@ The procedure is the same for every CSI division. Your knowledge of the trade su
 | `write_finding.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/graph/` | A finding in `.construction/skills/submittal-review/findings/` (both modes) |
 | `corrections_append.py` | `${CLAUDE_PLUGIN_ROOT}/scripts/` | AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`) |
 
-Run every script through `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python"`. Double-quote every path. Do not write custom scripts or inline Python. Write every file in the review folder with the Write tool, and change one with the Edit tool. Never use a shell loop, heredoc, `echo >` or `sed -i`, even for fifteen elements that look alike. Check the files with `check_review.py --review-dir`, which names a file that is not valid JSON with its line and column, never with Python of your own.
+Run every script through `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python"`. Double-quote every path. Do not write custom scripts or inline Python. Write every file in the review folder with the Write tool, and change one with the Edit tool. Never use a shell loop, heredoc, `echo >` or `sed -i`, even for fifteen elements that look alike. Check the files with `check_review.py --review-dir`, which names a file that is not valid JSON with its line and column, never with Python of your own. `construction-python` is always there: never probe for another Python (`python3 - <<…`, `python --version`), even with an empty program.
 
 Load the `construction-guide` skill before reading any project document. Never read construction PDFs directly: rasterize pages first.
 
