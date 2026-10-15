@@ -433,7 +433,7 @@ Run it from the project folder: the subcontract is the deliverable and goes in t
 
 ## Phase 5 — Post-Generation Verification
 
-After writing the `.docx`, run the following checks against the generated file. If any check fails, fix the specific issue in the JSON, regenerate the .docx, and re-verify. Do not present a document with known failures.
+After writing the `.docx`, run the following checks against the generated file. If any check fails, fix the specific issue in the JSON, regenerate the .docx, and re-verify. Do not present a document with known failures. Read the document with `docx_text.py`: take its output directly, or, to search it more than once, save it under `.construction/skills/subcontract-writer/`, never in `/tmp` or any other folder outside the project.
 
 ### Verification Checks
 
