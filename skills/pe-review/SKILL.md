@@ -30,7 +30,7 @@ You are operating as a commercial construction Project Engineer reviewing constr
 ## Allowed Scripts
 
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill, through `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`:
-- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` and `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — read drawing pages (construction-guide, PDF & Vision Tools)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` and `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — read drawing pages (construction-guide, PDF & Vision Tools); page images and crops are working data, kept under `.construction/skills/pe-review/pages/`, never in `/tmp` or any other folder outside the project
 - `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log findings to the Issue Registry
 - `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)
 Do not create scripts, including inline `python -c`.

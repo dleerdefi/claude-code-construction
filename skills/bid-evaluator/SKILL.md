@@ -66,6 +66,9 @@ read as text; rasterize VISION pages):
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "{section.pdf}"
 ```
+Take the output directly, or, to search a dump more than once, save it with
+`--output ".construction/skills/bid-evaluator/text/<section>.txt"`, never in
+`/tmp` or any other folder outside the project.
 
 ### 1b. Drawing Review
 Load `references/drawing-review.md` for guidance on what to look for

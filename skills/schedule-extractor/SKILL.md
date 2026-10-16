@@ -185,7 +185,7 @@ After extraction (by either method):
   --output "Door_Schedule_A-0.01.xlsx"
 ```
 
-The data JSON is working data: write it (with the Write tool, or the reader in AgentCM mode) under `.construction/skills/schedule-extractor/`, never in the project root or a folder of your own. For a table AgentCM has already ingested (`schedule_id=<id>` on its file's comment line), add `--schedule-id <id> --sheet-id <the sheet's id>` so the workbook can come back through the round trip.
+The data JSON is working data: write it (with the Write tool, or the reader in AgentCM mode) under `.construction/skills/schedule-extractor/`, never in the project root or a folder of your own. So is a copy of the PE's earlier workbook made to compare against it: put it there too, never in `/tmp` or any other folder outside the project. For a table AgentCM has already ingested (`schedule_id=<id>` on its file's comment line), add `--schedule-id <id> --sheet-id <the sheet's id>` so the workbook can come back through the round trip.
 
 The script creates a formatted Excel workbook with:
 - Header row with project info and source sheet

@@ -53,7 +53,8 @@ Read `.construction/project.yaml` at the project root: present and readable mean
 
 **Flat File mode** (no `.construction/project.yaml`):
 - Discover sheet images from CLAUDE.md or user-provided paths; rasterize sheet
-  PDFs with `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "<pdf>" <page> --dpi 200 --output "<png>"`
+  PDFs with `"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "<pdf>" <page> --dpi 200 --output ".construction/skills/tag-audit-and-takeoff/pages/<sheet>.png"`
+  (working data: never `/tmp` or any other folder outside the project)
 - Vision-only pipeline (Steps 2-3 skipped)
 - Write marked-up PNGs and the Excel workbook to the project directory; the QTO
   JSON goes to `.construction/skills/tag-audit-and-takeoff/qto/` (Step 8)

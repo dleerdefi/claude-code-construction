@@ -212,7 +212,7 @@ A skill that can find AgentCM wrong lists `${CLAUDE_PLUGIN_ROOT}/scripts/correct
 ```
 Each word's `x y w h` are fractions of the page from the top left: crop that strip of the rasterized page with `crop_region.py --box x,y,x+w,y+h --normalized`, widened to the row or the column, or re-rasterize it sharper with `rasterize_page.py --crop` (the fractions times 100).
 
-These readers are the toolkit: never write Python of your own (`python -c`, a script through a heredoc), and keep intermediate images in the project folder, never `/tmp`.
+These readers are the toolkit: never write Python of your own (`python -c`, a script through a heredoc). Every intermediate file (a page image, a crop, a saved text dump, a copy of a document) is working data: keep it inside the project, under `.construction/skills/<skill>/`, never in `/tmp` or the system temp folder, the user's home or the folder above the project.
 
 ## Where Skills Write
 

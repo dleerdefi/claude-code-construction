@@ -142,7 +142,7 @@ After extraction, check `manifest.json` for sections rated DEGRADED or POOR. Spe
 
 1. Render each page of the section PDF as an image:
    ```bash
-   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{section.pdf}" {page} --dpi 200 --output spec_page.png
+   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{section.pdf}" {page} --dpi 200 --output ".construction/skills/spec-splitter/spec_page.png"
    ```
 2. Process each page image through vision:
    ```

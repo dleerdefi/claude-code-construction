@@ -41,7 +41,7 @@ Load the `construction-guide` skill before reading any project document. Never r
 
 ## Data Contract
 
-Everything for one review lives in `.construction/skills/submittal-review/{review_id}/`, where `review_id` is the submittal number and revision with spaces as hyphens (`12-35-53-001-R0`). The exact formats are in `${CLAUDE_SKILL_DIR}/references/review-data.md`; read it before Step 1.
+Everything for one review lives in `.construction/skills/submittal-review/{review_id}/`, where `review_id` is the submittal number and revision with spaces as hyphens (`12-35-53-001-R0`). Page images, crops and saved text dumps (`pdf_text.py --output`) go there too, never in `/tmp` or any other folder outside the project. The exact formats are in `${CLAUDE_SKILL_DIR}/references/review-data.md`; read it before Step 1.
 
 ```
 state.yaml            submittal, sections, facility types, jurisdiction, schedule, status
