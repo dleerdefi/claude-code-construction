@@ -35,6 +35,7 @@ class GraderResult:
     passed: bool
     detail: str = ""
     score: float | None = None  # python checks may report a partial score
+    cost_usd: float | None = None  # what the judge's calls for this grader cost (llm graders); None: no call made
 
 
 @dataclass
@@ -133,26 +134,29 @@ def grade_tool_order(g: Grader, run: RunResult) -> GraderResult:
     return GraderResult(g.name, g.type, g.weight, passed, f"first {before} at {i}, first {after} at {j}")
 
 
-async def _judge_once(rubric: str, material: str, model: str) -> tuple[bool, str]:
+async def _judge_once(rubric: str, material: str, model: str) -> tuple[bool, str, float]:
+    """One judge call: its verdict, its reason and what it cost (the eval budget counts the judge's calls too)."""
     prompt = f"RUBRIC:\n{rubric.strip()}\n\nMATERIAL:\n{material}\n\nReply with the JSON object."
     # Isolated like the agent run (runner.py): without these the judge loads the user's plugins,
     # skills and MCP servers, whose tool definitions alone can exceed the context window
     options = ClaudeAgentOptions(system_prompt=JUDGE_SYSTEM, tools=[], allowed_tools=[], max_turns=1,
                                  model=model, permission_mode="dontAsk",
                                  setting_sources=[], strict_mcp_config=True)
-    text = ""
+    text, cost = "", 0.0
     async for msg in query(prompt=prompt, options=options):
         if isinstance(msg, AssistantMessage):
             text += "".join(b.text for b in msg.content if isinstance(b, TextBlock))
-        elif isinstance(msg, ResultMessage) and msg.result and not text:
-            text = msg.result
+        elif isinstance(msg, ResultMessage):
+            cost = msg.total_cost_usd or 0.0
+            if msg.result and not text:
+                text = msg.result
     m = re.search(r"\{.*\}", text, re.DOTALL)
     try:
         data = json.loads(m.group(0)) if m else {}
     except json.JSONDecodeError:
         data = {}
     verdict = str(data.get("verdict", "")).upper() or ("PASS" if "PASS" in text.upper() and "FAIL" not in text.upper() else "FAIL")
-    return verdict == "PASS", str(data.get("reason") or text[:300])
+    return verdict == "PASS", str(data.get("reason") or text[:300]), cost
 
 
 async def grade_llm(g: Grader, run: RunResult, judge: JudgeOptions) -> GraderResult:
@@ -160,13 +164,20 @@ async def grade_llm(g: Grader, run: RunResult, judge: JudgeOptions) -> GraderRes
     if text is None:
         return GraderResult(g.name, g.type, g.weight, False, where)
     rubric = g.body or g.fields.get("rubric", "") or g.name
-    votes, reasons = 0, []
+    votes, reasons, cost = 0, [], 0.0
     for _ in range(max(1, judge.votes)):
-        ok, reason = await _judge_once(rubric, text, judge.model)
+        ok, reason, spent = await _judge_once(rubric, text, judge.model)
         votes += ok
+        cost += spent
         reasons.append(("PASS: " if ok else "FAIL: ") + reason)
     passed = votes * 2 > max(1, judge.votes)
-    return GraderResult(g.name, g.type, g.weight, passed, f"{votes}/{judge.votes} votes on {where}; " + " | ".join(reasons))
+    return GraderResult(g.name, g.type, g.weight, passed, f"{votes}/{judge.votes} votes on {where}; " + " | ".join(reasons),
+                        cost_usd=round(cost, 6))
+
+
+def judge_cost(results: list[GraderResult]) -> float:
+    """What the judge's calls cost for one run's grading; graders kept from an earlier grading cost nothing now."""
+    return sum(r.cost_usd or 0.0 for r in results)
 
 
 def grade_python(check: Check, run: RunResult, plugin_root: Path, trace_path: Path | None) -> GraderResult:

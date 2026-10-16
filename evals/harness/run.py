@@ -30,7 +30,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from cases import load_cases, select  # noqa: E402
-from graders import JudgeOptions, grade_run, mark, score  # noqa: E402
+from graders import JudgeOptions, grade_run, judge_cost, mark, score  # noqa: E402
 from regrade import load_saved_run, regrade_run  # noqa: E402
 from report import write_run, write_summary, write_trace  # noqa: E402
 from runner import RunOptions, cleanup, find_bash, run_case  # noqa: E402
@@ -89,7 +89,8 @@ async def regrade_async(args, cases) -> int:
     judge = JudgeOptions(model=args.judge_model, votes=args.judge_votes)
     by_name = {c.dir.name: c for c in cases}
     summary = {"timestamp": stamp, "regraded_from": str(src), "model": "(regrade)", "judge_model": args.judge_model,
-               "threshold": args.threshold, "cases": [], "total_cost_usd": 0.0, "passed": 0, "skipped": 0, "total": 0}
+               "threshold": args.threshold, "cases": [], "total_cost_usd": 0.0, "judge_cost_usd": 0.0, "passed": 0,
+               "skipped": 0, "total": 0}
     for case_dir in sorted(p for p in src.iterdir() if p.is_dir() and p.name in by_name):
         case = by_name[case_dir.name]
         run_dirs = sorted((p for p in case_dir.iterdir() if p.is_dir() and (p / "run.json").exists()),
@@ -98,7 +99,7 @@ async def regrade_async(args, cases) -> int:
             continue
         summary["total"] += 1
         print(f"{case.dir.name} ({len(run_dirs)} saved run{'s' if len(run_dirs) != 1 else ''})")
-        run_scores, run_details, cost = [], [], 0.0
+        run_scores, run_details, cost, judged = [], [], 0.0, 0.0
         for run_dir in run_dirs:
             run, stored, source = load_saved_run(run_dir, case.dir.name)
             new_dir = write_trace(out_dir, run)
@@ -108,6 +109,7 @@ async def regrade_async(args, cases) -> int:
             s = score(graders)
             run_scores.append(s)
             cost += run.cost_usd or 0.0
+            judged += judge_cost(graders)
             for g in graders:
                 print(f"      {mark(g)} {g.name} ({g.type}): {g.detail[:160]}")
             run_details.append({"run_index": run.run_index, "score": s, "num_turns": run.num_turns,
@@ -119,16 +121,17 @@ async def regrade_async(args, cases) -> int:
         ok = case_score >= args.threshold
         print(f"  score {case_score:.2f}  {'PASS' if ok else 'FAIL'}")
         summary["cases"].append({"name": case.dir.name, "score": case_score, "runs": len(run_dirs), "cost_usd": cost,
-                                 "notes": ("pass" if ok else "below threshold") + f" (regraded from {src.name})",
+                                 "judge_cost_usd": judged, "notes": ("pass" if ok else "below threshold") + f" (regraded from {src.name})",
                                  "run_details": run_details})
         summary["total_cost_usd"] += cost
+        summary["judge_cost_usd"] += judged
         summary["passed"] += ok
     if not summary["total"]:
         print(f"no saved runs in {src} match the selected cases", file=sys.stderr)
         return 2
     write_summary(out_dir, summary)
     print(f"\n{summary['passed']}/{summary['total']} cases pass with the current graders (original agent cost "
-          f"${summary['total_cost_usd']:.2f}, nothing spent now) · report: {out_dir / 'summary.md'}")
+          f"${summary['total_cost_usd']:.2f}; judge now ${summary['judge_cost_usd']:.2f}) · report: {out_dir / 'summary.md'}")
     return 0 if summary["passed"] == summary["total"] else 1
 
 
@@ -167,11 +170,11 @@ async def main_async(args) -> int:
     judge = JudgeOptions(model=args.judge_model, votes=args.judge_votes)
 
     summary = {"timestamp": stamp, "model": args.model, "judge_model": args.judge_model, "threshold": args.threshold,
-               "cases": [], "total_cost_usd": 0.0, "passed": 0, "skipped": 0, "total": len(cases)}
+               "cases": [], "total_cost_usd": 0.0, "judge_cost_usd": 0.0, "passed": 0, "skipped": 0, "total": len(cases)}
     for case in cases:
         n_runs = args.runs or case.runs
         print(f"{case.dir.name} ({n_runs} run{'s' if n_runs != 1 else ''})")
-        run_scores, run_details, cost = [], [], 0.0
+        run_scores, run_details, cost, judged = [], [], 0.0, 0.0
         skipped_reason = ""
         for i in range(1, n_runs + 1):
             run = await run_case(case, i, opts)
@@ -186,6 +189,7 @@ async def main_async(args) -> int:
             cleanup(run, failed=failed, keep=args.keep)
             run_scores.append(s)
             cost += run.cost_usd or 0.0
+            judged += judge_cost(graders)
             for g in graders:
                 print(f"      {mark(g)} {g.name} ({g.type}): {g.detail[:160]}")
             run_details.append({"run_index": i, "score": s, "num_turns": run.num_turns, "elapsed_s": round(run.elapsed_s),
@@ -201,15 +205,17 @@ async def main_async(args) -> int:
         case_score = round(sum(run_scores) / len(run_scores), 4)
         ok = case_score >= args.threshold
         notes = "; ".join(f"run {d['run_index']}: {d['error']}" for d in run_details if d["error"]) or ("pass" if ok else "below threshold")
-        print(f"  score {case_score:.2f}  ${cost:.2f}  {'PASS' if ok else 'FAIL'}")
+        print(f"  score {case_score:.2f}  ${cost:.2f} + judge ${judged:.2f}  {'PASS' if ok else 'FAIL'}")
         summary["cases"].append({"name": case.dir.name, "score": case_score, "runs": n_runs, "cost_usd": cost,
-                                 "notes": notes, "run_details": run_details})
+                                 "judge_cost_usd": judged, "notes": notes, "run_details": run_details})
         summary["total_cost_usd"] += cost
+        summary["judge_cost_usd"] += judged
         summary["passed"] += ok
     summary["no_skip"] = args.no_skip
     write_summary(out_dir, summary)
     ran = summary["total"] - summary["skipped"]
     print(f"\n{summary['passed']}/{ran} cases passed · {summary['skipped']} skipped · total ${summary['total_cost_usd']:.2f}"
+          f" + judge ${summary['judge_cost_usd']:.2f}"
           f" · report: {out_dir / 'summary.md'}")
     if args.no_skip and summary["skipped"]:
         print(f"FAIL: {summary['skipped']} case(s) skipped, and --no-skip counts a skipped case as a failure")

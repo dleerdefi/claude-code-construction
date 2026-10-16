@@ -36,7 +36,7 @@ class Negatives(unittest.TestCase):
 
         async def fake(rubric, material, model):
             self.seen.append((rubric, material))
-            return next(it), "reason"
+            return next(it), "reason", 0.0
         negatives._judge_once = fake
 
     def test_loads_the_grader_name_the_expectation_and_only_the_body(self):

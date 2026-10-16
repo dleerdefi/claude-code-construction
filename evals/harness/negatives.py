@@ -39,7 +39,7 @@ async def check_negative(case: Case, neg: Negative, judge: JudgeOptions) -> tupl
     n = max(1, judge.votes)
     votes, reason = 0, ""
     for _ in range(n):
-        ok, reason = await _judge_once(rubric, neg.material, judge.model)
+        ok, reason, _cost = await _judge_once(rubric, neg.material, judge.model)
         votes += ok
     verdict = "PASS" if votes * 2 > n else "FAIL"
     return verdict == neg.expect, f"{verdict} ({votes}/{n} pass votes), expected {neg.expect}: {reason[:200]}"
