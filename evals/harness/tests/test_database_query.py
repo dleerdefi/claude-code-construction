@@ -1,12 +1,14 @@
-"""The no-database-query blocker (David): a run that calls query.sh, query.ps1 or psql scores 0, in every case.
-Reading the script, listing it or searching for its name is not a call. Run:
-bin/construction-python -m unittest discover evals/harness/tests"""
+"""The no-database-query check (David): a run that calls query.sh, query.ps1 or psql is reported in every case for
+0.6.0, and scores 0 once AgentCM's guide tells a running skill to read the files. Reading the script, listing it or
+searching for its name is not a call. Run: bin/construction-python -m unittest discover evals/harness/tests"""
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from graders import grade_blockers, score, GraderResult  # noqa: E402
+import graders  # noqa: E402
+from graders import grade_blockers, mark, score, GraderResult  # noqa: E402
 from guard import database_calls, database_queries  # noqa: E402
 from runner import RunResult  # noqa: E402
 
@@ -59,11 +61,19 @@ class Blocker(unittest.TestCase):
     def blocker(self, run):
         return next(r for r in grade_blockers(run) if r.name == "no-database-query")
 
-    def test_a_query_scores_the_run_zero(self):
+    def test_for_0_6_0_a_query_is_reported_not_scored(self):
         run = self.run_with("grep -n 1607 .construction/tags.tsv", 'sh .construction/query.sh "SELECT 1"')
         r = self.blocker(run)
         self.assertFalse(r.passed)
         self.assertIn("query.sh", r.detail)
+        self.assertEqual(mark(r), "REPORT")
+        self.assertEqual(score([GraderResult("g", "regex", 1, True, ""), r]), 1.0)
+
+    def test_once_the_guide_says_so_a_query_scores_the_run_zero(self):
+        run = self.run_with('sh .construction/query.sh "SELECT 1"')
+        with mock.patch.object(graders, "DATABASE_QUERY_BLOCKS", True):
+            r = self.blocker(run)
+        self.assertEqual(mark(r), "BLOCKER")
         self.assertEqual(score([GraderResult("g", "regex", 1, True, ""), r]), 0.0)
 
     def test_a_run_that_only_reads_the_files_passes(self):

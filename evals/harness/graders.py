@@ -214,6 +214,10 @@ async def grade_run(case: Case, run: RunResult, judge: JudgeOptions, plugin_root
 # Writing the project's CLAUDE.md is project-setup's job (David): exempt in that case only, any other skill
 # changing it counts.
 NOT_ORIGINALS = {"project-setup": {"CLAUDE.md"}}
+# A call to AgentCM's database (query.sh, query.ps1, psql) is reported for 0.6.0, not scored (David): AgentCM's guide
+# still offers the database. It blocks once that guide says a running construction skill reads the files, not the
+# database.
+DATABASE_QUERY_BLOCKS = False
 
 
 def _spellings(hit: dict) -> list[str]:
@@ -297,7 +301,7 @@ def grade_blockers(run: RunResult) -> list[GraderResult]:
                      (f"original documents changed: {changed[:5]}; deleted: {deleted[:5]}" if changed or deleted
                       else "no original document changed or deleted") + note),
         GraderResult("agentcm-block-intact", "blocker", 0, block_ok, block_detail),
-        GraderResult("no-database-query", "blocker", 0, not queries,
+        GraderResult("no-database-query", "blocker" if DATABASE_QUERY_BLOCKS else "report", 0, not queries,
                      f"calls to AgentCM's database: {queries[:5]}" if queries else "no call to query.sh, query.ps1 or psql"),
     ]
 
