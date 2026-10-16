@@ -328,3 +328,79 @@ def outside_writes(tool_uses: list[dict], guard_log: list[dict], workspace: str)
             continue
         found += shell_write_targets(str((e.get("input") or {}).get("command", "")), workspace)
     return found
+
+
+# AgentCM's database (David): a run that calls query.sh, query.ps1 or psql fails, whatever its graders say. The
+# skills read AgentCM's files only; its guide offers the database for counts and joins, and a run that takes that
+# offer is reported (a fix to AgentCM's guide, not to the skill).
+DATABASE_COMMANDS = {"query.sh", "query.ps1", "psql", "psql.exe"}
+_WRAPPERS = {"sh", "bash", "dash", "zsh", "source", ".", "exec", "command", "env", "nohup", "time", "xargs", "&"}
+_POWERSHELL = {"powershell", "powershell.exe", "pwsh", "pwsh.exe"}
+_BACKTICKS = re.compile(r"`([^`]*)`")
+
+
+def _substitutions(segment: str) -> list[str]:
+    """The commands inside $(...) (nested parentheses counted, so count(*) stays inside) and inside backticks."""
+    out, i = [], segment.find("$(")
+    while i >= 0:
+        depth, j = 1, i + 2
+        while j < len(segment) and depth:
+            depth += {"(": 1, ")": -1}.get(segment[j], 0)
+            j += 1
+        out.append(segment[i + 2:j - 1] if depth == 0 else segment[i + 2:])
+        i = segment.find("$(", i + 2)
+    return out + _BACKTICKS.findall(segment)
+
+
+def _calls_database(words: list[str]) -> bool:
+    """Whether a simple command's words run a database command: in command position, or behind a wrapper (sh, bash,
+    source, env, timeout, powershell -File), or inside a bash -c or powershell -Command string."""
+    while words:
+        if _ASSIGNMENT.match(words[0]):
+            words = words[1:]
+            continue
+        cmd = os.path.basename(words[0].replace("\\", "/")).lower()
+        args = words[1:]
+        if cmd in DATABASE_COMMANDS:
+            return True
+        if cmd in _POWERSHELL:
+            for i, a in enumerate(args):
+                if a.lower() in ("-command", "-c") and i + 1 < len(args):
+                    return bool(database_calls(" ".join(args[i + 1:])))
+                if os.path.basename(a.replace("\\", "/")).lower() in DATABASE_COMMANDS:
+                    return True
+            return False
+        if cmd in _WRAPPERS or cmd == "timeout":
+            if cmd in ("sh", "bash", "dash", "zsh") and "-c" in args and args.index("-c") + 1 < len(args):
+                return bool(database_calls(args[args.index("-c") + 1]))
+            while args and args[0].startswith("-"):
+                args = args[1:]
+            if cmd == "timeout" and args:
+                args = args[1:]  # the duration
+            words = args
+            continue
+        return False
+    return False
+
+
+def database_calls(command: str) -> list[str]:
+    """The simple commands in a shell command that call AgentCM's database (query.sh, query.ps1, psql), also inside
+    $(...) or backticks. Reading the script, listing it or searching for its name is not a call."""
+    found = []
+    for seg, _mask in _segments(_HEREDOC.sub(" ", command)):
+        if _calls_database(_words(seg.strip())) or any(database_calls(s) for s in _substitutions(seg)):
+            found.append(seg.strip())
+    return found
+
+
+def database_queries(tool_uses: list[dict], guard_log: list[dict]) -> list[str]:
+    """Every call to AgentCM's database in a run's shell commands. A call the guard refused still counts: the run
+    tried to query the database."""
+    refused = {json.dumps(g.get("input"), sort_keys=True, default=str) for g in guard_log if not g.get("allow", True)}
+    found: list[str] = []
+    for e in tool_uses:
+        if e.get("name") not in SHELL_TOOLS:
+            continue
+        note = " (refused by the guard)" if json.dumps(e.get("input"), sort_keys=True, default=str) in refused else ""
+        found += [c[:200] + note for c in database_calls(str((e.get("input") or {}).get("command", "")))]
+    return found

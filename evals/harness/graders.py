@@ -17,7 +17,7 @@ from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage
 from claude_agent_sdk.types import TextBlock
 
 from cases import Case, Check, Grader
-from guard import outside_writes
+from guard import database_queries, outside_writes
 from runner import RunResult
 
 TRANSCRIPT_EDGE = 12  # the judge sees the first and last 12 messages, like plugin eval
@@ -282,6 +282,7 @@ def grade_blockers(run: RunResult) -> list[GraderResult]:
         deleted, note = [], "; deleted files not recorded (the run predates the check)"
     else:
         deleted, note = [f for f in run.deleted_files if not f.startswith(".construction/") and f not in exempt], ""
+    queries = database_queries(run.tool_uses, run.guard_log)
     block = run.agentcm_block
     if block is None:
         block_ok, block_detail = True, "AgentCM's block in CLAUDE.md not recorded (the run predates the check)"
@@ -296,6 +297,8 @@ def grade_blockers(run: RunResult) -> list[GraderResult]:
                      (f"original documents changed: {changed[:5]}; deleted: {deleted[:5]}" if changed or deleted
                       else "no original document changed or deleted") + note),
         GraderResult("agentcm-block-intact", "blocker", 0, block_ok, block_detail),
+        GraderResult("no-database-query", "blocker", 0, not queries,
+                     f"calls to AgentCM's database: {queries[:5]}" if queries else "no call to query.sh, query.ps1 or psql"),
     ]
 
 
