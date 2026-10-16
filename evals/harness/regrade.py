@@ -43,6 +43,7 @@ def load_saved_run(run_dir: Path, case_name: str) -> tuple[RunResult, dict[str, 
                     deleted_files=meta.get("deleted_files"), ran_in=Path(meta["workspace"]),
                     agentcm_block=meta.get("agentcm_block"), outside_files=meta.get("outside_files"),
                     overlapping_runs=list(meta.get("overlapping_runs") or []),
+                    setting_sources=meta.get("setting_sources"), claude_md_excluded=int(meta.get("claude_md_excluded") or 0),
                     elapsed_s=float(meta.get("elapsed_s", 0.0)),
                     num_turns=meta.get("num_turns"), cost_usd=meta.get("cost_usd"), subtype=meta.get("subtype", ""),
                     is_error=bool(meta.get("is_error")), error=meta.get("error") or "")

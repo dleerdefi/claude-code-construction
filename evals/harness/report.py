@@ -51,6 +51,7 @@ def write_run(out_dir: Path, run: RunResult, graders: list[GraderResult]) -> Pat
         "subtype": run.subtype, "is_error": run.is_error, "error": run.error, "created_files": run.created_files,
         "modified_files": run.modified_files, "deleted_files": run.deleted_files, "agentcm_block": run.agentcm_block,
         "outside_files": run.outside_files, "overlapping_runs": run.overlapping_runs,
+        "setting_sources": run.setting_sources, "claude_md_excluded": run.claude_md_excluded,
         "guard_denials": [g for g in run.guard_log if not g["allow"]],
     }, indent=1, default=str), encoding="utf-8")
     return d

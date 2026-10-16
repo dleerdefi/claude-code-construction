@@ -60,6 +60,8 @@ class RunResult:
     agentcm_block: dict | None = None  # sha256 of AgentCM's block in CLAUDE.md, {before, after}; None: not recorded
     outside_files: list[dict] | None = None  # what the run left outside its folder (leftovers.py); None: not recorded
     overlapping_runs: list[str] = field(default_factory=list)  # other harness runs active during the session
+    setting_sources: list[str] | None = None  # what the session loaded; None: not recorded (before 2026-10-15)
+    claude_md_excluded: int = 0  # claudeMdExcludes globs for the folders above the workspace (a count, never paths)
     elapsed_s: float = 0.0
     num_turns: int | None = None
     cost_usd: float | None = None
@@ -112,6 +114,27 @@ def snapshot(workspace: Path) -> dict[str, tuple[int, int]]:
         if p.is_file():
             st = p.stat()
             out[p.relative_to(workspace).as_posix()] = (st.st_size, st.st_mtime_ns)
+    return out
+
+
+def setting_sources(case: Case) -> list[str]:
+    """An agentcm-mode case loads the workspace's project settings (David): the project's CLAUDE.md, and through
+    AgentCM's block in it `.construction/CLAUDE.md`, are read as in a real session. Every other case loads none."""
+    return ["project"] if AGENTCM_TAG in case.tags else []
+
+
+def _glob_escape(text: str) -> str:
+    return re.sub(r"([*?\[\]{}()!+@])", r"\\\1", text)
+
+
+def claude_md_excludes(workspace: Path) -> list[str]:
+    """claudeMdExcludes globs for every instruction file Claude Code reads from a folder above the workspace: with the
+    project's settings loaded it walks up from the project, and the workspace is under the user's home, so it would
+    read the user's own ~/.claude/CLAUDE.md as the project's. Only the workspace's own files are left."""
+    out = []
+    for parent in workspace.parents:
+        p = _glob_escape(parent.as_posix().rstrip("/"))
+        out += [f"{p}/CLAUDE.md", f"{p}/CLAUDE.local.md", f"{p}/.claude/CLAUDE.md", f"{p}/.claude/rules/**"]
     return out
 
 
@@ -195,13 +218,19 @@ async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunRes
 
     allowed = case.allowed_tools or ["Read", "Glob", "Grep"]
     disallowed = [t for t in opts.disallowed_tools if t not in allowed]
+    result.setting_sources = setting_sources(case)
+    excludes = claude_md_excludes(workspace) if result.setting_sources else []
+    result.claude_md_excluded = len(excludes)
     options = ClaudeAgentOptions(
         cwd=str(workspace),
         plugins=[{"type": "local", "path": str(opts.plugin_root)}],
         allowed_tools=allowed,
         disallowed_tools=disallowed,
         permission_mode="acceptEdits",
-        setting_sources=[],  # none of the user's settings, plugins or hooks: only this plugin
+        # none of the user's settings, plugins or hooks: only this plugin, and for an agentcm-mode case the
+        # workspace's project settings, with no CLAUDE.md from above the workspace
+        setting_sources=result.setting_sources,
+        settings=json.dumps({"claudeMdExcludes": excludes}) if excludes else None,
         strict_mcp_config=True,  # and none of the user's MCP servers
         hooks={"PreToolUse": [HookMatcher(matcher="|".join(GUARDED_TOOLS), hooks=[guard_hook])]},
         system_prompt={"type": "preset", "preset": "claude_code", "append": case.append_system_prompt}
