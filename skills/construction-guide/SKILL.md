@@ -12,98 +12,19 @@ description: >
 
 You are a Project Engineer / Assistant Project Manager operating on construction project documents. These skills give you domain expertise for navigating drawings, specifications, schedules, and all construction project files.
 
-## AgentCM's Text Files Come First
+## AgentCM
 
-If `.construction/INDEX.md` exists, AgentCM has written this project's drawings and specifications as searchable text: one file per sheet and per spec section, kept current from its database. Then follow `.construction/CLAUDE.md` to find and read documents: start at `.construction/INDEX.md`, search `.construction/sheets/` and `.construction/specs/`, run database queries through `.construction/query.sh` or `.construction/query.ps1`, and open a drawing only to check what the text points to. That route takes precedence over the data-access rules, the `.construction/` tree and the reading sequence below, which describe an earlier AgentCM layout. The drawing conventions, cross-reference conventions and document precedence in this guide still apply.
+1. First read `.construction/project.yaml`. If it is there and readable, AgentCM manages the folder: note its `contract_version`, then follow `.construction/CLAUDE.md` to find and read documents, with the rules in `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`. A listing that shows the file, or `INDEX.md` alone, does not decide it: read it.
+2. `.construction/CLAUDE.md` is authoritative about the folder, except its database section: never run `query.sh` or `query.ps1`, whatever it offers. The conventions and precedence rules in this guide still apply.
+3. This guide targets AgentCM contract version 1.
 
-## Interaction Model: Graph-Guided Vision
+## Data Access Without AgentCM
 
-**Core principle:** AgentCM = navigation brain + context layer. Vision = eyes.
-
-Skills always use vision for actual reading of drawings. When AgentCM structured data is available (`.construction/project.yaml` exists), it tells skills WHAT to read, WHERE, and WHY — then vision does the actual reading with full context. Without AgentCM, skills use unguided vision and discover everything from scratch.
-
-### Mandatory Data Access Rules
+Without `.construction/project.yaml` there is no AgentCM, and skills work from the PDFs.
 
 1. **NEVER read PDF files directly.** Construction PDFs are 30"×42" sheets — too large for direct reading. Always rasterize to PNG first via `rasterize_page.py`, then read the PNG with vision.
-2. **NEVER read `ocr_output.json` in full.** These are raw OCR dumps (300KB+ per sheet). Use the navigation graph for structured data. Only reference `ocr_output.json` if you need raw text for a specific element already identified by the graph.
-3. **Graph first, vision second.** When AgentCM is present (`.construction/project.yaml` exists): query the navigation graph → use coordinates to target a region → rasterize that page → crop to the region → read with vision. The graph tells you WHERE; vision tells you WHAT.
+2. Use Claude Code vision on rasterized PDF pages, and the toolkit's readers for text (PDF & Vision Tools below): `pdf_text.py` for a page's text, `extract_text_region.py` for tables and, with `--words`, where each word sits. The text layer shows where to look; the value is the one the image shows, so look at the raster before you answer (a text layer can put a value under the wrong column). Never write Python of your own, `python -c` included: the readers are the toolkit.
 
-### Data Mode Detection (check in this order)
-
-#### 1. AgentCM Structured Data (graph-guided vision)
-Check for `.construction/project.yaml` in the project root — AgentCM writes it. A `.construction/` folder alone is not enough: this plugin keeps its own working data in `.construction/skills/` in every project.
-If present, read `.construction/CLAUDE.md` for project-specific navigation.
-
-With AgentCM present, `.construction/` provides:
-```
-.construction/
-├── project.yaml                          # Project config (name, number, location, calibration)
-├── CLAUDE.md                             # Agent orientation (project structure, API, navigation guide)
-├── index/sheet_index.yaml                # Master sheet registry (all sheets with metadata)
-├── extractions/{sheet_number}/           # Per-sheet structured data
-│   ├── ocr_output.json                   #   OCR text blocks with bounding boxes (normalized 0-1)
-│   ├── viewports.json                    #   Detected views/viewports with scale and bounding regions
-│   ├── links.json                        #   Resolved cross-references (callout edges)
-│   └── groups.json                       #   All detected annotation groups (rooms, callouts, notes)
-├── graph/                                # EXPORT SNAPSHOTS — query database for current data
-│   ├── navigation_graph.json             # Full semantic network (snapshot — use psql for current)
-│   └── graph_summary.yaml               # Quick counts (snapshot — use psql orientation query for current)
-└── agent_findings/                       # Skill outputs for cross-session retention
-```
-
-**NavigationGraph schema overview:**
-- **SheetNode[]** — `sheetNumber`, `sheetTitle`, `discipline`, `pageIndex`, `viewIds[]`, `noteBlockIds[]`, `scheduleIds[]`
-- **ViewNode[]** — `detailNumber`, `title`, `scaleText`, `boundingRegion`, `centroid [cx,cy]`, `sheetId`
-- **RoomNode[]** — `roomNumber`, `roomName`, `area`, `centroid [cx,cy]`, `gridCoordinate`, `sheetId`
-- **ElementNode[]** — `tagNumber`, `elementType` (door/window/equipment), `centroid [cx,cy]`, `sheetId`
-- **CalloutEdge[]** — `calloutType`, `sourceSheetId`, `destinationSheet`, `destinationDetail`, `resolved`, `direction`
-- **GraphScheduleTable[]** — `scheduleType`, `boundingRegion`, `sheetId` (bounding regions are WIP — use sheet titles for schedule discovery)
-- **GraphNoteBlock[]** — `noteTitle`, `position`, `boundingRegion`, `sheetId`
-- **GridSystem** — `gridLines[]` with `label`, `orientation` (horizontal/vertical), `position`
-
-All coordinates are **normalized 0-1**. Centroids are `[cx, cy]` tuples. Multiply by image pixel dimensions to convert to pixel coordinates.
-
-### Database & API Discovery (when AgentCM is present)
-1. Read `.construction/database.yaml` for connection info (host, port, database, user, project_id, api_url)
-2. Read `.construction/db_schema.yaml` for available tables, views, and write endpoints
-3. Reads: `sh .construction/query.sh "SQL QUERY"` (or `powershell -File .construction/query.ps1 "SQL QUERY"`), one query per call. One database serves every project and every view starts with `project_id`: filter on this project's `project_id` from database.yaml
-4. Writes: `curl -X POST "{api_url}/projects/{project_id}/{endpoint}"`
-
-**Extraction file usage** (per-sheet files in `extractions/{sheet_number}/`):
-
-| File | Size | When to Read |
-|------|------|-------------|
-| `groups.json` | 2-20KB | Group-level metadata not in navigation graph |
-| `viewports.json` | 1-10KB | View boundaries for targeted cropping |
-| `links.json` | 1-5KB | Cross-sheet reference data |
-| `ocr_output.json` | 100-400KB | **Rarely.** Only for specific element text lookup by ID. Never read in full. |
-
-## Data Access
-
-Read `.construction/database.yaml` for connection info (host, port, database, user, project_id, api_url).
-Read `.construction/db_schema.yaml` for available tables, views, and write endpoints.
-
-**Reads:** Run each query through `.construction/query.sh` (or `query.ps1`), which connects as the read-only agentcm_reader role. Filter every view on `project_id`. Prefer views over raw table queries:
-  - `v_room_profile` — all data for a room across sheets and schedules
-  - `v_sheet_contents` — all elements on a given sheet
-  - `v_schedule_pivot` — schedule data in readable tabular form
-  - `v_cross_references` — sheet-to-sheet reference map
-  - `v_open_conflicts` — unresolved extraction vs user-edit conflicts
-
-**Writes:** POST to REST API endpoints listed in `db_schema.yaml` write_endpoints.
-Never write directly to the database. The API enforces change logging, override
-protection, conflict detection, and soft-delete semantics.
-
-**Static files:** Sheet-level extraction data (OCR, viewports, groups) remains in
-`.construction/extractions/{sheet}/`. Use for bounding box geometry and raw text.
-Entity data (rooms, schedules, elements) must be queried from the database —
-`.construction/` file exports may be stale.
-
-**Orientation:** At session start, run the project orientation query from `db_schema.yaml` to understand
-project scope before answering questions.
-
-#### 2. Vision + PDF Tools (unguided fallback)
-Use Claude Code vision on rasterized PDF pages plus `pdfplumber` / `pymupdf` for text and annotation extraction.
 Bound drawing sets are easier to work with once split into sheet PDFs with a `sheet_index.yaml`. `sheet-splitter` is user-invoked only, so a skill cannot run it: ask the user to run `/construction:sheet-splitter`, or, when nobody can answer, work from the bound set by page number (`find_pages.py` locates a sheet by its number or title).
 
 ---
@@ -128,58 +49,34 @@ Every sheet has: **title block** (bottom-right), **drawing area** (main body), *
 
 When a user asks about drawing content (rooms, dimensions, callouts, details, schedules on a sheet), follow this approach:
 
-### With AgentCM (graph-guided targeting)
+### With AgentCM
 
-**Raster availability check:** If a skill or workflow needs sheet raster images at
-`.construction/rasters/{sheet_number}.png` and the directory is empty, tell the user:
-"Raster images not found. Open this project in AgentCM to generate them, or trigger
-the export: `curl -s -X POST '{api_url}/projects/{project_id}/graph/export' -H 'Content-Type: application/json' -d '{\"rootPath\": \"'$(pwd)'\"}'`"
-You can also rasterize individual sheets on demand using the `rasterize_page.py` script below.
-
-**Follow this sequence — do not skip steps:**
-
-1. **Sheet lookup** — find the sheet in `sheet_index.yaml` → get `title`, `discipline`, `scale`, the file path and, for a bound set, the page field. sheet-splitter's `page_index` counts from 0; if the index is AgentCM's (`pageIndex`), confirm its base in `.construction/CLAUDE.md` before converting
-2. **Graph query** — take `project_id` from `.construction/database.yaml`, then query:
-   ```bash
-   sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '{sheet}'"
-   ```
-   For detailed data, also query:
-   - `v_room_profile` — rooms with schedule data
-   - `v_cross_references` — callout edges for this sheet
-   - `v_schedule_pivot` — schedule data if sheet contains schedules
-3. **Rasterize** — convert the PDF page to PNG (do NOT attempt to read the PDF directly):
-   ```bash
-   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{filePath}" {page} --dpi 200 --output sheet.png
-   ```
-   `{page}` is 1-based. A split sheet PDF has one page, so pass `1`. For a page inside a bound set indexed by sheet-splitter, pass `page_index + 1`.
-4. **Targeted crop** (optional) — if reviewing a specific area, crop using graph coordinates:
-   ```bash
-   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" sheet.png --box {x1},{y1},{x2},{y2} --normalized --output detail.png
-   ```
-   - Use view `boundingRegion` for detail-level crops
-   - Use centroid ± margin for room-level crops (e.g., `[0.35, 0.42]` ± 0.07 → `--box 0.28,0.35,0.42,0.49`)
-5. **Read with vision** — view the rasterized PNG. You now have context from the graph: "Room 103 CONFERENCE at [0.35, 0.42] — verifying name and checking adjacent rooms"
+Find the sheet in `.construction/INDEX.md`, search its text in `.construction/sheets/` as `.construction/CLAUDE.md` describes, and look only at the box the text points to, with `crop.sh` (`reference/agentcm-mode.md`, "Looking at a drawing"). `crop.sh` takes the sheet's number, so there is no page number to convert; INDEX.md's PDF page is 1-based.
 
 ### Without AgentCM (unguided reading)
 
-1. **Rasterize** the sheet at 200 DPI
+1. **Rasterize** the sheet at 200 DPI:
+   ```bash
+   "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 200 --output sheet.png
+   ```
+   `{page}` is 1-based. A split sheet PDF has one page, so pass `1`. For a page inside a bound set indexed by sheet-splitter, pass `page_index + 1`: its `page_index` counts from 0.
 2. **Read title block** — confirm sheet title, scale, revision, date
 3. **Orient** — identify north arrow, grid lines, drawing boundaries
 4. **Scan full page** — get high-level understanding
-5. **Target extraction** — crop and zoom into areas of interest
+5. **Target extraction** — crop and zoom into areas of interest (`crop_region.py`, below)
 6. **Cross-reference** — follow callouts to related sheets
 
 ### Common Extraction Patterns
 
-**Finding a room**: With graph → look up `rooms[]` by roomNumber, get centroid, crop. Without → scan floor plan for room tags.
+**Finding a room**: With AgentCM → its lines in `.construction/tags.tsv` give each sheet and position; crop that box. Without → scan floor plan for room tags.
 
 **Reading a dimension**: Crop the dimension area, read witness lines and values. Always confirm sheet scale first.
 
-**Following a detail callout**: With graph → query `calloutEdges[]`, if resolved navigate to destination view centroid. Without → read the detail bubble (number/sheet), find the target.
+**Following a detail callout**: With AgentCM → search `.construction/xrefs.tsv` as `.construction/CLAUDE.md` shows; `found` says whether the detail is on the target sheet. Without → read the detail bubble (number/sheet), find the target.
 
-**Reading a schedule on a sheet**: For a structured workbook the user runs `/construction:schedule-extractor` (user-invoked only). Inside a skill, crop the schedule region and read it with vision, or extract the table with `pdfplumber` when the sheet has a text layer.
+**Reading a schedule on a sheet**: With AgentCM → `.construction/schedules/<sheet>-<n>.tsv`, listed in INDEX.md under Schedules and legends. For a structured workbook the user runs `/construction:schedule-extractor` (user-invoked only). Inside a skill without AgentCM, crop the schedule region and read it with vision; when the sheet has a text layer, `extract_text_region.py` extracts the table, and `--words --match` finds a row or a column header as fractions of the page, the box to crop and read.
 
-**Checking a note**: With graph → query `noteBlocks[]` for bounding region, crop directly. Without → locate the note number, find the corresponding key note area.
+**Checking a note**: With AgentCM → the sheet's paragraphs in `.construction/sheets/<sheet>.txt`, then crop the note's box. Without → locate the note number, find the corresponding key note area.
 
 ---
 
@@ -199,9 +96,9 @@ Construction documents form a dense web of references. When resolving cross-refe
 ### Resolution Workflow
 
 **With AgentCM:**
-1. Query `calloutEdges[]` filtered by `sourceSheetId`
-2. If `resolved: true` → look up destination sheet, find target view in `views[]` by `detailNumber`, use its `centroid` and `boundingRegion` to crop
-3. If `resolved: false` → destination sheet number known but unmatched. Try partial matching (e.g., "C161" → "C-1.61"), then verify with vision.
+1. Search `.construction/xrefs.tsv` for what the sheet refers to and what refers to it, as `.construction/CLAUDE.md` shows. A line marked `accepted` was confirmed by a person; one marked `text` was found in the text alone; `removed` means a revision took the target away.
+2. For a reference AgentCM found, read the target view's box from the target sheet's files and crop it with `crop.sh`.
+3. A reference not in `xrefs.tsv` is "not found in AgentCM's index", not missing: read the symbol on the drawing with `crop.sh`, then try partial matching (e.g., "C161" → "C-1.61").
 
 **Without AgentCM:**
 1. Read the reference symbol/text on the source sheet
@@ -209,9 +106,9 @@ Construction documents form a dense web of references. When resolving cross-refe
 3. Find target sheet (sheet index or PDF scan)
 4. Rasterize target, locate the detail by number, crop at higher DPI
 
-**Batch resolution:** With graph, process all `calloutEdges[]` at once. Flag unresolved references as potential missing documents.
+**Batch resolution:** With AgentCM, `xrefs.tsv` holds every reference at once; a line whose target is `missing` names a sheet that is not in this project. Flag those as potential missing documents.
 
-**Tips:** Some references use abbreviated sheet numbers (e.g., `5/5.01` omitting the discipline prefix when same discipline). Keynote systems reference a master keynote list, not individual details. Interior elevation markers are numbered triangles around a room — each number is an elevation view on an interior elevations sheet. When AgentCM shows unresolved callouts, try partial matching (e.g., "C161" → "C-1.61").
+**Tips:** Some references use abbreviated sheet numbers (e.g., `5/5.01` omitting the discipline prefix when same discipline). Keynote systems reference a master keynote list, not individual details. Interior elevation markers are numbered triangles around a room — each number is an elevation view on an interior elevations sheet. For a sheet number that matches nothing, try partial matching (e.g., "C161" → "C-1.61").
 
 ---
 
@@ -220,17 +117,7 @@ Construction documents form a dense web of references. When resolving cross-refe
 When first opening a construction project or when asked "what's in this project":
 
 ### AgentCM Fast Path
-If AgentCM is present, read these 4 files for instant orientation:
-1. `.construction/CLAUDE.md` — full project navigation guide
-2. `.construction/project.yaml` — project name, number, location
-3. `.construction/index/sheet_index.yaml` — all sheets with metadata
-4. Query database (take `project_id` from `.construction/database.yaml`):
-   ```bash
-   sh .construction/query.sh "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{project_id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{project_id}') AS rooms"
-   ```
-   Fallback: `.construction/graph/graph_summary.yaml` if database unavailable
-
-Present the summary immediately. Also inventory non-drawing files that AgentCM doesn't process: specifications, submittals, RFIs, correspondence.
+If AgentCM is present, read `.construction/INDEX.md`: the sheets by discipline, the specification sections, the schedules and legends, and how many rooms are known. Check `.construction/pending.tsv`: the sheets AgentCM is behind on (`queued`, `failed`) and the files edited outside it (`edited`), whose content may be stale (`reference/agentcm-mode.md`). `.construction/index/file_manifest.yaml` classifies every other file in the folder (submittals, RFIs, correspondence). Present the summary immediately.
 
 ### No AgentCM
 1. Scan the project directory for PDFs, specs, drawings
@@ -281,11 +168,21 @@ Severity follows the confidence grades under Output Standards: `conflict` for a 
 
 A skill that logs issues lists `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` in its script allowlist. `${CLAUDE_PLUGIN_ROOT}/reference/common-issue-types.md` has the pattern vocabulary of what to watch for.
 
+**Corrections of AgentCM's data** (AgentCM mode only) — When a drawing shows AgentCM wrong (a wrong text, a room name, a wrong zone), use the drawing's value in the task at hand, say so with the crop as evidence, and record the correction for the PE to resolve in AgentCM. Never edit `.construction/`; a missed tag or callout goes through `tag-detections/ingest` instead. The rules are in `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`; the command, the only way to write `.construction/skills/corrections.tsv`:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py" \
+  --sheet "A-101" --x 0.41 --y 0.22 --w 0.08 --h 0.03 --kind room \
+  --crop "{the PNG crop.sh printed}" --agentcm "{AgentCM's value}" --drawing "{the drawing's value}"
+```
+
+A skill that can find AgentCM wrong lists `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` in its script allowlist.
+
 ### Behavioral Skills (setup / orientation)
 
 | Skill | When to use | Output | Invoked by |
 |---|---|---|---|
-| `project-setup` | Set up a construction project after `/init` — inventories files, classifies documents, appends construction context to project CLAUDE.md | Amended CLAUDE.md | User |
+| `project-setup` | Set up a construction project after `/init` — inventories files, classifies documents, appends construction context to project CLAUDE.md; in an AgentCM project, reports AgentCM's orientation instead and changes nothing | Amended CLAUDE.md (flat-file projects) | User |
 
 ## PDF & Vision Tools
 
@@ -296,7 +193,7 @@ A skill that logs issues lists `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` 
 
 **Crop specific regions:**
 ```bash
-# Normalized 0-1 coordinates (from graph centroids/bounding regions):
+# Normalized 0-1 coordinates:
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --box x1,y1,x2,y2 --normalized --output detail.png
 # Pixel coordinates:
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --box x1,y1,x2,y2 --output detail.png
@@ -304,13 +201,18 @@ A skill that logs issues lists `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` 
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --anchor bottom-right --width 2400 --height 1200 --output titleblock.png
 ```
 
-**Extract text with pdfplumber:**
-```python
-import pdfplumber
-with pdfplumber.open(pdf_path) as pdf:
-    text = pdf.pages[page_num].extract_text()
-    tables = pdf.pages[page_num].extract_tables()
+**Read a page's text** (and whether it has a text layer at all):
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "{pdf_path}" --pages {page}
 ```
+
+**Tables, and where a word sits:**
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py" "{pdf_path}" {page} --words --match "^HARDWARE$"
+```
+Each word's `x y w h` are fractions of the page from the top left: crop that strip of the rasterized page with `crop_region.py --box x,y,x+w,y+h --normalized`, widened to the row or the column, or re-rasterize it sharper with `rasterize_page.py --crop` (the fractions times 100).
+
+These readers are the toolkit: never write Python of your own (`python -c`, a script through a heredoc). Every intermediate file (a page image, a crop, a saved text dump, a copy of a document) is working data: keep it inside the project, under `.construction/skills/<skill>/`, never in `/tmp` or the system temp folder, the user's home or the folder above the project.
 
 ## Where Skills Write
 
@@ -320,9 +222,12 @@ with pdfplumber.open(pdf_path) as pdf:
   - `.construction/skills/issues/` — the issue registry (`issue_manager.py`)
   - `.construction/skills/project_context.yaml` — shared project facts
   - `.construction/skills/<skill>/` — one skill's own state (e.g. `bid-tabulator/bids/`)
-- **AgentCM areas** — `agent_findings/` (graph entries via `write_finding.py`), the database and the API — are written only when AgentCM is present (`.construction/project.yaml` exists). There, every work product also gets a graph entry so future queries can traverse prior work. Everything else in `.construction/` belongs to AgentCM: read it, never write it.
+  - `.construction/skills/<skill>/findings/` — the skill's findings (`write_finding.py --skill <skill>`), in both modes
+  - `.construction/skills/corrections.tsv` — corrections of AgentCM's data for the PE to resolve (AgentCM mode, `corrections_append.py` only)
+  - `.construction/skills/<skill>/outbox/` — a payload for AgentCM's write endpoints that waits while AgentCM is closed (AgentCM mode; `reference/agentcm-mode.md`)
+- **AgentCM's data** changes only through its write endpoints (the API), and only when AgentCM is present (`.construction/project.yaml` exists). Every file in `.construction/` outside `.construction/skills/` belongs to AgentCM: read it, never write it.
 
-Older versions wrote working data directly into `.construction/` (`spec_text/`, `issues/`, `bid_tab/`, `code_research/`, `submittal_*`, `rfi_template_map.json`, `project_context.yaml`, `qto/`). If you find one of those and its `.construction/skills/` counterpart doesn't exist, move it there before continuing.
+Older versions wrote working data directly into `.construction/` (`spec_text/`, `issues/`, `bid_tab/`, `code_research/`, `submittal_*`, `rfi_template_map.json`, `project_context.yaml`, `qto/`). If you find one of those and its `.construction/skills/` counterpart doesn't exist, copy it there before continuing and leave the old one as it is.
 
 ## Reference Data
 
@@ -409,7 +314,7 @@ When these terms appear, flag them and attempt to identify the responsible party
 When responding about construction documents:
 
 - **Source traceability:** Every claim must cite its specific source — `[Sheet A2.01, Room 204]` or `[Spec Section 07 92 00, Para 3.3.A]` or `[Detail 5/A8.03]`. "Per the drawings" or "per the specs" is never acceptable.
-- **Confidence classification:** Grade every response element as: **CONFIRMED** (consistent across all docs), **PROBABLE** (found in primary source, not all cross-refs checked), **CONFLICTING** (documents disagree — present both with precedence analysis), or **NOT FOUND** (expected information absent — state what was expected and where).
+- **Confidence classification:** Grade every response element as: **CONFIRMED** (consistent across all docs: two or more documents agree; a sheet's text layer and its image are one document, so a value read from one sheet both ways is still PROBABLE), **PROBABLE** (found in primary source, not all cross-refs checked), **CONFLICTING** (documents disagree — present both with precedence analysis), or **NOT FOUND** (expected information absent — state what was expected and where).
 - **Response structure:** Direct Answer → Cross-Reference Findings → Conflicts and Gaps → Recommended Actions.
 - **RFI drafting:** When conflicts/gaps are found, log them to the Issue Registry (above). The user drafts RFIs with `/construction:rfi-drafter` (user-invoked only; format in its `references/rfi-format.md`).
 
@@ -438,4 +343,4 @@ The PE behavioral rules (document precedence, mandatory verification, point-of-n
 - **Always confirm scale** before reporting any measurement
 - **Title blocks** contain project name, number, location, architect, date, revision — read these to establish project context
 - **Never fabricate** dimensions, spec requirements, or code citations — if uncertain, flag for human review
-- **Spec text comes from spec-splitter** (`.construction/skills/spec_text/`) unless AgentCM has written `.construction/INDEX.md` with its own `specs/` text, in which case that text comes first (see "AgentCM's Text Files Come First") presence
+- **Spec text**: with AgentCM, `.construction/specs/<section>.txt`, listed in INDEX.md; spec-splitter's `.construction/skills/spec_text/` only for a manual INDEX.md lists under "Spec manuals not read". Without AgentCM, `.construction/skills/spec_text/` from spec-splitter

@@ -41,6 +41,7 @@ Output: JSON to stdout. Designed for Claude Code to call and parse.
 import argparse
 import json
 import os
+import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -61,9 +62,10 @@ def get_issues_dir(base_dir: str = None) -> Path:
         d = Path(DEFAULT_ISSUES_DIR)
         legacy = Path(LEGACY_ISSUES_DIR)
         if not d.exists() and legacy.is_dir():
+            # Copied, not moved: nothing under .construction/ outside skills/ is written or removed
             d.parent.mkdir(parents=True, exist_ok=True)
-            legacy.rename(d)
-            print(f"Moved issue registry {legacy} -> {d}", file=sys.stderr)
+            shutil.copytree(legacy, d)
+            print(f"Copied issue registry {legacy} -> {d} (the old folder is left as it is)", file=sys.stderr)
     d.mkdir(parents=True, exist_ok=True)
     return d
 

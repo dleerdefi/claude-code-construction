@@ -6,7 +6,7 @@ import shutil
 from dataclasses import asdict
 from pathlib import Path
 
-from graders import GraderResult, score
+from graders import GraderResult, mark, score
 from runner import RunResult
 
 
@@ -49,7 +49,9 @@ def write_run(out_dir: Path, run: RunResult, graders: list[GraderResult]) -> Pat
         "case": run.case, "run_index": run.run_index, "workspace": str(run.workspace), "score": score(graders),
         "elapsed_s": round(run.elapsed_s, 1), "num_turns": run.num_turns, "cost_usd": run.cost_usd,
         "subtype": run.subtype, "is_error": run.is_error, "error": run.error, "created_files": run.created_files,
-        "modified_files": run.modified_files,
+        "modified_files": run.modified_files, "deleted_files": run.deleted_files, "agentcm_block": run.agentcm_block,
+        "outside_files": run.outside_files, "overlapping_runs": run.overlapping_runs,
+        "setting_sources": run.setting_sources, "claude_md_excluded": run.claude_md_excluded,
         "guard_denials": [g for g in run.guard_log if not g["allow"]],
     }, indent=1, default=str), encoding="utf-8")
     return d
@@ -59,20 +61,22 @@ def write_summary(out_dir: Path, summary: dict) -> None:
     (out_dir / "summary.json").write_text(json.dumps(summary, indent=1, default=str), encoding="utf-8")
     lines = [f"# Eval run {summary['timestamp']}", "",
              f"Model: {summary['model']} · judge: {summary['judge_model']} · threshold: {summary['threshold']}", "",
-             "| Case | Score | Runs | Cost | Notes |", "|---|---|---|---|---|"]
+             "| Case | Score | Runs passed | Cost | Notes |", "|---|---|---|---|---|"]
     for c in summary["cases"]:
-        lines.append(f"| {c['name']} | {c['score']:.2f} | {c['runs']} | ${c['cost_usd']:.2f} | {c['notes']} |")
+        passed = sum(1 for r in c["run_details"] if r["score"] >= summary["threshold"])
+        lines.append(f"| {c['name']} | {c['score']:.2f} | {passed}/{c['runs']} | ${c['cost_usd']:.2f} | {c['notes']} |")
     ran = summary["total"] - summary.get("skipped", 0)
-    lines += ["", f"Total cost: ${summary['total_cost_usd']:.2f} · {summary['passed']}/{ran} cases at or above threshold"
-              + (f" · {summary['skipped']} skipped" if summary.get("skipped") else ""), ""]
+    lines += ["", f"Total cost: ${summary['total_cost_usd']:.2f} agent + ${summary.get('judge_cost_usd', 0.0):.2f} judge"
+              f" · {summary['passed']}/{ran} cases at or above threshold"
+              + f" · {summary.get('skipped', 0)} skipped"
+              + (" (--no-skip: a skipped case fails this run)" if summary.get("no_skip") else ""), ""]
     for c in summary["cases"]:
         lines.append(f"## {c['name']}")
         for r in c["run_details"]:
             lines.append(f"- run {r['run_index']}: score {r['score']:.2f}, {r['num_turns']} turns, {r['elapsed_s']}s, ${r['cost_usd'] or 0:.2f}"
                          + (f", error: {r['error']}" if r["error"] else ""))
             for g in r["graders"]:
-                mark = "PASS" if g["passed"] else "FAIL"
-                lines.append(f"    - {mark} {g['name']} ({g['type']}, w={g['weight']:g}): {g['detail'][:300]}")
+                lines.append(f"    - {mark(GraderResult(**g))} {g['name']} ({g['type']}, w={g['weight']:g}): {g['detail'][:300]}")
             if r["guard_denials"]:
                 lines.append(f"    - guard denied {len(r['guard_denials'])} call(s): "
                              + "; ".join(str(d['input'].get('command', d['input'].get('file_path', '')))[:80] for d in r["guard_denials"]))

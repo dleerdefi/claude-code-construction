@@ -49,8 +49,8 @@ past experience with bidders.
 **Complete before analyzing any bids.**
 
 ### Mode Detection
-Check for AgentCM: `.construction/project.yaml` at the project root.
-- **AgentCM mode**: Read specs from `.construction/skills/spec_text/{section}.txt`. Use sheet index from `.construction/index/sheet_index.yaml` for drawing identification.
+Read `.construction/project.yaml` at the project root: present and readable means AgentCM mode (note its `contract_version`), absent means flat-file mode. A listing that shows the file does not decide it: read it.
+- **AgentCM mode**: Read each spec section from `.construction/specs/<section>.txt` (`09 65 13` is `09-65-13.txt`; each line starts with its page), listed in `.construction/INDEX.md`: it is the section's text, and a section's pages are never extracted again from the PDF. Never run `pdf_text.py` or `rasterize_page.py` on a section's pages: not to check them, and not inside a page range (`--pages 1,2` where page 2 is a section is one). A read manual's pages in no section (INDEX.md lists them) are read in the PDF, those pages only (`--pages`). Only for a manual INDEX.md lists under "Spec manuals not read", read spec-splitter's `.construction/skills/spec_text/` instead. Use sheet index from `.construction/index/sheet_index.yaml` for drawing identification. Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`: which source wins, what a missing file or an empty search means, which file answers what, drawings through `crop.sh`, sheet ids, and how to record a correction of AgentCM's data.
 - **Flat File mode**: Discover spec PDFs via `CLAUDE.md` paths or directory search (`Specifications/`, `Specification Sections/`). Read drawing sheets directly from PDF.
 
 ### 1a. Spec Review
@@ -66,6 +66,9 @@ read as text; rasterize VISION pages):
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "{section.pdf}"
 ```
+Take the output directly, or, to search a dump more than once, save it with
+`--output ".construction/skills/bid-evaluator/text/<section>.txt"`, never in
+`/tmp` or any other folder outside the project.
 
 ### 1b. Drawing Review
 Load `references/drawing-review.md` for guidance on what to look for
@@ -167,10 +170,12 @@ submission. Flag for verification, never call it a bust.
 
 Build JSON per schema in `scripts/sample_input.json` with the Write tool
 (not a shell heredoc, which fails here on an apostrophe, and not a helper
-script), then run:
+script) as `.construction/skills/bid-evaluator/bid_evaluation.json`: it is
+working data, never in the project root. Then run:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py" input.json output.xlsx
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py" .construction/skills/bid-evaluator/bid_evaluation.json "Bid_Evaluation_{package}.xlsx"
 ```
+Run it from the project folder: the workbook is the deliverable and goes in the project root (or the folder the PE names), never under `.construction/`, which macOS and Linux hide.
 
 The script produces 5 sheets: Bid Comparison, Price Summary,
 Exclusion Detail, Qualification Summary, Recommendation.
@@ -188,19 +193,17 @@ Exclusion Detail, Qualification Summary, Recommendation.
 
 ---
 
-## Step 5: Write Graph Entry
+## Step 5: Write a Finding
 
-If AgentCM is present (`.construction/project.yaml` exists), record the evaluation:
+Record the evaluation as a finding in `.construction/skills/bid-evaluator/findings/` (both modes):
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
-  --type "bid_evaluation_complete" \
+  --skill "bid-evaluator" --type "bid_evaluation_complete" \
   --title "Bid evaluation: {scope} — {N} bidders, recommended {company}" \
-  --output-file "{output.xlsx}" \
+  --output-file "Bid_Evaluation_{package}.xlsx" \
   --data '{"scope": "...", "bidder_count": N, "recommended": "...", "adjusted_amount": ..., "pe_attention_items": [...]}'
 ```
-
-Without AgentCM, skip — the Excel workbook is the deliverable.
 
 ---
 
@@ -211,7 +214,7 @@ Without AgentCM, skip — the Excel workbook is the deliverable.
 | 1b | `references/drawing-review.md` | Drawing sheets provided | Step 1b complete |
 | 2 | `references/buyout-domain.md` | Entering bid analysis | Step 2d complete |
 | 3 | `scripts/sample_input.json` | Building output JSON | Step 3 complete |
-| 5 | `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` | AgentCM mode detected | Step 5 complete |
+| 5 | `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` | Step 5 | Step 5 complete |
 
 ## Gotchas (measured in eval runs)
 
@@ -245,6 +248,7 @@ Never overwrite an existing bid evaluation. The export script uses `safe_output_
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — drawing sheets and VISION pages
 - `${CLAUDE_SKILL_DIR}/scripts/export_bid_evaluation.py`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)
 
 No other code: no `python -c`, no helper script. If the toolkit lacks something
 you need, say so in the handoff.

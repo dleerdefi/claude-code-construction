@@ -1,0 +1,82 @@
+x	y	w	h	source	tag	how	label	para	view	zone	text
+0.100	0.060	0.150	0.012	ocr	schedule_zone	accepted	-	p1	-	-	DOOR SCHEDULE
+0.100	0.100	0.040	0.006	ocr	schedule_zone	accepted	-	p2	-	-	MARK
+0.200	0.100	0.040	0.006	ocr	schedule_zone	accepted	-	p18	-	-	SIZE
+0.300	0.100	0.040	0.006	ocr	schedule_zone	accepted	-	p34	-	-	DOOR
+0.400	0.100	0.040	0.006	ocr	schedule_zone	accepted	-	p50	-	-	FRAME
+0.500	0.100	0.040	0.006	ocr	schedule_zone	accepted	-	p66	-	-	HDWR
+0.100	0.120	0.040	0.006	ocr	schedule_zone	accepted	-	p3	-	-	D101
+0.200	0.120	0.040	0.006	ocr	schedule_zone	accepted	-	p19	-	-	3'-0" x 7'-0"
+0.300	0.120	0.040	0.006	ocr	schedule_zone	accepted	-	p35	-	-	SCWD
+0.400	0.120	0.040	0.006	ocr	schedule_zone	accepted	-	p51	-	-	HM
+0.500	0.120	0.040	0.006	ocr	schedule_zone	accepted	-	p67	-	-	10
+0.100	0.140	0.040	0.006	ocr	schedule_zone	accepted	-	p4	-	-	D102
+0.200	0.140	0.040	0.006	ocr	schedule_zone	accepted	-	p20	-	-	3'-0" x 7'-0"
+0.300	0.140	0.040	0.006	ocr	schedule_zone	accepted	-	p36	-	-	HM
+0.400	0.140	0.040	0.006	ocr	schedule_zone	accepted	-	p52	-	-	HM
+0.500	0.140	0.040	0.006	ocr	schedule_zone	accepted	-	p68	-	-	11
+0.100	0.160	0.040	0.006	ocr	schedule_zone	accepted	-	p5	-	-	D103
+0.200	0.160	0.040	0.006	ocr	schedule_zone	accepted	-	p21	-	-	3'-0" x 7'-0"
+0.300	0.160	0.040	0.006	ocr	schedule_zone	accepted	-	p37	-	-	SCWD
+0.400	0.160	0.040	0.006	ocr	schedule_zone	accepted	-	p53	-	-	HM
+0.500	0.160	0.040	0.006	ocr	schedule_zone	accepted	-	p69	-	-	12
+0.100	0.180	0.040	0.006	ocr	schedule_zone	accepted	-	p6	-	-	D104
+0.200	0.180	0.040	0.006	ocr	schedule_zone	accepted	-	p22	-	-	3'-0" x 7'-0"
+0.300	0.180	0.040	0.006	ocr	schedule_zone	accepted	-	p38	-	-	HM
+0.400	0.180	0.040	0.006	ocr	schedule_zone	accepted	-	p54	-	-	HM
+0.500	0.180	0.040	0.006	ocr	schedule_zone	accepted	-	p70	-	-	10
+0.100	0.200	0.040	0.006	ocr	schedule_zone	accepted	-	p7	-	-	D105
+0.200	0.200	0.040	0.006	ocr	schedule_zone	accepted	-	p23	-	-	3'-0" x 7'-0"
+0.300	0.200	0.040	0.006	ocr	schedule_zone	accepted	-	p39	-	-	SCWD
+0.400	0.200	0.040	0.006	ocr	schedule_zone	accepted	-	p55	-	-	HM
+0.500	0.200	0.040	0.006	ocr	schedule_zone	accepted	-	p71	-	-	11
+0.100	0.220	0.040	0.006	ocr	schedule_zone	accepted	-	p8	-	-	D106
+0.200	0.220	0.040	0.006	ocr	schedule_zone	accepted	-	p24	-	-	3'-0" x 7'-0"
+0.300	0.220	0.040	0.006	ocr	schedule_zone	accepted	-	p40	-	-	HM
+0.400	0.220	0.040	0.006	ocr	schedule_zone	accepted	-	p56	-	-	HM
+0.500	0.220	0.040	0.006	ocr	schedule_zone	accepted	-	p72	-	-	12
+0.100	0.240	0.040	0.006	ocr	schedule_zone	accepted	-	p9	-	-	D107
+0.200	0.240	0.040	0.006	ocr	schedule_zone	accepted	-	p25	-	-	3'-0" x 7'-0"
+0.300	0.240	0.040	0.006	ocr	schedule_zone	accepted	-	p41	-	-	SCWD
+0.400	0.240	0.040	0.006	ocr	schedule_zone	accepted	-	p57	-	-	HM
+0.500	0.240	0.040	0.006	ocr	schedule_zone	accepted	-	p73	-	-	10
+0.100	0.260	0.040	0.006	ocr	schedule_zone	accepted	-	p10	-	-	D108
+0.200	0.260	0.040	0.006	ocr	schedule_zone	accepted	-	p26	-	-	3'-0" x 7'-0"
+0.300	0.260	0.040	0.006	ocr	schedule_zone	accepted	-	p42	-	-	HM
+0.400	0.260	0.040	0.006	ocr	schedule_zone	accepted	-	p58	-	-	HM
+0.500	0.260	0.040	0.006	ocr	schedule_zone	accepted	-	p74	-	-	11
+0.100	0.280	0.040	0.006	ocr	schedule_zone	accepted	-	p11	-	-	D109
+0.200	0.280	0.040	0.006	ocr	schedule_zone	accepted	-	p27	-	-	3'-0" x 7'-0"
+0.300	0.280	0.040	0.006	ocr	schedule_zone	accepted	-	p43	-	-	SCWD
+0.400	0.280	0.040	0.006	ocr	schedule_zone	accepted	-	p59	-	-	HM
+0.500	0.280	0.040	0.006	ocr	schedule_zone	accepted	-	p75	-	-	12
+0.100	0.300	0.040	0.006	ocr	schedule_zone	accepted	-	p12	-	-	D110
+0.200	0.300	0.040	0.006	ocr	schedule_zone	accepted	-	p28	-	-	3'-0" x 7'-0"
+0.300	0.300	0.040	0.006	ocr	schedule_zone	accepted	-	p44	-	-	HM
+0.400	0.300	0.040	0.006	ocr	schedule_zone	accepted	-	p60	-	-	HM
+0.500	0.300	0.040	0.006	ocr	schedule_zone	accepted	-	p76	-	-	10
+0.100	0.320	0.040	0.006	ocr	schedule_zone	accepted	-	p13	-	-	D111
+0.200	0.320	0.040	0.006	ocr	schedule_zone	accepted	-	p29	-	-	3'-0" x 7'-0"
+0.300	0.320	0.040	0.006	ocr	schedule_zone	accepted	-	p45	-	-	SCWD
+0.400	0.320	0.040	0.006	ocr	schedule_zone	accepted	-	p61	-	-	HM
+0.500	0.320	0.040	0.006	ocr	schedule_zone	accepted	-	p77	-	-	11
+0.100	0.340	0.040	0.006	ocr	schedule_zone	accepted	-	p14	-	-	D112
+0.200	0.340	0.040	0.006	ocr	schedule_zone	accepted	-	p30	-	-	3'-0" x 7'-0"
+0.300	0.340	0.040	0.006	ocr	schedule_zone	accepted	-	p46	-	-	HM
+0.400	0.340	0.040	0.006	ocr	schedule_zone	accepted	-	p62	-	-	HM
+0.500	0.340	0.040	0.006	ocr	schedule_zone	accepted	-	p78	-	-	12
+0.100	0.360	0.040	0.006	ocr	schedule_zone	accepted	-	p15	-	-	D113
+0.200	0.360	0.040	0.006	ocr	schedule_zone	accepted	-	p31	-	-	3'-0" x 7'-0"
+0.300	0.360	0.040	0.006	ocr	schedule_zone	accepted	-	p47	-	-	SCWD
+0.400	0.360	0.040	0.006	ocr	schedule_zone	accepted	-	p63	-	-	HM
+0.500	0.360	0.040	0.006	ocr	schedule_zone	accepted	-	p79	-	-	10
+0.100	0.380	0.040	0.006	ocr	schedule_zone	accepted	-	p16	-	-	D114
+0.200	0.380	0.040	0.006	ocr	schedule_zone	accepted	-	p32	-	-	3'-0" x 7'-0"
+0.300	0.380	0.040	0.006	ocr	schedule_zone	accepted	-	p48	-	-	HM
+0.400	0.380	0.040	0.006	ocr	schedule_zone	accepted	-	p64	-	-	HM
+0.500	0.380	0.040	0.006	ocr	schedule_zone	accepted	-	p80	-	-	11
+0.100	0.400	0.040	0.006	ocr	schedule_zone	accepted	-	p17	-	-	D115
+0.200	0.400	0.040	0.006	ocr	schedule_zone	accepted	-	p33	-	-	3'-0" x 7'-0"
+0.300	0.400	0.040	0.006	ocr	schedule_zone	accepted	-	p49	-	-	SCWD
+0.400	0.400	0.040	0.006	ocr	schedule_zone	accepted	-	p65	-	-	HM
+0.500	0.400	0.040	0.006	ocr	schedule_zone	accepted	-	p81	-	-	12

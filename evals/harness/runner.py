@@ -8,8 +8,10 @@ refuses npm's claude.cmd shim.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -22,8 +24,10 @@ from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions, HookMatcher,
                               SystemMessage, UserMessage, query)
 from claude_agent_sdk.types import TextBlock, ToolResultBlock, ToolUseBlock
 
+import leftovers
 from cases import Case
 from guard import GUARDED_TOOLS, Policy, decide
+from poppler import TAG as AGENTCM_TAG, case_env
 
 SCAFFOLD_TIMEOUT = 120
 SCAFFOLD_SKIP_EXIT = 3  # a scaffold exits 3 when the case's inputs are not available on this machine
@@ -51,6 +55,13 @@ class RunResult:
     guard_log: list[dict] = field(default_factory=list)
     created_files: list[str] = field(default_factory=list)
     modified_files: list[str] = field(default_factory=list)  # existed before the run and changed during it
+    deleted_files: list[str] | None = field(default_factory=list)  # existed before the run and gone after; None: not recorded
+    ran_in: Path | None = None  # the folder the run worked in, when `workspace` is a saved copy (--regrade)
+    agentcm_block: dict | None = None  # sha256 of AgentCM's block in CLAUDE.md, {before, after}; None: not recorded
+    outside_files: list[dict] | None = None  # what the run left outside its folder (leftovers.py); None: not recorded
+    overlapping_runs: list[str] = field(default_factory=list)  # other harness runs active during the session
+    setting_sources: list[str] | None = None  # what the session loaded; None: not recorded (before 2026-10-15)
+    claude_md_excluded: int = 0  # claudeMdExcludes globs for the folders above the workspace (a count, never paths)
     elapsed_s: float = 0.0
     num_turns: int | None = None
     cost_usd: float | None = None
@@ -81,6 +92,21 @@ def find_bash() -> str:
     return found
 
 
+# AgentCM's block in the project's CLAUDE.md (AgentCM's src/server/services/projectPointer.ts): from its start
+# marker's line to its end marker's. It must come out of every run byte for byte.
+AGENTCM_BLOCK = re.compile(r"^<!-- AgentCM: start[^\n]*\n[\s\S]*?^<!-- AgentCM: end[^\n]*?(?=\r?\n|$)", re.MULTILINE)
+
+
+def agentcm_block_sha(workspace: Path) -> str | None:
+    """The sha256 of AgentCM's block in the project's CLAUDE.md, byte for byte; None when there is none."""
+    try:
+        text = (workspace / "CLAUDE.md").read_bytes().decode("utf-8", errors="surrogateescape")
+    except OSError:
+        return None
+    m = AGENTCM_BLOCK.search(text)
+    return hashlib.sha256(m.group(0).encode("utf-8", errors="surrogateescape")).hexdigest() if m else None
+
+
 def snapshot(workspace: Path) -> dict[str, tuple[int, int]]:
     """Every file under the workspace with its size and mtime, so created and modified files can be told apart."""
     out = {}
@@ -88,6 +114,27 @@ def snapshot(workspace: Path) -> dict[str, tuple[int, int]]:
         if p.is_file():
             st = p.stat()
             out[p.relative_to(workspace).as_posix()] = (st.st_size, st.st_mtime_ns)
+    return out
+
+
+def setting_sources(case: Case) -> list[str]:
+    """An agentcm-mode case loads the workspace's project settings (David): the project's CLAUDE.md, and through
+    AgentCM's block in it `.construction/CLAUDE.md`, are read as in a real session. Every other case loads none."""
+    return ["project"] if AGENTCM_TAG in case.tags else []
+
+
+def _glob_escape(text: str) -> str:
+    return re.sub(r"([*?\[\]{}()!+@])", r"\\\1", text)
+
+
+def claude_md_excludes(workspace: Path) -> list[str]:
+    """claudeMdExcludes globs for every instruction file Claude Code reads from a folder above the workspace: with the
+    project's settings loaded it walks up from the project, and the workspace is under the user's home, so it would
+    read the user's own ~/.claude/CLAUDE.md as the project's. Only the workspace's own files are left."""
+    out = []
+    for parent in workspace.parents:
+        p = _glob_escape(parent.as_posix().rstrip("/"))
+        out += [f"{p}/CLAUDE.md", f"{p}/CLAUDE.local.md", f"{p}/.claude/CLAUDE.md", f"{p}/.claude/rules/**"]
     return out
 
 
@@ -102,11 +149,22 @@ class ScaffoldSkipped(Exception):
     """The scaffold reported that this case cannot run here (exit 3), e.g. missing downloads."""
 
 
+def extra_env(case: Case, workspace: Path | None = None) -> dict:
+    """What a case adds to its environment: TMP, TEMP and TMPDIR pointing at the run's own temp folder (leftovers.py),
+    and for an agentcm-mode case the harness run's AGENTCM_POPPLER_BIN, first on PATH (poppler.py); the folder is
+    never written into a file."""
+    env = case_env() if AGENTCM_TAG in case.tags else {}
+    if workspace is not None:
+        tmp = str(leftovers.run_temp_for(workspace))
+        env.update(TMP=tmp, TEMP=tmp, TMPDIR=tmp)
+    return env
+
+
 def run_scaffold(case: Case, workspace: Path) -> str:
     """Run the case's setup.sh in the workspace. Returns captured output; raises on failure."""
     if not case.scaffold:
         return ""
-    env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1")
+    env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1", **extra_env(case, workspace))
     proc = subprocess.run([find_bash(), case.scaffold.as_posix()], cwd=workspace, env=env,
                           capture_output=True, text=True, timeout=SCAFFOLD_TIMEOUT)
     out = (proc.stdout + proc.stderr).strip()
@@ -115,6 +173,20 @@ def run_scaffold(case: Case, workspace: Path) -> str:
     if proc.returncode != 0:
         raise RuntimeError(f"scaffold failed (exit {proc.returncode}):\n{out}")
     return out
+
+
+def run_teardown(case: Case, workspace: Path) -> str:
+    """Run the case's teardown script (harness.yaml `teardown`) in the workspace after the session, e.g. to stop
+    a stand-in server its setup started. Never raises: what it printed, or why it failed, goes in the trace."""
+    if not case.teardown:
+        return ""
+    try:
+        env = dict(os.environ, CONSTRUCTION_EVAL_HARNESS="1", **extra_env(case, workspace))
+        proc = subprocess.run([find_bash(), case.teardown.as_posix()], cwd=workspace, env=env,
+                              capture_output=True, text=True, timeout=SCAFFOLD_TIMEOUT)
+        return f"exit {proc.returncode}: {(proc.stdout + proc.stderr).strip()}"
+    except Exception as e:  # a teardown failure is reported, never fatal to the run
+        return f"teardown failed: {type(e).__name__}: {e}"
 
 
 def _block_summary(block) -> dict | None:
@@ -131,7 +203,7 @@ def _block_summary(block) -> dict | None:
 
 async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunResult) -> None:
     policy = Policy(workspace=str(workspace), plugin_root=str(opts.plugin_root),
-                    extra_roots=tuple(str(d) for d in case.add_dirs))
+                    extra_roots=tuple(str(d) for d in case.add_dirs), allow_urls=tuple(case.allow_urls))
 
     async def guard_hook(input_data, tool_use_id, context):
         name = input_data.get("tool_name", "")
@@ -146,13 +218,19 @@ async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunRes
 
     allowed = case.allowed_tools or ["Read", "Glob", "Grep"]
     disallowed = [t for t in opts.disallowed_tools if t not in allowed]
+    result.setting_sources = setting_sources(case)
+    excludes = claude_md_excludes(workspace) if result.setting_sources else []
+    result.claude_md_excluded = len(excludes)
     options = ClaudeAgentOptions(
         cwd=str(workspace),
         plugins=[{"type": "local", "path": str(opts.plugin_root)}],
         allowed_tools=allowed,
         disallowed_tools=disallowed,
         permission_mode="acceptEdits",
-        setting_sources=[],  # none of the user's settings, plugins or hooks: only this plugin
+        # none of the user's settings, plugins or hooks: only this plugin, and for an agentcm-mode case the
+        # workspace's project settings, with no CLAUDE.md from above the workspace
+        setting_sources=result.setting_sources,
+        settings=json.dumps({"claudeMdExcludes": excludes}) if excludes else None,
         strict_mcp_config=True,  # and none of the user's MCP servers
         hooks={"PreToolUse": [HookMatcher(matcher="|".join(GUARDED_TOOLS), hooks=[guard_hook])]},
         system_prompt={"type": "preset", "preset": "claude_code", "append": case.append_system_prompt}
@@ -162,7 +240,7 @@ async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunRes
         max_buffer_size=MAX_MESSAGE_BYTES,
         model=opts.model,
         add_dirs=[str(d) for d in case.add_dirs],
-        env={"CONSTRUCTION_SKILLS_NO_BOOTSTRAP": "1"},
+        env={"CONSTRUCTION_SKILLS_NO_BOOTSTRAP": "1", **extra_env(case, workspace)},
         sandbox={"enabled": True} if opts.sandbox == "auto" and sys.platform != "win32" else None,
         stderr=lambda line: result.trace.append({"type": "stderr", "line": line}),
     )
@@ -192,29 +270,48 @@ async def _session(case: Case, workspace: Path, opts: RunOptions, result: RunRes
 
 async def run_case(case: Case, run_index: int, opts: RunOptions, log=print) -> RunResult:
     workspace = make_workspace(case, run_index)
+    run_tmp = leftovers.run_temp_for(workspace)
+    run_tmp.mkdir(parents=True, exist_ok=True)
     result = RunResult(case=case.name, run_index=run_index, workspace=workspace)
     t0 = time.time()
+    leftovers.register("start", case.name, run_index, workspace)
     try:
-        scaffold_out = run_scaffold(case, workspace)
-        if scaffold_out:
-            result.trace.append({"type": "scaffold", "output": scaffold_out[:TOOL_RESULT_LIMIT]})
-        before = snapshot(workspace)
         try:
-            await asyncio.wait_for(_session(case, workspace, opts, result), timeout=case.timeout_seconds)
-        except asyncio.TimeoutError:
-            result.is_error = True
-            result.error = f"timed out after {case.timeout_seconds}s"
+            scaffold_out = run_scaffold(case, workspace)
+            if scaffold_out:
+                result.trace.append({"type": "scaffold", "output": scaffold_out[:TOOL_RESULT_LIMIT]})
+            before = snapshot(workspace)
+            block_before = agentcm_block_sha(workspace)
+            where = leftovers.places(workspace, run_tmp)
+            outside_before, s0 = leftovers.snapshot(where), time.time()
+            try:
+                await asyncio.wait_for(_session(case, workspace, opts, result), timeout=case.timeout_seconds)
+            except asyncio.TimeoutError:
+                result.is_error = True
+                result.error = f"timed out after {case.timeout_seconds}s"
+            finally:
+                after = snapshot(workspace)
+                result.created_files = sorted(after.keys() - before.keys())
+                result.modified_files = sorted(k for k in after.keys() & before.keys() if after[k] != before[k])
+                result.deleted_files = sorted(before.keys() - after.keys())
+                result.agentcm_block = {"before": block_before, "after": agentcm_block_sha(workspace)}
+                result.outside_files = (leftovers.diff(where, outside_before, leftovers.snapshot(where),
+                                                       own={workspace.name, run_tmp.name})
+                                        + leftovers.changed_since(leftovers.user_folders(), s0 - leftovers.CLOCK_SLACK))
+                result.overlapping_runs = leftovers.overlapping(workspace, s0, time.time())
         finally:
-            after = snapshot(workspace)
-            result.created_files = sorted(after.keys() - before.keys())
-            result.modified_files = sorted(k for k in after.keys() & before.keys() if after[k] != before[k])
+            teardown_out = run_teardown(case, workspace)
+            if teardown_out:
+                result.trace.append({"type": "teardown", "output": teardown_out[:TOOL_RESULT_LIMIT]})
     except ScaffoldSkipped as e:
         result.skipped = True
         result.error = str(e)
         shutil.rmtree(workspace, ignore_errors=True)
+        shutil.rmtree(run_tmp, ignore_errors=True)
     except Exception as e:  # scaffold or transport failure: the run is an error, not a crash
         result.is_error = True
         result.error = f"{type(e).__name__}: {e}"
+    leftovers.register("end", case.name, run_index, workspace)
     result.elapsed_s = time.time() - t0
     if result.skipped:
         log(f"    run {run_index}: SKIPPED: {result.error}")
@@ -229,3 +326,4 @@ def cleanup(result: RunResult, failed: bool, keep: bool) -> None:
     if keep or failed:
         return
     shutil.rmtree(result.workspace, ignore_errors=True)
+    shutil.rmtree(leftovers.run_temp_for(result.workspace), ignore_errors=True)

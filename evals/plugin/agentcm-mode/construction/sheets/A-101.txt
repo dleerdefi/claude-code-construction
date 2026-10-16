@@ -1,0 +1,19 @@
+# A-101 FLOOR PLAN
+# drawings/A-101.pdf, page 1. Text: complete. One paragraph per line in reading order: paragraph, x, y (0 to 1 from the top left), text; a long one goes on in lines without a position. Each line of text with its box: A-101.tsv
+p1	0.050	0.060	GENERAL NOTES
+p2	0.200	0.300	OFFICE
+p3	0.215	0.311	101
+p4	0.400	0.300	STORAGE
+p5	0.415	0.311	102
+p6	0.750	0.120	5
+p7	0.742	0.135	A-102
+p8	0.600	0.300	CLASSROOM
+p9	0.615	0.311	103
+p10	0.200	0.600	CORRIDOR
+p11	0.215	0.611	104
+p12	0.400	0.600	TOILET
+p13	0.415	0.611	105
+p14	0.600	0.600	LOBBY
+p15	0.615	0.611	106
+p16	0.050	0.850	SEE 5/A-102
+p17	0.880	0.920	A-101

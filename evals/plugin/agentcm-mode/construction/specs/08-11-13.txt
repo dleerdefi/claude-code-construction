@@ -1,0 +1,7 @@
+# Section 08 11 13 - HOLLOW METAL DOORS AND FRAMES
+# Specifications/Project Manual.pdf, pages 2 to 2. Each line starts with its page in the manual; the headers and footers every page repeats are left out.
+pg2	SECTION 08 11 13 - HOLLOW METAL DOORS AND FRAMES
+pg2	PART 1 - GENERAL
+pg2	1.1 SUMMARY
+pg2	B. Floor Anchors: not less than 0.042 inch thick.
+pg2	END OF SECTION

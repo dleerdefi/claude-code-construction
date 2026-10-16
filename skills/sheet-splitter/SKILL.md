@@ -19,29 +19,33 @@ Run after `/project-setup` identifies bound drawing sets. Produces split PDFs an
 This is valuable for:
 - **Project teams**: Navigate drawings by sheet number instead of scrolling a multi-page PDF
 - **Other skills**: schedule-extractor, tag-audit-and-takeoff, pe-review and every other drawing analysis skill work better with individual sheet files
-- **AgentCM**: Split files become the basis for per-sheet structured data
+
+In an AgentCM project the app splits drawing sets (Split & Rename), and this skill only says so (Step 1).
 
 ## Workflow
 
 ```
 Sheet Split Progress:
-- [ ] Step 1: Check if drawings are already split
+- [ ] Step 1: Check the mode, and whether drawings are already split
 - [ ] Step 2: Locate the bound drawing set
 - [ ] Step 3: Split into individual page PDFs
 - [ ] Step 4: Extract sheet numbers from title blocks
 - [ ] Step 5: Rename files with sheet number + title
 - [ ] Step 6: Update project context
-- [ ] Step 7: Write graph entry (AgentCM only)
 ```
 
-### Step 1: Check if Drawings Are Already Split
+### Step 1: Check the Mode, and Whether Drawings Are Already Split
 
-Look for individual sheet PDFs. Drawings are already split if:
-- **AgentCM**: `.construction/index/sheet_index.yaml` exists with individual sheet entries and file paths point to split PDFs
+First read `.construction/project.yaml`. If it exists, AgentCM manages this folder: do not split, rename or index anything.
+
+- Read `.construction/index/sheet_index.yaml`. When its entries carry AgentCM's sheet ids (a `sheets:` list whose entries each have an `id:`), report how many sheets AgentCM holds and tell the PE that a new or reissued bound set is split with **Split & Rename** in AgentCM, which keeps every sheet's id. A split made here writes PDFs AgentCM never registers, and its Rescan would index them as a second drawing set. Then stop.
+- When that file is missing, or its entries have no `id` (an older sheet-splitter wrote a `pages:` list with `filename` and `page_index`), say which, say that this skill does not guess sheet ids, and stop. Do not edit the file.
+
+Without `.construction/project.yaml`, drawings are already split if:
 - Multiple PDFs exist with sheet number patterns in filenames (e.g., `A-1.1 - FLOOR PLAN.pdf`)
 - A `sheet_index.yaml` exists in the drawings directory
 
-If already split, report the count and skip. If AgentCM has the sheet index but files haven't been physically split on disk, offer to split using the existing metadata for naming.
+If already split, report the count and skip.
 
 ### Step 2: Find ALL Drawing PDFs
 
@@ -77,10 +81,12 @@ After splitting, read each page to identify sheet numbers and titles:
 
 Use PDF bookmarks and the title-block text layer only as candidates — they are often abbreviated or stale (e.g. a bookmark "Site Grading Plan" on a sheet printed "Proposed Site Plan"). The printed title block wins. Read the title block by vision whenever there is no candidate, the candidate disagrees with the title-block text, or the sheet number carries a suffix (e.g. `C9.04H`, `K-1.1`).
 
-1. Rasterize the title block region of each page:
+1. Rasterize the title block region of each page, from the project folder:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "page_NNN.pdf" 1 --dpi 200 --output tb.png
+mkdir -p ".construction/skills/sheet-splitter/pages"
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{sheets_dir}/page_NNN.pdf" 1 --dpi 200 --output ".construction/skills/sheet-splitter/pages/tb_NNN.png"
 ```
+Title-block images are working data: keep them under `.construction/skills/sheet-splitter/pages/`. Never put them in the sheets folder, where the PE's split sheets are, and never in `/tmp` or any other folder outside the project.
 
 2. Use vision on the rasterized title block: "Read the title block on this construction drawing. What is the sheet number and sheet title?"
 
@@ -112,18 +118,7 @@ After splitting and identifying, update `.construction/skills/project_context.ya
 - `documents.drawing_count`: number of sheets
 - `documents.disciplines`: list of unique discipline prefixes found
 
-### Step 7: Write Graph Entry (AgentCM only)
-
-If AgentCM is present (`.construction/project.yaml` exists), write a graph entry:
-
-```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
-  --type "drawings_split" \
-  --title "Drawing set split: {N} sheets from {source_pdf}" \
-  --data '{"sheet_count": N, "source_pdf": "...", "identified_count": M, "unidentified_count": K, "disciplines": ["A","S","M","E"]}'
-```
-
-Without AgentCM, skip — the `sheet_index.yaml` serves as the local record.
+The `sheet_index.yaml` in the sheets folder is the record of the split.
 
 ### Multi-Set Projects
 
@@ -152,4 +147,3 @@ Never overwrite existing split sheet PDFs. If `sheets/` directory already contai
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `scripts/split_drawing_set.py` — split bound PDF into per-page PDFs
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision identification
-- `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — graph entry (Step 7)

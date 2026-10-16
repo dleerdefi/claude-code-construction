@@ -12,6 +12,10 @@ disable-model-invocation: true
 
 Extracts tabular schedule data embedded in drawing sheets or spec pages and outputs structured Excel files. Schedules are typically one element among many on a sheet — or the entire sheet may be a schedule.
 
+## First: the mode (both workflows)
+
+Before extracting or reconciling, read `.construction/project.yaml`. Present and readable means AgentCM mode: note its `contract_version` and follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`. Absent means flat-file mode. A listing that shows the file, or `.construction/database.yaml` alone, does not decide it: read the file.
+
 ## Workflow
 
 ```
@@ -21,7 +25,8 @@ Extraction Progress:
 - [ ] Step 3: Extract structured data (pdfplumber + vision)
 - [ ] Step 4: Validate and clean data
 - [ ] Step 5: Output to Excel
-- [ ] Step 6: Write graph entry
+- [ ] Step 6: Ingest to AgentCM (AgentCM mode)
+- [ ] Step 7: Write a finding
 ```
 
 ### Step 1: Discover Schedule Locations
@@ -39,16 +44,11 @@ Search `.construction/index/sheet_index.yaml` (or the sheet index you've built) 
 
 For dedicated schedule sheets, the entire page is the extraction target — no need to crop.
 
-#### Source B — AgentCM database query (supplementary)
+#### Source B — AgentCM's tables (AgentCM mode)
 
-If `.construction/database.yaml` exists, query known schedules through AgentCM's wrapper:
-```bash
-# project_id is in .construction/database.yaml
-sh .construction/query.sh "SELECT id, schedule_type, title, sheet_id, bounding_region FROM schedules WHERE project_id = '{PROJECT_ID}'"
-```
-This returns all schedules already detected (including stubs from Group Review with bounding regions). For embedded schedules on non-schedule sheets, check the `bounding_region` column.
+In AgentCM mode (`.construction/project.yaml` exists; follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md`), `.construction/INDEX.md`'s Schedules and legends table lists every table AgentCM found, each in its own `.construction/schedules/<sheet>-<n>.tsv`. The file's comment line gives the table's box on the sheet (x y w h, 0 to 1 from the top left) and, for a schedule already ingested, its `schedule_id` (`none` for a table read from the sheet's text alone). For embedded schedules on non-schedule sheets, that box is where to look: `sh .construction/crop.sh <sheet> <x> <y> <w> <h>`.
 
-**Note**: Schedule bounding region detection is still being refined — treat these as hints, not definitive boundaries. Always verify with vision.
+**Note**: A table read from the text is AgentCM's reading, and its box an estimate: treat both as leads, not definitive boundaries. Always verify with vision.
 
 #### Source C — Discipline-based heuristics
 
@@ -64,7 +64,7 @@ Schedules appear on specific sheet types:
 
 If no index or graph is available:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 150 --output full_sheet.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 150 --output ".construction/skills/schedule-extractor/pages/full_sheet.png"
 ```
 
 Use vision on the full sheet image: "Identify any tabular schedules on this drawing sheet. Report the approximate bounding box (top-left x,y and bottom-right x,y) as fractions of the image width and height between 0 and 1, the schedule type, and the column headers visible."
@@ -79,10 +79,10 @@ Crop the identified region with padding. The box is the 0–1 fractions from
 Step 1, so `--normalized` is required; without it the script reads the values
 as pixels and returns an empty crop:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" full_sheet.png \
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" ".construction/skills/schedule-extractor/pages/full_sheet.png" \
   --box {x1},{y1},{x2},{y2} --normalized \
   --padding 20 \
-  --output schedule_crop.png
+  --output ".construction/skills/schedule-extractor/pages/schedule_crop.png"
 ```
 
 Re-rasterize at higher DPI (300) for the cropped region to improve text clarity.
@@ -92,18 +92,27 @@ Re-rasterize at higher DPI (300) for the cropped region to improve text clarity.
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} \
   --dpi 300 \
   --crop {x1_pct},{y1_pct},{x2_pct},{y2_pct} \
-  --output schedule_hires.png
+  --output ".construction/skills/schedule-extractor/pages/schedule_hires.png"
 ```
 
 ### Step 3: Extract Structured Data
 
-Use a **try → validate → fallback** approach:
+#### In AgentCM mode — the table AgentCM read
+
+A table INDEX.md lists under Schedules and legends is already read. Turn its file into the exporter's data with the reader, never with a converter of your own:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/agentcm_schedule.py" ".construction/schedules/<sheet>-<n>.tsv" \
+  --type door_schedule --data ".construction/skills/schedule-extractor/<sheet>-<n>.json"
+```
+It prints the header row it took and what it left out. A table read from the sheet's text has its title and header rows at the top: when it took the wrong row, give `--header-row <y>` (the line's position, as the file prints it) and `--header-rows <n>` for a header on several lines. Then verify the table against the drawing with `crop.sh` and the box on the file's comment line (Source B). Where the drawing shows a different value, correct that cell in the data JSON with the Edit tool, and record the correction as `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` says. Methods A to C below are for a table AgentCM did not find.
+
+Otherwise use a **try → validate → fallback** approach:
 
 #### Method A — pdfplumber table extraction (try first)
 
 Extract the page's tables with the shared script (its JSON holds `text` and `tables`; add `--bbox x1,y1,x2,y2` in PDF points to limit it to the schedule region):
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py" "{pdf_path}" {page} --output tables.json
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py" "{pdf_path}" {page} --output ".construction/skills/schedule-extractor/tables.json"
 ```
 If multiple tables are found, select the largest one (most rows with the most columns — schedules are wide). The first row of the selected table contains headers; subsequent rows are data. If no tables are found or results look garbled, fall back to vision (Method B). Do not write pdfplumber code of your own.
 
@@ -134,7 +143,7 @@ When pdfplumber fails (common with complex layouts, merged cells, non-standard t
 
 1. **Rasterize** the sheet at 150 DPI for overview:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 150 --output full_sheet.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 150 --output ".construction/skills/schedule-extractor/pages/full_sheet.png"
 ```
 
 2. **Use vision** on the full sheet image to read the schedule directly:
@@ -143,7 +152,7 @@ When pdfplumber fails (common with complex layouts, merged cells, non-standard t
 
 3. For dense schedules with small text, **re-rasterize at 300 DPI** and crop to just the schedule region:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 300 --output schedule_hires.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf_path}" {page} --dpi 300 --output ".construction/skills/schedule-extractor/pages/schedule_hires.png"
 ```
 
 #### Method C — Hybrid (for maximum accuracy)
@@ -163,18 +172,20 @@ After extraction (by either method):
 - **Merged cell cleanup**: Expand merged header cells (e.g., "WALLS" spanning A/B/C/D sub-columns)
 - **Normalize dimensions**: `3' - 0"` → `3'-0"` (remove spaces around dashes)
 - **Flag revisions**: Note any cells within revision clouds or delta markers
-- **Cross-reference with database**: If `.construction/database.yaml` exists, verify room numbers via `sh .construction/query.sh "SELECT number FROM rooms WHERE project_id = '{PROJECT_ID}' AND number = '{room_number}'"` and door numbers via `sh .construction/query.sh "SELECT ge.tag_number FROM graph_elements ge JOIN sheets s ON s.id = ge.sheet_id WHERE s.project_id = '{PROJECT_ID}' AND ge.element_type = 'door' AND ge.tag_number = '{door_mark}'"`
+- **Cross-reference with AgentCM's identifiers**: In AgentCM mode, check each room number and door mark against `.construction/tags.tsv` (`kind` room or door; the lines starting with the number and a tab). Not finding one there proves nothing (INDEX.md says when its room list is incomplete): report it as "not in AgentCM's index" and check the plan sheets' `.construction/sheets/<sheet>.tsv`.
 
 ### Step 5: Output to Excel
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/schedule_to_xlsx.py" \
-  --data schedule_data.json \
+  --data ".construction/skills/schedule-extractor/<sheet>-<n>.json" \
   --type door_schedule \
   --project "Project Name" \
   --sheet "A-0.01" \
   --output "Door_Schedule_A-0.01.xlsx"
 ```
+
+The data JSON is working data: write it (with the Write tool, or the reader in AgentCM mode) under `.construction/skills/schedule-extractor/`, never in the project root or a folder of your own. The workbook is the deliverable: write it in the project folder as the command above shows, never under `.construction/`. For a table AgentCM has already ingested (`schedule_id=<id>` on its file's comment line), add `--schedule-id <id> --sheet-id <the sheet's id>` so the workbook can come back through the round trip.
 
 The script creates a formatted Excel workbook with:
 - Header row with project info and source sheet
@@ -182,16 +193,24 @@ The script creates a formatted Excel workbook with:
 - Conditional formatting for empty/flagged cells
 - Source metadata in a separate tab
 
-### Step 6: Ingest to Database
+### Step 6: Ingest to AgentCM (AgentCM mode)
 
-After Excel output, POST extracted data to the AgentCM schedule ingest API so it's stored in PostgreSQL, linked to rooms, and queryable by agents:
+After Excel output, send the extracted data to AgentCM's schedule ingest, which stores it and links its rows to rooms. The payload (below) goes in `.construction/skills/schedule-extractor/outbox/schedules-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json`:
+- **A table from `schedules/` not yet ingested** (`schedule_id=none`): the reader writes it. Run it again with `--payload <that path> --sheet-id <id> --row-entity-type <type> --source-method hybrid --confidence <0 to 1>` (`hybrid`: AgentCM's reading, checked by eye with `crop.sh`), and make any correction from Step 3 in the payload's cell too.
+- **A table already ingested** (`schedule_id=<id>`): nothing to ingest. The reader refuses, and the PE edits come back through the round trip below.
+- **A table read by Methods A to C:** write the payload with the Write tool. `sourceMethod` is one of `pdfplumber`, `vision`, `hybrid` or `manual`, and `rowEntityType` one of the types listed below.
+
+Send it as `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` says under Writing back; if AgentCM is closed, the payload waits there and the PE is told:
 
 ```bash
-# Read api_url and project_id from .construction/database.yaml
-curl -X POST "{api_url}/projects/{project_id}/schedules/ingest" \
+# api_url and project_id from .construction/database.yaml
+curl -sS -X POST "{api_url}/projects/{project_id}/schedules/ingest" \
   -H "Content-Type: application/json" \
-  -d @schedule_ingest_payload.json
+  -d @".construction/skills/schedule-extractor/outbox/schedules-ingest-<sheet>-<YYYYMMDD-HHMMSS>.json" \
+  -w "\nHTTP %{http_code}\n"
 ```
+
+**The sheet's id.** `sheetId` is the `id` of the entry in `.construction/index/sheet_index.yaml` whose `sheet_number` is the schedule's sheet. Never guess it from the number. If that file is missing, or its entries have no `id` (an older sheet-splitter wrote a `pages:` list with `filename` and `page_index`), say so and stop: do not ingest. The Excel workbook from Step 5 stands either way.
 
 The ingest payload JSON follows this structure:
 
@@ -235,11 +254,13 @@ The ingest endpoint automatically:
 4. Extracts finish/hardware codes into the code legends table
 5. Creates pending links for fixtures/equipment that need spatial resolution
 
-**Also write the graph finding entry** (for backwards compatibility with existing skills):
+### Step 7: Write a Finding
+
+In both modes, record the extraction in `.construction/skills/schedule-extractor/findings/`:
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
-  --type "schedule_extracted" \
+  --skill "schedule-extractor" --type "schedule_extracted" \
   --title "Door schedule extracted from A-0.01" \
   --source-sheet "A-0.01" \
   --output-file "Door_Schedule_A-0.01.xlsx" \
@@ -248,7 +269,7 @@ The ingest endpoint automatically:
 
 ## Schedule Reconciliation (Excel → DB Round-Trip)
 
-When a PE edits an exported Excel schedule and wants changes applied back to the database:
+When a PE edits an exported Excel schedule and wants changes applied back to AgentCM:
 
 ### Reconciliation Workflow
 
@@ -270,29 +291,33 @@ If the Excel lacks `_agentcm_meta`, it was not exported by AgentCM — treat as 
 
 ### Step R2: Compute Changeset
 
-Run the diff engine to compare the edited Excel against current DB state:
+Run the diff engine to compare the edited Excel against the rows AgentCM holds:
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/xlsx_to_changeset.py" \
   --excel "edited_schedule.xlsx" \
-  --query-wrapper ".construction/query.sh" \
-  --output changeset.json
+  --output ".construction/skills/schedule-extractor/outbox/schedules-reconcile-<sheet>-<YYYYMMDD-HHMMSS>.json"
 ```
 
 The script:
-1. Reads `_agentcm_meta` → extracts `schedule_id`
+1. Reads `_agentcm_meta` → extracts `schedule_id`. A table never ingested (`schedule_id=none`) has nothing to reconcile and is refused: ingest it first (Step 6)
 2. Reads data sheet → extracts `_row_key` column + all data columns
-3. Queries DB for current schedule rows/cells through `.construction/query.sh`
+3. Reads the schedule's stored rows from AgentCM, `GET {api_url}/projects/{project_id}/schedules/{schedule_id}/rows`, with `project_id` and `api_url` from `.construction/database.yaml` (nothing else in it)
 4. Computes diff: cell changes, new rows, deleted rows, new columns, hidden columns
-5. Outputs a structured JSON changeset
+5. Outputs a structured JSON changeset, with `sourceFile` the edited Excel's name
+
+It needs AgentCM running. If AgentCM does not answer, the script exits 3 and computes nothing: tell the PE to start AgentCM and rerun this step (the edited Excel is all it needs).
 
 ### Step R3: POST Changeset to Reconcile Endpoint
 
+Send the changeset R2 wrote to the outbox, as `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` says under Writing back:
+
 ```bash
-# Read api_url and project_id from .construction/database.yaml
-curl -X POST "{api_url}/projects/{project_id}/schedules/reconcile" \
+# api_url and project_id from .construction/database.yaml
+curl -sS -X POST "{api_url}/projects/{project_id}/schedules/reconcile" \
   -H "Content-Type: application/json" \
-  -d @changeset.json
+  -d @".construction/skills/schedule-extractor/outbox/schedules-reconcile-<sheet>-<YYYYMMDD-HHMMSS>.json" \
+  -w "\nHTTP %{http_code}\n"
 ```
 
 The reconcile endpoint applies changes with:
@@ -357,6 +382,8 @@ Never overwrite an existing schedule extraction. The export script uses `safe_ou
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/extract_text_region.py` — Method A table extraction (pdfplumber)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision extraction
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — crop schedule region from full sheet image
+- `scripts/agentcm_schedule.py` — AgentCM mode: a table from `.construction/schedules/` to the exporter's data and, for one not yet ingested, the ingest payload (Steps 3 and 6)
 - `scripts/schedule_to_xlsx.py` — Excel export with reconciliation anchors
-- `scripts/xlsx_to_changeset.py` — diff edited Excel against DB for reconciliation
-- `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — graph entry (Step 6)
+- `scripts/xlsx_to_changeset.py` — diff the edited Excel against AgentCM's stored rows (its rows endpoint) for reconciliation
+- `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — record the extraction as a finding (Step 7)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)

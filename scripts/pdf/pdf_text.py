@@ -16,6 +16,7 @@ if the text is thin" rule is decided on.
 
 import argparse
 import sys
+from pathlib import Path
 
 
 def parse_pages(spec, total):
@@ -84,6 +85,7 @@ def main():
 
     body = "\n".join(lines)
     if args.output:
+        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
         with open(args.output, "w", encoding="utf-8") as f:
             f.write(body + "\n")
         print(f"OK: {args.output} — {footer}")

@@ -86,8 +86,8 @@
     },
     "status": {
       "type": "string",
-      "enum": ["pending_review", "approved", "rejected"],
-      "description": "Review workflow status"
+      "enum": ["accepted", "to_confirm", "rejected"],
+      "description": "accepted: accepted in AgentCM's review; to_confirm: not yet accepted; rejected: the PE turned it down in AgentCM, counted in no number (qto-output-format.md)"
     },
     "confidence": {
       "type": "string",
@@ -98,15 +98,6 @@
       "type": "string",
       "enum": ["vision_detected", "user_added", "derived_from_type_def"],
       "description": "How this record was created"
-    },
-    "approved_by": {
-      "type": ["string", "null"],
-      "description": "User who approved (null if pending)"
-    },
-    "approved_at": {
-      "type": ["string", "null"],
-      "format": "date-time",
-      "description": "Approval timestamp"
     }
   }
 }

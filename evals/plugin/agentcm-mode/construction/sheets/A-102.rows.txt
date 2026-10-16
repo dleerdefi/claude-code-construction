@@ -1,0 +1,6 @@
+# A-102 rows: the text on each line across the sheet, cells left to right, separated by tabs; first the line's position y (0 to 1 from the top). Lines of two or more cells outside the sheet's tables: a table's rows are in its file in schedules/, so a row is in one of the two.
+0.300	OFFICE	STORAGE	CLASSROOM
+0.311	201	202	203
+0.600	CORRIDOR	TOILET	LOBBY
+0.611	204	205	206
+0.880	5	ENLARGED OFFICE PLAN

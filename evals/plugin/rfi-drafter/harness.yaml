@@ -2,3 +2,6 @@ checks:
   - name: rfi-document
     script: checks/rfi_document.py
     weight: 4
+  - name: no-agentcm-writes
+    script: ../_checks/no_agentcm_writes.py
+    weight: 1

@@ -17,9 +17,7 @@ installed item at a specific building location.
 | composite_bbox     | object  | Union bbox of all constituents           |
 | associated_items   | object  | Room number, dimensions, codes, etc.     |
 | view_type          | string  | Always "floor_plan" for instances        |
-| status             | enum    | pending_review / approved / rejected     |
-| approved_by        | string  | User who approved (null if pending)      |
-| approved_at        | datetime| Approval timestamp                       |
+| status             | enum    | accepted / to_confirm / rejected (`qto-output-format.md`) |
 | confidence         | string  | high / medium / low                      |
 | provenance         | string  | "vision_detected" or "user_added"        |
 
@@ -41,7 +39,7 @@ applies to all locations of that type.
 | constituent_ids    | int[]   | OCR extracted item IDs                   |
 | composite_bbox     | object  | Union bbox                               |
 | view_type          | string  | detail / section / elevation / enlarged  |
-| status             | enum    | pending_review / approved / rejected     |
+| status             | enum    | accepted / to_confirm / rejected (`qto-output-format.md`) |
 | elements_in_type   | object[]| All elements defined in this view        |
 | confidence         | string  | high / medium / low                      |
 
@@ -60,7 +58,7 @@ between a type definition and floor plan references.
 | tag_type           | string  | Inherited from type definition           |
 | tag_text           | string  | Inherited from type definition           |
 | derivation_method  | string  | How the link was established (see below) |
-| status             | enum    | pending_review / approved / rejected     |
+| status             | enum    | accepted / to_confirm / rejected (`qto-output-format.md`) |
 | deduplicated       | boolean | True if a direct instance already exists |
 
 ## Derivation Methods
@@ -70,14 +68,15 @@ methods are available (in order of reliability):
 
 1. **callout_reference** — A detail callout bubble on a floor plan
    explicitly references the source detail number. Most reliable.
-   Graph query: find callout detections on floor plans whose
-   reference text matches the type definition's source_detail.
+   In AgentCM mode: the callouts in `.construction/xrefs.tsv` (kind
+   `callout` or `multi_callout`) from floor plans whose `detail` matches
+   the type definition's source_detail.
 
 2. **room_type_match** — Room tags on floor plans match the type
    definition's parent_view_label. E.g., all rooms tagged "TOILET"
    get elements from "TYPICAL TOILET" detail.
-   Graph query: find room tag detections whose text matches or
-   contains the parent_view_label.
+   In AgentCM mode: the room lines in `.construction/tags.tsv` (kind
+   `room`) whose text matches or contains the parent_view_label.
 
 3. **schedule_crossref** — A finish schedule or room schedule
    cross-references the detail. Least common but catches cases
@@ -100,11 +99,14 @@ derived instance actually represent different physical items.
 ## QTO Aggregation
 
 ```
-Building Qty = (approved element instances where deduplicated=false)
-             + (approved derived instances where deduplicated=false)
+Confirmed      = element instances accepted in AgentCM's review
+To confirm     = element instances not yet accepted (each tag once)
+               + derived instances where deduplicated=false
+Possible total = confirmed + to confirm
 ```
 
-Every number traces to either:
-- "Detected on sheet X at bbox Y, approved by user Z on date W"
-- "Derived from type def T applied to room R via method M,
-   approved by user Z on date W"
+`scripts/qto_to_xlsx.py` computes the three from the QTO JSON
+(`references/qto-output-format.md`). Every number traces to either:
+- "Detected on sheet X at bbox Y, accepted in AgentCM's review" (confirmed),
+  or found and not yet accepted (to confirm)
+- "Derived from type def T applied to room R via method M" (to confirm)

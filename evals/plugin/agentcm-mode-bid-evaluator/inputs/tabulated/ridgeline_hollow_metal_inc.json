@@ -1,0 +1,47 @@
+{
+  "company_name": "Ridgeline Hollow Metal Inc.",
+  "contact_name": "Tomas Ferreira",
+  "contact_phone": "(555) 010-2203",
+  "contact_email": "office@ridgelinehm.example",
+  "bid_date": "September 23, 2026",
+  "bid_validity_period": "60 days",
+  "base_bid_amount": 11425.0,
+  "bond_included": true,
+  "schedule_duration": "6 weeks from approved submittals",
+  "payment_terms": "Net 30 from approved pay application",
+  "addenda_acknowledged": [],
+  "line_items": [
+    {
+      "spec_section": "08 11 13",
+      "description": "Hollow metal frame, 3'-0\" x 7'-0\", for D101 to D115",
+      "qty": 15,
+      "unit": "EA",
+      "unit_price": 470.0,
+      "extended_price": 7050.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "08 11 13",
+      "description": "Hollow metal door, 3'-0\" x 7'-0\" x 1-3/4\", where A-601 says HM",
+      "qty": 7,
+      "unit": "EA",
+      "unit_price": 625.0,
+      "extended_price": 4375.0,
+      "notes": ""
+    }
+  ],
+  "alternates": [],
+  "scope_inclusions": [
+    "Furnish and install hollow metal frames and doors per 08 11 13 and the A-601 door schedule"
+  ],
+  "scope_exclusions": [
+    "Door hardware (by others)",
+    "Floor anchors (by others)",
+    "Field painting"
+  ],
+  "qualifications": [
+    "Frames 16 gauge, welded"
+  ],
+  "allowances": [],
+  "insurance_confirmed": true
+}

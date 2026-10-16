@@ -1,0 +1,3 @@
+# The AgentCM contract fixture, written by scripts/writeContractFixture.ts (docs/AGENT_CONTRACT.md)
+agentcm_commit: cad768d2bb671b8e92f46a667ffbaebd9c913d4a
+contract_version: 1

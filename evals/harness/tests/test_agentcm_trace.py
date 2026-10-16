@@ -1,0 +1,314 @@
+"""The agentcm-mode cases' trace and request checks, on made-up runs: each passes the right run and fails the wrong one."""
+import contextlib
+import io
+import json
+import os
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+CHECKS = Path(__file__).resolve().parents[2] / "plugin" / "_checks"
+sys.path.insert(0, str(CHECKS))
+
+import agentcm_trace as t  # noqa: E402
+
+A101 = t.sheet_ids()["A-101"]
+PID = t.project_id()
+BOX = {"x": 0.4, "y": 0.3, "width": 0.06, "height": 0.02}
+DET = {"tag_text": "STORAGE 102", "tag_type": "room_tag", "bounding_box": BOX, "confidence": 0.8}
+
+
+def qto(statuses):
+    return {"scope": {"mode": "agentcm"}, "line_items": [{"element": "Room tag", "designation": "RT", "instance_details": [
+        {"sheet": "A-101", "tag_text": f"T{i}", "status": s, "bounding_box": dict(BOX, x=0.1 * i)} for i, s in enumerate(statuses)]}]}
+
+
+class Run:
+    def __init__(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.ws = Path(self.tmp.name)
+        t.WORKSPACE = self.ws
+
+    def requests(self, *reqs):
+        p = self.ws / ".eval-api" / "requests.jsonl"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("".join(json.dumps(r) + "\n" for r in reqs), encoding="utf-8")
+
+    def file(self, rel, data):
+        p = self.ws / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(data), encoding="utf-8")
+
+
+def outcome(check, *args, **kwargs):
+    with contextlib.redirect_stdout(io.StringIO()) as out:
+        try:
+            check(*args, **kwargs)
+        except SystemExit as e:
+            return e.code, out.getvalue()
+    return None, out.getvalue()
+
+
+def req(method, endpoint, body=None, status=200, response=None):
+    return {"method": method, "path": f"/api/projects/{PID}/{endpoint}", "query": "", "body": body, "status": status,
+            "response": response}
+
+
+def ingest(*outcomes, dets=None):
+    """A tag ingest of DET (or `dets`), answered with one outcome per detection."""
+    dets = dets or [DET] * len(outcomes)
+    return req("POST", "tag-detections/ingest", {"sheet_id": A101, "detections": dets},
+               response={"results": [{"index": i, "outcome": o} for i, o in enumerate(outcomes)]})
+
+
+class Checks(unittest.TestCase):
+    def setUp(self):
+        self.run = Run()
+        self.addCleanup(self.run.tmp.cleanup)
+
+    def test_tag_ingest(self):
+        self.run.requests(req("POST", "tag-detections/ingest", {"sheet_id": A101, "detections": [DET]}))
+        self.assertEqual(outcome(t.check_tag_ingest, ["A-101"])[0], 0)
+        self.run.requests(req("POST", "tag-detections/ingest", {"sheet_id": "guessed", "detections": [dict(DET, bounding_box={"x": 2})]}))
+        code, out = outcome(t.check_tag_ingest, ["A-101"])
+        self.assertEqual(code, 1)
+        self.assertIn("not A-101's", out)
+
+    def test_tag_ingest_sends_contract_1_names_by_the_box(self):
+        for bad, words in ((dict(DET, tag_type="qto_room_tag"), "not one of contract 1's names"),
+                           (dict(DET, tag_type="plumbing_fixture"), "not one of contract 1's names"),
+                           (dict(DET, element_ids=["e1"]), "goes by its box")):
+            self.run.requests(req("POST", "tag-detections/ingest", {"sheet_id": A101, "detections": [bad]}))
+            code, out = outcome(t.check_tag_ingest, ["A-101"])
+            self.assertEqual(code, 1, bad)
+            self.assertIn(words, out)
+        self.run.requests(req("POST", "tag-detections/ingest", {"sheet_id": A101, "detections": [dict(DET, element_ids=[])]}))
+        self.assertEqual(outcome(t.check_tag_ingest, ["A-101"])[0], 0)
+
+    def bash(self, *commands):
+        p = self.run.ws / "trace.jsonl"
+        p.write_text("".join(json.dumps({"type": "tool_use", "name": "Bash", "input": {"command": c}}) + "\n"
+                             for c in commands), encoding="utf-8")
+        os.environ["EVAL_TRACE"] = str(p)
+        self.addCleanup(os.environ.pop, "EVAL_TRACE", None)
+
+    def test_no_own_extraction_of_what_agentcm_read(self):
+        # the manual AgentCM read, with page 1 in no section (INDEX.md: read such pages in the PDF)
+        read, drawings = {"Specifications/Project Manual.pdf": [1]}, ["drawings/A-101.pdf", "drawings/A-601.pdf"]
+        PY, TK = '"$PY"', '"${CLAUDE_PLUGIN_ROOT}/scripts/pdf'
+        # spec-splitter on the manual INDEX.md lists as not read, and on the sections it split from it; crop.sh;
+        # the read manual's page in no section, as the 11:16 run 3 rasterized it, and through pdf_text --pages
+        self.bash(f'{PY} {TK}/pdf_text.py" "Specifications/Scanned Volume.pdf" --summary',
+                  f'{PY} {TK}/pdf_text.py" ".construction/skills/spec_text/09-30-00.pdf"',
+                  "sh .construction/crop.sh A-601 0.1 0.06 0.44 0.346",
+                  f'cd "/ws" && mkdir -p .construction/skills/code-researcher/pages && {PY} {TK}/rasterize_page.py" '
+                  '"Specifications/Project Manual.pdf" 1 --dpi 100 --output ".construction/skills/code-researcher/pages/manual_p1.png"; '
+                  'ls .construction/skills/code-researcher/pages',
+                  f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf" --pages 1',
+                  f'{PY} {TK}/pdf_text.py" --pages 1 Specifications/Project\\ Manual.pdf')  # a shell-escaped space
+        self.assertEqual(outcome(t.check_no_own_extraction, read, drawings)[0], 0)
+        for bad in (f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf"; ls .construction/skills',  # the 10:38 run
+                    f'{PY} {TK}/pdf_text.py" "Specifications/Project Manual.pdf" --pages 1-2',
+                    f'{PY} {TK}/pdf_text.py" --pages 2 Specifications/Project\\ Manual.pdf',  # the 13:33 bid-evaluator run
+                    f'{PY} {TK}/rasterize_page.py" "Specifications/Project Manual.pdf" 2 --dpi 200',
+                    f'{PY} {TK}/rasterize_page.py" "drawings/A-601.pdf" 1 --dpi 200'):
+            self.bash(bad)
+            code, out = outcome(t.check_no_own_extraction, read, drawings)
+            self.assertEqual(code, 1, bad)
+            self.assertIn("extraction of what AgentCM read", out)
+
+    def test_deliverables_stay_out_of_construction(self):
+        (self.run.ws / "BP-08_Bid_Evaluation.xlsx").write_bytes(b"x")  # the project root: visible
+        (self.run.ws / ".construction" / "skills" / "bid-evaluator").mkdir(parents=True)
+        (self.run.ws / ".construction" / "skills" / "bid-evaluator" / "input.json").write_text("{}", encoding="utf-8")
+        self.assertEqual(outcome(t.check_deliverables_visible)[0], 0)
+        for hidden in ("bid-evaluator/BP-08_Bid_Evaluation.xlsx", "subcontract-writer/Subcontract_Lakeside_BP-08.docx"):
+            p = self.run.ws / ".construction" / "skills" / hidden  # where the 13:33 runs put them
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(b"x")
+            code, out = outcome(t.check_deliverables_visible)
+            self.assertEqual(code, 1, hidden)
+            self.assertIn("hidden under .construction/", out)
+            p.unlink()
+
+    def test_contract_requests(self):
+        self.run.requests(req("GET", "schedules/s1/rows"), req("POST", "tag-detections/ingest", {"sheet_id": A101}))
+        self.assertEqual(outcome(t.check_contract_requests)[0], 0)
+        for unpromised in (f"sheets/{A101}/claimed-elements", "group-review/available-types", "graph/export"):
+            self.run.requests(req("GET", unpromised), req("POST", "tag-detections/ingest", {"sheet_id": A101}))
+            self.assertEqual(outcome(t.check_contract_requests)[0], 1, unpromised)
+
+    def test_schedule_ingest_takes_agentcms_value_lists(self):
+        a601 = t.sheet_ids()["A-601"]
+        body = {"sheetId": a601, "scheduleType": "door", "title": "DOOR SCHEDULE", "rowEntityType": "door",
+                "columns": [{"key": "MARK", "header": "MARK"}], "rows": [{"entityIdentifier": "D101", "cells": {"MARK": "D101"}}],
+                "sourceMethod": "hybrid", "confidence": 0.9}
+        self.run.requests(req("POST", "schedules/ingest", body))
+        self.assertEqual(outcome(t.check_schedule_ingest, "A-601")[0], 0)
+        for bad, words in ((dict(body, sourceMethod="agentcm_text"), "sourceMethod 'agentcm_text'"),  # the 10:38 run's
+                           (dict(body, rowEntityType="door_schedule"), "rowEntityType 'door_schedule'")):
+            self.run.requests(req("POST", "schedules/ingest", bad))
+            code, out = outcome(t.check_schedule_ingest, "A-601")
+            self.assertEqual(code, 1, bad)
+            self.assertIn(words, out)
+
+    def test_reconcile_needs_the_rows_read_and_an_answer_without_errors(self):
+        edit = {"scheduleId": "s1", "sourceFile": "w.xlsx",
+                "cellUpdates": [{"rowKey": "A", "columnKey": "GLAZING", "newValue": "TEMPERED (REV)"}]}
+        took = {"cellsChanged": 1, "errors": []}
+        self.run.requests(req("GET", "schedules/s1/rows"), req("POST", "schedules/reconcile", edit, response=took))
+        self.assertEqual(outcome(t.check_reconcile, "s1", "A", "GLAZING", "TEMPERED (REV)")[0], 0)
+        refused = {"cellsChanged": 0, "errors": ["Row 'A' not found for cell update"]}
+        self.run.requests(req("GET", "schedules/s1/rows"), req("POST", "schedules/reconcile", edit, response=refused))
+        self.assertEqual(outcome(t.check_reconcile, "s1", "A", "GLAZING", "TEMPERED (REV)")[0], 1)
+        self.run.requests(req("POST", "schedules/reconcile", edit, response=took))  # the stored rows never read
+        self.assertEqual(outcome(t.check_reconcile, "s1", "A", "GLAZING", "TEMPERED (REV)")[0], 1)
+
+    def test_outbox_when_agentcm_is_closed(self):
+        self.run.file(".construction/skills/tag-audit-and-takeoff/outbox/tag-detections-ingest-A-101-20261012-050000.json",
+                      {"sheet_id": A101, "detections": [DET]})
+        self.assertEqual(outcome(t.check_outbox, "tag-audit-and-takeoff", "tag", "A-101")[0], 0)
+        self.run.requests(req("POST", "tag-detections/ingest", {"sheet_id": A101, "detections": [DET]}))
+        self.assertEqual(outcome(t.check_outbox, "tag-audit-and-takeoff", "tag", "A-101")[0], 1)
+
+    Q = ".construction/skills/tag-audit-and-takeoff/qto/"
+
+    def test_takeoff_twice_a_tag_sent_again_is_already_held(self):
+        self.run.file(self.Q + "room_tag_1.json", qto(["accepted", "to_confirm", "to_confirm"]))
+        self.run.file(self.Q + "room_tag_2.json", qto(["accepted", "to_confirm", "to_confirm"]))
+        moved = dict(DET, bounding_box=dict(BOX, x=0.405))
+        self.run.requests(ingest("created"), ingest("already_held", dets=[moved]))
+        code, out = outcome(t.check_takeoff_twice, accepted=1, pending=1)
+        self.assertEqual(code, 0, out)
+
+    def test_takeoff_twice_fails_on_drift_or_a_second_card(self):
+        self.run.file(self.Q + "room_tag_1.json", qto(["accepted", "to_confirm"]))
+        self.run.file(self.Q + "room_tag_2.json", qto(["accepted", "to_confirm", "to_confirm"]))
+        self.run.requests(ingest("created"))
+        self.assertEqual(outcome(t.check_takeoff_twice, accepted=1, pending=1)[0], 1)  # the numbers drifted
+        self.run.file(self.Q + "room_tag_2.json", qto(["accepted", "to_confirm"]))
+        self.run.requests(ingest("created"), ingest("created", dets=[dict(DET, bounding_box=dict(BOX, x=0.405))]))
+        self.assertEqual(outcome(t.check_takeoff_twice, accepted=1, pending=1)[0], 1)  # the same tag made two cards
+
+    def test_takeoff_twice_fails_when_the_second_run_never_sent(self):
+        # the second QTO a copy of the first: nothing from the first run was ever sent again
+        self.run.file(self.Q + "room_tag_1.json", qto(["accepted", "to_confirm"]))
+        self.run.file(self.Q + "room_tag_2.json", qto(["accepted", "to_confirm"]))
+        self.run.requests(ingest("created"))
+        code, out = outcome(t.check_takeoff_twice, accepted=1, pending=1)
+        self.assertEqual(code, 1, out)
+        self.assertIn("already held: False", out)
+
+    def test_takeoff_twice_a_seen_tag_is_reported_once_in_corrections(self):
+        listed = qto(["accepted", "to_confirm"])
+        listed["line_items"][0]["instance_details"].append(
+            {"sheet": "A-101", "tag_text": "STAIR 2", "status": "seen", "crop": "c.png", "bounding_box": dict(BOX, x=0.80)})
+        self.run.file(self.Q + "room_tag_1.json", listed)
+        self.run.file(self.Q + "room_tag_2.json", listed)
+        self.run.requests(ingest("created"), ingest("already_held", dets=[dict(DET, bounding_box=dict(BOX, x=0.405))]))
+        corr = self.run.ws / ".construction" / "skills" / "corrections.tsv"
+        head = "sheet\tx\ty\tw\th\tkind\tcrop\tagentcm\tdrawing\n"
+        line = "A-101\t{x}\t0.3\t0.06\t0.02\ttag\tc.png\t\tSTAIR 2\n"
+        for body, code in ((head + line.format(x=0.80), 0),                              # reported once
+                           (head + line.format(x=0.80) + line.format(x=0.83), 1),        # twice: boxes 3% apart
+                           (head, 1)):                                                   # never reported
+            corr.write_text(body, encoding="utf-8")
+            got, out = outcome(t.check_takeoff_twice, accepted=1, pending=1)
+            self.assertEqual(got, code, out)
+
+    def test_takeoff_twice_a_drawn_tag_with_no_text_is_seen_and_reported_once(self):
+        stair, mark = dict(BOX, x=0.80), ("A-101", (0.797, 0.297, 0.066, 0.027), "a101-stair-107")
+        listed = qto(["accepted", "to_confirm"])
+        listed["line_items"][0]["instance_details"].append(
+            {"sheet": "A-101", "tag_text": "STAIR 107", "status": "seen", "crop": "c.png", "bounding_box": stair})
+        self.run.file(self.Q + "room_tag_1.json", listed)
+        self.run.file(self.Q + "room_tag_2.json", listed)
+        self.run.requests(ingest("created"), ingest("already_held", dets=[dict(DET, bounding_box=dict(BOX, x=0.405))]))
+        corr = self.run.ws / ".construction" / "skills" / "corrections.tsv"
+        corr.write_text("sheet\tx\ty\tw\th\tkind\tcrop\tagentcm\tdrawing\nA-101\t0.80\t0.3\t0.06\t0.02\ttag\tc.png\t\tSTAIR 107\n",
+                        encoding="utf-8")
+        got, out = outcome(t.check_takeoff_twice, accepted=1, pending=1, seen_marks=[mark])
+        self.assertEqual(got, 0, out)
+        unseen = qto(["accepted", "to_confirm"])  # a takeoff that never saw it
+        self.run.file(self.Q + "room_tag_2.json", unseen)
+        got, out = outcome(t.check_takeoff_twice, accepted=1, pending=1, seen_marks=[mark])
+        self.assertEqual(got, 1, out)
+        self.assertIn("drawn tags not seen: ['run 2: a101-stair-107']", out)
+
+    def test_seen_reported_offline(self):
+        mark = ("A-101", (0.797, 0.297, 0.066, 0.027), "a101-stair-107")
+        listed = qto(["accepted"])
+        listed["line_items"][0]["instance_details"].append(
+            {"sheet": "A-101", "tag_text": "STAIR 107", "status": "seen", "crop": "c.png", "bounding_box": dict(BOX, x=0.80)})
+        self.run.file(self.Q + "room_tag_1.json", listed)
+        corr = self.run.ws / ".construction" / "skills" / "corrections.tsv"
+        head, line = "sheet\tx\ty\tw\th\tkind\tcrop\tagentcm\tdrawing\n", "A-101\t0.80\t0.3\t0.06\t0.02\ttag\tc.png\t\tSTAIR 107\n"
+        for body, code in ((head + line, 0), (head + line + line, 1), (head, 1)):
+            corr.write_text(body, encoding="utf-8")
+            self.assertEqual(outcome(t.check_seen_reported, [mark])[0], code, body)
+        self.run.file(self.Q + "room_tag_1.json", qto(["accepted", "to_confirm"]))  # counted as to confirm, not seen
+        corr.write_text(head + line, encoding="utf-8")
+        self.assertEqual(outcome(t.check_seen_reported, [mark])[0], 1)
+
+    def test_crop_on_a_drawn_mark(self):
+        box = (0.797, 0.297, 0.066, 0.027)
+        for command, code in (("sh .construction/crop.sh A-101 0.78 0.28 0.10 0.06", 0),
+                              ('powershell -File .construction/crop.ps1 "A-101" 0.79 0.29 0.08 0.04', 0),
+                              ("sh .construction/crop.sh A-101 0.05 0.06 0.12 0.02", 1),  # elsewhere on the sheet
+                              ("sh .construction/crop.sh A-102 0.78 0.28 0.10 0.06", 1)):  # another sheet
+            self.bash(command)
+            self.assertEqual(outcome(t.check_crop_on_mark, "A-101", box, "a101-stair-107")[0], code, command)
+
+    def test_a_crop_made_in_a_shell_loop_counts_by_the_png_it_left(self):
+        box = (0.797, 0.297, 0.066, 0.027)
+        # the 16:06 offline tag-audit run: quarter tiles in a loop, each box in variables
+        self.bash('cd .construction; for y in 0 0.25 0.5 0.75; do for x in 0 0.25 0.5 0.75; do sh crop.sh A-101 $x $y 0.25 0.25; done; done')
+        self.assertEqual(outcome(t.check_crop_on_mark, "A-101", box, "a101-stair-107")[0], 1)  # nothing to read in the command
+        crops = self.run.ws / ".construction" / "crops"
+        crops.mkdir(parents=True)
+        (crops / "A-101_0.75_0.25_0.25_0.25.png").write_bytes(b"\x89PNG")
+        (crops / "A-101_0_0_0.25_0.25.png").write_bytes(b"\x89PNG")
+        self.assertEqual(outcome(t.check_crop_on_mark, "A-101", box, "a101-stair-107")[0], 0)
+        self.assertIn(("A-101", 0.75, 0.25, 0.25, 0.25), t.crops())
+
+    def test_a_word_document_says_the_crop_fact(self):
+        import docx
+        rfi = Path(__file__).resolve().parents[2] / "plugin" / "agentcm-mode-rfi-drafter" / "checks" / "crop_fact.py"
+        import ast
+        import re
+        literal = re.search(r'check_docx_says\("[^"]*", (r"[^"]*")', rfi.read_text(encoding="utf-8")).group(1)
+        regex = ast.literal_eval(literal)  # the rfi-drafter case's own pattern
+        for text, code in (("Door D101: the HDWR cell points to Keynote 7 on A-601.", 0),
+                           ("A leader runs from hardware set 10 to hexagon keynote 7.", 0),
+                           ("See key note #7.", 0),
+                           ("Keynote 17 applies.", 1),
+                           ("Please confirm hardware set 10.", 1)):
+            d = docx.Document()
+            d.add_paragraph(text)
+            d.save(str(self.run.ws / "RFI-001.docx"))
+            self.assertEqual(outcome(t.check_docx_says, "**/RFI-*.docx", regex, "keynote 7")[0], code, text)
+        (self.run.ws / "RFI-001.docx").unlink()
+        self.assertEqual(outcome(t.check_docx_says, "**/RFI-*.docx", regex, "keynote 7")[0], 1)
+
+    def test_takeoff_twice_a_rejected_tag_is_listed_once_in_each_run(self):
+        stair = dict(DET, tag_text="STAIR 2", bounding_box=dict(BOX, x=0.8))
+        listed = qto(["accepted", "to_confirm"])
+        listed["line_items"][0]["instance_details"].append(
+            {"sheet": "A-101", "tag_text": "Stair 2", "status": "rejected", "bounding_box": dict(BOX, x=0.8)})
+        self.run.file(self.Q + "room_tag_1.json", listed)
+        self.run.file(self.Q + "room_tag_2.json", listed)
+        self.run.requests(ingest("created", "rejected", dets=[DET, stair]), ingest("already_held", "rejected", dets=[DET, stair]))
+        code, out = outcome(t.check_takeoff_twice, accepted=1, pending=1)
+        self.assertEqual(code, 0, out)
+        counted = qto(["accepted", "to_confirm", "to_confirm"])
+        counted["line_items"][0]["instance_details"][2].update(tag_text="STAIR 2", bounding_box=dict(BOX, x=0.8))
+        self.run.file(self.Q + "room_tag_1.json", counted)
+        self.run.file(self.Q + "room_tag_2.json", counted)
+        code, out = outcome(t.check_takeoff_twice, accepted=1, pending=1)
+        self.assertEqual(code, 1, out)
+        self.assertIn("STAIR 2 on A-101 as ['to_confirm']", out)
+
+
+if __name__ == "__main__":
+    unittest.main()

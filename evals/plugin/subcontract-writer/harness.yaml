@@ -3,3 +3,6 @@ checks:
   - name: subcontract-content
     script: checks/subcontract.py
     weight: 5
+  - name: no-agentcm-writes
+    script: ../_checks/no_agentcm_writes.py
+    weight: 1

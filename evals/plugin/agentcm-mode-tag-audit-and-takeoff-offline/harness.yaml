@@ -1,0 +1,21 @@
+checks:
+  - name: agentcm-mode-writes
+    script: ../_checks/agentcm_mode_writes.py
+    weight: 1
+  - name: deliverables-visible
+    script: checks/deliverables_visible.py
+    weight: 1
+  - name: no-own-extraction
+    script: checks/no_own_extraction.py
+    weight: 1
+  - name: outbox
+    script: checks/outbox.py
+    weight: 3
+  - name: seen-reported
+    script: checks/seen_reported.py
+    weight: 2
+  - name: crop-mark
+    script: checks/crop_mark.py
+    weight: 1
+allow_urls: ["http://127.0.0.1:47817/"]
+teardown: ../agentcm-mode/teardown.sh

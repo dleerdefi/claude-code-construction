@@ -3,4 +3,4 @@ type: file_exists
 path: ".construction/agent_findings/**"
 exists: false
 ---
-No graph finding is written in a project without AgentCM.
+Nothing is written to AgentCM's retired agent_findings/ (findings go to .construction/skills/schedule-extractor/findings/).

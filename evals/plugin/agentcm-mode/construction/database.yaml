@@ -1,0 +1,13 @@
+# AgentCM Database Configuration
+# A stub for the construction skills' evals (docs/AGENT_CONTRACT.md): no database answers here.
+
+connection:
+  host: "stub.invalid"
+  database: "agentcm_fixture"
+  user: "agentcm_reader"
+project_id: "36c8c290-c69a-4d54-b579-fd223b4a4ea1"
+query_wrappers:
+  bash: ".construction/query.sh"
+  powershell: ".construction/query.ps1"
+# The evals answer api_url from api-responses.json, beside .construction/
+api_url: "http://127.0.0.1:47817/api"

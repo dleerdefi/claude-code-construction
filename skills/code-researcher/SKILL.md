@@ -1,9 +1,12 @@
 ---
 name: code-researcher
 description: >
-  Scope-specific code gap analysis — extracts referenced codes from project
-  docs, researches what should apply, surfaces the delta. Triggers: 'code
-  research', 'what codes apply', 'code check', 'ADA requirements', 'egress'.
+  Researches which building codes, accessibility standards and authority
+  requirements (health department, fire marshal, state agency) apply to a
+  scope or spec section, and which the project documents miss. Use for 'what
+  codes apply', 'code check', 'ADA requirements', 'egress', 'health
+  department'. Not for reading what the drawings or specs say
+  (construction-guide).
 argument-hint: "<scope_or_question> e.g. 'Section 09 67 23 resinous flooring' or 'egress from the kitchen complex'"
 ---
 
@@ -82,7 +85,7 @@ Phase 4 — Gap Analysis (Pass 3)
 
 Phase 5 — Report
   5a  Generate structured gap report
-  5b  Write graph entry
+  5b  Write a finding
 ```
 
 **Human checkpoints at 1c, 3c, and 4c.** Do not skip them.
@@ -95,13 +98,14 @@ Phase 5 — Report
 
 Collect minimum required project parameters. Check in this order:
 
-**AgentCM project files (if `.construction/project.yaml` exists):**
+**AgentCM project files (if `.construction/project.yaml` exists):** follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (which source wins, missing files, which file answers what, drawings through `crop.sh`, corrections of AgentCM's data).
 - `.construction/project.yaml` — location, occupancy, construction type
 - `.construction/index/sheet_index.yaml` — drawing set composition
-- Database (one read-only query per call through AgentCM's wrapper; `project_id` is in `.construction/database.yaml`):
-  - `sh .construction/query.sh "SELECT * FROM v_room_profile WHERE project_id = '{project_id}' AND room_number = '...'"` — rooms with schedule data
-  - `sh .construction/query.sh "SELECT * FROM v_sheet_contents WHERE project_id = '{project_id}' AND sheet_number = '...'"` — elements on sheets
-  - Orientation: `sh .construction/query.sh "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{project_id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{project_id}') AS rooms"`
+- `.construction/specs/<section>.txt` — each spec section's text (`01 10 00` is `01-10-00.txt`), listed in `.construction/INDEX.md`; only for a manual INDEX.md lists under "Spec manuals not read", spec-splitter's `.construction/skills/spec_text/`
+- `.construction/INDEX.md` — orientation: how many sheets and specification sections there are, and how many rooms are known (its headings, found by name)
+- `.construction/tags.tsv` — each room by number, with every sheet it occurs on (`kind` room); INDEX.md says when its room list is incomplete
+- `.construction/schedules/<sheet>-<n>.tsv` — a room's finishes, a door's size or rating: the schedules INDEX.md lists under Schedules and legends
+- `.construction/sheets/<sheet>.tsv` — the text on a sheet, each line with its position and view
 
 **Project documents (read directly):**
 - Architectural title block — project name, location, jurisdiction
@@ -205,11 +209,21 @@ research so the gap analysis has a firm baseline.
 
 For each spec section in scope:
 - Read the full section (all parts — General, Products, Execution)
-- Use pdfplumber for text-layer PDFs; use vision for scanned or image-heavy pages
+- In AgentCM mode, read `.construction/specs/<section>.txt` (Phase 1a): it is the section's text, and a section's pages are never extracted again. A section whose text looks incomplete (a part missing, a "B." with no "A.") is reported as incomplete, citing the manual and page its lines give. A read manual's pages in no section (a table of contents, a cover: INDEX.md lists them under "Spec manuals read") are read in the PDF, those pages only: `pdf_text.py --pages <n>` or `rasterize_page.py` on that page. A manual INDEX.md lists under "Spec manuals not read" is spec-splitter's: read its sections from `.construction/skills/spec_text/`.
+- In flat-file mode, dump the section's text layer; pages it marks VISION are scanned or image-heavy: rasterize them and read them with vision:
+  ```bash
+  "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "{section.pdf}"
+  "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{section.pdf}" {page} --dpi 200 --output ".construction/skills/code-researcher/pages/{section}_p{page}.png"
+  ```
 
 For drawing sheets:
 - Read title block, notes, schedules, and details relevant to the scope
-- Use vision for plan sheets; extract text from schedules if text-layer
+- In AgentCM mode, search the sheet's text in `.construction/sheets/` and look at a box with `crop.sh` (`reference/agentcm-mode.md`). Otherwise rasterize the sheet (`{page}` is 1-based; a split sheet PDF has one page) and read it with vision; a schedule with a text layer can be read from `pdf_text.py`'s dump, and a region cropped with `crop_region.py`:
+  ```bash
+  "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{sheet.pdf}" {page} --dpi 200 --output ".construction/skills/code-researcher/pages/{sheet}.png"
+  "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" ".construction/skills/code-researcher/pages/{sheet}.png" --box {x1},{y1},{x2},{y2} --normalized --output ".construction/skills/code-researcher/pages/{sheet}_detail.png"
+  ```
+- Page images and text dumps are working data: keep them in `.construction/skills/code-researcher/pages/`, never elsewhere under `.construction/` and never in `/tmp`. Do not write your own extraction code (no `python -c`, no helper script): these scripts are the reading toolkit for this skill.
 
 For referenced standards within spec sections:
 - Note every standard cited (ASTM, ANSI, NFPA, UL, SMACNA, etc.) with its
@@ -410,12 +424,14 @@ Write the report where the user can see it — the project root as
 
 Populate all placeholder fields from the gap_analysis.yaml and jurisdiction.yaml data. The report must include: applicable codes table, all gaps (action required + confirm and close), uncertain items, already addressed items, documents reviewed, and the disclaimer.
 
-### 5b — Write Graph Entry
+### 5b — Write a Finding
+
+Record the analysis in `.construction/skills/code-researcher/findings/` (both modes):
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" \
   "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
-  --type "code_gap_analysis" \
+  --skill "code-researcher" --type "code_gap_analysis" \
   --title "Code gap analysis: {scope} — {n_gaps} gaps identified" \
   --data '{
     "scope": "[spec sections or topic]",
@@ -460,5 +476,8 @@ Never overwrite an existing gap report. Version output files (`_v2`, `_v3`) if a
 ## Allowed Scripts
 
 - `${CLAUDE_PLUGIN_ROOT}/bin/construction-python`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py` — flat-file mode: spec section and sheet text, with a TEXT/VISION verdict per page (Phase 2a). In AgentCM mode, only on a read manual's pages in no section (`--pages`), never on a section's pages or a drawing
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` and `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — flat-file mode: page images for vision, into `.construction/skills/code-researcher/pages/` (Phase 2a). In AgentCM mode, only a read manual's page in no section; drawings go through `crop.sh`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — log a code gap the design team must answer to the Issue Registry (command and severity mapping in construction-guide)

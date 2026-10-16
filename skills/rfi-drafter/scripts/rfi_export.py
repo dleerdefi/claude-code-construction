@@ -357,6 +357,11 @@ def generate_plaintext(rfi_data: dict) -> str:
 # ---------------------------------------------------------------------------
 
 def main():
+    for stream in (sys.stdout, sys.stderr):  # a Windows pipe is cp1252: the arrow below would raise
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
     parser = argparse.ArgumentParser(
         description="Generate RFI document (template or generic)")
     parser.add_argument("--data", dest="input",

@@ -1,0 +1,27 @@
+checks:
+  - name: agentcm-mode-writes
+    script: ../_checks/agentcm_mode_writes.py
+    weight: 1
+  - name: deliverables-visible
+    script: checks/deliverables_visible.py
+    weight: 1
+  - name: no-own-extraction
+    script: checks/no_own_extraction.py
+    weight: 1
+  - name: twice-the-same
+    script: checks/twice_the_same.py
+    weight: 3
+  - name: contract-requests
+    script: checks/contract_requests.py
+    weight: 1
+  - name: tag-ingest
+    script: checks/tag_ingest.py
+    weight: 2
+  - name: crop-box
+    script: checks/crop_box.py
+    weight: 1
+  - name: crop-mark
+    script: checks/crop_mark.py
+    weight: 1
+allow_urls: ["http://127.0.0.1:47817/"]
+teardown: ../agentcm-mode/teardown.sh

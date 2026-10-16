@@ -1,11 +1,35 @@
 #!/usr/bin/env python3
 """Split a bound project manual PDF into individual spec section PDFs.
 
-Parses the Table of Contents to identify section boundaries, then splits
-the PDF into one file per specification section.
+Without --sections-file, finds each section's first page from its
+"SECTION XX XX XX" heading in the text layer (titles from the Table of
+Contents or the heading), then splits the PDF into one file per section.
+A manual with no text layer, or no such headings, cannot be split this way.
+
+With --sections-file, splits exactly the sections the file lists and reads
+nothing from the pages. The file is tab-separated text:
+
+  # manual: 02 - Specifications/Project Manual.pdf
+  # pages: 1-based
+  section	title	first	last
+  08 71 00	DOOR HARDWARE	412	431
+  09 65 13	RESILIENT BASE AND ACCESSORIES	455	460
+
+- `# manual:` names the PDF being split (the same file as the pdf argument).
+- `# pages: 1-based` states the page base: page 1 is the manual's first page,
+  as AgentCM's INDEX.md and specs/ files give pages. No other base is accepted
+  and nothing is converted.
+- Then a header line, and one line per section: section number, title, first
+  page, last page (inclusive). Gaps between sections are allowed.
+
+The file is refused, with the reason and exit code 2, and nothing is written,
+if a header is missing, a line does not have four fields, a page is not a whole
+number, a section runs backwards (first > last), falls outside the manual, or
+overlaps another, or a section number appears twice.
 
 Usage:
   python split_spec_manual.py <project_manual.pdf> [--output-dir <specs/>]
+  python split_spec_manual.py <project_manual.pdf> --sections-file <sections.tsv> [--output-dir <specs/>]
   python split_spec_manual.py <project_manual.pdf> --dry-run
 
 Output:
@@ -215,6 +239,78 @@ def find_section_pages(pdf_path, toc_entries):
     return sections
 
 
+class SectionsFileError(ValueError):
+    """A sections file that cannot be split from; the message says why."""
+
+
+SECTIONS_COLUMNS = ["section", "title", "first", "last"]
+
+
+def read_sections_file(sections_path, pdf_path, page_count):
+    """Read a sections file (format in the module docstring) into split sections.
+
+    Returns sections with 0-based start_page/end_page, sorted by first page.
+    Raises SectionsFileError naming the first problem found.
+    """
+    lines = Path(sections_path).read_text(encoding="utf-8-sig").splitlines()
+    headers, rows = {}, []
+    for n, raw in enumerate(lines, start=1):
+        line = raw.rstrip("\r")
+        if not line.strip():
+            continue
+        if line.startswith("#"):
+            key, _, value = line[1:].partition(":")
+            headers[key.strip().lower()] = value.strip()
+            continue
+        rows.append((n, line.split("\t")))
+
+    if "pages" not in headers:
+        raise SectionsFileError("the page base is missing: add a '# pages: 1-based' line")
+    if headers["pages"].lower() != "1-based":
+        raise SectionsFileError(f"the page base is '{headers['pages']}': only 1-based pages are accepted, and none are converted")
+    manual = headers.get("manual", "")
+    if not manual:
+        raise SectionsFileError("the manual is not named: add a '# manual: <path to the PDF>' line")
+    named, given = Path(manual), Path(pdf_path)
+    same = named.resolve() == given.resolve() if named.exists() else named.name == given.name
+    if not same:
+        raise SectionsFileError(f"the file is for '{manual}', not '{pdf_path}'")
+
+    if rows and [c.strip().lower() for c in rows[0][1]] == SECTIONS_COLUMNS:
+        rows = rows[1:]
+    if not rows:
+        raise SectionsFileError("no sections are listed")
+
+    sections, seen = [], {}
+    for n, fields in rows:
+        if len(fields) != 4:
+            raise SectionsFileError(f"line {n} has {len(fields)} tab-separated fields, not 4 (section, title, first, last)")
+        number, title, first, last = (f.strip() for f in fields)
+        if not number or not title:
+            raise SectionsFileError(f"line {n}: the section number and title must both be given")
+        try:
+            first, last = int(first), int(last)
+        except ValueError:
+            raise SectionsFileError(f"line {n} ({number}): pages must be whole numbers, got '{fields[2].strip()}' and '{fields[3].strip()}'")
+        if first > last:
+            raise SectionsFileError(f"line {n} ({number}): runs backwards, page {first} to page {last}")
+        if first < 1 or last > page_count:
+            raise SectionsFileError(f"line {n} ({number}): pages {first}-{last} fall outside the manual's {page_count} pages")
+        if number in seen:
+            raise SectionsFileError(f"line {n}: section {number} is already listed on line {seen[number]}")
+        seen[number] = n
+        sections.append({"number": number, "title": title, "start_page": first - 1, "end_page": last - 1,
+                         "page_count": last - first + 1})
+
+    sections.sort(key=lambda s: s["start_page"])
+    for prev, cur in zip(sections, sections[1:]):
+        if cur["start_page"] <= prev["end_page"]:
+            raise SectionsFileError(
+                f"sections {prev['number']} (pages {prev['start_page'] + 1}-{prev['end_page'] + 1}) and "
+                f"{cur['number']} (pages {cur['start_page'] + 1}-{cur['end_page'] + 1}) overlap")
+    return sections
+
+
 def split_pdf(pdf_path, sections, output_dir, clean=True):
     """Split the PDF into individual section files."""
     doc = fitz.open(str(pdf_path))
@@ -328,24 +424,8 @@ def extract_title_from_page(pdf_path, page_idx):
     return ""
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Split a bound project manual into individual spec section PDFs")
-    parser.add_argument("pdf", help="Path to the bound project manual PDF")
-    parser.add_argument("--output-dir", default=None, help="Output directory (default: specs/ next to PDF)")
-    parser.add_argument("--dry-run", action="store_true", help="Show what would be split without writing files")
-    parser.add_argument("--no-clean", action="store_true", help="Skip removing unused resources from each page (larger files)")
-    args = parser.parse_args()
-
-    pdf_path = Path(args.pdf)
-    if not pdf_path.exists():
-        print(f"ERROR: PDF not found: {pdf_path}")
-        sys.exit(1)
-
-    output_dir = args.output_dir or str(pdf_path.parent / "specs")
-
-    print(f"Source: {pdf_path.name}")
-    print(f"Output: {output_dir}")
-
+def find_sections_from_text(pdf_path):
+    """Section boundaries from SECTION headings, titles from the ToC or the heading; exits if none."""
     # Step 1: Find section boundaries by scanning ALL pages (primary method)
     # This works regardless of TOC location or format
     print("\n[Step 1] Scanning for SECTION headers across all pages...")
@@ -353,7 +433,8 @@ def main():
     print(f"  Sections found: {len(sections)}")
 
     if not sections:
-        print("  ERROR: No SECTION headers found in PDF. Cannot split.")
+        print("  ERROR: No SECTION headers found in PDF. Cannot split. "
+              "Find the boundaries another way and pass them with --sections-file.")
         sys.exit(1)
 
     # Step 2: Enrich with TOC titles (optional, best-effort)
@@ -379,6 +460,40 @@ def main():
                 sec["title"] = title
         still_missing = sum(1 for s in sections if not s.get("title") or s["title"] == s["number"])
         print(f"  Still missing titles: {still_missing}")
+    return sections
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Split a bound project manual into individual spec section PDFs")
+    parser.add_argument("pdf", help="Path to the bound project manual PDF")
+    parser.add_argument("--output-dir", default=None, help="Output directory (default: specs/ next to PDF)")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be split without writing files")
+    parser.add_argument("--no-clean", action="store_true", help="Skip removing unused resources from each page (larger files)")
+    parser.add_argument("--sections-file", default=None,
+                        help="Split exactly the sections this tab-separated file lists (format in the module docstring)")
+    args = parser.parse_args()
+
+    pdf_path = Path(args.pdf)
+    if not pdf_path.exists():
+        print(f"ERROR: PDF not found: {pdf_path}")
+        sys.exit(1)
+
+    output_dir = args.output_dir or str(pdf_path.parent / "specs")
+
+    print(f"Source: {pdf_path.name}")
+    print(f"Output: {output_dir}")
+
+    if args.sections_file:
+        with fitz.open(str(pdf_path)) as doc:
+            page_count = len(doc)
+        try:
+            sections = read_sections_file(args.sections_file, pdf_path, page_count)
+        except (SectionsFileError, OSError) as e:
+            print(f"ERROR: sections file refused, nothing written: {e}")
+            sys.exit(2)
+        print(f"\n[Step 1] Sections from {args.sections_file}: {len(sections)} (pages read: none)")
+    else:
+        sections = find_sections_from_text(pdf_path)
 
     # Show preview
     for sec in sections[:5]:

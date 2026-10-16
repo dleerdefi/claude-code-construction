@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# The commit gate: one command that stops at the first failure. Commit only after it exits 0.
+#   bash dev/gate && git commit ...
+# Evals are not part of it: they run through evals/harness/run.py in a heavy-job turn.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+PY="$ROOT/bin/construction-python"
+
+step() {
+  local name="$1"; shift
+  local out
+  if out="$("$@" 2>&1)"; then
+    echo "PASS $name"
+  else
+    local status=$?
+    echo "FAIL $name (exit $status)"
+    printf '%s\n' "$out" | tail -n 30
+    exit 1
+  fi
+}
+
+same_version() {
+  local file plugin
+  file="$(tr -d '[:space:]' < VERSION)"
+  plugin="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' .claude-plugin/plugin.json | head -n 1)"
+  if [ -n "$file" ] && [ "$file" = "$plugin" ]; then
+    echo "VERSION and plugin.json: $file"
+  else
+    echo "VERSION says '$file', .claude-plugin/plugin.json says '$plugin'"
+    return 1
+  fi
+}
+
+step "plugin validate --strict" claude plugin validate --strict .claude-plugin/plugin.json
+step "harness unit tests" "$PY" -m unittest discover -s evals/harness/tests
+step "toolkit unit tests" "$PY" -m unittest discover -s tests
+step "VERSION matches plugin.json" same_version
+step "no writes under .construction/ outside skills/" "$PY" dev/check_construction_writes.py
+step "no queries of AgentCM's database, no API reads beyond the rows" "$PY" dev/check_no_queries.py
+echo "GATE PASSED"

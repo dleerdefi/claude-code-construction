@@ -2,16 +2,16 @@
 name: project-setup
 description: >
   Set up a construction project — inventories files, classifies
-  drawings/specs/schedules/registers, detects AgentCM mode, appends
-  construction context to CLAUDE.md. Triggers: 'set up project',
-  'construction setup', 'classify documents'.
+  drawings/specs/schedules/registers and appends construction context to
+  CLAUDE.md; in an AgentCM project, prints AgentCM's orientation instead.
+  Triggers: 'set up project', 'construction setup', 'classify documents'.
 argument-hint: "[project-directory]"
 disable-model-invocation: true
 ---
 
 # Project Setup
 
-Set up a construction project directory for use with Claude Code construction skills. This skill inventories all files, classifies construction document types, and appends construction-specific context to the project's CLAUDE.md.
+Set up a construction project directory for use with Claude Code construction skills. Without AgentCM, this skill inventories all files, classifies construction document types, and appends construction-specific context to the project's CLAUDE.md. With AgentCM, which has already indexed the folder and keeps the one map of it in CLAUDE.md, it only reports AgentCM's orientation (Step 1).
 
 Run this **after** `/init` has created the base CLAUDE.md.
 
@@ -35,13 +35,17 @@ Project Setup Progress:
 
 Check for AgentCM: `.construction/project.yaml` at the project root.
 
-**If present (AgentCM mode):**
-1. Read `.construction/CLAUDE.md` for project navigation context
-2. Query database for entity counts (take `project_id` from `.construction/database.yaml`):
-   `sh .construction/query.sh "SELECT (SELECT COUNT(*) FROM sheets WHERE project_id = '{project_id}') AS sheets, (SELECT COUNT(*) FROM rooms WHERE project_id = '{project_id}') AS rooms, (SELECT COUNT(*) FROM graph_elements ge JOIN sheets s ON s.id = ge.sheet_id WHERE s.project_id = '{project_id}') AS elements"`
-   Fallback: read `.construction/graph/graph_summary.yaml` if database unavailable
-3. Read `.construction/index/sheet_index.yaml` for drawing inventory
-4. Skip to Step 3 with instant summary — no file scanning needed
+**If present (AgentCM mode)**, AgentCM has indexed the folder and written its own navigation block into CLAUDE.md. Report its orientation and stop:
+
+1. Say that the construction plugin is installed, with its version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Read `contract_version` in `.construction/project.yaml`; if it is missing (AgentCM older than contract 1) or above 1, say which.
+2. Read `.construction/INDEX.md`. If it is missing, say that AgentCM has not written its index for this folder yet, and stop. Otherwise report, from its sections:
+   - **Drawing sheets**: how many, by discipline, and how many are still under "Pages not yet named"; any sheet whose Text is `partial`, `pending` or `failed`
+   - **Specification sections**: how many, by division; and every manual under "Spec manuals not read", with its reason (`/construction:spec-splitter` splits and extracts those, and only those)
+   - **Schedules and legends**: how many, by kind
+   - **Rooms**: how many are known and how they were found, as INDEX.md states it
+3. If `.construction/pending.tsv` exists, list what it names, reading its columns by their header names: sheets queued for a refresh, sheets whose refresh failed (with the reason), and files edited outside AgentCM (`edited`, the file in `file`), which AgentCM no longer refreshes. Their content may be out of date or wrong.
+
+Then stop. In AgentCM mode this skill inventories no files, recommends no splitting and does not touch CLAUDE.md.
 
 **If absent (Flat File mode):**
 Continue to Step 2.
@@ -65,7 +69,7 @@ Scan the project directory. No vision calls — use filename and folder pattern 
 **Also check for existing indexes:**
 - `sheet_index.yaml` → drawings already indexed
 - `spec_index.yaml` → specs already split
-- `.construction/skills/spec_text/manifest.json` → spec text already extracted (an older version's `.construction/spec_text/` counts too: move it to `.construction/skills/spec_text/`)
+- `.construction/skills/spec_text/manifest.json` → spec text already extracted (an older version's `.construction/spec_text/` counts too: copy it to `.construction/skills/spec_text/` and leave the old one as it is)
 
 ### Step 3: Present Summary and Recommend Next Actions
 
@@ -87,15 +91,14 @@ Report what was found:
 | Condition | Recommendation |
 |---|---|
 | Bound spec manual found, not yet split | "Run `/spec-splitter` to split the project manual into individual sections and extract searchable text." |
-| Bound drawing set found, flat file mode | "Run `/sheet-splitter` to split the drawing set into individual sheet PDFs and identify sheet numbers." |
-| Bound drawing set found, AgentCM mode | "Split sheets via the AgentCM UI for zero-vision-cost splitting using labeled OCR data." |
+| Bound drawing set found | "Run `/sheet-splitter` to split the drawing set into individual sheet PDFs and identify sheet numbers." |
 | Specs already split but no text extracted | "Run `/spec-splitter` — specs are split but text extraction hasn't been done yet." |
 | Submittal log needed | "Run `/submittal-log-generator` after spec text is available." |
 | Specs split and text extracted | "Would you like to generate a submittal log from the specification sections? Run `/submittal-log-generator`." |
 
 ### Step 4: Amend Project CLAUDE.md
 
-Append construction-specific context to the **project root's CLAUDE.md** (the file created by `/init`). Do NOT modify any file inside the construction plugin.
+Flat-file mode only. Append construction-specific context to the **project root's CLAUDE.md** (the file created by `/init`). Do NOT modify any file inside the construction plugin.
 
 **Append format:**
 
@@ -110,7 +113,7 @@ Append construction-specific context to the **project root's CLAUDE.md** (the fi
 - Submittal log: {path or "not found"}
 
 ### Status
-- Operational mode: {AgentCM / Flat File}
+- Operational mode: Flat File
 - Sheets indexed: {yes/no}
 - Specs split: {yes/no}
 - Spec text extracted: {yes/no}
@@ -127,6 +130,7 @@ Only append — never overwrite existing CLAUDE.md content.
 - **Does not split PDFs** — recommends `/spec-splitter` and `/sheet-splitter` instead
 - **Does not use vision** — all classification is filename/folder pattern matching
 - **Does not create AgentCM's `.construction/project.yaml` or its data tree** — that's AgentCM's job (the plugin's own `.construction/skills/` is created by the skills that write there)
+- **Does not write a second map in an AgentCM project** — AgentCM's block in CLAUDE.md is the one source of navigation there
 - **Does not replace /init** — `/init` creates the base CLAUDE.md, this skill enriches it
 
 ---

@@ -10,7 +10,7 @@ tools: Read, Write, Glob
 
 # PE Findings Logger
 
-After a document review session, evaluate what was found and append to the appropriate file in `.construction/skills/pe-review/`. Older versions kept these files in `.construction/agent_findings/`: if they are there and not in `.construction/skills/pe-review/`, move them first.
+After a document review session, evaluate what was found and append to the appropriate file in `.construction/skills/pe-review/`. Older versions kept these files in `.construction/agent_findings/`: if they are there and not in `.construction/skills/pe-review/`, copy them there first and leave the old files as they are.
 
 ## Files to maintain
 
@@ -21,7 +21,7 @@ After a document review session, evaluate what was found and append to the appro
 ## Rules
 
 - Append only. Never overwrite prior entries.
-- Create the `.construction/skills/pe-review/` directory if it doesn't exist. Never create `.construction/agent_findings/`: it is AgentCM's.
+- Create the `.construction/skills/pe-review/` directory if it doesn't exist. Never write anywhere else under `.construction/`: outside `.construction/skills/` it is AgentCM's.
 - Only record findings that would be useful in a future session. Don't log routine queries that were fully answered.
 - If a prior finding has been resolved (RFI answered, sheet added), note the resolution with date.
 - Keep entries concise — one finding per entry, 2-4 lines max.

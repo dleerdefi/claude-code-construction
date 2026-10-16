@@ -1,0 +1,1 @@
+# A-601 rows: the text on each line across the sheet, cells left to right, separated by tabs; first the line's position y (0 to 1 from the top). Lines of two or more cells outside the sheet's tables: a table's rows are in its file in schedules/, so a row is in one of the two.

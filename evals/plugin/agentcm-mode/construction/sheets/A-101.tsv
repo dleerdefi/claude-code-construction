@@ -1,0 +1,18 @@
+x	y	w	h	source	tag	how	label	para	view	zone	text
+0.050	0.060	0.120	0.014	ocr	-	-	-	p1	-	-	GENERAL NOTES
+0.750	0.120	0.010	0.010	ocr	simple_callout	accepted	-	p6	-	-	5
+0.742	0.135	0.026	0.010	ocr	simple_callout	accepted	-	p7	-	-	A-102
+0.200	0.300	0.060	0.008	ocr	room_tag	accepted	-	p2	-	-	OFFICE
+0.400	0.300	0.060	0.008	ocr	-	-	-	p4	-	-	STORAGE
+0.600	0.300	0.060	0.008	ocr	-	-	-	p8	-	-	CLASSROOM
+0.215	0.311	0.030	0.010	ocr	room_tag	accepted	-	p3	-	-	101
+0.415	0.311	0.030	0.010	ocr	-	-	-	p5	-	-	102
+0.615	0.311	0.030	0.010	ocr	-	-	-	p9	-	-	103
+0.200	0.600	0.060	0.008	ocr	-	-	-	p10	-	-	CORRIDOR
+0.400	0.600	0.060	0.008	ocr	-	-	-	p12	-	-	TOILET
+0.600	0.600	0.060	0.008	ocr	-	-	-	p14	-	-	LOBBY
+0.215	0.611	0.030	0.010	ocr	-	-	-	p11	-	-	104
+0.415	0.611	0.030	0.010	ocr	-	-	-	p13	-	-	105
+0.615	0.611	0.030	0.010	ocr	-	-	-	p15	-	-	106
+0.050	0.850	0.120	0.012	ocr	-	-	-	p16	-	-	SEE 5/A-102
+0.880	0.920	0.060	0.020	ocr	-	-	-	p17	-	-	A-101

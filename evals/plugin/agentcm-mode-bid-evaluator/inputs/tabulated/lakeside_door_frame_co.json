@@ -1,0 +1,55 @@
+{
+  "company_name": "Lakeside Door & Frame Co.",
+  "contact_name": "Dana Whitfield",
+  "contact_phone": "(555) 010-2201",
+  "contact_email": "bids@lakesidedoor.example",
+  "bid_date": "September 22, 2026",
+  "bid_validity_period": "60 days",
+  "base_bid_amount": 12115.0,
+  "bond_included": true,
+  "schedule_duration": "6 weeks from approved submittals",
+  "payment_terms": "Net 30 from approved pay application",
+  "addenda_acknowledged": [],
+  "line_items": [
+    {
+      "spec_section": "08 11 13",
+      "description": "Hollow metal frame, 3'-0\" x 7'-0\", for D101 to D115",
+      "qty": 15,
+      "unit": "EA",
+      "unit_price": 485.0,
+      "extended_price": 7275.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "08 11 13",
+      "description": "Hollow metal door, 3'-0\" x 7'-0\" x 1-3/4\", where A-601 says HM",
+      "qty": 7,
+      "unit": "EA",
+      "unit_price": 640.0,
+      "extended_price": 4480.0,
+      "notes": ""
+    },
+    {
+      "spec_section": "08 11 13",
+      "description": "Floor anchors, 0.042 in steel, 2 per frame",
+      "qty": 30,
+      "unit": "EA",
+      "unit_price": 12.0,
+      "extended_price": 360.0,
+      "notes": "per 08 11 13 1.1 B"
+    }
+  ],
+  "alternates": [],
+  "scope_inclusions": [
+    "Furnish and install hollow metal frames and doors per 08 11 13 and the A-601 door schedule"
+  ],
+  "scope_exclusions": [
+    "Door hardware (by others)",
+    "Field painting"
+  ],
+  "qualifications": [
+    "Frames 16 gauge, welded, factory primed"
+  ],
+  "allowances": [],
+  "insurance_confirmed": true
+}

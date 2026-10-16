@@ -5,3 +5,6 @@ setup    text eol=lf
 bin/*    text eol=lf
 dev/*    text eol=lf
 *.sh     text eol=lf
+
+# AgentCM writes the project's CLAUDE.md with LF; the eval checks its block byte for byte.
+evals/plugin/agentcm-mode/project/CLAUDE.md text eol=lf

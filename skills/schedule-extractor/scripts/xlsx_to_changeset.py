@@ -2,21 +2,31 @@
 """Parse an anchored schedule Excel file and compute a reconciliation changeset.
 
 Reads the _agentcm_meta sheet for anchor IDs, reads the data sheet with _row_key
-column, queries the current DB state via psql, and outputs a JSON changeset
-suitable for POST to /api/projects/:id/schedules/reconcile.
+column, reads the schedule's stored rows from AgentCM's API
+(GET {api_url}/projects/{project_id}/schedules/{schedule_id}/rows), and outputs a JSON
+changeset suitable for POST to /api/projects/:id/schedules/reconcile.
 
 Usage:
-    python xlsx_to_changeset.py --excel edited.xlsx --query-wrapper .construction/query.sh [--output changeset.json]
+    python xlsx_to_changeset.py --excel edited.xlsx [--database-yaml .construction/database.yaml]
+                                [--api-url URL --project-id ID] [--output changeset.json]
 
-If --output is omitted, prints JSON to stdout.
+project_id and api_url come from --project-id/--api-url, or else from database.yaml, of which
+nothing else is read. If --output is omitted, prints JSON to stdout.
+
+Exit codes: 0 changeset written; 1 bad input or AgentCM refused the read; 3 AgentCM is not
+answering at api_url (start it and rerun: nothing was computed).
 """
 
 import argparse
 import json
-import re
-import subprocess
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 from pathlib import Path
+
+PAGE = 500  # the rows endpoint's largest page
+NOT_ANSWERING = 3
 
 
 def read_meta(wb):
@@ -100,65 +110,83 @@ def read_data(wb, meta):
     return headers, excel_rows, new_rows
 
 
-COPY_ESCAPES = {"\\": "\\", "t": "\t", "n": "\n", "r": "\r", "b": "\b", "f": "\f", "v": "\v"}
+class AgentCMNotAnswering(Exception):
+    """No connection to api_url: AgentCM is not running, or not at that address."""
 
 
-def copy_field(value):
-    """One field of COPY ... TO STDOUT text output: \\N is NULL, backslash escapes undone."""
-    if value == "\\N":
-        return None
-    return re.sub(r"\\([\\tnrbfv])", lambda m: COPY_ESCAPES[m.group(1)], value)
+class AgentCMRefused(Exception):
+    """AgentCM answered, with an error or something other than a list of rows."""
 
 
-def query_db_state(query_wrapper, schedule_id):
-    """Query current schedule state from the database through AgentCM's query wrapper.
+def agentcm_address(database_yaml, api_url=None, project_id=None):
+    """project_id and api_url: the arguments, else database.yaml's two promised keys, nothing else."""
+    if not (api_url and project_id):
+        import yaml
+        path = Path(database_yaml)
+        if not path.is_file():
+            raise AgentCMRefused(f"{database_yaml} not found: give --api-url and --project-id")
+        conf = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        api_url = api_url or conf.get("api_url")
+        project_id = project_id or conf.get("project_id")
+    if not (api_url and project_id):
+        raise AgentCMRefused(f"{database_yaml} has no api_url or project_id")
+    return str(api_url).rstrip("/"), str(project_id)
 
-    The wrapper (.construction/query.sh) runs one SQL statement as the read-only reader role,
-    with the password AgentCM wrote; COPY ... TO STDOUT gives tab-separated rows without psql flags.
-    """
-    # Get schedule columns
-    sql_columns = (
-        f"SELECT columns FROM schedules WHERE id = '{schedule_id}'"
-    )
 
-    # Get current rows with cells
-    sql_rows = (
-        f"SELECT sr.entity_identifier, sc.column_key, sc.cell_value "
-        f"FROM schedule_rows sr "
-        f"JOIN schedule_cells sc ON sc.schedule_row_id = sr.id "
-        f"WHERE sr.schedule_id = '{schedule_id}' AND sr.is_deleted = FALSE "
-        f"ORDER BY sr.entity_identifier, sc.column_key"
-    )
-
-    db_rows = {}       # entity_identifier -> {col: value}
-    db_columns = set()
-
-    # Execute rows query
+def http_get_json(url, timeout=30):
     try:
-        result = subprocess.run(
-            ["sh", query_wrapper, f"COPY ({sql_rows}) TO STDOUT"],
-            capture_output=True, text=True, timeout=30,
-        )
-        if result.returncode != 0:
-            print(f"ERROR: psql query failed: {result.stderr.strip()}", file=sys.stderr)
-            sys.exit(1)
+        with urllib.request.urlopen(url, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")[:300]
+        raise AgentCMRefused(f"GET {url} answered {e.code}: {body}") from e
+    except urllib.error.URLError as e:
+        raise AgentCMNotAnswering(f"no answer from {url}: {e.reason}") from e
+    except (ConnectionError, TimeoutError) as e:
+        raise AgentCMNotAnswering(f"no answer from {url}: {e}") from e
+    except json.JSONDecodeError as e:
+        raise AgentCMRefused(f"GET {url} did not return JSON: {e}") from e
 
-        for line in result.stdout.strip().split("\n"):
-            if not line.strip():
-                continue
-            parts = line.split("\t")
-            if len(parts) >= 3:
-                entity_id, col_key = copy_field(parts[0]), copy_field(parts[1])
-                cell_val = copy_field(parts[2]) or None
-                if entity_id not in db_rows:
-                    db_rows[entity_id] = {}
-                db_rows[entity_id][col_key] = cell_val
-                db_columns.add(col_key)
 
-    except subprocess.TimeoutExpired:
-        print("ERROR: Database query timed out.", file=sys.stderr)
-        sys.exit(1)
+def stored_row_key(row):
+    """A row's id, or the whole row when it has none."""
+    return row.get("id") or json.dumps(row, sort_keys=True)
 
+
+def fetch_rows(api_url, project_id, schedule_id, get=http_get_json, page=PAGE):
+    """Every stored row of the schedule, a page at a time until a short page.
+
+    Rows are keyed by their id, so an endpoint that ignores limit/offset (and returns every row
+    each time) ends the loop instead of repeating it.
+    """
+    base = (f"{api_url}/projects/{urllib.parse.quote(project_id)}"
+            f"/schedules/{urllib.parse.quote(schedule_id)}/rows")
+    rows, seen, offset = [], set(), 0
+    while True:
+        batch = get(f"{base}?limit={page}&offset={offset}")
+        if not isinstance(batch, list):
+            raise AgentCMRefused(f"GET {base} returned {type(batch).__name__}, not a list of rows")
+        new = [r for r in batch if stored_row_key(r) not in seen]
+        for r in new:
+            seen.add(stored_row_key(r))
+        rows.extend(new)
+        if len(batch) < page or not new:
+            return rows
+        offset += len(batch)
+
+
+def db_state(rows):
+    """entityIdentifier -> {column key: value}, and every column key a row holds."""
+    db_rows, db_columns = {}, set()
+    for r in rows:
+        key = r.get("entityIdentifier")
+        if key is None:
+            raise AgentCMRefused(f"a stored row has no entityIdentifier: {json.dumps(r)[:200]}")
+        cells = {}
+        for col, val in (r.get("data") or {}).items():
+            cells[col] = None if val is None else str(val)
+            db_columns.add(col)
+        db_rows[str(key)] = cells
     return db_rows, db_columns
 
 
@@ -245,8 +273,10 @@ def compute_changeset(meta, excel_headers, excel_rows, new_rows, db_rows, db_col
 def main():
     parser = argparse.ArgumentParser(description="Parse anchored Excel and compute reconciliation changeset")
     parser.add_argument("--excel", required=True, help="Path to the edited Excel file")
-    parser.add_argument("--query-wrapper", default=".construction/query.sh",
-                        help="AgentCM's query wrapper (default: .construction/query.sh)")
+    parser.add_argument("--database-yaml", default=".construction/database.yaml",
+                        help="Where project_id and api_url are (default: .construction/database.yaml)")
+    parser.add_argument("--api-url", help="AgentCM's API address (default: api_url in database.yaml)")
+    parser.add_argument("--project-id", help="The project's id (default: project_id in database.yaml)")
     parser.add_argument("--output", "-o", help="Output JSON file (default: stdout)")
     args = parser.parse_args()
 
@@ -259,10 +289,25 @@ def main():
     # Read Excel
     wb = load_workbook(args.excel, data_only=True)
     meta = read_meta(wb)
+    if meta["schedule_id"].lower() == "none":
+        print("ERROR: this table was never ingested into AgentCM (schedule_id=none), so there is nothing to "
+              "reconcile: ingest it first (Step 6).", file=sys.stderr)
+        sys.exit(1)
+    if not meta.get("source_file"):
+        meta["source_file"] = Path(args.excel).name  # AgentCM's change log: "Reconciled from <file>"
     excel_headers, excel_rows, new_rows = read_data(wb, meta)
 
-    # Query DB state
-    db_rows, db_columns = query_db_state(args.query_wrapper, meta["schedule_id"])
+    # The schedule's stored rows, from AgentCM's API
+    try:
+        api_url, project_id = agentcm_address(args.database_yaml, args.api_url, args.project_id)
+        db_rows, db_columns = db_state(fetch_rows(api_url, project_id, meta["schedule_id"]))
+    except AgentCMNotAnswering as e:
+        print(f"AgentCM is not answering ({e}). Start AgentCM and rerun this step: nothing was computed.",
+              file=sys.stderr)
+        sys.exit(NOT_ANSWERING)
+    except AgentCMRefused as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        sys.exit(1)
 
     # Compute changeset
     changeset = compute_changeset(meta, excel_headers, excel_rows, new_rows, db_rows, db_columns)
@@ -278,12 +323,13 @@ def main():
     total = sum(summary.values())
 
     if total == 0:
-        print("No changes detected between Excel and database.", file=sys.stderr)
+        print("No changes detected between Excel and AgentCM's stored rows.", file=sys.stderr)
 
     # Output
     output_json = json.dumps(changeset, indent=2)
     if args.output:
-        Path(args.output).write_text(output_json)
+        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.output).write_text(output_json, encoding="utf-8")
         print(f"OK: {args.output} ({total} changes: {summary})", file=sys.stderr)
     else:
         print(output_json)

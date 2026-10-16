@@ -21,6 +21,10 @@ claude --plugin-dir .    # Load this checkout live (any OS); run /reload-plugins
 dev/link                 # Or symlink ~/.claude/skills/construction here (macOS/Linux)
 dev/unlink               # Remove that symlink
 claude plugin validate --strict .claude-plugin/plugin.json   # Check manifest + skills
+bin/construction-python -m unittest discover -s tests        # Unit tests for the toolkit's scripts
+bash dev/gate && git commit ...   # The commit gate: validate, both unit-test suites, VERSION = plugin.json,
+                                  # no writes under .construction/ outside skills/, no database queries;
+                                  # stops at the first failure
 ```
 
 ### Key Rules
@@ -30,7 +34,8 @@ claude plugin validate --strict .claude-plugin/plugin.json   # Check manifest + 
 - Skills run on Windows, macOS and Linux: double-quote every path in skill commands (`"${CLAUDE_PLUGIN_ROOT}/..."`) and run Python via `bin/construction-python`, never bare `python`; write intermediate files inside the project, never `/tmp`; don't commit symlinks (Git on Windows checks them out as plain text files)
 - `requirements.txt` is the single list of Python dependencies: `bin/construction-python` creates the venv on first use and re-syncs it whenever this file changes
 - Bump `version` in `.claude-plugin/plugin.json` and `VERSION` for each release; marketplace installs only update when it changes
-- Where skills write: deliverables in visible project folders, never in `.construction/` (hidden on macOS/Linux); working data in `.construction/skills/`; AgentCM's areas (`agent_findings/` graph entries, database, API) only when AgentCM is present, detected by `.construction/project.yaml` — never by the `.construction/` folder alone
+- Where skills write: deliverables in visible project folders, never in `.construction/` (hidden on macOS/Linux); working data, findings included (`.construction/skills/<skill>/findings/`, both modes), in `.construction/skills/`; AgentCM's data only through its write endpoints, and only when AgentCM is present, detected by `.construction/project.yaml` — never by the `.construction/` folder alone. Nothing under `.construction/` outside `skills/` is a skill's to write
+- How skills read AgentCM: its files only (INDEX.md, `sheets/`, `tags.tsv`, `xrefs.tsv`, `schedules/`, `specs/`), never its database (`dev/check_no_queries.py` fails the gate on any query wrapper, `query_command` or `psql`). The API is read only where a write needs it (`reference/agentcm-mode.md`). A write that finds AgentCM closed waits in `.construction/skills/<skill>/outbox/`
 - Never fabricate dimensions, spec requirements, or code citations
 - Skills must pass eval before moving from `_dev/` to production
 
@@ -40,9 +45,9 @@ claude plugin validate --strict .claude-plugin/plugin.json   # Check manifest + 
 
 ### Script Allowlist
 - Skills must declare an exhaustive list of allowed scripts in their SKILL.md (a skill that runs no scripts says so, as project-setup does)
-- Skills must NOT create custom Python scripts during execution, including inline `python -c`. The reason, stated once here: deliverables come only from the versioned exporters, so every run's output has the same shape and can be audited; working files stay inside the project; the skill's own JSON and YAML are written with the Write tool. When a run writes its own script, read it as a gap in the toolkit (a missing reader, a check an exporter should make) and fix the toolkit, not the rule. Shared readers: `scripts/pdf/pdf_text.py` (PDF text, TEXT/VISION per page), `scripts/docx_text.py` (Word), `scripts/pdf/extract_text_region.py` (pdfplumber tables)
+- Skills must NOT create custom Python scripts during execution, including inline `python -c`. The reason, stated once here: deliverables come only from the versioned exporters, so every run's output has the same shape and can be audited; working files stay inside the project; the skill's own JSON and YAML are written with the Write tool. When a run writes its own script, read it as a gap in the toolkit (a missing reader, a check an exporter should make) and fix the toolkit, not the rule. Shared readers: `scripts/pdf/pdf_text.py` (PDF text, TEXT/VISION per page), `scripts/docx_text.py` (Word), `scripts/pdf/extract_text_region.py` (pdfplumber tables; `--words` gives each word's box, as fractions of the page for `crop_region.py --normalized`)
 - All scripts live in the shared `scripts/` directory or per-skill `scripts/` subdirectories
-- Evals grade this: the bid cases fail on a `.py` written by the model, on `python -c`, or on a script written through a shell redirect or heredoc (`evals/plugin/<case>/graders/no-helper-scripts.md`, `no-inline-python.md`)
+- Evals grade this: every agentcm-mode case and the three bid cases fail on a `.py` written by the model, on inline Python (`python -c`, Python fed on stdin), or on a script written through a shell redirect or heredoc; the other regular cases list it report-only, as the mode refactor's baseline (`evals/plugin/<case>/graders/no-helper-scripts.md`, `no-inline-python.md`)
 
 ### Evals
 - Every skill has a case in `evals/plugin/<case>/`; the case conventions are in `evals/plugin/README.md` and the runner is `evals/harness/run.py` (`bin/construction-python evals/harness/run.py --tag smoke --runs 1`, see `evals/harness/README.md` and `docs/RUNNING_EVALS.md`)

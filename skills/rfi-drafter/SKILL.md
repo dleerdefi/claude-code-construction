@@ -104,16 +104,22 @@ Read the sheet by rasterizing it and cropping to the conflict zone (the
 `${CLAUDE_PLUGIN_ROOT}` paths below are substituted only here in SKILL.md,
 not in the reference files):
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf}" {page} --dpi 200 --output page.png
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" page.png --box x1,y1,x2,y2 --normalized --output conflict_area.png
+mkdir -p ".construction/skills/rfi-drafter/pages"
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{pdf}" {page} --dpi 200 --output ".construction/skills/rfi-drafter/pages/page.png"
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py" ".construction/skills/rfi-drafter/pages/page.png" --box x1,y1,x2,y2 --normalized --output ".construction/skills/rfi-drafter/pages/conflict_area.png"
 ```
+Page images are working data: run these from the project folder and keep them under `.construction/skills/rfi-drafter/pages/`, never in the project root, never in `/tmp` or any other folder outside the project.
+
 `{page}` is 1-based: `1` for a split sheet PDF, `page_index + 1` for a page in a
 bound set (sheet_index.yaml counts `page_index` from 0). The box is 0–1
 fractions of the page.
 
-If AgentCM data is available (`.construction/project.yaml` exists), query the
-database for cross-references to the affected area. See
-`references/research-checklist.md` for the queries.
+First read `.construction/project.yaml`: present and readable means AgentCM
+manages the folder. A listing that shows the file does not decide it: read it.
+In AgentCM mode, read its files for cross-references to the affected area. See
+`references/research-checklist.md` for which files, and follow
+`${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (which source wins, missing files,
+drawings through `crop.sh`, corrections of AgentCM's data).
 
 If research reveals the issue is already resolved (by addendum, ASI,
 or existing RFI response), inform the user — no RFI needed.
@@ -152,18 +158,18 @@ Present the draft RFI to the user in conversation. The user may:
 - **Reject** — issue isn't actually an issue
 - **Defer** — log it back to the issue registry for later
 
-**On export**, write the RFI data to a JSON file, then invoke:
+**On export**, write the RFI data with the Write tool to `.construction/skills/rfi-drafter/rfi_draft.json` (working data, never the project root), then invoke from the project folder; the .docx is the deliverable and goes in the project root (or the folder the PE names), never under `.construction/`:
 ```bash
 # Template mode (preferred — matches firm's format):
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/rfi_export.py" \
   --template "path/to/firm_rfi_form.docx" \
   --mapping .construction/skills/rfi-drafter/rfi_template_map.json \
-  --data rfi_draft.json \
+  --data .construction/skills/rfi-drafter/rfi_draft.json \
   --output RFI-026.docx
 
 # Generic mode (fallback — no template):
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/rfi_export.py" \
-  --data rfi_draft.json \
+  --data .construction/skills/rfi-drafter/rfi_draft.json \
   --output RFI-026.docx
 ```
 
@@ -266,4 +272,5 @@ Managed via `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py`.
 - `${CLAUDE_PLUGIN_ROOT}/scripts/rfi/generate_rfi_pdf.py` — generate RFI PDF output
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize a drawing PDF page for issue context
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/crop_region.py` — crop a region from a rasterized sheet for issue context
+- `${CLAUDE_PLUGIN_ROOT}/scripts/corrections_append.py` — AgentCM mode: record a correction of AgentCM's data (`reference/agentcm-mode.md`)
 

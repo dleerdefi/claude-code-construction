@@ -28,8 +28,8 @@ This skill can be invoked directly when the user has an awarded bid and wants to
 Either way, the awarded bid document (Slot B) is the mandatory input.
 
 ## Mode Detection
-Check for AgentCM: `.construction/project.yaml` at the project root.
-- **AgentCM mode**: Read specs from `.construction/skills/spec_text/{section}.txt`. Use sheet index from `.construction/index/sheet_index.yaml` for drawing references. Read project metadata from `.construction/CLAUDE.md`.
+Read `.construction/project.yaml` at the project root: present and readable means AgentCM mode (note its `contract_version`), absent means flat-file mode. A listing that shows the file does not decide it: read it.
+- **AgentCM mode**: Read each spec section from `.construction/specs/<section>.txt` (`09 65 13` is `09-65-13.txt`; each line starts with its page), listed in `.construction/INDEX.md`: it is the section's text, and a section's pages are never extracted again from the PDF. A read manual's pages in no section (INDEX.md lists them) are read in the PDF, those pages only. Only for a manual INDEX.md lists under "Spec manuals not read", read spec-splitter's `.construction/skills/spec_text/` instead. Use sheet index from `.construction/index/sheet_index.yaml` for drawing references. Read project metadata from `.construction/CLAUDE.md`. Follow `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (which source wins, missing files).
 - **Flat File mode**: Discover spec PDFs via project `CLAUDE.md` paths or directory search. Read drawing sheets directly from PDF.
 
 ---
@@ -54,7 +54,7 @@ Before reading any document substantively, assign each uploaded file to its slot
 |------|------|--------|-----------------|
 | A | Template | Subcontract PDF/DOCX | Article structure, boilerplate language, required sections |
 | B | Awarded bid | Subcontractor bid PDF | **Contract sum, quantities, unit rates, inclusions, exclusions, VE alternates** |
-| C | Specifications | Spec section PDFs | Scope descriptions, submittal requirements, warranty clauses, installer qualifications |
+| C | Specifications | Spec section PDFs; in AgentCM mode `.construction/specs/<section>.txt` | Scope descriptions, submittal requirements, warranty clauses, installer qualifications |
 | D | Drawings | Finish schedule, floor plans | Room codes, area takeoffs, scope boundaries |
 
 **Slot B is mandatory.** If missing, stop and output:
@@ -72,7 +72,9 @@ If no template is provided, ask: "Do you have a standard subcontract template?" 
 
 ## Phase 2 — Structured Extraction, One Slot at a Time
 
-Run a separate extraction pass for each slot. Write extracted data to `scope_data.json` incrementally. Do not combine slots in a single read.
+Run a separate extraction pass for each slot. Write extracted data to `.construction/skills/subcontract-writer/scope_data.json` incrementally. Do not combine slots in a single read.
+
+A text dump is working data: take `pdf_text.py`'s output directly, or, to search it more than once, save it with `--output` under `.construction/skills/subcontract-writer/text/`, never in `/tmp` or any other folder outside the project.
 
 ### Slot B Extraction (Bid Document) — Run First
 
@@ -109,7 +111,7 @@ Extract every field below. Mark any field not found as `MISSING` — do not infe
 
 **If PDF template:** Use vision to read the template. Rasterize pages if needed:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "template.pdf" {page} --dpi 200 --output template_page_{page}.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "template.pdf" {page} --dpi 200 --output ".construction/skills/subcontract-writer/pages/template_page_{page}.png"
 ```
 
 Extract the list of required articles and any fill-field placeholders (`[DATE]`, `[CONTRACT SUM]`, `[SUBCONTRACTOR]`).
@@ -125,7 +127,9 @@ For each article, determine:
 
 ### Slot C Extraction (Specifications)
 
-For each specification section listed in the bid scope, read the PDF and extract Part 1 requirements. One extraction block per section.
+For each specification section listed in the bid scope, read its text and extract Part 1 requirements. One extraction block per section. Where the text comes from depends on the mode:
+- **AgentCM mode:** `.construction/specs/<section>.txt` is the section's text. Never run `pdf_text.py` or `rasterize_page.py` on that section's pages: not to check them, and not as part of a page range. A read manual's pages in no section (INDEX.md lists them) are read in the PDF, those pages only (`--pages`).
+- **Flat-file mode:** dump the section PDF with `pdf_text.py`, as for the bid. To search the sections for submittals, warranties or qualifications, save each dump first (`--output ".construction/skills/subcontract-writer/text/<section>.txt"`) and search those files.
 
 Extract per spec section:
 - **§1.3 / §1.4 — Submittal requirements:** shop drawings, product data, samples, certifications, LEED docs
@@ -346,7 +350,7 @@ After showing Group 3, ask: *"Any final changes? Once confirmed I'll write the W
 
 ## Phase 4 Output — Write JSON Files
 
-After all three groups are confirmed, write two files to the output directory:
+After all three groups are confirmed, write two files with the Write tool. They are working data: they go in `.construction/skills/subcontract-writer/`, never the project root (the subcontract .docx is the only deliverable):
 
 ### scope_data.json
 
@@ -420,18 +424,18 @@ All display values in blocks must be pre-formatted strings (e.g., `"$1,392,618.0
 Call the thin formatter:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_SKILL_DIR}/scripts/generate_subcontract_docx.py" \
-  --template template_data.json \
-  --scope scope_data.json \
+  --template .construction/skills/subcontract-writer/template_data.json \
+  --scope .construction/skills/subcontract-writer/scope_data.json \
   --output "Subcontract_[SubName]_[SCNumber].docx"
 ```
 
-The formatter renders your pre-populated content into .docx format. It makes no content decisions.
+Run it from the project folder: the subcontract is the deliverable and goes in the project root (or the folder the PE names), never under `.construction/`, which macOS and Linux hide. The formatter renders your pre-populated content into .docx format. It makes no content decisions.
 
 ---
 
 ## Phase 5 — Post-Generation Verification
 
-After writing the `.docx`, run the following checks against the generated file. If any check fails, fix the specific issue in the JSON, regenerate the .docx, and re-verify. Do not present a document with known failures.
+After writing the `.docx`, run the following checks against the generated file. If any check fails, fix the specific issue in the JSON, regenerate the .docx, and re-verify. Do not present a document with known failures. Read the document with `docx_text.py`: take its output directly, or, to search it more than once, save it under `.construction/skills/subcontract-writer/`, never in `/tmp` or any other folder outside the project.
 
 ### Verification Checks
 
@@ -474,10 +478,10 @@ Present a summary:
 - Scope highlights: spec section count, line item count, total contract sum
 - **Remind the user:** "Contract documents require professional review before execution."
 
-Write graph entry:
+Write a finding (both modes), in `.construction/skills/subcontract-writer/findings/`:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
-  --type "subcontract_generated" \
+  --skill "subcontract-writer" --type "subcontract_generated" \
   --title "Subcontract: {scope} — {subcontractor}" \
   --output-file "{output_path}" \
   --data '{"scope": "...", "subcontractor": "...", "contract_sum": ..., "spec_sections": ..., "line_items": ..., "legal_flags": ...}'

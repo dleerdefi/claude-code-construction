@@ -1,0 +1,19 @@
+# A-601 DOOR SCHEDULE: a schedule at 0.100 0.060 0.440 0.346 (x y w h), from the sheet's text: one line per row of text, its position y, then the cells by column; the table's own header rows come first. schedule_id=none
+y	x0.100	x0.200	x0.300	x0.400	x0.500
+0.060		DOOR SCHEDULE
+0.100	MARK	SIZE	DOOR	FRAME	HDWR
+0.120	D101	3'-0" x 7'-0"	SCWD	HM	10
+0.140	D102	3'-0" x 7'-0"	HM	HM	11
+0.160	D103	3'-0" x 7'-0"	SCWD	HM	12
+0.180	D104	3'-0" x 7'-0"	HM	HM	10
+0.200	D105	3'-0" x 7'-0"	SCWD	HM	11
+0.220	D106	3'-0" x 7'-0"	HM	HM	12
+0.240	D107	3'-0" x 7'-0"	SCWD	HM	10
+0.260	D108	3'-0" x 7'-0"	HM	HM	11
+0.280	D109	3'-0" x 7'-0"	SCWD	HM	12
+0.300	D110	3'-0" x 7'-0"	HM	HM	10
+0.320	D111	3'-0" x 7'-0"	SCWD	HM	11
+0.340	D112	3'-0" x 7'-0"	HM	HM	12
+0.360	D113	3'-0" x 7'-0"	SCWD	HM	10
+0.380	D114	3'-0" x 7'-0"	HM	HM	11
+0.400	D115	3'-0" x 7'-0"	SCWD	HM	12

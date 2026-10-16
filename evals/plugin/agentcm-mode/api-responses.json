@@ -1,0 +1,537 @@
+{
+  "POST /projects/36c8c290-c69a-4d54-b579-fd223b4a4ea1/schedules/ingest": {
+    "request": {
+      "sheetId": "328ad0f4-e3ca-4db5-95b5-b508817bb9d5",
+      "scheduleType": "window",
+      "title": "WINDOW SCHEDULE",
+      "rowEntityType": "window",
+      "sourceMethod": "pdfplumber",
+      "confidence": 0.98,
+      "boundingRegion": {
+        "x": 0.1,
+        "y": 0.06,
+        "width": 0.44,
+        "height": 0.35
+      },
+      "columns": [
+        {
+          "key": "MARK",
+          "header": "MARK"
+        },
+        {
+          "key": "WIDTH",
+          "header": "WIDTH"
+        },
+        {
+          "key": "HEIGHT",
+          "header": "HEIGHT"
+        },
+        {
+          "key": "TYPE",
+          "header": "TYPE"
+        },
+        {
+          "key": "GLAZING",
+          "header": "GLAZING"
+        }
+      ],
+      "rows": [
+        {
+          "entityIdentifier": "A",
+          "cells": {
+            "MARK": "A",
+            "WIDTH": "2'-0\"",
+            "HEIGHT": "3'-0\"",
+            "TYPE": "FIXED",
+            "GLAZING": "TEMPERED"
+          }
+        },
+        {
+          "entityIdentifier": "B",
+          "cells": {
+            "MARK": "B",
+            "WIDTH": "3'-0\"",
+            "HEIGHT": "4'-0\"",
+            "TYPE": "CASEMENT",
+            "GLAZING": "INSUL"
+          }
+        },
+        {
+          "entityIdentifier": "C",
+          "cells": {
+            "MARK": "C",
+            "WIDTH": "4'-0\"",
+            "HEIGHT": "5'-0\"",
+            "TYPE": "AWNING",
+            "GLAZING": "INSUL"
+          }
+        },
+        {
+          "entityIdentifier": "D",
+          "cells": {
+            "MARK": "D",
+            "WIDTH": "5'-0\"",
+            "HEIGHT": "3'-0\"",
+            "TYPE": "FIXED",
+            "GLAZING": "INSUL"
+          }
+        },
+        {
+          "entityIdentifier": "E",
+          "cells": {
+            "MARK": "E",
+            "WIDTH": "2'-0\"",
+            "HEIGHT": "4'-0\"",
+            "TYPE": "CASEMENT",
+            "GLAZING": "TEMPERED"
+          }
+        },
+        {
+          "entityIdentifier": "F",
+          "cells": {
+            "MARK": "F",
+            "WIDTH": "3'-0\"",
+            "HEIGHT": "5'-0\"",
+            "TYPE": "AWNING",
+            "GLAZING": "INSUL"
+          }
+        },
+        {
+          "entityIdentifier": "G",
+          "cells": {
+            "MARK": "G",
+            "WIDTH": "4'-0\"",
+            "HEIGHT": "3'-0\"",
+            "TYPE": "FIXED",
+            "GLAZING": "INSUL"
+          }
+        },
+        {
+          "entityIdentifier": "H",
+          "cells": {
+            "MARK": "H",
+            "WIDTH": "5'-0\"",
+            "HEIGHT": "4'-0\"",
+            "TYPE": "CASEMENT",
+            "GLAZING": "INSUL"
+          }
+        },
+        {
+          "entityIdentifier": "I",
+          "cells": {
+            "MARK": "I",
+            "WIDTH": "2'-0\"",
+            "HEIGHT": "5'-0\"",
+            "TYPE": "AWNING",
+            "GLAZING": "TEMPERED"
+          }
+        },
+        {
+          "entityIdentifier": "J",
+          "cells": {
+            "MARK": "J",
+            "WIDTH": "3'-0\"",
+            "HEIGHT": "3'-0\"",
+            "TYPE": "FIXED",
+            "GLAZING": "INSUL"
+          }
+        },
+        {
+          "entityIdentifier": "K",
+          "cells": {
+            "MARK": "K",
+            "WIDTH": "4'-0\"",
+            "HEIGHT": "4'-0\"",
+            "TYPE": "CASEMENT",
+            "GLAZING": "INSUL"
+          }
+        },
+        {
+          "entityIdentifier": "L",
+          "cells": {
+            "MARK": "L",
+            "WIDTH": "5'-0\"",
+            "HEIGHT": "5'-0\"",
+            "TYPE": "AWNING",
+            "GLAZING": "INSUL"
+          }
+        },
+        {
+          "entityIdentifier": "M",
+          "cells": {
+            "MARK": "M",
+            "WIDTH": "2'-0\"",
+            "HEIGHT": "3'-0\"",
+            "TYPE": "FIXED",
+            "GLAZING": "TEMPERED"
+          }
+        },
+        {
+          "entityIdentifier": "N",
+          "cells": {
+            "MARK": "N",
+            "WIDTH": "3'-0\"",
+            "HEIGHT": "4'-0\"",
+            "TYPE": "CASEMENT",
+            "GLAZING": "INSUL"
+          }
+        },
+        {
+          "entityIdentifier": "O",
+          "cells": {
+            "MARK": "O",
+            "WIDTH": "4'-0\"",
+            "HEIGHT": "5'-0\"",
+            "TYPE": "AWNING",
+            "GLAZING": "INSUL"
+          }
+        }
+      ]
+    },
+    "response": {
+      "scheduleId": "82b1cfa9-3848-4cba-9535-51210a1ff8b2",
+      "rowsInserted": 15,
+      "rowsUpdated": 0,
+      "codesExtracted": 0,
+      "roomLinksCreated": 0,
+      "pendingLinksCreated": 15,
+      "conflictsCreated": 0
+    }
+  },
+  "POST /projects/36c8c290-c69a-4d54-b579-fd223b4a4ea1/schedules/reconcile": {
+    "request": {
+      "scheduleId": "82b1cfa9-3848-4cba-9535-51210a1ff8b2",
+      "sourceFile": "WINDOW SCHEDULE.xlsx",
+      "cellUpdates": [
+        {
+          "rowKey": "A",
+          "columnKey": "GLAZING",
+          "newValue": "TEMPERED"
+        }
+      ],
+      "rowAdds": [],
+      "rowDeletes": [],
+      "columnAdds": [],
+      "columnHides": []
+    },
+    "response": {
+      "rowsUpdated": 0,
+      "rowsAdded": 0,
+      "rowsSoftDeleted": 0,
+      "cellsChanged": 0,
+      "conflictsCreated": 0,
+      "columnsAdded": 0,
+      "columnsHidden": 0,
+      "errors": []
+    }
+  },
+  "POST /projects/36c8c290-c69a-4d54-b579-fd223b4a4ea1/tag-detections/ingest": {
+    "request": {
+      "sheet_id": "3a1809eb-0367-4196-bf48-f550392b97bb",
+      "detections": [
+        {
+          "bounding_box": {
+            "x": 0.398,
+            "y": 0.298,
+            "width": 0.064,
+            "height": 0.025000000000000022
+          },
+          "tag_text": "202",
+          "tag_type": "room_tag",
+          "confidence": 0.9
+        },
+        {
+          "bounding_box": {
+            "x": 0.198,
+            "y": 0.598,
+            "width": 0.064,
+            "height": 0.025000000000000022
+          },
+          "tag_text": "204",
+          "tag_type": "room_tag",
+          "confidence": 0.9
+        },
+        {
+          "bounding_box": {
+            "x": 0.5980000000000001,
+            "y": 0.298,
+            "width": 0.06400000000000006,
+            "height": 0.025000000000000022
+          },
+          "tag_text": "203",
+          "tag_type": "room_tag",
+          "confidence": 0.9
+        },
+        {
+          "bounding_box": {
+            "x": 0.02,
+            "y": 0.02,
+            "width": 0.01,
+            "height": 0.01
+          },
+          "tag_text": "999",
+          "tag_type": "room_tag",
+          "confidence": 0.9
+        }
+      ]
+    },
+    "response": {
+      "sheet_id": "3a1809eb-0367-4196-bf48-f550392b97bb",
+      "suggestions_created": 1,
+      "skipped_duplicate": 2,
+      "suggestion_ids": [
+        "e5a1cc06-b593-4e4e-aa88-ebdc0393d0e2"
+      ],
+      "results": [
+        {
+          "index": 0,
+          "tag_text": "202",
+          "tag_type": "room_tag",
+          "new_type": false,
+          "outcome": "already_held",
+          "held_by": {
+            "suggestion_id": "8f76f862-8a22-4191-99d0-1fa07bbcf645",
+            "status": "pending"
+          }
+        },
+        {
+          "index": 1,
+          "tag_text": "204",
+          "tag_type": "room_tag",
+          "new_type": false,
+          "outcome": "created",
+          "suggestion_id": "e5a1cc06-b593-4e4e-aa88-ebdc0393d0e2"
+        },
+        {
+          "index": 2,
+          "tag_text": "203",
+          "tag_type": "room_tag",
+          "new_type": false,
+          "outcome": "rejected",
+          "rejected_by": {
+            "suggestion_id": "fe5a4cc2-e848-4536-b329-3eeef1d7447f"
+          }
+        },
+        {
+          "index": 3,
+          "tag_text": "999",
+          "tag_type": "room_tag",
+          "new_type": false,
+          "outcome": "no_free_text"
+        }
+      ]
+    }
+  },
+  "GET /projects/36c8c290-c69a-4d54-b579-fd223b4a4ea1/schedules/82b1cfa9-3848-4cba-9535-51210a1ff8b2/rows": [
+    {
+      "id": "3f32f97c-6329-49e4-957e-3b795ea98a25",
+      "rowIndex": 0,
+      "entityIdentifier": "A",
+      "data": {
+        "MARK": "A",
+        "TYPE": "FIXED",
+        "WIDTH": "2'-0\"",
+        "HEIGHT": "3'-0\"",
+        "GLAZING": "TEMPERED"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "529b3992-6fc7-4fa3-96ac-a47737778453",
+      "rowIndex": 1,
+      "entityIdentifier": "B",
+      "data": {
+        "MARK": "B",
+        "TYPE": "CASEMENT",
+        "WIDTH": "3'-0\"",
+        "HEIGHT": "4'-0\"",
+        "GLAZING": "INSUL"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "2155bc29-f542-4f71-970b-7f6f4ea17882",
+      "rowIndex": 2,
+      "entityIdentifier": "C",
+      "data": {
+        "MARK": "C",
+        "TYPE": "AWNING",
+        "WIDTH": "4'-0\"",
+        "HEIGHT": "5'-0\"",
+        "GLAZING": "INSUL"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "bde5d7c2-8217-4a55-84ca-c2fd8bebd393",
+      "rowIndex": 3,
+      "entityIdentifier": "D",
+      "data": {
+        "MARK": "D",
+        "TYPE": "FIXED",
+        "WIDTH": "5'-0\"",
+        "HEIGHT": "3'-0\"",
+        "GLAZING": "INSUL"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "57b4efac-99b1-49b4-a539-664b5f5ff474",
+      "rowIndex": 4,
+      "entityIdentifier": "E",
+      "data": {
+        "MARK": "E",
+        "TYPE": "CASEMENT",
+        "WIDTH": "2'-0\"",
+        "HEIGHT": "4'-0\"",
+        "GLAZING": "TEMPERED"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "1ba4f264-61b1-4504-9116-26ab7f13816f",
+      "rowIndex": 5,
+      "entityIdentifier": "F",
+      "data": {
+        "MARK": "F",
+        "TYPE": "AWNING",
+        "WIDTH": "3'-0\"",
+        "HEIGHT": "5'-0\"",
+        "GLAZING": "INSUL"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "38893136-6156-4305-88e8-2617d6d68332",
+      "rowIndex": 6,
+      "entityIdentifier": "G",
+      "data": {
+        "MARK": "G",
+        "TYPE": "FIXED",
+        "WIDTH": "4'-0\"",
+        "HEIGHT": "3'-0\"",
+        "GLAZING": "INSUL"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "2f158bfa-12d7-4bfa-a5ac-173677838eba",
+      "rowIndex": 7,
+      "entityIdentifier": "H",
+      "data": {
+        "MARK": "H",
+        "TYPE": "CASEMENT",
+        "WIDTH": "5'-0\"",
+        "HEIGHT": "4'-0\"",
+        "GLAZING": "INSUL"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "9dbe465e-3f21-4009-9759-3dac4c0ed6cd",
+      "rowIndex": 8,
+      "entityIdentifier": "I",
+      "data": {
+        "MARK": "I",
+        "TYPE": "AWNING",
+        "WIDTH": "2'-0\"",
+        "HEIGHT": "5'-0\"",
+        "GLAZING": "TEMPERED"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "d36816e0-9071-4e09-aecb-9b1a4014610e",
+      "rowIndex": 9,
+      "entityIdentifier": "J",
+      "data": {
+        "MARK": "J",
+        "TYPE": "FIXED",
+        "WIDTH": "3'-0\"",
+        "HEIGHT": "3'-0\"",
+        "GLAZING": "INSUL"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "d928b6dc-cb0e-4925-8f39-2505febc7662",
+      "rowIndex": 10,
+      "entityIdentifier": "K",
+      "data": {
+        "MARK": "K",
+        "TYPE": "CASEMENT",
+        "WIDTH": "4'-0\"",
+        "HEIGHT": "4'-0\"",
+        "GLAZING": "INSUL"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "717f84a4-72f0-4293-876f-e458d491bb79",
+      "rowIndex": 11,
+      "entityIdentifier": "L",
+      "data": {
+        "MARK": "L",
+        "TYPE": "AWNING",
+        "WIDTH": "5'-0\"",
+        "HEIGHT": "5'-0\"",
+        "GLAZING": "INSUL"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "178db7ee-9656-4466-9498-184df03e9f5a",
+      "rowIndex": 12,
+      "entityIdentifier": "M",
+      "data": {
+        "MARK": "M",
+        "TYPE": "FIXED",
+        "WIDTH": "2'-0\"",
+        "HEIGHT": "3'-0\"",
+        "GLAZING": "TEMPERED"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "80194b9e-aa26-45cb-9ec6-c7c4ffc89c82",
+      "rowIndex": 13,
+      "entityIdentifier": "N",
+      "data": {
+        "MARK": "N",
+        "TYPE": "CASEMENT",
+        "WIDTH": "3'-0\"",
+        "HEIGHT": "4'-0\"",
+        "GLAZING": "INSUL"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    },
+    {
+      "id": "44f3f9ae-ad28-4034-a072-7297b781e815",
+      "rowIndex": 14,
+      "entityIdentifier": "O",
+      "data": {
+        "MARK": "O",
+        "TYPE": "AWNING",
+        "WIDTH": "4'-0\"",
+        "HEIGHT": "5'-0\"",
+        "GLAZING": "INSUL"
+      },
+      "flagged": false,
+      "linkedRoomIds": []
+    }
+  ]
+}

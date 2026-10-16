@@ -1,0 +1,428 @@
+"""Trace and request helpers for the agentcm-mode cases: what a stand-in cannot prove from results is graded
+from the calls made.
+
+Each case's checks/*.py imports this (sys.path to evals/plugin/_checks) and calls one check. EVAL_TRACE is
+the run's trace.jsonl, EVAL_WORKSPACE its workspace (or regrade snapshot), whose .eval-api/requests.jsonl
+the stub wrote; the fixture's own files are read from evals/plugin/agentcm-mode/construction/.
+"""
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+import yaml
+
+HERE = Path(__file__).resolve().parent
+FIXTURE = HERE.parent / "agentcm-mode" / "construction"
+WORKSPACE = Path(os.environ.get("EVAL_WORKSPACE", "."))
+NUM = r"(0?\.\d+|0|1(?:\.0+)?)"
+CROP = re.compile(r"crop\.(?:sh|ps1)[\"']?\s+[\"']?([A-Za-z0-9._-]+)[\"']?\s+" + r"\s+".join([NUM] * 4))
+READS = ("/rows",)  # contract 1's one promised read
+CANONICAL = {"room_tag", "door_tag", "element_tag", "simple_callout", "multi_detail_callout", "grid_label",
+             "view_label", "note_block", "schedule_block", "schedule_zone", "annotation", "viewport_highlight"}
+WRITES = ("schedules/ingest", "schedules/reconcile", "tag-detections/ingest")
+BOX = ("x", "y", "width", "height")
+
+
+def finish(ok, passed, failed):
+    print(("PASS: " + passed) if ok else ("FAIL: " + failed))
+    sys.exit(0 if ok else 1)
+
+
+def bash_commands():
+    out = []
+    for line in open(os.environ["EVAL_TRACE"], encoding="utf-8"):
+        r = json.loads(line)
+        if r.get("type") == "tool_use" and r.get("name") in ("Bash", "PowerShell"):
+            out.append(r["input"].get("command", ""))
+    return out
+
+
+def requests():
+    """What reached the stand-in API: [{method, path, query, body, status}], in order."""
+    p = WORKSPACE / ".eval-api" / "requests.jsonl"
+    return [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()] if p.is_file() else []
+
+
+def posts(endpoint):
+    return [r for r in requests() if r["method"] == "POST" and r["path"].endswith("/" + endpoint)]
+
+
+def sheet_ids():
+    """{sheet_number: id} from the fixture's index/sheet_index.yaml."""
+    data = yaml.safe_load((FIXTURE / "index" / "sheet_index.yaml").read_text(encoding="utf-8")) or {}
+    return {str(s.get("sheet_number")): str(s.get("id")) for s in data.get("sheets") or [] if s.get("id")}
+
+
+def project_id():
+    return str((yaml.safe_load((FIXTURE / "database.yaml").read_text(encoding="utf-8")) or {}).get("project_id"))
+
+
+# -- crop.sh ------------------------------------------------------------------------------------
+def crops():
+    """(sheet, x, y, w, h) for every crop.sh / crop.ps1 call: from its command, and from the PNG it left in
+    .construction/crops/ (crop.sh names it <sheet>_<x>_<y>_<w>_<h>.png), so a crop made in a shell loop, its box
+    in a variable, counts too."""
+    out = [(m.group(1), *(float(v) for v in m.groups()[1:])) for cmd in bash_commands() for m in CROP.finditer(cmd)]
+    for png in sorted((WORKSPACE / ".construction" / "crops").glob("*.png")):
+        parts = png.stem.rsplit("_", 4)
+        try:
+            c = (parts[0], *(float(v) for v in parts[1:]))
+        except (ValueError, IndexError):
+            continue
+        if len(parts) == 5 and c not in out:
+            out.append(c)
+    return out
+
+
+def sheet_lines(sheet):
+    """(x, y, w, h, text) for each line of the fixture's sheets/<sheet>.tsv."""
+    p = FIXTURE / "sheets" / f"{sheet}.tsv"
+    out = []
+    for r in (p.read_text(encoding="utf-8").splitlines()[1:] if p.is_file() else []):
+        c = r.split("\t")
+        try:
+            out.append((float(c[0]), float(c[1]), float(c[2]), float(c[3]), c[-1]))
+        except (ValueError, IndexError):
+            pass
+    return out
+
+
+def overlaps(a, b):
+    ax, ay, aw, ah = a; bx, by, bw, bh = b
+    return ax < bx + bw and bx < ax + aw and ay < by + bh and by < ay + ah
+
+
+def check_crop_covers(sheet, text):
+    """A crop of `sheet` whose box overlaps the line of the sheet's .tsv holding `text`."""
+    targets = [l[:4] for l in sheet_lines(sheet) if l[4].strip() == text]
+    cs = crops()
+    hits = [c for c in cs if c[0] == sheet and any(overlaps(c[1:], t) for t in targets)]
+    finish(bool(hits) and bool(targets), f"crop.sh {hits[0] if hits else ''} covers {text!r} on {sheet}",
+           f"no crop.sh call on {sheet} covers {text!r} {targets}; crops made: {cs[:6]}")
+
+
+def check_crop_from_sheet_files(sheets):
+    """At least one crop of one of `sheets`, on the sheet, overlapping a line its .tsv gives."""
+    cs = crops()
+    good = [c for c in cs if c[0] in sheets and all(0 <= v <= 1 for v in c[1:]) and c[1] + c[3] <= 1.0001
+            and c[2] + c[4] <= 1.0001 and any(overlaps(c[1:], l[:4]) for l in sheet_lines(c[0]))]
+    finish(bool(good), f"crop.sh {good[0] if good else ''} uses a box from the sheet files",
+           f"no crop.sh call on {sheets} with a box on a line of the sheet files; crops made: {cs[:6]}")
+
+
+def check_crop_on_mark(sheet, box, name):
+    """A crop of `sheet` whose box overlaps a mark drawn on it (drawn-marks.json): something the drawing shows and
+    AgentCM's files do not, so only a look at the drawing finds it."""
+    cs = crops()
+    hits = [c for c in cs if c[0] == sheet and overlaps(c[1:], box)]
+    finish(bool(hits), f"crop.sh {hits[0] if hits else ''} covers the mark {name} on {sheet}",
+           f"no crop.sh call on {sheet} covers the mark {name} {box}; crops made: {cs[:6]}")
+
+
+def check_docx_says(pattern, regex, what):
+    """A Word document the run wrote (`pattern`, a glob from the project root) says `what` (`regex`)."""
+    import docx
+    texts = {}
+    for f in sorted(WORKSPACE.glob(pattern)):
+        d = docx.Document(str(f))
+        parts = [p.text for p in d.paragraphs] + [c.text for t in d.tables for r in t.rows for c in r.cells]
+        texts[f.name] = "\n".join(parts)
+    hit = [n for n, t in texts.items() if re.search(regex, t)]
+    finish(bool(hit), f"{what} in {hit[0] if hit else ''}", f"{what} not in {sorted(texts) or 'any document'}")
+
+
+# -- a tag seen on the drawing, not in AgentCM ------------------------------------------------------
+def corrections_count(sheet, box):
+    """corrections.tsv lines on `sheet` of kind tag whose box and `box` hold each other's centre."""
+    sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
+    import qto_to_xlsx as q
+    corr = WORKSPACE / ".construction" / "skills" / "corrections.tsv"
+    n = 0
+    for c in ([l.split("\t") for l in corr.read_text(encoding="utf-8").splitlines()[1:]] if corr.is_file() else []):
+        try:
+            other = tuple(float(v) for v in c[1:5])
+        except ValueError:
+            continue
+        n += len(c) > 5 and c[0] == sheet and c[5] == "tag" and (q.center_inside(box, other) or q.center_inside(other, box))
+    return n
+
+
+def seen_at(data, sheet, box):
+    """A QTO instance with status seen on `sheet` whose box overlaps `box`."""
+    sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
+    import qto_to_xlsx as q
+    return any(q.status_of(d) == "seen" and d.get("sheet") == sheet and q.box_of(d) and overlaps(q.box_of(d), box)
+               for item in data.get("line_items", []) for d in item.get("instance_details", []))
+
+
+def check_seen_reported(marks):
+    """Each of `marks` ((sheet, box, name): a tag drawn with no text, which AgentCM cannot hold) is in the latest
+    QTO JSON as seen on the drawing, and reported once in corrections.tsv."""
+    files = sorted((WORKSPACE / ".construction" / "skills" / "tag-audit-and-takeoff" / "qto").glob("*.json"))
+    if not files:
+        finish(False, "", "no QTO JSON")
+    data = json.loads(files[-1].read_text(encoding="utf-8"))
+    bad = [f"{name}: seen {seen_at(data, sheet, box)}, corrections lines {corrections_count(sheet, box)}"
+           for sheet, box, name in marks if not seen_at(data, sheet, box) or corrections_count(sheet, box) != 1]
+    finish(not bad, f"seen on the drawing, not in AgentCM, and reported once: {[m[2] for m in marks]}", "; ".join(bad))
+
+
+# -- own extraction -------------------------------------------------------------------------------
+EXTRACTION = re.compile(r"rasterize_page|pdf_text\.py|split_drawing_set|split_spec_manual|extract_spec_text|find_pages|"
+                        r"extract_text_region|pdfplumber|import fitz")
+
+
+def pages_of(text):
+    """{1, 3, 4, 5} from "1,3-5"."""
+    out = set()
+    for part in re.split(r"[,\s]+", text.strip()):
+        a, _, b = part.partition("-")
+        if a.isdigit():
+            out.update(range(int(a), int(b if b.isdigit() else a) + 1))
+    return out
+
+
+def check_no_own_extraction(read, drawings):
+    """Nothing AgentCM read is extracted again. `read` maps each manual INDEX.md lists as read to its pages in no
+    section, which INDEX.md says to read in the PDF: rasterize_page.py on one of them, or pdf_text.py --pages among
+    them, passes; any other extraction naming the manual (pdf_text.py of the whole file, a section's page, another
+    tool) fails. A drawing PDF is never extracted: drawings are looked at through crop.sh. A manual INDEX.md lists
+    as not read is spec-splitter's to split and extract, and so are the section PDFs it splits from it."""
+    bad = []
+    for c in bash_commands():
+        for seg in re.split(r"&&|\|\||[;\n|]", c):
+            seg = seg.replace("\\ ", " ")  # Project\ Manual.pdf is Project Manual.pdf
+            if not EXTRACTION.search(seg):
+                continue
+            bad += [(Path(f).name, seg.strip()[:160]) for f in drawings if Path(f).name in seg]
+            for f, allowed in read.items():
+                name = Path(f).name
+                if name not in seg:
+                    continue
+                if "rasterize_page" in seg:
+                    m = re.match(r"[\"']?\s+(\d+)\b", seg.split(name, 1)[1])
+                    named = {int(m.group(1))} if m else set()
+                elif "pdf_text" in seg:
+                    m = re.search(r"--pages[=\s]+[\"']?([\d,\s-]+)", seg)
+                    named = pages_of(m.group(1)) if m else set()
+                else:
+                    named = set()
+                if not named or not named <= set(allowed):
+                    bad.append((name, seg.strip()[:160]))
+    finish(not bad, "nothing AgentCM read is extracted again", f"extraction of what AgentCM read: {bad[:4]}")
+
+
+# -- where a run writes -----------------------------------------------------------------------------
+DELIVERABLES = (".xlsx", ".docx")
+
+
+def check_deliverables_visible():
+    """No workbook or Word document under .construction/: deliverables go in the project's visible folders,
+    never in .construction/, which macOS and Linux hide (working data goes in .construction/skills/)."""
+    base = WORKSPACE / ".construction"
+    hidden = sorted(p.relative_to(WORKSPACE).as_posix() for p in base.rglob("*")
+                    if p.is_file() and p.suffix.lower() in DELIVERABLES) if base.is_dir() else []
+    finish(not hidden, "no deliverable under .construction/", f"deliverables hidden under .construction/: {hidden[:5]}")
+
+
+# -- the API --------------------------------------------------------------------------------------
+def check_contract_requests():
+    """Every request to the stand-in is one of the contract's reads or writes, for this project, answered."""
+    reqs, pid = requests(), project_id()
+    bad = [f"{r['method']} {r['path']} ({r['status']})" for r in reqs
+           if not r["path"].startswith(f"/api/projects/{pid}/")
+           or not any(e in r["path"] for e in (READS if r["method"] == "GET" else WRITES))
+           or r["status"] != 200]
+    finish(bool(reqs) and not bad, f"{len(reqs)} request(s), each a contract endpoint for project {pid}",
+           f"requests outside the contract, another project, or refused: {bad[:6]} (of {len(reqs)})")
+
+
+def detection_problems(d):
+    out = []
+    for k in ("tag_text", "tag_type", "bounding_box", "confidence"):
+        if k not in d:
+            out.append(f"no {k}")
+    b = d.get("bounding_box")
+    if not (isinstance(b, dict) and all(isinstance(b.get(k), (int, float)) and 0 <= b[k] <= 1 for k in BOX)):
+        out.append(f"bounding_box not {{x, y, width, height}} in 0-1: {b}")
+    if "tag_type" in d and d["tag_type"] not in CANONICAL:
+        out.append(f"tag_type {d['tag_type']!r} is not one of contract 1's names")
+    if d.get("element_ids"):
+        out.append("element_ids sent: a detection goes by its box")
+    return out
+
+
+def tag_payload_problems(body, sheet):
+    if not isinstance(body, dict):
+        return ["the body is not a JSON object"]
+    out = [] if body.get("sheet_id") == sheet_ids().get(sheet) else [f"sheet_id {body.get('sheet_id')}, not {sheet}'s"]
+    dets = body.get("detections")
+    if not isinstance(dets, list) or not dets:
+        return out + ["no detections"]
+    return out + [p for d in dets for p in detection_problems(d if isinstance(d, dict) else {})]
+
+
+SCHEDULE_KEYS = ("sheetId", "scheduleType", "title", "rowEntityType", "columns", "rows", "sourceMethod", "confidence")
+# the values AgentCM's own schedule types allow (src/shared/scheduleTypes.ts at 04feab4)
+ROW_ENTITY_TYPES = ("room", "door", "window", "fixture", "equipment")
+SOURCE_METHODS = ("pdfplumber", "vision", "hybrid", "manual")
+
+
+def schedule_payload_problems(body, sheet):
+    if not isinstance(body, dict):
+        return ["the body is not a JSON object"]
+    out = [f"no {k}" for k in SCHEDULE_KEYS if k not in body]
+    if body.get("sheetId") != sheet_ids().get(sheet):
+        out.append(f"sheetId {body.get('sheetId')}, not {sheet}'s")
+    if "rowEntityType" in body and body["rowEntityType"] not in ROW_ENTITY_TYPES:
+        out.append(f"rowEntityType {body['rowEntityType']!r}, not one of AgentCM's {ROW_ENTITY_TYPES}")
+    if "sourceMethod" in body and body["sourceMethod"] not in SOURCE_METHODS:
+        out.append(f"sourceMethod {body['sourceMethod']!r}, not one of AgentCM's {SOURCE_METHODS}")
+    rows = body.get("rows")
+    if not isinstance(rows, list) or not rows or not all(isinstance(r, dict) and r.get("entityIdentifier")
+                                                         and isinstance(r.get("cells"), dict) for r in rows):
+        out.append("rows without entityIdentifier and cells")
+    return out
+
+
+def check_tag_ingest(sheets):
+    """tag-detections/ingest posts, each for one of `sheets` by its id, with the contract's payload."""
+    ps = posts("tag-detections/ingest")
+    bad = []
+    for r in ps:
+        sheet = next((s for s in sheets if r["body"] and r["body"].get("sheet_id") == sheet_ids().get(s)), sheets[0])
+        bad += tag_payload_problems(r["body"], sheet)
+    finish(bool(ps) and not bad, f"{len(ps)} tag ingest(s), sheet ids from sheet_index.yaml, payloads as the contract",
+           f"tag ingests: {len(ps)}; problems: {bad[:6]}")
+
+
+def check_schedule_ingest(sheet):
+    ps = posts("schedules/ingest")
+    bad = [p for r in ps for p in schedule_payload_problems(r["body"], sheet)]
+    finish(bool(ps) and not bad, f"{len(ps)} schedule ingest(s) for {sheet} by its id, payload as the contract",
+           f"schedule ingests: {len(ps)}; problems: {bad[:6]}")
+
+
+def check_reconcile(schedule_id, row_key, column, value):
+    """One reconcile post for `schedule_id`, carrying sourceFile and the edited cell, that AgentCM took: its
+    answer names no error (the stand-in answers from the stored rows, so an error means a row key it lacks)."""
+    ps = posts("schedules/reconcile")
+    ok = [r for r in ps if isinstance(r["body"], dict) and r["body"].get("scheduleId") == schedule_id
+          and r["body"].get("sourceFile") and any(u.get("rowKey") == row_key and u.get("columnKey") == column
+                                                  and u.get("newValue") == value for u in r["body"].get("cellUpdates") or [])
+          and isinstance(r.get("response"), dict) and not r["response"].get("errors")]
+    rows_read = [r for r in requests() if r["method"] == "GET" and r["path"].endswith(f"/schedules/{schedule_id}/rows")]
+    finish(bool(ok) and bool(rows_read), f"rows read, then reconcile of {schedule_id} with {row_key}/{column} = {value!r}",
+           f"rows reads: {len(rows_read)}; reconciles: {len(ps)}, none with {row_key}/{column} = {value!r} and "
+           f"no error: {[(r['body'], r.get('response')) for r in ps][:2]}")
+
+
+# -- AgentCM closed -------------------------------------------------------------------------------
+def outbox(skill):
+    d = WORKSPACE / ".construction" / "skills" / skill / "outbox"
+    out = []
+    for p in sorted(d.glob("*.json")) if d.is_dir() else []:
+        try:
+            out.append((p.name, json.loads(p.read_text(encoding="utf-8"))))
+        except json.JSONDecodeError:
+            out.append((p.name, None))
+    return out
+
+
+def check_outbox(skill, kind, sheet):
+    """AgentCM closed: nothing reached an API, and the payload waits in the skill's outbox."""
+    saved = outbox(skill)
+    problems = tag_payload_problems if kind == "tag" else schedule_payload_problems
+    good = [n for n, body in saved if body is not None and not problems(body, sheet)]
+    reached = requests()
+    finish(bool(good) and not reached, f"{good[0] if good else ''} waits in {skill}/outbox/ with the contract's payload",
+           f"outbox: {[n for n, _ in saved]}, well-formed for {sheet}: {good}; requests that reached an API: {len(reached)}")
+
+
+# -- the takeoff, twice -----------------------------------------------------------------------------
+def answered(endpoint):
+    """(sheet id, detection, the stand-in's answer to it) for every detection sent to `endpoint`, in order."""
+    out = []
+    for r in posts(endpoint):
+        body = r["body"] if isinstance(r["body"], dict) else {}
+        results = {e.get("index"): e for e in ((r.get("response") or {}).get("results") or []) if isinstance(e, dict)}
+        out += [(body.get("sheet_id"), d, results.get(i, {})) for i, d in enumerate(body.get("detections") or [])
+                if isinstance(d, dict)]
+    return out
+
+
+def check_takeoff_twice(accepted, pending, seen_marks=()):
+    """Two QTO JSONs with the same numbers per item (confirmed, to confirm, seen not in AgentCM, possible
+    total); confirmed is the accepted tags (`accepted`), to confirm holds at least the pending ones; each of
+    `seen_marks` ((sheet, box, name): a tag drawn with no text) is seen in both, with one corrections.tsv line. A tag sent again (the files
+    do not refresh here) came back already_held, never as a second card; a tag AgentCM answered rejected
+    is in each QTO once, as rejected, in no number."""
+    sys.path.insert(0, str(HERE.parents[2] / "skills" / "tag-audit-and-takeoff" / "scripts"))
+    import qto_to_xlsx as q
+    files = sorted((WORKSPACE / ".construction" / "skills" / "tag-audit-and-takeoff" / "qto").glob("*.json"))
+    if len(files) < 2:
+        finish(False, "", f"{len(files)} QTO JSON(s); a second takeoff was asked for")
+    runs, datas = [], []
+    for f in files[-2:]:
+        data = json.loads(f.read_text(encoding="utf-8"))
+        datas.append(data)
+        per_item, total = q.all_counts(data)
+        runs.append(({q.label(i): c for i, c in per_item}, total))  # every number the export prints
+    same = runs[0] == runs[1]
+    conf, todo = runs[1][1][0], runs[1][1][1]
+
+    def one_tag(a, b):
+        ba, bb = q.box_of(a[1]), q.box_of(b[1])
+        return (a[0] == b[0] and q.norm_text(a[1].get("tag_text")) == q.norm_text(b[1].get("tag_text")) and ba and bb
+                and (q.center_inside(ba, bb) or q.center_inside(bb, ba)))
+
+    sent = answered("tag-detections/ingest")
+    second_card = [s[1].get("tag_text") for i, s in enumerate(sent) for later in sent[i + 1:]
+                   if one_tag(s, later) and later[2].get("outcome") == "created"]
+    # the second run's trace: the files do not refresh here, so it sends a first-run tag again and hears already_held
+    created = [i for i, s in enumerate(sent) if s[2].get("outcome") == "created"]
+    resent = not created or any(one_tag(sent[i], later) and later[2].get("outcome") == "already_held"
+                                for i in created for later in sent[i + 1:])
+    number = {v: k for k, v in sheet_ids().items()}
+    turned_down = {(number.get(s), q.norm_text(d.get("tag_text"))) for s, d, a in sent if a.get("outcome") == "rejected"}
+    not_listed_once = []
+    for k, data in enumerate(datas, start=1):
+        for sheet, text in sorted(turned_down):
+            found = [d for item in data.get("line_items", []) for d in item.get("instance_details", [])
+                     if d.get("sheet") == sheet and q.norm_text(d.get("tag_text")) == text]
+            if [q.status_of(d) for d in found] != ["rejected"]:
+                not_listed_once.append(f"run {k}: {text} on {sheet} as {[d.get('status') for d in found]}")
+    # a tag seen on the drawing, not in AgentCM: one corrections.tsv line (kind tag, an overlapping box) after
+    # both runs, never two
+    corr = WORKSPACE / ".construction" / "skills" / "corrections.tsv"
+    lines = [l.split("\t") for l in corr.read_text(encoding="utf-8").splitlines()[1:]] if corr.is_file() else []
+
+    def reported(sheet, box):
+        out = 0
+        for c in lines:
+            try:
+                other = tuple(float(v) for v in c[1:5])
+            except ValueError:
+                continue
+            out += len(c) > 5 and c[0] == sheet and c[5] == "tag" and (q.center_inside(box, other)
+                                                                       or q.center_inside(other, box))
+        return out
+    seen_tags = [(d.get("sheet"), d.get("tag_text"), q.box_of(d)) for item in datas[-1].get("line_items", [])
+                 for d in item.get("instance_details", []) if q.status_of(d) == "seen"]
+    not_once = [f"{text} on {sheet}: {reported(sheet, box) if box else 'no box'}" for sheet, text, box in seen_tags
+                if not box or reported(sheet, box) != 1]
+    missing_seen = [f"run {k}: {name}" for k, data in enumerate(datas, start=1) for sheet, box, name in seen_marks
+                    if not seen_at(data, sheet, box)]
+    unreported = [f"{name}: {corrections_count(sheet, box)} lines" for sheet, box, name in seen_marks
+                  if corrections_count(sheet, box) != 1]
+    ok = (same and conf == accepted and todo >= pending and resent and not second_card and not not_listed_once
+          and not not_once and not missing_seen and not unreported)
+    finish(ok, f"both takeoffs: confirmed {conf}, to confirm {todo}, seen not in AgentCM {runs[1][1][2]}; a tag sent "
+               f"again was already held; rejected listed once: {sorted(t for _, t in turned_down)}; seen and "
+               f"reported once: {[m[2] for m in seen_marks]}",
+           f"runs {runs}; expected confirmed {accepted}, to confirm >= {pending}; a first-run tag sent again and "
+           f"already held: {resent}; second cards: {second_card[:3]}; rejected not listed once as rejected: "
+           f"{not_listed_once[:3]}; seen tags without exactly one corrections line: {not_once[:3]}; drawn tags not "
+           f"seen: {missing_seen}; not reported once: {unreported}")

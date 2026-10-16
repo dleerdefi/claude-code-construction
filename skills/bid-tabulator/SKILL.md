@@ -44,7 +44,7 @@ Bid Tabulation Progress:
 - [ ] Step 3: Process all bids
 - [ ] Step 4: Generate comparison Excel
 - [ ] Step 5: Present summary to engineer
-- [ ] Step 6: Write graph entry
+- [ ] Step 6: Write a finding
 ```
 
 ### Step 2: Read First Bid to Discover Structure
@@ -57,8 +57,9 @@ first; the script marks each page TEXT or VISION (fewer than 50 characters):
 Read TEXT pages from the dump. Rasterize each VISION page (scanned bids show
 VISION on every page) and read it with vision:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "BID.pdf" 1 --dpi 200 --output bid_page.png
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "BID.pdf" 1 --dpi 200 --output ".construction/skills/bid-tabulator/pages/{bid_slug}_p1.png"
 ```
+Page images are working data: keep them in `.construction/skills/bid-tabulator/pages/`, never elsewhere under `.construction/` (the rest of that folder is AgentCM's).
 Do not write your own extraction code (no `python -c`, no helper script); the
 two scripts above are the whole reading toolkit for this skill.
 
@@ -187,11 +188,13 @@ After generating the Excel:
 
 The Excel file is at [path]. All line items are extracted as-submitted — you'll want to review the Flags tab (math discrepancies, unclear values) and the Scope Gaps tab, and contact subs to clarify any discrepancies before finalizing your comparison."
 
-### Step 6: Write Graph Entry
+### Step 6: Write a Finding
+
+Record the tabulation in `.construction/skills/bid-tabulator/findings/` (both modes):
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
-  --type "bid_tabulation_complete" \
+  --skill "bid-tabulator" --type "bid_tabulation_complete" \
   --title "Bid comparison: {scope} — {N} bidders" \
   --output-file "Bid_Comparison_{scope_slug}.xlsx" \
   --data '{"scope": "Division 09", "bidder_count": 12, "low_bid": 450000, "high_bid": 680000}'

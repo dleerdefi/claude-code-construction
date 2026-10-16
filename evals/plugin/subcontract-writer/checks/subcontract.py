@@ -29,7 +29,7 @@ def main() -> int:
     low = text.lower()
     bid = json.loads(GT.read_text(encoding="utf-8"))
     tdata = {}
-    tfiles = sorted(glob.glob(str(WORKSPACE / "template_data*.json")))
+    tfiles = sorted(glob.glob(str(WORKSPACE / ".construction" / "skills" / "subcontract-writer" / "template_data*.json")))
     if tfiles:
         try:
             tdata = json.loads(Path(tfiles[-1]).read_text(encoding="utf-8"))

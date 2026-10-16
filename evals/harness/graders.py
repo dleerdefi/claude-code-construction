@@ -17,6 +17,7 @@ from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage
 from claude_agent_sdk.types import TextBlock
 
 from cases import Case, Check, Grader
+from guard import database_queries, outside_writes
 from runner import RunResult
 
 TRANSCRIPT_EDGE = 12  # the judge sees the first and last 12 messages, like plugin eval
@@ -34,6 +35,7 @@ class GraderResult:
     passed: bool
     detail: str = ""
     score: float | None = None  # python checks may report a partial score
+    cost_usd: float | None = None  # what the judge's calls for this grader cost (llm graders); None: no call made
 
 
 @dataclass
@@ -71,6 +73,8 @@ def _target_text(run: RunResult, target) -> tuple[str | None, str]:
     """Resolve a grader target to text. Returns (text, description); text None when unreadable."""
     if target in (None, "trace"):
         return transcript(run), "trace"
+    if target == "tool_inputs":  # every tool call's input, whole: the trace keeps only its ends, each cut at 800
+        return "\n".join(json.dumps(e["input"], default=str) for e in run.tool_uses), "tool inputs"
     if isinstance(target, dict) and target.get("source") == "file":
         rel = str(target.get("path", ""))
         p = run.workspace / rel
@@ -130,23 +134,29 @@ def grade_tool_order(g: Grader, run: RunResult) -> GraderResult:
     return GraderResult(g.name, g.type, g.weight, passed, f"first {before} at {i}, first {after} at {j}")
 
 
-async def _judge_once(rubric: str, material: str, model: str) -> tuple[bool, str]:
+async def _judge_once(rubric: str, material: str, model: str) -> tuple[bool, str, float]:
+    """One judge call: its verdict, its reason and what it cost (the eval budget counts the judge's calls too)."""
     prompt = f"RUBRIC:\n{rubric.strip()}\n\nMATERIAL:\n{material}\n\nReply with the JSON object."
+    # Isolated like the agent run (runner.py): without these the judge loads the user's plugins,
+    # skills and MCP servers, whose tool definitions alone can exceed the context window
     options = ClaudeAgentOptions(system_prompt=JUDGE_SYSTEM, tools=[], allowed_tools=[], max_turns=1,
-                                 model=model, permission_mode="dontAsk")
-    text = ""
+                                 model=model, permission_mode="dontAsk",
+                                 setting_sources=[], strict_mcp_config=True)
+    text, cost = "", 0.0
     async for msg in query(prompt=prompt, options=options):
         if isinstance(msg, AssistantMessage):
             text += "".join(b.text for b in msg.content if isinstance(b, TextBlock))
-        elif isinstance(msg, ResultMessage) and msg.result and not text:
-            text = msg.result
+        elif isinstance(msg, ResultMessage):
+            cost = msg.total_cost_usd or 0.0
+            if msg.result and not text:
+                text = msg.result
     m = re.search(r"\{.*\}", text, re.DOTALL)
     try:
         data = json.loads(m.group(0)) if m else {}
     except json.JSONDecodeError:
         data = {}
     verdict = str(data.get("verdict", "")).upper() or ("PASS" if "PASS" in text.upper() and "FAIL" not in text.upper() else "FAIL")
-    return verdict == "PASS", str(data.get("reason") or text[:300])
+    return verdict == "PASS", str(data.get("reason") or text[:300]), cost
 
 
 async def grade_llm(g: Grader, run: RunResult, judge: JudgeOptions) -> GraderResult:
@@ -154,22 +164,32 @@ async def grade_llm(g: Grader, run: RunResult, judge: JudgeOptions) -> GraderRes
     if text is None:
         return GraderResult(g.name, g.type, g.weight, False, where)
     rubric = g.body or g.fields.get("rubric", "") or g.name
-    votes, reasons = 0, []
+    votes, reasons, cost = 0, [], 0.0
     for _ in range(max(1, judge.votes)):
-        ok, reason = await _judge_once(rubric, text, judge.model)
+        ok, reason, spent = await _judge_once(rubric, text, judge.model)
         votes += ok
+        cost += spent
         reasons.append(("PASS: " if ok else "FAIL: ") + reason)
     passed = votes * 2 > max(1, judge.votes)
-    return GraderResult(g.name, g.type, g.weight, passed, f"{votes}/{judge.votes} votes on {where}; " + " | ".join(reasons))
+    return GraderResult(g.name, g.type, g.weight, passed, f"{votes}/{judge.votes} votes on {where}; " + " | ".join(reasons),
+                        cost_usd=round(cost, 6))
+
+
+def judge_cost(results: list[GraderResult]) -> float:
+    """What the judge's calls cost for one run's grading; graders kept from an earlier grading cost nothing now."""
+    return sum(r.cost_usd or 0.0 for r in results)
 
 
 def grade_python(check: Check, run: RunResult, plugin_root: Path, trace_path: Path | None) -> GraderResult:
     py = plugin_root / "bin" / "construction-python"
-    env = dict(os.environ, EVAL_WORKSPACE=str(run.workspace), EVAL_CASE_DIR=str(check.script.parent.parent),
-               EVAL_TRACE=str(trace_path or ""), CONSTRUCTION_SKILLS_NO_BOOTSTRAP="1")
+    # Absolute paths: the check runs from inside the workspace, so a relative one (a regrade of
+    # evals/results/<stamp>) would resolve a second time from there and find nothing.
+    workspace, script = Path(run.workspace).resolve(), Path(check.script).resolve()
+    env = dict(os.environ, EVAL_WORKSPACE=str(workspace), EVAL_CASE_DIR=str(script.parent.parent),
+               EVAL_TRACE=str(Path(trace_path).resolve()) if trace_path else "", CONSTRUCTION_SKILLS_NO_BOOTSTRAP="1")
     try:
         from runner import find_bash
-        proc = subprocess.run([find_bash(), py.as_posix(), check.script.as_posix()], cwd=run.workspace, env=env,
+        proc = subprocess.run([find_bash(), py.as_posix(), script.as_posix()], cwd=workspace, env=env,
                               capture_output=True, text=True, timeout=600)
     except Exception as e:
         return GraderResult(check.name, "python", check.weight, False, f"could not run check: {e}")
@@ -198,10 +218,120 @@ async def grade_run(case: Case, run: RunResult, judge: JudgeOptions, plugin_root
             results.append(GraderResult(g.name, g.type, g.weight, False, f"unsupported grader type {g.type!r}"))
     for c in case.checks:
         results.append(grade_python(c, run, plugin_root, trace_path))
-    return results
+    return results + grade_blockers(run)
+
+
+# --- blockers: a run that does either scores 0, whatever its graders say ---------------------------
+# Writing the project's CLAUDE.md is project-setup's job (David): exempt in that case only, any other skill
+# changing it counts.
+NOT_ORIGINALS = {"project-setup": {"CLAUDE.md"}}
+# A call to AgentCM's database (query.sh, query.ps1, psql) is reported for 0.6.0, not scored (David): AgentCM's guide
+# still offers the database. It blocks once that guide says a running construction skill reads the files, not the
+# database.
+DATABASE_QUERY_BLOCKS = False
+
+
+def _spellings(hit: dict) -> list[str]:
+    """How a run could name a file it left outside, or the folder it is in: the full path either way round, the path
+    from its place (a top-level entry of the temp folder is /tmp/<name> to Git Bash, a file in Documents is
+    Documents/<path>), and a file name that looks like one. The place itself is not "its folder": every run names
+    the temp folder, its workspace is in it."""
+    path, rel = hit["path"].replace("\\", "/"), hit["name"].replace("\\", "/")
+    out = {path, path.replace("/", "\\")}
+    if hit["place"] in ("temp", "/tmp"):
+        out.add("/tmp/" + rel)
+    if hit["place"] in ("Desktop", "Documents", "Downloads"):
+        out |= {f"{hit['place']}/{rel}", f"{hit['place']}\\{rel.replace('/', chr(92))}"}
+    if "/" in rel:  # its folder inside the place
+        folder, folder_rel = path.rsplit("/", 1)[0], rel.rsplit("/", 1)[0]
+        out |= {folder, folder.replace("/", "\\"), f"{hit['place']}/{folder_rel}", f"{hit['place']}\\{folder_rel.replace('/', chr(92))}"}
+    base = rel.rsplit("/", 1)[-1]
+    if "." in base.strip(".") and len(base) >= 5:
+        out.add(base)
+    return sorted(out, key=len, reverse=True)
+
+
+def _mentions(run: RunResult, hit: dict) -> list[str]:
+    """Where the run names the file or its folder: in its commands (tool inputs), its output (tool results, its own
+    text), both or neither."""
+    commands = "\n".join(str(v) for e in run.tool_uses for v in (e.get("input") or {}).values()).lower()
+    output = "\n".join(str(e.get("content") or e.get("text") or e.get("result") or "") for e in run.trace
+                       if e.get("type") in ("tool_result", "assistant_text", "result")).lower()
+    names = [s.lower() for s in _spellings(hit)]
+    return [where for where, text in (("commands", commands), ("output", output)) if any(n in text for n in names)]
+
+
+def _outside(run: RunResult, commands: list[str]) -> list[GraderResult]:
+    """David's rule: anything in a hard place (the run's temp folder besides Claude Code's entries, C:\\tmp, the
+    project's parent) is a blocker; in a shared place (the temp folder, /tmp, the top of home, Desktop, Documents,
+    Downloads) only what the run's commands or output name, the file or its folder. The rest is listed for review,
+    unscored. A command that wrote outside is a blocker too: it names its target."""
+    hits = run.outside_files
+    blocking, review = [], []
+    for h in hits or []:
+        said = _mentions(run, h)
+        line = (f"{h['place']}: {h['name']} ({h['change']}"
+                + ("; hard place" if h["hard"] else "")
+                + ("; named in the run's " + " and ".join(said) if said else "; not named by the run") + ")")
+        (blocking if h["hard"] or said else review).append(line)
+    parts = list(blocking)
+    if hits is None:
+        parts.append("files outside not recorded (the run predates the check)")
+    if commands:
+        parts.append(f"commands that wrote outside: {commands[:5]}")
+    overlap = f"other runs active at the time: {run.overlapping_runs}" if run.overlapping_runs else ""
+    if blocking and overlap:
+        parts.append(overlap)
+    ok = not blocking and not commands
+    detail = "; ".join(parts) if parts else "nothing left outside the project folder, and no command wrote outside it"
+    review_detail = "; ".join(review + ([overlap] if overlap else [])) if review else "nothing to review"
+    return [GraderResult("writes-inside-project", "blocker", 0, ok, detail),
+            GraderResult("outside-review", "review", 0, not review, review_detail)]
+
+
+def grade_blockers(run: RunResult) -> list[GraderResult]:
+    outside = sorted(set(outside_writes(run.tool_uses, run.guard_log, str(run.ran_in or run.workspace))))
+    exempt = NOT_ORIGINALS.get(run.case, set())
+    changed = [f for f in run.modified_files if not f.startswith(".construction/") and f not in exempt]
+    if run.deleted_files is None:
+        deleted, note = [], "; deleted files not recorded (the run predates the check)"
+    else:
+        deleted, note = [f for f in run.deleted_files if not f.startswith(".construction/") and f not in exempt], ""
+    queries = database_queries(run.tool_uses, run.guard_log)
+    block = run.agentcm_block
+    if block is None:
+        block_ok, block_detail = True, "AgentCM's block in CLAUDE.md not recorded (the run predates the check)"
+    elif block.get("before") is None:
+        block_ok, block_detail = True, "no AgentCM block in CLAUDE.md before the run"
+    else:
+        block_ok = block.get("after") == block["before"]
+        block_detail = ("AgentCM's block in CLAUDE.md unchanged" if block_ok else
+                        "AgentCM's block in CLAUDE.md changed or removed (it must come out byte for byte)")
+    return _outside(run, outside) + [
+        GraderResult("originals-intact", "blocker", 0, not changed and not deleted,
+                     (f"original documents changed: {changed[:5]}; deleted: {deleted[:5]}" if changed or deleted
+                      else "no original document changed or deleted") + note),
+        GraderResult("agentcm-block-intact", "blocker", 0, block_ok, block_detail),
+        GraderResult("no-database-query", "blocker" if DATABASE_QUERY_BLOCKS else "report", 0, not queries,
+                     f"calls to AgentCM's database: {queries[:5]}" if queries else "no call to query.sh, query.ps1 or psql"),
+    ]
+
+
+def mark(r: GraderResult) -> str:
+    """PASS / FAIL, BLOCKER for a failed blocker, REVIEW for files outside to review by name (unscored), REPORT for a
+    failed grader of weight 0 (listed, not scored)."""
+    if r.passed:
+        return "PASS"
+    if r.type == "blocker":
+        return "BLOCKER"
+    if r.type == "review":
+        return "REVIEW"
+    return "REPORT" if r.weight == 0 else "FAIL"
 
 
 def score(results: list[GraderResult]) -> float:
+    if any(r.type == "blocker" and not r.passed for r in results):
+        return 0.0
     total = sum(r.weight for r in results)
     if total == 0:
         return 0.0
