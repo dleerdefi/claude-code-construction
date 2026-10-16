@@ -42,7 +42,7 @@ Each table found on a sheet, in its own file. From: the sheet's text, or a sched
 | File | Sheet | Kind | Title | Rows | From | schedule_id |
 |---|---|---|---|---|---|---|
 | schedules/A-601-1.tsv | A-601 | schedule | DOOR SCHEDULE | 17 | text | none |
-| schedules/A-602-1.tsv | A-602 | window | WINDOW SCHEDULE | 15 | ingested | 2d9718b9-5afe-4150-84ad-ff31ef5f2a25 |
+| schedules/A-602-1.tsv | A-602 | window | WINDOW SCHEDULE | 15 | ingested | 82b1cfa9-3848-4cba-9535-51210a1ff8b2 |
 
 ## Specification sections (2)
 
