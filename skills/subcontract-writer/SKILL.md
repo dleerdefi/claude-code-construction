@@ -74,6 +74,8 @@ If no template is provided, ask: "Do you have a standard subcontract template?" 
 
 Run a separate extraction pass for each slot. Write extracted data to `.construction/skills/subcontract-writer/scope_data.json` incrementally. Do not combine slots in a single read.
 
+A text dump is working data: take `pdf_text.py`'s output directly, or, to search it more than once, save it with `--output` under `.construction/skills/subcontract-writer/text/`, never in `/tmp` or any other folder outside the project.
+
 ### Slot B Extraction (Bid Document) — Run First
 
 Dump the bid's text first; read TEXT pages from the dump and rasterize VISION pages for vision reading:
@@ -127,7 +129,7 @@ For each article, determine:
 
 For each specification section listed in the bid scope, read its text and extract Part 1 requirements. One extraction block per section. Where the text comes from depends on the mode:
 - **AgentCM mode:** `.construction/specs/<section>.txt` is the section's text. Never run `pdf_text.py` or `rasterize_page.py` on that section's pages: not to check them, and not as part of a page range. A read manual's pages in no section (INDEX.md lists them) are read in the PDF, those pages only (`--pages`).
-- **Flat-file mode:** dump the section PDF with `pdf_text.py`, as for the bid.
+- **Flat-file mode:** dump the section PDF with `pdf_text.py`, as for the bid. To search the sections for submittals, warranties or qualifications, save each dump first (`--output ".construction/skills/subcontract-writer/text/<section>.txt"`) and search those files.
 
 Extract per spec section:
 - **§1.3 / §1.4 — Submittal requirements:** shop drawings, product data, samples, certifications, LEED docs
