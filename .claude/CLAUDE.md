@@ -25,6 +25,7 @@ bin/construction-python -m unittest discover -s tests        # Unit tests for th
 bash dev/gate && git commit ...   # The commit gate: validate, both unit-test suites, VERSION = plugin.json,
                                   # no writes under .construction/ outside skills/, no database queries;
                                   # stops at the first failure
+bin/construction-python dev/readme_diagrams.py   # Redraw the README diagrams in docs/images/ (edit the script, never the SVGs)
 ```
 
 ### Key Rules

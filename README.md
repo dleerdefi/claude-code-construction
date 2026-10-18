@@ -60,6 +60,13 @@ To check that everything works on your machine, follow [Validating your install]
 
 ## Skills
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/skills-by-phase-dark.svg">
+  <img alt="The fourteen skills on a project schedule: setup splits the drawing set and project manual, document review extracts schedules, counts tags, researches codes and checks coordination, buyout builds the submittal register, tabulates and evaluates bids and writes the subcontract, and contract administration reviews submittals and drafts RFIs, with the operating guide under every phase." src="docs/images/skills-by-phase-light.svg" width="900">
+</picture>
+
+Each bar marks where in the project a skill does most of its work, and the tag beside its name is the kind of file it leaves in your project folder.
+
 | Command | What it does |
 |---------|-------------|
 | `/construction:project-setup` | Inventory project files, classify documents, establish context |
@@ -78,6 +85,24 @@ To check that everything works on your machine, follow [Validating your install]
 | `/construction:construction-guide` | Operating guide Claude loads before working with your documents (data-access rules, conventions, document precedence) |
 
 Type `/construction:` in Claude Code to list every skill. Claude also runs them on its own when your request matches.
+
+## How the skills work together
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/skill-handoffs-dark.svg">
+  <img alt="Three chains of skills. The project manual becomes the submittal log through spec-splitter and submittal-log-generator. Bids become a subcontract through bid-tabulator and bid-evaluator, a hold point where you choose the award, and subcontract-writer. Issues that six skills log while they work become RFIs after a hold point where you pick them, through rfi-drafter. Every file is a draft; nothing is sent, signed or approved for you." src="docs/images/skill-handoffs-light.svg" width="900">
+</picture>
+
+One skill's output is the next one's input, so a bid tab feeds the evaluation and an issue logged during a review becomes an RFI later. Where the work needs your decision, such as an award or which issues to send, the skill stops and waits for you.
+
+### Inside a submittal review
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/submittal-review-steps-dark.svg">
+  <img alt="The nine steps of a submittal review: intake, tracing every requirement from the contract documents before the submittal is opened, inventory of the submittal, a checkpoint with you on facility type, jurisdiction and code research, review of each element, package questions, code questions and trade routing, a completeness gate that re-runs until nothing is unaccounted for, and a draft GC review with a marked-up PDF. You decide the disposition and send it." src="docs/images/submittal-review-steps-light.svg" width="900">
+</picture>
+
+The review lists what the contract documents require before it looks at the submittal, so a missing item shows up as a finding instead of going unnoticed. Its completeness gate must pass before it writes the draft GC review.
 
 ## Tested with
 
