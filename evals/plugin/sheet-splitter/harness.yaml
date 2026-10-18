@@ -1,4 +1,7 @@
 checks:
+  - name: index-mismatch
+    script: checks/index_mismatch.py
+    weight: 2
   - name: no-agentcm-writes
     script: ../_checks/no_agentcm_writes.py
     weight: 1

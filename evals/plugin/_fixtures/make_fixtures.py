@@ -6,7 +6,10 @@ Run with: bin/construction-python evals/plugin/_fixtures/make_fixtures.py
 Writes sample-project/ next to this script:
   01 - Drawings/Architectural & Structural/Arch Set.pdf   4 sheets, title blocks,
       bookmarks (the A-201 bookmark is deliberately abbreviated; the printed
-      title block is authoritative)
+      title block is authoritative), and a drawing index on G-001 that
+      disagrees with the set on purpose (A-101's title, S-101's number,
+      S-201, listed but not in the set, and two landscape sheets, a discipline
+      with no sheet in the folder)
   02 - Specifications/Project Manual.pdf                   TOC + 2 sections with
       PART 1 SUBMITTALS articles
 The folder names contain spaces and "&" on purpose: they exercise path quoting.
@@ -24,6 +27,16 @@ SHEETS = [  # number, printed title, bookmark title
     ("A-101", "FIRST FLOOR PLAN", "FIRST FLOOR PLAN"),
     ("A-201", "SECOND FLOOR PLAN", "2ND FLR"),
     ("S-101", "FOUNDATION PLAN", "FOUNDATION PLAN"),
+]
+
+DRAWING_INDEX = [  # as G-001 lists the sheets: five rows disagree with the set on purpose
+    ("G-001", "COVER SHEET AND DRAWING INDEX"),
+    ("A-101", "FIRST FLOOR REFLECTED CEILING PLAN"),  # the title block says FIRST FLOOR PLAN
+    ("A-201", "SECOND FLOOR PLAN"),  # matches the title block (only the bookmark is abbreviated)
+    ("S101", "FOUNDATION PLAN"),  # the title block says S-101
+    ("S-201", "ROOF FRAMING PLAN"),  # listed, but no sheet in the set (S-101 is: an RFI)
+    ("L-101", "LANDSCAPE PLAN"),  # no L sheet in the folder at all: one note, no RFI
+    ("L-501", "LANDSCAPE DETAILS"),
 ]
 
 SECTIONS = [
@@ -52,6 +65,16 @@ def drawing_set(path):
         for x in range(80, 800, 120):
             page.draw_rect(fitz.Rect(x, 120, x + 110, 300), width=1)
             page.insert_text((x + 10, 210), f"ROOM {100 * (i + 1) + x // 120}", fontsize=8)
+        if number == "G-001":  # the drawing index, right of the rooms
+            box = fitz.Rect(840, 120, 1190, 160 + 16 * len(DRAWING_INDEX))
+            page.draw_rect(box, width=1)
+            page.insert_text((850, 136), "DRAWING INDEX", fontsize=10)
+            page.insert_text((850, 152), "SHEET", fontsize=7)
+            page.insert_text((920, 152), "SHEET TITLE", fontsize=7)
+            page.draw_line(fitz.Point(840, 156), fitz.Point(1190, 156), width=0.5)
+            for k, (listed, listed_title) in enumerate(DRAWING_INDEX):
+                page.insert_text((850, 170 + 16 * k), listed, fontsize=8)
+                page.insert_text((920, 170 + 16 * k), listed_title, fontsize=8)
         # title block, bottom right
         tb = fitz.Rect(930, 600, 1200, 768)
         page.draw_rect(tb, width=1.5)
