@@ -1,6 +1,6 @@
 ---
 name: sheet-splitter
-description: Splits the 4-sheet set, names sheets from the printed title blocks (A-201 bookmark is wrong on purpose) and writes the index in the drawings folder.
+description: Splits the 4-sheet set, names sheets from the printed title blocks (A-201 bookmark is wrong on purpose), writes the index in the drawings folder, and records the drawing index's two planted mismatches (A-101's title, S-101's number) in a finding the summary names.
 tags: [smoke, sheet-splitter]
 runs: 1
 max_turns: 120

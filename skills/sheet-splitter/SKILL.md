@@ -2,7 +2,8 @@
 name: sheet-splitter
 description: >
   Split a bound drawing set PDF into individual sheet PDFs. Extracts sheet
-  numbers from title blocks via vision, renames files. Triggers: 'split
+  numbers from title blocks via vision, renames files, and records where the
+  cover sheet's drawing index disagrees with the title blocks. Triggers: 'split
   drawings', 'break up the drawing set', 'separate sheets'. Run after
   /project-setup.
 argument-hint: "<drawing_set.pdf> [--output-dir <path>]"
@@ -29,9 +30,10 @@ Sheet Split Progress:
 - [ ] Step 1: Check the mode, and whether drawings are already split
 - [ ] Step 2: Locate the bound drawing set
 - [ ] Step 3: Split into individual page PDFs
-- [ ] Step 4: Extract sheet numbers from title blocks
-- [ ] Step 5: Rename files with sheet number + title
-- [ ] Step 6: Update project context
+- [ ] Step 4: Extract sheet numbers from title blocks, rename files with sheet number + title
+- [ ] Step 5: Check the sheets against the drawing index
+- [ ] Step 6: Write the sheet index
+- [ ] Step 7: Update project context
 ```
 
 ### Step 1: Check the Mode, and Whether Drawings Are Already Split
@@ -96,7 +98,42 @@ Title-block images are working data: keep them under `.construction/skills/sheet
 
 **Title blocks vary significantly across firms** — they can be on the east side, south side, or bottom-center. Some use VA standard forms, some use firm-specific formats. Vision handles all these variations.
 
-### Step 5: Write Sheet Index
+### Step 5: Check the Sheets Against the Drawing Index
+
+The cover or title sheet usually lists every sheet in a drawing index (also called a sheet index or list of drawings). When the set has one, compare it with the title blocks read in Step 4. The title blocks still name the files; the index only shows where the set disagrees with itself.
+
+1. Read the index sheet's text, from the project folder:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py" "{sheets_dir}/{index sheet}.pdf"
+```
+If the page shows VISION, rasterize the index's area (`--crop x1,y1,x2,y2`, percentages of the page) and read it by vision:
+```bash
+mkdir -p ".construction/skills/sheet-splitter/pages"
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{sheets_dir}/{index sheet}.pdf" 1 --dpi 200 --crop "x1,y1,x2,y2" --output ".construction/skills/sheet-splitter/pages/index.png"
+```
+An index can run onto a second sheet, and one index can list the sheets of several bound PDFs: a listed sheet is missing only when no PDF you split carries it.
+
+2. Compare row by row. Each of these is a mismatch:
+   - **number**: the index writes the number differently from the title block (`M2.01` in the index, `M-2.01` in the title block; `P 1.1` against `P-1.1`)
+   - **title**: the index gives the sheet a different title. Abbreviation, punctuation and case alone are not a difference (`ELEC` for `ELECTRICAL`)
+   - **not in set**: the index lists a sheet that no title block carries
+   - **not in index**: a title block carries a sheet the index does not list
+
+   A bookmark is not the index: a bookmark that differs goes in `bookmark_title` (Step 4), not here.
+
+3. When there is at least one mismatch, write them all as one finding in `.construction/skills/sheet-splitter/findings/`:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
+  --skill "sheet-splitter" --type "drawing_index_mismatch" \
+  --title "Drawing index vs title blocks: {N} mismatches" \
+  --source-sheets '["{index sheet}", "{each sheet with a mismatch}"]' \
+  --data '{"index_sheet": "{index sheet}", "mismatches": [{"sheet": "{the number as the title block prints it}", "kind": "number|title|not_in_set|not_in_index", "title_block": {"number": "...", "title": "..."}, "index": {"number": "...", "title": "..."}, "suggested_rfi": "..."}]}'
+```
+   One entry per mismatch. For a sheet only the index lists, `sheet` is the index's number and `title_block` is `null`; for a sheet the index does not list, `index` is `null`. When the titles differ, `suggested_rfi` is the question for the design team, such as: *The drawing index on {index sheet} lists {sheet} as {index title}; its title block reads {title block title}. Please confirm the correct title and which document will be revised.* Otherwise it is `null`. Inside `--data`, write an apostrophe as `\u0027`.
+
+4. The script prints `OK: Finding written → <path>`. Name that file in the report to the user, with each mismatch. When the set has no drawing index, or every row matches, say so in the report and write no finding.
+
+### Step 6: Write Sheet Index
 
 After identifying all sheets, write `{drawings_directory}/sheets/sheet_index.yaml` (shown below). Never write `.construction/index/` — that folder belongs to AgentCM; only read it.
 
@@ -112,7 +149,7 @@ sheets/
   sheet_index.yaml
 ```
 
-### Step 6: Update Project Context
+### Step 7: Update Project Context
 
 After splitting and identifying, update `.construction/skills/project_context.yaml` with:
 - `documents.drawing_count`: number of sheets
@@ -135,7 +172,7 @@ sheets/
 
 Pass `--output-dir "{drawings_directory}/sheets/{source_pdf_stem}"` to the split script for each set. The `sheet_index.yaml` merge logic combines entries from all subdirectories into a single index.
 
-Report to user: number of pages split, how many identified via vision, output location.
+Report to user: number of pages split, how many identified via vision, output location, and the drawing index check (Step 5): the finding's file and its mismatches, or that the index matched or the set has none.
 
 ## File Safety
 Never overwrite existing split sheet PDFs. If `sheets/` directory already contains files, check for conflicts before writing. The `sheet_index.yaml` merge uses additive logic — existing entries are preserved.
@@ -147,3 +184,5 @@ Never overwrite existing split sheet PDFs. If `sheets/` directory already contai
 **Allowed scripts — exhaustive list.** Only execute these scripts during this skill:
 - `scripts/split_drawing_set.py` — split bound PDF into per-page PDFs
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision identification
+- `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py` — the drawing index's text (Step 5)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — the drawing index mismatches, one finding in `.construction/skills/sheet-splitter/findings/` (Step 5)
