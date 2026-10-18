@@ -3,7 +3,8 @@ name: sheet-splitter
 description: >
   Split a bound drawing set PDF into individual sheet PDFs. Extracts sheet
   numbers from title blocks via vision, renames files, and records where the
-  cover sheet's drawing index disagrees with the title blocks. Triggers: 'split
+  cover sheet's drawing index disagrees with the set, logging the ones that need
+  an RFI for rfi-drafter. Triggers: 'split
   drawings', 'break up the drawing set', 'separate sheets'. Run after
   /project-setup.
 argument-hint: "<drawing_set.pdf> [--output-dir <path>]"
@@ -121,17 +122,34 @@ An index can run onto a second sheet, and one index can list the sheets of sever
 
    A bookmark is not the index: a bookmark that differs goes in `bookmark_title` (Step 4), not here.
 
-3. When there is at least one mismatch, write them all as one finding in `.construction/skills/sheet-splitter/findings/`:
+3. A title that differs and a listed sheet that is not in the set each get a suggested RFI, the question for the design team:
+   - title differs: *The drawing index on {index sheet} lists {sheet} as {index title}; its title block reads {title block title}. Please confirm the correct title and which document will be revised.*
+   - not in set: *The drawing index on {index sheet} lists {sheet} {index title}, but the set does not include it. Please issue the sheet or confirm that it is removed from the index.*
+
+   A number written differently and a sheet missing from the index are notes: no RFI and no issue.
+
+   Log each mismatch that has a suggested RFI in the issue registry, so `/construction:rfi-drafter` picks it up:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" add \
+  --source-skill "sheet-splitter" --severity {conflict|warning} --confidence high \
+  --description "{the suggested RFI}" \
+  --sheets "{index sheet},{sheet}" \
+  --context "sheet-splitter drawing index check: the index on {index sheet} against the title blocks" \
+  --rfi-subject "Drawing index: {sheet} {title differs|not in the set}"
+```
+   `--severity conflict` for a title that differs (two documents disagree), `warning` for a listed sheet that is not in the set. The script prints the issue as JSON: keep its `id`.
+
+4. When there is at least one mismatch, write them all, notes included, as one finding in `.construction/skills/sheet-splitter/findings/`:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py" \
   --skill "sheet-splitter" --type "drawing_index_mismatch" \
   --title "Drawing index vs title blocks: {N} mismatches" \
   --source-sheets '["{index sheet}", "{each sheet with a mismatch}"]' \
-  --data '{"index_sheet": "{index sheet}", "mismatches": [{"sheet": "{the number as the title block prints it}", "kind": "number|title|not_in_set|not_in_index", "title_block": {"number": "...", "title": "..."}, "index": {"number": "...", "title": "..."}, "suggested_rfi": "..."}]}'
+  --data '{"index_sheet": "{index sheet}", "mismatches": [{"sheet": "{the number as the title block prints it}", "kind": "number|title|not_in_set|not_in_index", "title_block": {"number": "...", "title": "..."}, "index": {"number": "...", "title": "..."}, "suggested_rfi": "...", "issue_id": "..."}]}'
 ```
-   One entry per mismatch. For a sheet only the index lists, `sheet` is the index's number and `title_block` is `null`; for a sheet the index does not list, `index` is `null`. When the titles differ, `suggested_rfi` is the question for the design team, such as: *The drawing index on {index sheet} lists {sheet} as {index title}; its title block reads {title block title}. Please confirm the correct title and which document will be revised.* Otherwise it is `null`. Inside `--data`, write an apostrophe as `\u0027`.
+   One entry per mismatch. For a sheet only the index lists, `sheet` is the index's number and `title_block` is `null`; for a sheet the index does not list, `index` is `null`. `suggested_rfi` and `issue_id` come from step 3, and are `null` on a note. Inside `--data`, write an apostrophe as `\u0027`.
 
-4. The script prints `OK: Finding written → <path>`. Name that file in the report to the user, with each mismatch. When the set has no drawing index, or every row matches, say so in the report and write no finding.
+5. The script prints `OK: Finding written → <path>`. Name that file in the report to the user, with each mismatch and the issue ids. When the set has no drawing index, or every row matches, say so in the report and write no finding.
 
 ### Step 6: Write Sheet Index
 
@@ -172,7 +190,7 @@ sheets/
 
 Pass `--output-dir "{drawings_directory}/sheets/{source_pdf_stem}"` to the split script for each set. The `sheet_index.yaml` merge logic combines entries from all subdirectories into a single index.
 
-Report to user: number of pages split, how many identified via vision, output location, and the drawing index check (Step 5): the finding's file and its mismatches, or that the index matched or the set has none.
+Report to user: number of pages split, how many identified via vision, output location, and the drawing index check (Step 5): the finding's file, its mismatches and the issues logged, or that the index matched or the set has none.
 
 ## File Safety
 Never overwrite existing split sheet PDFs. If `sheets/` directory already contains files, check for conflicts before writing. The `sheet_index.yaml` merge uses additive logic — existing entries are preserved.
@@ -186,3 +204,4 @@ Never overwrite existing split sheet PDFs. If `sheets/` directory already contai
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py` — rasterize PDF pages for vision identification
 - `${CLAUDE_PLUGIN_ROOT}/scripts/pdf/pdf_text.py` — the drawing index's text (Step 5)
 - `${CLAUDE_PLUGIN_ROOT}/scripts/graph/write_finding.py` — the drawing index mismatches, one finding in `.construction/skills/sheet-splitter/findings/` (Step 5)
+- `${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py` — each mismatch with a suggested RFI, in the issue registry for rfi-drafter (Step 5)
