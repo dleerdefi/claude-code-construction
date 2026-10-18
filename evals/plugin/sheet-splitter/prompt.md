@@ -1,6 +1,6 @@
 ---
 name: sheet-splitter
-description: Splits the 4-sheet set, names sheets from the printed title blocks (A-201 bookmark is wrong on purpose), writes the index in the drawings folder, and records the drawing index's three planted mismatches (A-101's title, S-101's number, S-201 listed but missing) in a finding the summary names, logging the two that need an RFI in the issue registry.
+description: Splits the 4-sheet set, names sheets from the printed title blocks (A-201 bookmark is wrong on purpose), writes the index in the drawings folder, and records the drawing index's three planted mismatches (A-101's title, S-101's number, S-201 listed but missing, a landscape discipline not in the folder) in a finding the summary names, logging the two that need an RFI in the issue registry and none for the landscape sheets.
 tags: [smoke, sheet-splitter]
 runs: 1
 max_turns: 120

@@ -112,32 +112,33 @@ If the page shows VISION, rasterize the index's area (`--crop x1,y1,x2,y2`, perc
 mkdir -p ".construction/skills/sheet-splitter/pages"
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/pdf/rasterize_page.py" "{sheets_dir}/{index sheet}.pdf" 1 --dpi 200 --crop "x1,y1,x2,y2" --output ".construction/skills/sheet-splitter/pages/index.png"
 ```
-An index can run onto a second sheet, and one index can list the sheets of several bound PDFs: a listed sheet is missing only when no PDF you split carries it.
+An index can run onto a second sheet, and an index often lists the whole project, every discipline, including sets kept in other PDFs (see **not in set** below).
 
 2. Compare row by row. Each of these is a mismatch:
    - **number**: the index writes the number differently from the title block (`M2.01` in the index, `M-2.01` in the title block; `P 1.1` against `P-1.1`)
    - **title**: the index gives the sheet a different title. Abbreviation, punctuation and case alone are not a difference (`ELEC` for `ELECTRICAL`)
-   - **not in set**: the index lists a sheet that no title block carries
+   - **not in set**: the index lists a sheet that no drawing PDF in the project folder carries. Look across the folder, not only at the set you split: a sheet is present when it was split in this run, when a PDF in the folder is named by its number (any spacing or punctuation: `E201.pdf`, `E-201 - LIGHTING PLAN.pdf`), or when a page of another bound drawing set prints it in its title block (read that set with `pdf_text.py`; a number that appears only in a note, a reference such as `SEE E-201`, or a drawing index does not count)
    - **not in index**: a title block carries a sheet the index does not list
 
    A bookmark is not the index: a bookmark that differs goes in `bookmark_title` (Step 4), not here.
 
-3. A title that differs and a listed sheet that is not in the set each get a suggested RFI, the question for the design team:
-   - title differs: *The drawing index on {index sheet} lists {sheet} as {index title}; its title block reads {title block title}. Please confirm the correct title and which document will be revised.*
-   - not in set: *The drawing index on {index sheet} lists {sheet} {index title}, but the set does not include it. Please issue the sheet or confirm that it is removed from the index.*
+3. Which mismatches get a suggested RFI, the question for the design team:
+   - **title differs:** always. *The drawing index on {index sheet} lists {sheet} as {index title}; its title block reads {title block title}. Please confirm the correct title and which document will be revised.*
+   - **not in set:** group the missing sheets by discipline, the letters before the number (`E` in `E-201`, `FP` in `FP-101`).
+     - A discipline with none of its sheets in the folder gets one note in place of its sheets' entries, `{discipline} sheets not in the folder: not checked`, with no RFI and no issue. The folder likely holds only part of the project.
+     - A missing sheet whose discipline is otherwise in the folder (another of its listed sheets is present) gets a suggested RFI: *The drawing index on {index sheet} lists {sheet} {index title}, but the set does not include it. Please issue the sheet or confirm that it is removed from the index.* When more than 3 sheets qualify, they share one summary RFI instead: *The drawing index on {index sheet} lists {N} sheets the set does not include: {sheets}. Please issue them or confirm that they are removed from the index.*
+   - **number** written differently and **not in index**: notes, with no RFI and no issue.
 
-   A number written differently and a sheet missing from the index are notes: no RFI and no issue.
-
-   Log each mismatch that has a suggested RFI in the issue registry, so `/construction:rfi-drafter` picks it up:
+   Log each suggested RFI in the issue registry (one per title that differs and per missing sheet, or the one summary for the missing sheets), so `/construction:rfi-drafter` picks it up:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/construction-python" "${CLAUDE_PLUGIN_ROOT}/scripts/issue_manager.py" add \
   --source-skill "sheet-splitter" --severity {conflict|warning} --confidence high \
   --description "{the suggested RFI}" \
-  --sheets "{index sheet},{sheet}" \
+  --sheets "{index sheet},{sheet, or each sheet of the summary}" \
   --context "sheet-splitter drawing index check: the index on {index sheet} against the title blocks" \
-  --rfi-subject "Drawing index: {sheet} {title differs|not in the set}"
+  --rfi-subject "Drawing index: {sheet} {title differs|not in the set}, or {N} sheets not in the set"
 ```
-   `--severity conflict` for a title that differs (two documents disagree), `warning` for a listed sheet that is not in the set. The script prints the issue as JSON: keep its `id`.
+   `--severity conflict` for a title that differs (two documents disagree), `warning` for missing sheets. The script prints the issue as JSON: keep its `id`.
 
 4. When there is at least one mismatch, write them all, notes included, as one finding in `.construction/skills/sheet-splitter/findings/`:
 ```bash
@@ -147,7 +148,7 @@ An index can run onto a second sheet, and one index can list the sheets of sever
   --source-sheets '["{index sheet}", "{each sheet with a mismatch}"]' \
   --data '{"index_sheet": "{index sheet}", "mismatches": [{"sheet": "{the number as the title block prints it}", "kind": "number|title|not_in_set|not_in_index", "title_block": {"number": "...", "title": "..."}, "index": {"number": "...", "title": "..."}, "suggested_rfi": "...", "issue_id": "..."}]}'
 ```
-   One entry per mismatch. For a sheet only the index lists, `sheet` is the index's number and `title_block` is `null`; for a sheet the index does not list, `index` is `null`. `suggested_rfi` and `issue_id` come from step 3, and are `null` on a note. Inside `--data`, write an apostrophe as `\u0027`.
+   One entry per mismatch. For a sheet only the index lists, `sheet` is the index's number and `title_block` is `null`; for a sheet the index does not list, `index` is `null`. `suggested_rfi` and `issue_id` come from step 3, and are `null` on a note; sheets under a summary RFI each carry the summary's. A discipline not in the folder is one entry: `{"kind": "discipline_not_in_folder", "discipline": "E", "sheets": ["E-101", "E-201"], "note": "E sheets not in the folder: not checked", "suggested_rfi": null, "issue_id": null}`. Inside `--data`, write an apostrophe as `\u0027`.
 
 5. The script prints `OK: Finding written → <path>`. Name that file in the report to the user, with each mismatch and the issue ids. When the set has no drawing index, or every row matches, say so in the report and write no finding.
 
