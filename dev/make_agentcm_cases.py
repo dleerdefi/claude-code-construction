@@ -91,7 +91,8 @@ MARKS = {m["id"]: (m["sheet"], tuple(float(m["box"][k]) for k in ("x", "y", "w",
 CROP_STUB = {"bid-tabulator", "project-setup", "sheet-splitter", "spec-splitter", "subcontract-writer",
              "submittal-log-generator", "schedule-extractor-reconcile"}
 ROOMS = re.search(r"^Rooms known: (\d+)", INDEX, re.M)
-door = next((l.split("\t") for l in (C / "schedules" / "A-601-1.tsv").read_text(encoding="utf-8").splitlines()
+CONTRACT = re.search(r"^\s*contract_version: (\d+)", (C / "project.yaml").read_text(encoding="utf-8"), re.M).group(1)
+door =next((l.split("\t") for l in (C / "schedules" / "A-601-1.tsv").read_text(encoding="utf-8").splitlines()
              if "\tD103\t" in l), None)
 D103_SIZE = door[2] if door else None
 XREF_A102 = [l.split("\t") for l in (C / "xrefs.tsv").read_text(encoding="utf-8").splitlines()[1:] if l.split("\t")[5:6] == ["A-102"]]
@@ -926,7 +927,7 @@ case("project-setup", "/construction:project-setup", "",
                          f"{len(SCHEDULES)} schedule(s) or legend(s) ({sched_list}; their file names are not needed), {len(SECTIONS)} specification section(s)"
                          + (f", {len(UNREAD)} manual(s) AgentCM could not read" if UNREAD else "")
                          + (f", {ROOMS.group(1)} room(s) known" if ROOMS else "")
-                         + ", and contract version 1. It does not recommend splitting the drawings or the manuals AgentCM read, and does "
+                         + f", and contract version {CONTRACT}. It does not recommend splitting the drawings or the manuals AgentCM read, and does "
                          "not inventory the project's files. Naming spec-splitter as the skill for a manual AgentCM could not read, "
                          "as project-setup's own Step 1 does, is not such a recommendation."),
      })
@@ -1085,5 +1086,6 @@ case("schedule-extractor-offline", "/construction:schedule-extractor",
 
 print("facts:", {"sheets": SHEETS, "schedules": len(SCHEDULES), "sections": len(SECTIONS), "unread": unread_names,
                  "rooms": ROOMS.group(1) if ROOMS else None, "D103": D103_SIZE, "xrefs to A-102": len(XREF_A102),
-                 "room tags accepted/pending": (ROOM_ACCEPTED, ROOM_PENDING), "recorded answers": len(RESP)})
+                 "room tags accepted/pending": (ROOM_ACCEPTED, ROOM_PENDING), "recorded answers": len(RESP),
+                 "contract": CONTRACT})
 print("written:", sorted(p.name for p in P.glob("agentcm-mode*")))
