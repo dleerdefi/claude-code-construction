@@ -4,7 +4,7 @@
 Skills read AgentCM's files and never query its database: no query.sh or query.ps1, no
 query_command from database.yaml, no query wrapper, no psql. Writes go through AgentCM's API,
 and its one promised read is a schedule's rows: claimed-elements and available-types are out of
-contract 1, so naming either fails too.
+the contract, so naming either fails too.
 This scans everything the plugin ships (skills/, reference/, scripts/, bin/) for those names,
 so a regression fails the commit gate (dev/gate). The one exception is the refusal itself,
 "never run `query.sh` or `query.ps1`": AgentCM's own guide offers query.sh, so the skills name it

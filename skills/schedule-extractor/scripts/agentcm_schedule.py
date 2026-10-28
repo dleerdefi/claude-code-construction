@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Read a table AgentCM wrote in .construction/schedules/<sheet>-<n>.tsv into schedule_to_xlsx.py's data,
-and, for a table not yet ingested, the schedules/ingest payload (contract 1).
+and, for a table not yet ingested, the schedules/ingest payload (AgentCM's contract).
 
 AgentCM writes two kinds of table file (its .construction/CLAUDE.md):
 - read from the sheet's text: a header line `y x0.100 x0.200 ...`, then one line per row of text, its

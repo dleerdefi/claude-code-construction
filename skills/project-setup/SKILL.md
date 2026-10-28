@@ -37,7 +37,7 @@ Check for AgentCM: `.construction/project.yaml` at the project root.
 
 **If present (AgentCM mode)**, AgentCM has indexed the folder and written its own navigation block into CLAUDE.md. Report its orientation and stop:
 
-1. Say that the construction plugin is installed, with its version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Read `contract_version` in `.construction/project.yaml`; if it is missing (AgentCM older than contract 1) or above 1, say which.
+1. Say that the construction plugin is installed, with its version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Read `contract_version` in `.construction/project.yaml`; if it is missing (AgentCM older than contract 1) or above 2, say which.
 2. Read `.construction/INDEX.md`. If it is missing, say that AgentCM has not written its index for this folder yet, and stop. Otherwise report, from its sections:
    - **Drawing sheets**: how many, by discipline, and how many are still under "Pages not yet named"; any sheet whose Text is `partial`, `pending` or `failed`
    - **Specification sections**: how many, by division; and every manual under "Spec manuals not read", with its reason (`/construction:spec-splitter` splits and extracts those, and only those)

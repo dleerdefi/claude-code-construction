@@ -1,11 +1,11 @@
 # AgentCM mode
 
-The rules every skill follows when AgentCM manages the project folder. Written against AgentCM's contract version 1. AgentCM's own `.construction/CLAUDE.md` is the map of the folder; this file adds only what a skill must do with it.
+The rules every skill follows when AgentCM manages the project folder. Written against AgentCM's contract version 2. AgentCM's own `.construction/CLAUDE.md` is the map of the folder; this file adds only what a skill must do with it.
 
 ## The mode
 
 - `.construction/project.yaml` present and readable means AgentCM mode; absent means flat-file mode. Decide once, at the skill's first step, and never switch mid-task. Nothing else decides it: `.construction/skills/` exists in every project, AgentCM or not.
-- Read `contract_version` in `project.yaml`. If it is missing (AgentCM older than contract 1) or above 1, tell the PE which, and continue.
+- Read `contract_version` in `project.yaml`. If it is missing (AgentCM older than contract 1) or above 2, tell the PE which, and continue. Contract 1 reads the same, except that its `xrefs.tsv` has no `callout_kind` column: read that file by its header, never by column number.
 
 ## Where things are
 
@@ -57,7 +57,7 @@ Skills read AgentCM's files, never its database. A skill that only reads works t
 - **Schedules, legends and keyed notes:** INDEX.md's Schedules and legends table, then the table's own `schedules/<sheet>-<n>.tsv`. Its comment line gives the table's box on the sheet and, for a schedule ingested into AgentCM, `schedule_id=<id>` (`schedule_id=none` for a table read from the text alone).
 - **Specification text:** `specs/<section>.txt` (above).
 
-From `.construction/database.yaml` read only `project_id` and `api_url`; nothing else in it is a skill's to use. AgentCM's API is read in one place only, the one read contract 1 promises: schedule-extractor's `GET {api_url}/projects/{project_id}/schedules/{schedule_id}/rows`, through `xlsx_to_changeset.py`, for the Excel round trip. Everything else, a takeoff's existing tags included, comes from the files.
+From `.construction/database.yaml` read only `project_id` and `api_url`; nothing else in it is a skill's to use. AgentCM's API is read in one place only, the one read the contract promises: schedule-extractor's `GET {api_url}/projects/{project_id}/schedules/{schedule_id}/rows`, through `xlsx_to_changeset.py`, for the Excel round trip. Everything else, a takeoff's existing tags included, comes from the files.
 
 ## Writing back
 
@@ -73,7 +73,7 @@ From `.construction/database.yaml` read only `project_id` and `api_url`; nothing
 
 ### Tag types
 
-A `tag_type` sent to AgentCM is one of contract 1's canonical names, and nothing else: `room_tag`, `door_tag`, `element_tag`, `simple_callout`, `multi_detail_callout`, `grid_label`, `view_label`, `note_block`, `schedule_block`, `schedule_zone`, `annotation`, `viewport_highlight`. Fixtures, devices and equipment are all `element_tag`; a skill's own grouping of them (plumbing fixtures, light fixtures) is its report's wording, never a type. Never invent a name: AgentCM registers an unknown one as a new kind and answers `new_type: true`, which means the skill has a bug. `.groups.tsv`'s `type` uses the same names; `tags.tsv`'s `kind` is another vocabulary (`room`, `door`, `grid`, ...), never a `tag_type`.
+A `tag_type` sent to AgentCM is one of the contract's canonical names, and nothing else: `room_tag`, `door_tag`, `element_tag`, `simple_callout`, `multi_detail_callout`, `grid_label`, `view_label`, `note_block`, `schedule_block`, `schedule_zone`, `annotation`, `viewport_highlight`. Fixtures, devices and equipment are all `element_tag`; a skill's own grouping of them (plumbing fixtures, light fixtures) is its report's wording, never a type. Never invent a name: AgentCM registers an unknown one as a new kind and answers `new_type: true`, which means the skill has a bug. `.groups.tsv`'s `type` uses the same names; `tags.tsv`'s `kind` is another vocabulary (`room`, `door`, `grid`, ...), never a `tag_type`.
 
 ## When AgentCM is wrong
 

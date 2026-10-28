@@ -22,7 +22,7 @@ failing, except the cases that send something back: those start the stub (`setup
 and list `http://127.0.0.1:47817/` in `allow_urls`, the one address curl may reach. A writing skill's offline case keeps
 the stub off and expects the payload in `.construction/skills/<skill>/outbox/`.
 
-**The stub** answers GETs from `api-responses.json` (contract 1 promises one read, a schedule's rows),
+**The stub** answers GETs from `api-responses.json` (the contract promises one read, a schedule's rows),
 keeps and answers the three write endpoints, and answers nothing else. A reconcile is answered from
 the schedule's stored rows (the recorded rows read), never from another request's recorded answer.
 A tag ingest is answered by

@@ -67,7 +67,7 @@ User provides: (1) tag type — e.g., "plumbing fixtures", "doors",
 Confirm scope before proceeding.
 
 **REQUIRED: Tag type resolution (AgentCM mode).** The `tag_type` sent to
-AgentCM is one of contract 1's canonical names, listed in
+AgentCM is one of the contract's canonical names, listed in
 `${CLAUDE_PLUGIN_ROOT}/reference/agentcm-mode.md` (Tag types), and nothing
 else. Never invent one, and never send the takeoff's grouping as a type:
 - room tags → `room_tag`; door tags → `door_tag`
@@ -370,7 +370,7 @@ holds one entry per detection, in order (`index` is its place in
   there, redraw the box around them and send that detection once more; its
   answer is the outcome. No text at all in that area: the tag is seen on the
   drawing, not in AgentCM (below), `ingest` `no_free_text`.
-- `new_type: true` on any entry: a type outside contract 1's list was sent,
+- `new_type: true` on any entry: a type outside the contract's list was sent,
   a bug in this skill. Say so: name the type, and tell the PE a new tag kind
   was created in AgentCM by mistake.
 - HTTP 400 (its message names the detection's index) or 404 (an unknown
