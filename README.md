@@ -134,6 +134,26 @@ Deliverables — Excel workbooks, Word documents, split sheet and spec PDFs, rep
 - [Running Evals](docs/RUNNING_EVALS.md) and the [plugin eval suite](evals/plugin/README.md) — the scored evals for contributors
 - For contributors: the [contributor guide](.claude/CLAUDE.md), the [skill roadmap](docs/SKILL_ROADMAP.md), and the [submittal-review design record](docs/SUBMITTAL_REVIEW_DECISIONS.md)
 
+## For contributors
+
+Changes reach `main` only through pull requests, and `bash dev/gate` passes before every commit (the [contributor guide](.claude/CLAUDE.md) has the rules).
+
+### Releasing
+
+Marketplace installs come from a release tag, not from `main`: the plugin entry in `.claude-plugin/marketplace.json` names the tag (`ref`) and its commit (`sha`). So `main` can hold unreleased skills, which a clone gets (Setup, Option B), and a release is the commit that moves the pin.
+
+1. **The release pull request:** `version` in `.claude-plugin/plugin.json` and `VERSION`, a section in `CHANGELOG.md`, and the evals the change touches, passing. When AgentCM's contract or its contract fixture changes, that means the whole AgentCM-mode suite.
+2. **The tag,** on the release pull request's merge commit:
+   ```bash
+   git tag -a vX.Y.Z -m "vX.Y.Z" <merge commit> && git push origin vX.Y.Z
+   ```
+3. **The release commit:** one commit on `main`, by pull request, that moves the plugin entry's `ref` to `vX.Y.Z` and its `sha` to the tag's commit. `git rev-parse "vX.Y.Z^{commit}"` prints it; use all 40 characters. Installs and auto-updates follow it once it merges.
+4. **Check before merging it:**
+   - `claude plugin validate --strict .claude-plugin/marketplace.json` passes;
+   - a test install in a throwaway config folder (outside the system's temp folder) gets the new version. Run `claude plugin marketplace add <your checkout>`, then `claude plugin install construction@construction-skills`, with `CLAUDE_CONFIG_DIR` set to that folder. Then `claude plugin list` should show the new version.
+
+The entry uses a `url` source over HTTPS, so installing needs no GitHub SSH key.
+
 ## Requirements
 
 Python dependencies are installed into an isolated venv at `~/.construction-skills/venv/`, by `./setup` or automatically on first use, and re-synced whenever `requirements.txt` changes. No manual activation needed — all scripts run through `bin/construction-python`.
