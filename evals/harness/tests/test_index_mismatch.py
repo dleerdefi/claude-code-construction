@@ -22,15 +22,26 @@ MISSING = {"sheet": "S-201", "kind": "not_in_set", "title_block": None,
            "index": {"number": "S-201", "title": "ROOF FRAMING PLAN"},
            "suggested_rfi": "The drawing index on G-001 lists S-201 ROOF FRAMING PLAN, but the set does not include it.",
            "issue_id": "ISS-2026-0002"}
-
-
-LANDSCAPE = {"kind": "discipline_not_in_folder", "discipline": "L", "sheets": ["L-101", "L-501"],
-             "note": "L sheets not in the folder: not checked", "suggested_rfi": None, "issue_id": None}
+ARCH_GAP = {"kind": "sheets_not_in_folder", "discipline": "A", "sheets": ["A-301", "A-401"], "listed": 4,
+            "note": "2 of 4 A sheets aren't in the folder: A-301, A-401. Check whether a PDF wasn't added.",
+            "suggested_rfi": None, "issue_id": None}
+LANDSCAPE = {"kind": "sheets_not_in_folder", "discipline": "L", "sheets": ["L-101", "L-501"], "listed": 2,
+             "note": "2 of 2 L sheets aren't in the folder: L-101, L-501. Check whether a PDF wasn't added.",
+             "suggested_rfi": None, "issue_id": None}
+ALL = [NUMBER, TITLE, MISSING, ARCH_GAP, LANDSCAPE]
+ARCH = "A-301 and A-401: one folder finding (2 of 4), no RFI, no issue"
+LAND = "L-101 and L-501: one folder finding (2 of 2), no RFI, no issue"
 
 
 def issue(n, sheets, description, source="sheet-splitter"):
     return {"id": f"ISS-2026-{n:04d}", "source_skill": source, "severity": "conflict", "status": "open",
             "description": description, "location": {"sheets": sheets}, "potential_rfi_subject": ""}
+
+
+def not_in_set(number, title, rfi=True):
+    return {"sheet": number, "kind": "not_in_set", "title_block": None, "index": {"number": number, "title": title},
+            "suggested_rfi": f"The drawing index on G-001 lists {number} {title}, but the set does not include it."
+            if rfi else None, "issue_id": None}
 
 
 ISSUE_TITLE = issue(1, ["G-001", "A-101"], TITLE["suggested_rfi"])
@@ -59,7 +70,7 @@ class IndexMismatch(unittest.TestCase):
             (d / f"{r['id']}.json").write_text(json.dumps(r), encoding="utf-8")
 
     def complete(self):
-        self.finding([NUMBER, TITLE, MISSING, LANDSCAPE])
+        self.finding(ALL)
         self.issues(ISSUE_TITLE, ISSUE_MISSING)
 
     def say(self, final, result=True):
@@ -77,14 +88,15 @@ class IndexMismatch(unittest.TestCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn(f"FAIL {part}", r.stdout)
 
-    def test_passes_with_every_mismatch_rfi_issue_and_the_file_named(self):
+    def test_passes_with_every_mismatch_rfi_issue_folder_finding_and_the_file_named(self):
         self.complete()
         r = self.run_check()
         self.assertEqual(r.returncode, 0, r.stdout)
         self.assertIn("score: 1.0", r.stdout)
 
     def test_passes_when_sheet_is_left_out_and_the_last_text_names_the_file(self):
-        self.finding([{k: v for k, v in m.items() if k != "sheet"} for m in (NUMBER, TITLE, MISSING)] + [LANDSCAPE])
+        self.finding([{k: v for k, v in m.items() if k != "sheet"} for m in (NUMBER, TITLE, MISSING)]
+                     + [ARCH_GAP, LANDSCAPE])
         self.issues(ISSUE_TITLE, ISSUE_MISSING)
         self.say(f"Wrote {NAME}", result=False)
         self.assertEqual(self.run_check().returncode, 0)
@@ -95,8 +107,14 @@ class IndexMismatch(unittest.TestCase):
         self.assertEqual(self.run_check().returncode, 0)
 
     def test_issue_found_by_its_description_alone(self):
-        self.finding([NUMBER, TITLE, MISSING, LANDSCAPE])
+        self.finding(ALL)
         self.issues(issue(1, [], "Index lists A101 with another title"), issue(2, [], "Sheet S 201 is not in the set"))
+        self.assertEqual(self.run_check().returncode, 0)
+
+    def test_folder_finding_counted_in_other_words_passes(self):
+        self.finding([NUMBER, TITLE, MISSING, dict(ARCH_GAP, note="2 of the 4 A sheets on the index are not in the "
+                                                                    "folder (A 301, A.401)."), LANDSCAPE])
+        self.issues(ISSUE_TITLE, ISSUE_MISSING)
         self.assertEqual(self.run_check().returncode, 0)
 
     def test_fails_without_a_finding(self):
@@ -110,60 +128,76 @@ class IndexMismatch(unittest.TestCase):
         self.assert_fails_on("final message names the finding's file")
 
     def test_fails_without_the_title_rfi(self):
-        self.finding([NUMBER, dict(TITLE, suggested_rfi=None), MISSING, LANDSCAPE])
+        self.finding([NUMBER, dict(TITLE, suggested_rfi=None), MISSING, ARCH_GAP, LANDSCAPE])
         self.issues(ISSUE_TITLE, ISSUE_MISSING)
         self.assert_fails_on("suggested RFI on the A-101 title")
 
-    def test_fails_without_the_missing_sheet_or_its_rfi(self):
-        for mismatches in ([NUMBER, TITLE, LANDSCAPE], [NUMBER, TITLE, dict(MISSING, suggested_rfi=None), LANDSCAPE]):
+    def test_one_sheet_missing_from_a_complete_discipline_needs_its_rfi(self):
+        for mismatches in ([NUMBER, TITLE, ARCH_GAP, LANDSCAPE],
+                           [NUMBER, TITLE, dict(MISSING, suggested_rfi=None), ARCH_GAP, LANDSCAPE]):
             with self.subTest(n=len(mismatches)):
                 self.finding(mismatches)
                 self.issues(ISSUE_TITLE, ISSUE_MISSING)
                 self.assert_fails_on("S-201 listed but not in the set, with a suggested RFI")
 
     def test_fails_when_the_number_note_gets_an_rfi_or_an_issue(self):
-        self.finding([dict(NUMBER, suggested_rfi="Please confirm the sheet number."), TITLE, MISSING, LANDSCAPE])
+        self.finding([dict(NUMBER, suggested_rfi="Please confirm the sheet number."), TITLE, MISSING, ARCH_GAP, LANDSCAPE])
         self.issues(ISSUE_TITLE, ISSUE_MISSING)
         self.assert_fails_on("S-101 is a note: no suggested RFI, no issue")
-        self.finding([NUMBER, TITLE, MISSING, LANDSCAPE])
+        self.finding(ALL)
         self.issues(issue(3, ["G-001", "S-101"], "The index writes S-101 as S101."))
         self.assert_fails_on("S-101 is a note: no suggested RFI, no issue")
 
     def test_fails_without_the_issues_or_with_another_skills(self):
-        self.finding([NUMBER, TITLE, MISSING, LANDSCAPE])
+        self.finding(ALL)
         self.assert_fails_on("issues from sheet-splitter for A-101 and S-201")
         self.issues(dict(ISSUE_TITLE, source_skill="pe-review"), dict(ISSUE_MISSING, source_skill="pe-review"))
         self.assert_fails_on("issues from sheet-splitter for A-101 and S-201")
 
-    def test_fails_without_the_landscape_note_or_with_one_per_sheet(self):
-        per_sheet = [dict(LANDSCAPE, sheets=[s], note=f"{s} not in the folder: not checked") for s in ("L-101", "L-501")]
-        for mismatches in ([NUMBER, TITLE, MISSING], [NUMBER, TITLE, MISSING] + per_sheet):
-            with self.subTest(n=len(mismatches)):
-                self.finding(mismatches)
+    def test_half_a_discipline_missing_is_one_folder_finding_without_rfis(self):
+        per_sheet_rfis = [not_in_set("A-301", "BUILDING SECTIONS"), not_in_set("A-401", "ENLARGED PLANS")]
+        per_sheet_notes = [not_in_set("A-301", "BUILDING SECTIONS", rfi=False),
+                           not_in_set("A-401", "ENLARGED PLANS", rfi=False)]
+        summary_rfi = dict(ARCH_GAP, suggested_rfi="The drawing index on G-001 lists 2 sheets the set does not include: "
+                                                   "A-301, A-401. Please issue them.")
+        for name, arch in (("missing", []), ("one RFI per sheet", per_sheet_rfis), ("one note per sheet", per_sheet_notes),
+                           ("a summary RFI", [summary_rfi]), ("no count", [dict(ARCH_GAP, note="A-301, A-401 missing")]),
+                           ("the finding plus per-sheet notes", [ARCH_GAP] + per_sheet_notes)):
+            with self.subTest(name):
+                self.finding([NUMBER, TITLE, MISSING, LANDSCAPE] + arch)
                 self.issues(ISSUE_TITLE, ISSUE_MISSING)
-                self.assert_fails_on("L sheets: one not-checked note, no RFI, no issue")
+                self.assert_fails_on(ARCH)
 
-    def test_fails_when_the_absent_discipline_gets_rfis(self):
-        l101 = {"sheet": "L-101", "kind": "not_in_set", "title_block": None,
-                "index": {"number": "L-101", "title": "LANDSCAPE PLAN"},
-                "suggested_rfi": "The drawing index on G-001 lists L-101 LANDSCAPE PLAN, but the set does not include it.",
-                "issue_id": "ISS-2026-0003"}
-        self.finding([NUMBER, TITLE, MISSING, LANDSCAPE, l101])
-        self.issues(ISSUE_TITLE, ISSUE_MISSING)
-        self.assert_fails_on("L sheets: one not-checked note, no RFI, no issue")
+    def test_fails_on_an_issue_for_half_a_discipline(self):
+        self.finding(ALL)
+        for extra in (issue(3, ["G-001", "A-301", "A-401"], "Two sheets the set does not include."),
+                      issue(3, ["G-001"], "2 of 4 A sheets aren't in the folder.")):
+            with self.subTest(description=extra["description"]):
+                self.issues(ISSUE_TITLE, ISSUE_MISSING, extra)
+                self.assert_fails_on(ARCH)
+
+    def test_a_whole_discipline_missing_is_one_folder_finding_without_rfis(self):
+        per_sheet = [not_in_set("L-101", "LANDSCAPE PLAN", rfi=False), not_in_set("L-501", "LANDSCAPE DETAILS", rfi=False)]
+        for name, land in (("missing", []), ("one note per sheet", per_sheet),
+                           ("an RFI", [dict(LANDSCAPE, suggested_rfi="Please issue the landscape sheets.")]),
+                           ("no count", [dict(LANDSCAPE, note="L sheets not in the folder: not checked")])):
+            with self.subTest(name):
+                self.finding([NUMBER, TITLE, MISSING, ARCH_GAP] + land)
+                self.issues(ISSUE_TITLE, ISSUE_MISSING)
+                self.assert_fails_on(LAND)
 
     def test_fails_on_an_issue_for_the_absent_discipline(self):
-        self.finding([NUMBER, TITLE, MISSING, LANDSCAPE])
+        self.finding(ALL)
         for extra in (issue(3, ["G-001", "L-101", "L-501"], "Two sheets the set does not include."),
                       issue(3, ["G-001"], "The landscape sheets are not in the set.")):
             with self.subTest(description=extra["description"]):
                 self.issues(ISSUE_TITLE, ISSUE_MISSING, extra)
-                self.assert_fails_on("L sheets: one not-checked note, no RFI, no issue")
+                self.assert_fails_on(LAND)
 
     def test_fails_on_the_bookmark_reported_as_an_index_mismatch(self):
         bookmark = {"sheet": "A-201", "kind": "title", "title_block": {"number": "A-201", "title": "SECOND FLOOR PLAN"},
                     "index": {"number": "A-201", "title": "2ND FLR"}, "suggested_rfi": "Confirm the title."}
-        self.finding([NUMBER, TITLE, MISSING, bookmark])
+        self.finding(ALL + [bookmark])
         self.issues(ISSUE_TITLE, ISSUE_MISSING)
         r = self.run_check()
         self.assertEqual(r.returncode, 1)
@@ -171,7 +205,7 @@ class IndexMismatch(unittest.TestCase):
 
     def test_every_file_with_mismatches_must_be_named(self):
         other = "2026-10-17_drawing_index_mismatch_9f8e7d6c.json"
-        self.finding([NUMBER, MISSING, LANDSCAPE], name=NAME)
+        self.finding([NUMBER, MISSING, ARCH_GAP, LANDSCAPE], name=NAME)
         self.finding([TITLE], name=other)
         self.issues(ISSUE_TITLE, ISSUE_MISSING)
         self.assertEqual(self.run_check().returncode, 1)
@@ -187,14 +221,15 @@ class Fixture(unittest.TestCase):
         with fitz.open(ARCH_SET) as doc:
             cover, a101, a201, s101 = (page.get_text() for page in doc)
         for row in ("S101", "FIRST FLOOR REFLECTED CEILING PLAN", "A-201", "SECOND FLOOR PLAN", "S-201", "ROOF FRAMING PLAN",
-                    "L-101", "L-501"):
+                    "A-301", "A-401", "L-101", "L-501"):
             self.assertIn(row, cover)
-        self.assertFalse(any("L-" in page for page in (a101, a201, s101)))
+        sheets = (a101, a201, s101)
+        for absent in ("L-", "S-201", "A-301", "A-401"):
+            self.assertFalse(any(absent in page for page in sheets), absent)
         self.assertIn("FIRST FLOOR PLAN", a101)
         self.assertNotIn("REFLECTED", a101)
         self.assertIn("SECOND FLOOR PLAN", a201)
         self.assertIn("S-101", s101)
-        self.assertFalse(any("S-201" in page for page in (a101, a201, s101)))
 
 
 if __name__ == "__main__":

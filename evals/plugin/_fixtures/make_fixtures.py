@@ -8,8 +8,9 @@ Writes sample-project/ next to this script:
       bookmarks (the A-201 bookmark is deliberately abbreviated; the printed
       title block is authoritative), and a drawing index on G-001 that
       disagrees with the set on purpose (A-101's title, S-101's number,
-      S-201, listed but not in the set, and two landscape sheets, a discipline
-      with no sheet in the folder)
+      S-201, the one S sheet not in the folder, A-301 and A-401, half the A
+      sheets, and two landscape sheets, a discipline with no sheet in the
+      folder)
   02 - Specifications/Project Manual.pdf                   TOC + 2 sections with
       PART 1 SUBMITTALS articles
 The folder names contain spaces and "&" on purpose: they exercise path quoting.
@@ -29,13 +30,15 @@ SHEETS = [  # number, printed title, bookmark title
     ("S-101", "FOUNDATION PLAN", "FOUNDATION PLAN"),
 ]
 
-DRAWING_INDEX = [  # as G-001 lists the sheets: five rows disagree with the set on purpose
+DRAWING_INDEX = [  # as G-001 lists the sheets: seven rows disagree with the set on purpose
     ("G-001", "COVER SHEET AND DRAWING INDEX"),
     ("A-101", "FIRST FLOOR REFLECTED CEILING PLAN"),  # the title block says FIRST FLOOR PLAN
     ("A-201", "SECOND FLOOR PLAN"),  # matches the title block (only the bookmark is abbreviated)
+    ("A-301", "BUILDING SECTIONS"),  # A-301 and A-401 not in the folder: 2 of 4 A sheets, one folder finding, no RFI
+    ("A-401", "ENLARGED PLANS"),
     ("S101", "FOUNDATION PLAN"),  # the title block says S-101
-    ("S-201", "ROOF FRAMING PLAN"),  # listed, but no sheet in the set (S-101 is: an RFI)
-    ("L-101", "LANDSCAPE PLAN"),  # no L sheet in the folder at all: one note, no RFI
+    ("S-201", "ROOF FRAMING PLAN"),  # the one S sheet not in the folder, S-101 is: an RFI
+    ("L-101", "LANDSCAPE PLAN"),  # no L sheet in the folder at all: one folder finding, no RFI
     ("L-501", "LANDSCAPE DETAILS"),
 ]
 
