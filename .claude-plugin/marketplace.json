@@ -10,7 +10,12 @@
   "plugins": [
     {
       "name": "construction",
-      "source": "./",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/dleerdefi/claude-code-construction.git",
+        "ref": "v0.6.0",
+        "sha": "2fe7db4aa2b1392e379dea7528ff2ea95b2287f6"
+      },
       "description": "Skills that give Claude Code the working knowledge of a Project Engineer for construction documents."
     }
   ]

@@ -91,7 +91,8 @@ MARKS = {m["id"]: (m["sheet"], tuple(float(m["box"][k]) for k in ("x", "y", "w",
 CROP_STUB = {"bid-tabulator", "project-setup", "sheet-splitter", "spec-splitter", "subcontract-writer",
              "submittal-log-generator", "schedule-extractor-reconcile"}
 ROOMS = re.search(r"^Rooms known: (\d+)", INDEX, re.M)
-door = next((l.split("\t") for l in (C / "schedules" / "A-601-1.tsv").read_text(encoding="utf-8").splitlines()
+CONTRACT = re.search(r"^\s*contract_version: (\d+)", (C / "project.yaml").read_text(encoding="utf-8"), re.M).group(1)
+door =next((l.split("\t") for l in (C / "schedules" / "A-601-1.tsv").read_text(encoding="utf-8").splitlines()
              if "\tD103\t" in l), None)
 D103_SIZE = door[2] if door else None
 XREF_A102 = [l.split("\t") for l in (C / "xrefs.tsv").read_text(encoding="utf-8").splitlines()[1:] if l.split("\t")[5:6] == ["A-102"]]
@@ -165,7 +166,7 @@ write("agentcm-mode/README.md", f"""
     and list `{STUB}` in `allow_urls`, the one address curl may reach. A writing skill's offline case keeps
     the stub off and expects the payload in `.construction/skills/<skill>/outbox/`.
 
-    **The stub** answers GETs from `api-responses.json` (contract 1 promises one read, a schedule's rows),
+    **The stub** answers GETs from `api-responses.json` (the contract promises one read, a schedule's rows),
     keeps and answers the three write endpoints, and answers nothing else. A reconcile is answered from
     the schedule's stored rows (the recorded rows read), never from another request's recorded answer.
     A tag ingest is answered by
@@ -403,7 +404,7 @@ write("_checks/agentcm_trace.py", '''
     WORKSPACE = Path(os.environ.get("EVAL_WORKSPACE", "."))
     NUM = r"(0?\\.\\d+|0|1(?:\\.0+)?)"
     CROP = re.compile(r"crop\\.(?:sh|ps1)[\\"']?\\s+[\\"']?([A-Za-z0-9._-]+)[\\"']?\\s+" + r"\\s+".join([NUM] * 4))
-    READS = ("/rows",)  # contract 1's one promised read
+    READS = ("/rows",)  # the contract's one promised read
     CANONICAL = {"room_tag", "door_tag", "element_tag", "simple_callout", "multi_detail_callout", "grid_label",
                  "view_label", "note_block", "schedule_block", "schedule_zone", "annotation", "viewport_highlight"}
     WRITES = ("schedules/ingest", "schedules/reconcile", "tag-detections/ingest")
@@ -633,7 +634,7 @@ write("_checks/agentcm_trace.py", '''
         if not (isinstance(b, dict) and all(isinstance(b.get(k), (int, float)) and 0 <= b[k] <= 1 for k in BOX)):
             out.append(f"bounding_box not {{x, y, width, height}} in 0-1: {b}")
         if "tag_type" in d and d["tag_type"] not in CANONICAL:
-            out.append(f"tag_type {d['tag_type']!r} is not one of contract 1's names")
+            out.append(f"tag_type {d['tag_type']!r} is not one of the contract's names")
         if d.get("element_ids"):
             out.append("element_ids sent: a detection goes by its box")
         return out
@@ -926,7 +927,7 @@ case("project-setup", "/construction:project-setup", "",
                          f"{len(SCHEDULES)} schedule(s) or legend(s) ({sched_list}; their file names are not needed), {len(SECTIONS)} specification section(s)"
                          + (f", {len(UNREAD)} manual(s) AgentCM could not read" if UNREAD else "")
                          + (f", {ROOMS.group(1)} room(s) known" if ROOMS else "")
-                         + ", and contract version 1. It does not recommend splitting the drawings or the manuals AgentCM read, and does "
+                         + f", and contract version {CONTRACT}. It does not recommend splitting the drawings or the manuals AgentCM read, and does "
                          "not inventory the project's files. Naming spec-splitter as the skill for a manual AgentCM could not read, "
                          "as project-setup's own Step 1 does, is not such a recommendation."),
      })
@@ -1085,5 +1086,6 @@ case("schedule-extractor-offline", "/construction:schedule-extractor",
 
 print("facts:", {"sheets": SHEETS, "schedules": len(SCHEDULES), "sections": len(SECTIONS), "unread": unread_names,
                  "rooms": ROOMS.group(1) if ROOMS else None, "D103": D103_SIZE, "xrefs to A-102": len(XREF_A102),
-                 "room tags accepted/pending": (ROOM_ACCEPTED, ROOM_PENDING), "recorded answers": len(RESP)})
+                 "room tags accepted/pending": (ROOM_ACCEPTED, ROOM_PENDING), "recorded answers": len(RESP),
+                 "contract": CONTRACT})
 print("written:", sorted(p.name for p in P.glob("agentcm-mode*")))

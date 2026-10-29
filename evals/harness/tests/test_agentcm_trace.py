@@ -76,8 +76,8 @@ class Checks(unittest.TestCase):
         self.assertIn("not A-101's", out)
 
     def test_tag_ingest_sends_contract_1_names_by_the_box(self):
-        for bad, words in ((dict(DET, tag_type="qto_room_tag"), "not one of contract 1's names"),
-                           (dict(DET, tag_type="plumbing_fixture"), "not one of contract 1's names"),
+        for bad, words in ((dict(DET, tag_type="qto_room_tag"), "not one of the contract's names"),
+                           (dict(DET, tag_type="plumbing_fixture"), "not one of the contract's names"),
                            (dict(DET, element_ids=["e1"]), "goes by its box")):
             self.run.requests(req("POST", "tag-detections/ingest", {"sheet_id": A101, "detections": [bad]}))
             code, out = outcome(t.check_tag_ingest, ["A-101"])

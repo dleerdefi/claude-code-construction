@@ -10,16 +10,31 @@ The skills ship as a Claude Code plugin named `construction` and work on Windows
 |---|---|---|---|
 | [Claude Code](https://claude.ai/code) | ✓ | ✓ | ✓ |
 | Shell for the skills' commands | [Git for Windows](https://git-scm.com/download/win) (Git Bash) | built in | built in |
-| Python 3.10 or newer | [python.org](https://www.python.org/downloads/) installer (the `py` launcher is fine) | [python.org](https://www.python.org/downloads/) or Homebrew — Apple's built-in `python3` is 3.9, too old | your distribution's `python3` (3.10+) with `venv` |
-| `git` | included in Git for Windows | `xcode-select --install` or Homebrew | your package manager |
+| Python 3.10 or newer | `winget install --id Python.Python.3.12 -e`, or the [python.org](https://www.python.org/downloads/) installer (the `py` launcher is fine) | `brew install python@3.12` — Apple's built-in `python3` is 3.9, too old | `sudo apt install python3 python3-venv` (or your distribution's `python3`, 3.10+, with `venv`) |
+| `git` | included in Git for Windows (`winget install --id Git.Git -e`) | `brew install git` or `xcode-select --install` | your package manager |
 
 You also need your construction project documents (drawings, specs, bids, etc.).
 
 ## Setup
 
-Install the plugin one of two ways. Both work the same on every OS; on Windows, run the commands in **Git Bash**.
+Install the plugin one of two ways. [The Quickstart](docs/QUICKSTART.md#install) walks through Option A step by step, with the checks; Claude Code can follow it for you.
 
-### Option A — clone into your skills directory (recommended)
+### Option A — install from the marketplace (recommended)
+
+Inside Claude Code:
+
+```
+/plugin marketplace add dleerdefi/claude-code-construction
+/plugin install construction@construction-skills
+```
+
+From a terminal, the same is `claude plugin marketplace add dleerdefi/claude-code-construction` and `claude plugin install construction@construction-skills`.
+
+No separate marketplace is needed: this repository is the marketplace. The Python environment is created automatically the first time a skill runs a script (about a minute). Updates arrive when a new version is released; turn on auto-update under `/plugin` → Marketplaces.
+
+### Option B — clone into your skills directory
+
+For contributors, or to use the newest unreleased skills. On Windows, run these commands in **Git Bash**.
 
 ```bash
 # Available in every project
@@ -33,17 +48,6 @@ git clone https://github.com/dleerdefi/claude-code-construction .claude/skills/c
 
 Claude Code loads the clone as the `construction` plugin in new sessions (or run `/reload-plugins` in an open one). `./setup` creates the Python environment and removes skill links left by older versions. Update later with `git pull` in the clone.
 
-### Option B — install from the marketplace
-
-Inside Claude Code:
-
-```
-/plugin marketplace add dleerdefi/claude-code-construction
-/plugin install construction@construction-skills
-```
-
-No separate marketplace is needed: this repository is the marketplace. The Python environment is created automatically the first time a skill runs a script (about a minute). Updates arrive when a new version is released; turn on auto-update under `/plugin` → Marketplaces.
-
 ### Start using skills
 
 Open Claude Code in your project folder and run:
@@ -54,7 +58,7 @@ Open Claude Code in your project folder and run:
 
 This inventories your project files, classifies document types, and adds construction context to your project's `CLAUDE.md` (run `/init` first if you don't have one).
 
-> **Upgrading from an earlier version?** Pull the update and re-run `./setup` once to clean up the old per-skill links. Remove the `@~/.claude/skills/construction/.claude/skills/CLAUDE.md` line from your project's `CLAUDE.md`: that guide now ships as the `construction-guide` skill.
+> **Upgrading a clone from an earlier version?** Pull the update and re-run `./setup` once to clean up the old per-skill links. Remove the `@~/.claude/skills/construction/.claude/skills/CLAUDE.md` line from your project's `CLAUDE.md`: that guide now ships as the `construction-guide` skill.
 
 To check that everything works on your machine, follow [Validating your install](docs/VALIDATING.md).
 
@@ -133,6 +137,26 @@ Deliverables — Excel workbooks, Word documents, split sheet and spec PDFs, rep
 - [CM Skills SOP](docs/CM_SKILLS_SOP.md) — skill architecture and design standard
 - [Running Evals](docs/RUNNING_EVALS.md) and the [plugin eval suite](evals/plugin/README.md) — the scored evals for contributors
 - For contributors: the [contributor guide](.claude/CLAUDE.md), the [skill roadmap](docs/SKILL_ROADMAP.md), and the [submittal-review design record](docs/SUBMITTAL_REVIEW_DECISIONS.md)
+
+## For contributors
+
+Changes reach `main` only through pull requests, and `bash dev/gate` passes before every commit (the [contributor guide](.claude/CLAUDE.md) has the rules).
+
+### Releasing
+
+Marketplace installs come from a release tag, not from `main`: the plugin entry in `.claude-plugin/marketplace.json` names the tag (`ref`) and its commit (`sha`). So `main` can hold unreleased skills, which a clone gets (Setup, Option B), and a release is the commit that moves the pin.
+
+1. **The release pull request:** `version` in `.claude-plugin/plugin.json` and `VERSION`, a section in `CHANGELOG.md`, and the evals the change touches, passing. When AgentCM's contract or its contract fixture changes, that means the whole AgentCM-mode suite.
+2. **The tag,** on the release pull request's merge commit:
+   ```bash
+   git tag -a vX.Y.Z -m "vX.Y.Z" <merge commit> && git push origin vX.Y.Z
+   ```
+3. **The release commit:** one commit on `main`, by pull request, that moves the plugin entry's `ref` to `vX.Y.Z` and its `sha` to the tag's commit. `git rev-parse "vX.Y.Z^{commit}"` prints it; use all 40 characters. Installs and auto-updates follow it once it merges.
+4. **Check before merging it:**
+   - `claude plugin validate --strict .claude-plugin/marketplace.json` passes;
+   - a test install in a throwaway config folder (outside the system's temp folder) gets the new version. Run `claude plugin marketplace add <your checkout>`, then `claude plugin install construction@construction-skills`, with `CLAUDE_CONFIG_DIR` set to that folder. Then `claude plugin list` should show the new version.
+
+The entry uses a `url` source over HTTPS, so installing needs no GitHub SSH key.
 
 ## Requirements
 

@@ -18,7 +18,7 @@ FIXTURE = HERE.parent / "agentcm-mode" / "construction"
 WORKSPACE = Path(os.environ.get("EVAL_WORKSPACE", "."))
 NUM = r"(0?\.\d+|0|1(?:\.0+)?)"
 CROP = re.compile(r"crop\.(?:sh|ps1)[\"']?\s+[\"']?([A-Za-z0-9._-]+)[\"']?\s+" + r"\s+".join([NUM] * 4))
-READS = ("/rows",)  # contract 1's one promised read
+READS = ("/rows",)  # the contract's one promised read
 CANONICAL = {"room_tag", "door_tag", "element_tag", "simple_callout", "multi_detail_callout", "grid_label",
              "view_label", "note_block", "schedule_block", "schedule_zone", "annotation", "viewport_highlight"}
 WRITES = ("schedules/ingest", "schedules/reconcile", "tag-detections/ingest")
@@ -248,7 +248,7 @@ def detection_problems(d):
     if not (isinstance(b, dict) and all(isinstance(b.get(k), (int, float)) and 0 <= b[k] <= 1 for k in BOX)):
         out.append(f"bounding_box not {{x, y, width, height}} in 0-1: {b}")
     if "tag_type" in d and d["tag_type"] not in CANONICAL:
-        out.append(f"tag_type {d['tag_type']!r} is not one of contract 1's names")
+        out.append(f"tag_type {d['tag_type']!r} is not one of the contract's names")
     if d.get("element_ids"):
         out.append("element_ids sent: a detection goes by its box")
     return out

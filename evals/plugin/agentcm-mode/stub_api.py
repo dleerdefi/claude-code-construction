@@ -2,7 +2,7 @@
 """A stand-in for AgentCM's API in the agentcm-mode eval cases.
 
 It answers at the fixture's api_url (http://127.0.0.1:47817/api) the way AgentCM answers under
-contract 1, and records every request, with its answer, for the graders:
+the contract, and records every request, with its answer, for the graders:
 
 - GET: the answer recorded in the fixture's api-responses.json under "GET /projects/<id>/..."
   (the path after /api, without the query). A list is paged by ?limit= and ?offset=.
@@ -16,7 +16,7 @@ contract 1, and records every request, with its answer, for the graders:
     accepted or pending in the files (neighbouring lines of one type and status are one card), or
     by a card created earlier in this stub's life, so a takeoff run twice gets already_held for
     what the first run sent. Each entry carries new_type, true when the request registered a type
-    outside contract 1's names. A rejected card is in no file: each detection the recorded tag
+    outside the contract's names. A rejected card is in no file: each detection the recorded tag
     ingest answered `rejected` is one, holding the texts its box takes. A box that takes exactly
     those texts, as the same type, is answered `rejected` with that card; tag_text is a label and
     is never compared (D-249). Not AgentCM's code: the same rule, over the same files.
@@ -61,7 +61,7 @@ CONTROL = "/__eval_stub__"
 WRITE_ENDPOINTS = re.compile(r"^/projects/[^/]+/(schedules/ingest|schedules/reconcile|tag-detections/ingest)$")
 TAG_INGEST = re.compile(r"^/projects/([^/]+)/tag-detections/ingest$")
 SHEET_ENTRY = re.compile(r'id:\s*"([^"]+)"\s+sheet_number:\s*"([^"]+)"')
-# contract 1's tag types, and the aliases AgentCM stores under them (D-249)
+# the contract's tag types, and the aliases AgentCM stores under them (D-249)
 CANONICAL = {"room_tag", "door_tag", "element_tag", "simple_callout", "multi_detail_callout", "grid_label",
              "view_label", "note_block", "schedule_block", "schedule_zone", "annotation", "viewport_highlight"}
 ALIASES = {"detail_callout": "simple_callout", "section_callout": "simple_callout",
@@ -116,7 +116,7 @@ class Stub:
         self.log_path = log_path
         self.construction = Path(workspace) / ".construction" if workspace else None
         self.cards: dict[str, list[dict]] = {}  # sheet id -> cards created this run: {id, lines, element_ids}
-        self.registered: set[str] = set()       # types outside contract 1 registered this run
+        self.registered: set[str] = set()       # types outside the contract registered this run
         self.rejected = self.recorded_rejections()
         self.lock = threading.Lock()
 

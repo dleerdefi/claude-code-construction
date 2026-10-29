@@ -6,15 +6,62 @@ Construction skills for Claude Code that let you navigate drawings, extract sche
 
 **These skills work standalone** with any construction PDFs. They rasterize PDF pages with the plugin's own scripts and read the resulting images; they never read a PDF directly. No additional platform is required. AgentCM, a separate project-data tool, is optional; the skills work without it and use its pre-indexed data when it is present.
 
-## Prerequisites
-
-- [Claude Code](https://claude.ai/code) installed
-- Python 3.10+ and, on Windows, [Git for Windows](https://git-scm.com/download/win) (run the commands in Git Bash). See the [README prerequisites](../README.md#prerequisites) for details per operating system.
-- Construction project PDFs (drawings and/or specs)
-
 ## Install
 
-Follow [Setup in the README](../README.md#setup), then check the install with [Validating your install](VALIDATING.md).
+A person can follow these steps, or Claude Code can follow them for the person: for example from AgentCM's install guide, whose optional step links here. Claude: use plain words, one step at a time. Ask before installing anything, and install nothing these steps don't name. The steps are safe to repeat; the checks find what's already done.
+
+You need Claude Code, Git, Python 3.10 or newer, and your project's documents (drawings, specs, bids and so on). An AgentCM install already has Claude Code and Git.
+
+### Step 1: Check, changing nothing
+
+1. **Git:** `git --version`. On Windows, Git for Windows also gives Claude Code the Bash tool that the skills' commands run in.
+2. **Python 3.10 or newer:**
+   - Windows: `py -3 --version`, or `python --version`. A `python` that opens the Microsoft Store doesn't count.
+   - macOS and Linux: `python3 --version`. Apple's built-in `python3` is 3.9, which is too old.
+3. **The plugin, if it's already installed:** `claude plugin list` shows `construction@construction-skills`.
+
+Show the person what was found, say what you'll install, and ask once: "Shall I go ahead?"
+
+### Step 2: Install what is missing
+
+- **Windows:** Python with `winget install --id Python.Python.3.12 -e`; Git, if missing, with `winget install --id Git.Git -e`. An installer that asks for administrator rights: the person presses **Yes**.
+- **macOS:** `brew install python@3.12 git`. Without Homebrew, the person installs it from https://brew.sh first, since it asks for their Mac password.
+- **Debian and Ubuntu:** `sudo apt install python3 python3-venv git`. The person runs it in their own terminal, since it asks for their password.
+
+A program installed just now isn't on Claude Code's PATH yet: reopen Claude Code in the same folder before Step 3.
+
+### Step 3: Install the plugin
+
+The person types these two lines in Claude Code:
+
+```
+/plugin marketplace add dleerdefi/claude-code-construction
+/plugin install construction@construction-skills
+```
+
+Claude can run the same from a terminal instead:
+
+```
+claude plugin marketplace add dleerdefi/claude-code-construction
+claude plugin install construction@construction-skills
+```
+
+Then run `/reload-plugins`, or reopen Claude Code.
+
+This repository is its own marketplace. Updates arrive with each release; turn on auto-update under `/plugin` → Marketplaces.
+
+Where it writes:
+- the plugin itself, under `~/.claude/plugins/`;
+- the first time a skill runs one of its scripts, a Python environment at `~/.construction-skills/venv` (this takes about a minute).
+
+It writes nothing in a project folder until a skill runs there.
+
+### Step 4: Check
+
+1. `claude plugin list` shows `construction@construction-skills`, enabled. In Claude Code, typing `/construction:` lists the skills.
+2. Open Claude Code in a project folder and run `/construction:project-setup`. With AgentCM, open the project folder AgentCM manages: the skill says it found AgentCM, with AgentCM's contract version.
+
+[Validating your install](VALIDATING.md) has the full checks. To work on the skills themselves, or to use the newest unreleased ones, clone the repository instead ([Setup in the README](../README.md#setup), Option B).
 
 ## Try It: Index Your Project
 

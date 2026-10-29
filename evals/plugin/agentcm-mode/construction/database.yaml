@@ -5,7 +5,7 @@ connection:
   host: "stub.invalid"
   database: "agentcm_fixture"
   user: "agentcm_reader"
-project_id: "36c8c290-c69a-4d54-b579-fd223b4a4ea1"
+project_id: "19a7b2be-04fb-4170-8f10-f888ed19b676"
 query_wrappers:
   bash: ".construction/query.sh"
   powershell: ".construction/query.ps1"
