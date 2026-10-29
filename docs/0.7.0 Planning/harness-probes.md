@@ -31,8 +31,8 @@ Write ALLOW  C:\…\_probe-fanout-20261015-235155-r1\workers\01\worker-note.txt 
 Write DENY   \tmp\probe.txt            Blocked by the eval guard: writes outside the workspace are not allowed (\tmp\probe.txt)   (worker)
 Bash  DENY   echo outside-bash-by-worker > "$HOME/probe-outside.txt"
              Blocked by the eval guard: the command names '$HOME/probe-outside.txt', which is outside the workspace, the plugin and the temp dir   (worker)
-Edit  DENY   C:\Users\leerd\AppData\Local\Temp\probe-edit-outside.txt
-             Blocked by the eval guard: writes outside the workspace are not allowed (C:\Users\leerd\AppData\Local\Temp\probe-edit-outside.txt)   (worker)
+Edit  DENY   C:\Users\<user>\AppData\Local\Temp\probe-edit-outside.txt
+             Blocked by the eval guard: writes outside the workspace are not allowed (C:\Users\<user>\AppData\Local\Temp\probe-edit-outside.txt)   (worker)
 Write ALLOW  C:\…\_probe-fanout-20261015-235155-r1\coordinator-report.md        agent_id=None (the coordinator)
 ```
 
@@ -51,20 +51,20 @@ Write ALLOW  C:\…\_probe-fanout-20261015-235155-r1\coordinator-report.md      
 
 ## V-3: worker transcripts exist at the documented path. Confirmed.
 
-Exact paths from the first worker run (session `63670428-7f72-43be-a6b3-312c73e9928a`, workspace `C:\Users\leerd\AppData\Local\Temp\construction-eval\_probe-fanout-20261015-234754-r1`):
+Exact paths from the first worker run (session `<session-id>`, workspace `C:\Users\<user>\AppData\Local\Temp\construction-eval\_probe-fanout-20261015-234754-r1`):
 
 ```
-C:\Users\leerd\.claude\projects\C--Users-leerd-AppData-Local-Temp-construction-eval--probe-fanout-20261015-234754-r1\
-    63670428-7f72-43be-a6b3-312c73e9928a.jsonl                                   the session (34 lines)
-    63670428-7f72-43be-a6b3-312c73e9928a\subagents\agent-a4c51b8760e4d26d2.jsonl   the worker (38 lines, 79,573 bytes)
-    63670428-7f72-43be-a6b3-312c73e9928a\subagents\agent-a4c51b8760e4d26d2.meta.json   (207 bytes)
+C:\Users\<user>\.claude\projects\C--Users-<user>-AppData-Local-Temp-construction-eval--probe-fanout-20261015-234754-r1\
+    <session-id>.jsonl                                   the session (34 lines)
+    <session-id>\subagents\agent-<id>.jsonl   the worker (38 lines, 79,573 bytes)
+    <session-id>\subagents\agent-<id>.meta.json   (207 bytes)
 ```
 
 - The project folder is the workspace path with every character that is not a letter or digit replaced by `-` (the SDK's `_sanitize_path`): the `\` separators, the `:`, and the case folder's leading `_`, which is why the name reads `construction-eval--probe-fanout-…`. `session_id` comes from `ResultMessage.session_id` (and the `init` system message).
 - The meta file: `{"agentType":"construction:probe-worker","description":"Run probe worker","toolUseId":"toolu_01Lhbh9mo2q4mqxYSJAsfMgw","spawnDepth":1,"requestShape":"foreground","requestNonInteractive":true,"model":"haiku"}`. `toolUseId` is the Agent call's id in the parent, the same id the stream's `parent_tool_use_id` carries, so a transcript file maps to its Agent call without parsing either transcript.
 - The worker file's lines carry `agentId`, `isSidechain: true`, and the usual `type` (`user`, `assistant`, `attachment`) with `message.content` blocks (thinking, text, tool_use, tool_result) and `message.model` (`claude-haiku-4-5-20251001`). Every tool call the worker made is there, including the Edit that failed validation and the unguarded Read.
-- A second witness: `claude_agent_sdk.list_subagents(session_id, directory=str(workspace))` returned `['a4c51b8760e4d26d2']`; `get_subagent_messages(session_id, agent_id, directory)` parses the file. The no-worker run has no `subagents` folder and `list_subagents` returns `[]`.
-- One wrinkle: the `transcript_path` in a worker's hook input is the *session's* transcript (`…\63670428-….jsonl`), not the worker's file. Find the worker file through the Agent call's `toolUseId` in the meta files, or `list_subagents`, not through the hook.
+- A second witness: `claude_agent_sdk.list_subagents(session_id, directory=str(workspace))` returned `['<id>']`; `get_subagent_messages(session_id, agent_id, directory)` parses the file. The no-worker run has no `subagents` folder and `list_subagents` returns `[]`.
+- One wrinkle: the `transcript_path` in a worker's hook input is the *session's* transcript (`…\<session-id>….jsonl`), not the worker's file. Find the worker file through the Agent call's `toolUseId` in the meta files, or `list_subagents`, not through the hook.
 - The folder outlives the workspace: the harness deletes the temp workspace after grading but nothing deletes `~/.claude/projects/<sanitized workspace>/`, so HR-5's copy into the run folder should be followed by removing that project folder (one folder per run; `ls ~/.claude/projects | grep -c construction-eval` gives 345 of them on this machine today).
 
 ## V-4: the `subagent_type` string, and `claude plugin validate --strict` with an `agents` key. Confirmed.
